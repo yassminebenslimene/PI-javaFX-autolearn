@@ -20,8 +20,8 @@ public class FrontofficeController {
 
         var u = SessionManager.getCurrentUser();
         String name = u.getPrenom() + " " + u.getNom();
-        labelCurrentUser.setText(name);
-        welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Prêt à apprendre aujourd'hui ?");
+        if (labelCurrentUser != null) labelCurrentUser.setText(name);
+        if (welcomeLabel != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Prêt à apprendre aujourd'hui ?");
 
         // Avatar initials
         String initials = u.getPrenom().substring(0,1).toUpperCase()
@@ -47,6 +47,9 @@ public class FrontofficeController {
 
     @FXML
     private void onProfile() {
-        try { MainApp.showProfile(); } catch (Exception e) { e.printStackTrace(); }
+        try { MainApp.showProfile(); } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("onProfile error: " + e.getMessage());
+        }
     }
 }
