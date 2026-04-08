@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="tn.esprit.controllers.UserController"
-      spacing="0" prefWidth="520"
-      style="-fx-background-color:#0d1a14;">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefWidth="520" spacing="0" style="-fx-background-color:#0d1a14;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="tn.esprit.controllers.UserController">
 
     <!-- Header -->
-    <HBox alignment="CENTER_LEFT" spacing="12"
-          style="-fx-background-color:rgba(5,150,105,0.15); -fx-padding:20 24 18 24;
-                 -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;">
-        <Label text="🎓" style="-fx-font-size:20;"/>
+    <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color:rgba(5,150,105,0.15); -fx-padding:20 24 18 24;                  -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;">
+        <Label style="-fx-font-size:20;" text="🎓" textFill="WHITE" />
         <VBox spacing="2">
-            <Label fx:id="formTitle" text="Nouvel étudiant"
-                   style="-fx-text-fill:white; -fx-font-size:16; -fx-font-weight:bold;"/>
-            <Label fx:id="formSubtitle" text="Remplissez les informations ci-dessous"
-                   style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:11;"/>
+            <Label fx:id="formTitle" style="-fx-text-fill:white; -fx-font-size:16; -fx-font-weight:bold;" text="Nouvel étudiant" />
+            <Label fx:id="formSubtitle" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:11;" text="Remplissez les informations ci-dessous" />
         </VBox>
     </HBox>
 
@@ -25,59 +24,36 @@
     <ScrollPane fitToWidth="true" style="-fx-background-color:#0d1a14; -fx-background:transparent;">
         <VBox spacing="8" style="-fx-padding:20 28 20 28;">
 
-            <Label text="Nom *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
-            <TextField fx:id="fieldNom" promptText="Ex: Ben Ali"
-                       style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
-                              -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
-                              -fx-font-size:13; -fx-text-fill:white;"/>
-            <Label fx:id="errorNom" style="-fx-text-fill:#f87171; -fx-font-size:11;" minHeight="14"/>
+            <Label style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);" text="Nom *" />
+            <TextField fx:id="fieldNom" promptText="Ex: Ben Ali" style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);                               -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;                               -fx-font-size:13; -fx-text-fill:white;" />
+            <Label fx:id="errorNom" minHeight="14" style="-fx-text-fill:#f87171; -fx-font-size:11;" />
 
-            <Label text="Prénom *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
-            <TextField fx:id="fieldPrenom" promptText="Ex: Mohamed"
-                       style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
-                              -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
-                              -fx-font-size:13; -fx-text-fill:white;"/>
-            <Label fx:id="errorPrenom" style="-fx-text-fill:#f87171; -fx-font-size:11;" minHeight="14"/>
+            <Label style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);" text="Prénom *" />
+            <TextField fx:id="fieldPrenom" promptText="Ex: Mohamed" style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);                               -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;                               -fx-font-size:13; -fx-text-fill:white;" />
+            <Label fx:id="errorPrenom" minHeight="14" style="-fx-text-fill:#f87171; -fx-font-size:11;" />
 
-            <Label text="Email *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
-            <TextField fx:id="fieldEmail" promptText="votre@email.com"
-                       style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
-                              -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
-                              -fx-font-size:13; -fx-text-fill:white;"/>
-            <Label fx:id="errorEmail" style="-fx-text-fill:#f87171; -fx-font-size:11;" minHeight="14"/>
+            <Label style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);" text="Email *" />
+            <TextField fx:id="fieldEmail" promptText="votre@email.com" style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);                               -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;                               -fx-font-size:13; -fx-text-fill:white;" />
+            <Label fx:id="errorEmail" minHeight="14" style="-fx-text-fill:#f87171; -fx-font-size:11;" />
 
-            <Label text="Mot de passe" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
-            <PasswordField fx:id="fieldPassword"
-                           style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
-                                  -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
-                                  -fx-font-size:13; -fx-text-fill:white;"/>
-            <Label fx:id="labelPasswordHint" text="Min 6 car. — Maj + min + chiffre + spécial"
-                   style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:11;"/>
-            <Label fx:id="errorPassword" style="-fx-text-fill:#f87171; -fx-font-size:11;" minHeight="14"/>
+            <Label style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);" text="Mot de passe" />
+            <PasswordField fx:id="fieldPassword" style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);                                   -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;                                   -fx-font-size:13; -fx-text-fill:white;" />
+            <Label fx:id="labelPasswordHint" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:11;" text="Min 6 car. — Maj + min + chiffre + spécial" />
+            <Label fx:id="errorPassword" minHeight="14" style="-fx-text-fill:#f87171; -fx-font-size:11;" />
 
-            <Label fx:id="labelNiveau" text="Niveau *"
-                   style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
-            <ComboBox fx:id="comboNiveau" promptText="Choisir un niveau" maxWidth="Infinity"
-                      style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
-                             -fx-border-radius:8; -fx-background-radius:8; -fx-font-size:13;"/>
-            <Label fx:id="errorNiveau" style="-fx-text-fill:#f87171; -fx-font-size:11;" minHeight="14"/>
+            <Label fx:id="labelNiveau" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);" text="Niveau *" />
+            <ComboBox fx:id="comboNiveau" maxWidth="Infinity" promptText="Choisir un niveau" style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);                              -fx-border-radius:8; -fx-background-radius:8; -fx-font-size:13;" />
+            <Label fx:id="errorNiveau" minHeight="14" style="-fx-text-fill:#f87171; -fx-font-size:11;" />
 
             <!-- hidden role/errorRole stubs so controller fields don't NPE -->
-            <ComboBox fx:id="comboRole" visible="false" managed="false"/>
-            <Label fx:id="errorRole" visible="false" managed="false"/>
+            <ComboBox fx:id="comboRole" managed="false" visible="false" />
+            <Label fx:id="errorRole" managed="false" visible="false" />
         </VBox>
     </ScrollPane>
 
     <!-- Footer -->
-    <HBox spacing="10" alignment="CENTER_RIGHT"
-          style="-fx-background-color:rgba(255,255,255,0.03); -fx-padding:14 24 18 24;
-                 -fx-border-color:rgba(255,255,255,0.1) transparent transparent transparent; -fx-border-width:1 0 0 0;">
-        <Button text="Annuler" onAction="#onCancel"
-                style="-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:white; -fx-font-size:13;
-                       -fx-padding:10 22 10 22; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"/>
-        <Button text="✔  Enregistrer" onAction="#onSave"
-                style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13;
-                       -fx-font-weight:bold; -fx-padding:10 22 10 22; -fx-background-radius:8;
-                       -fx-cursor:hand; -fx-border-width:0;"/>
+    <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-background-color:rgba(255,255,255,0.03); -fx-padding:14 24 18 24;                  -fx-border-color:rgba(255,255,255,0.1) transparent transparent transparent; -fx-border-width:1 0 0 0;">
+        <Button onAction="#onCancel" style="-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:white; -fx-font-size:13;                        -fx-padding:10 22 10 22; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;" text="Annuler" />
+        <Button onAction="#onSave" style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13;                        -fx-font-weight:bold; -fx-padding:10 22 10 22; -fx-background-radius:8;                        -fx-cursor:hand; -fx-border-width:0;" text="✔  Enregistrer" />
     </HBox>
 </VBox>

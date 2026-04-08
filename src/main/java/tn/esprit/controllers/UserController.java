@@ -75,23 +75,13 @@ public class UserController {
             "-fx-table-cell-border-color:rgba(255,255,255,0.06);"
         );
 
-        // Style column headers dark after scene is attached
+        // Dark scrollbar + dark header — applied once skin is ready
         tableUsers.skinProperty().addListener((obs, o, skin) -> {
-            javafx.scene.Node header = tableUsers.lookup("TableHeaderRow");
-            if (header != null) {
-                header.setStyle("-fx-background-color:#0d1710; -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;");
-                // Style each column header label
-                tableUsers.lookupAll(".column-header").forEach(node ->
-                    node.setStyle("-fx-background-color:#0d1710; -fx-border-width:0;")
-                );
-                tableUsers.lookupAll(".column-header .label").forEach(node ->
-                    ((javafx.scene.control.Label) node).setStyle(
-                        "-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:12; -fx-font-weight:700;")
-                );
-                tableUsers.lookupAll(".filler").forEach(node ->
-                    node.setStyle("-fx-background-color:#0d1710;")
-                );
-            }
+            javafx.application.Platform.runLater(() -> applyTableDarkTheme());
+        });
+        // Also apply when scene is set (fallback)
+        tableUsers.sceneProperty().addListener((obs, o, scene) -> {
+            if (scene != null) javafx.application.Platform.runLater(() -> applyTableDarkTheme());
         });
 
         // Force dark row background — overrides JavaFX default white
@@ -133,7 +123,7 @@ public class UserController {
                 VBox info = new VBox(2, name, email);
                 HBox cell = new HBox(10, avatar, info);
                 cell.setAlignment(Pos.CENTER_LEFT);
-                cell.setStyle("-fx-padding:6 0 6 0;");
+                cell.setStyle("-fx-padding:3 0 3 4;");
                 setGraphic(cell);
             }
         });
@@ -244,6 +234,31 @@ public class UserController {
         try { loadTable(); } catch (Exception e) {
             System.err.println("Erreur chargement: " + e.getMessage());
         }
+    }
+
+    private void applyTableDarkTheme() {
+        // Header row
+        javafx.scene.Node header = tableUsers.lookup("TableHeaderRow");
+        if (header != null)
+            header.setStyle("-fx-background-color:#0d1710; -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent; -fx-border-width:0 0 1 0;");
+        tableUsers.lookupAll(".column-header").forEach(n ->
+            n.setStyle("-fx-background-color:#0d1710; -fx-border-width:0;"));
+        tableUsers.lookupAll(".column-header .label").forEach(n ->
+            ((javafx.scene.control.Label) n).setStyle(
+                "-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:12; -fx-font-weight:700;"));
+        tableUsers.lookupAll(".filler").forEach(n ->
+            n.setStyle("-fx-background-color:#0d1710;"));
+        // Scrollbars
+        tableUsers.lookupAll(".scroll-bar").forEach(n ->
+            n.setStyle("-fx-background-color:transparent;"));
+        tableUsers.lookupAll(".scroll-bar .track").forEach(n ->
+            n.setStyle("-fx-background-color:transparent; -fx-border-color:transparent;"));
+        tableUsers.lookupAll(".scroll-bar .thumb").forEach(n ->
+            n.setStyle("-fx-background-color:rgba(52,211,153,0.22); -fx-background-radius:4;"));
+        tableUsers.lookupAll(".increment-button, .decrement-button").forEach(n ->
+            n.setStyle("-fx-background-color:transparent; -fx-pref-height:0; -fx-pref-width:0;"));
+        tableUsers.lookupAll(".corner").forEach(n ->
+            n.setStyle("-fx-background-color:transparent;"));
     }
 
     private void loadTable() {

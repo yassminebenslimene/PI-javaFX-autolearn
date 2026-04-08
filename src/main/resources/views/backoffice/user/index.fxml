@@ -10,69 +10,64 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="0" style="-fx-background-color:#0f1a14;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="tn.esprit.controllers.UserController">
-    <padding><Insets bottom="28" left="32" right="32" top="28" /></padding>
+<VBox spacing="0" style="-fx-background-color:#0f1a14;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.UserController">
+    <padding><Insets bottom="20" left="28" right="28" top="20" /></padding>
 
-    <!-- ══ STATS GRID (4 cards like Symfony) ══ -->
-    <HBox alignment="CENTER" spacing="18">
+    <!-- ══ STATS (compact) ══ -->
+    <HBox alignment="CENTER" spacing="14">
 
-        <!-- Total Users -->
-        <VBox prefHeight="110" prefWidth="210" spacing="10" style="-fx-background-color:rgba(255,255,255,0.06);                      -fx-background-radius:18;                      -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:18;                      -fx-padding:20; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),12,0,0,4);">
+        <VBox prefHeight="80" prefWidth="190" spacing="6" style="-fx-background-color:rgba(255,255,255,0.06); -fx-background-radius:14;                      -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:14;                      -fx-padding:14 16 14 16; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),10,0,0,3);">
             <HBox alignment="CENTER_LEFT" spacing="0">
-                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-size:12; -fx-text-fill:rgba(245,245,244,0.55); -fx-font-weight:600;" text="Total Users" />
-                    <Label fx:id="labelTotalUsers" style="-fx-font-size:34; -fx-font-weight:700; -fx-text-fill:#34d399;" text="0" />
-                    <Label style="-fx-font-size:11; -fx-text-fill:rgba(52,211,153,0.7);" text="▲ utilisateurs actifs" />
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.55); -fx-font-weight:600;" text="Total Users" />
+                    <Label fx:id="labelTotalUsers" style="-fx-font-size:26; -fx-font-weight:700; -fx-text-fill:#34d399;" text="0" />
+                    <Label style="-fx-font-size:10; -fx-text-fill:rgba(52,211,153,0.7);" text="▲ utilisateurs actifs" />
                 </VBox>
-                <Label style="-fx-font-size:28; -fx-background-color:rgba(52,211,153,0.12);                               -fx-background-radius:14; -fx-padding:10 12 10 12;" text="👥" />
+                <Label style="-fx-font-size:22; -fx-background-color:rgba(52,211,153,0.12);                               -fx-background-radius:10; -fx-padding:7 9 7 9;" text="👥" textFill="WHITE" />
             </HBox>
         </VBox>
 
-        <!-- Students -->
-        <VBox prefHeight="110" prefWidth="210" spacing="10" style="-fx-background-color:rgba(255,255,255,0.06);                      -fx-background-radius:18;                      -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:18;                      -fx-padding:20; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),12,0,0,4);">
+        <VBox prefHeight="80" prefWidth="190" spacing="6" style="-fx-background-color:rgba(255,255,255,0.06); -fx-background-radius:14;                      -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:14;                      -fx-padding:14 16 14 16; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),10,0,0,3);">
             <HBox alignment="CENTER_LEFT" spacing="0">
-                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-size:12; -fx-text-fill:rgba(245,245,244,0.55); -fx-font-weight:600;" text="Étudiants" />
-                    <Label fx:id="labelTotalEtudiants" style="-fx-font-size:34; -fx-font-weight:700; -fx-text-fill:#fbbf24;" text="0" />
-                    <Label style="-fx-font-size:11; -fx-text-fill:rgba(251,191,36,0.7);" text="▲ +12.5%" />
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.55); -fx-font-weight:600;" text="Étudiants" />
+                    <Label fx:id="labelTotalEtudiants" style="-fx-font-size:26; -fx-font-weight:700; -fx-text-fill:#fbbf24;" text="0" />
+                    <Label style="-fx-font-size:10; -fx-text-fill:rgba(251,191,36,0.7);" text="▲ +12.5%" />
                 </VBox>
-                <Label style="-fx-font-size:28; -fx-background-color:rgba(251,191,36,0.12);                               -fx-background-radius:14; -fx-padding:10 12 10 12;" text="🎓" />
+                <Label style="-fx-font-size:22; -fx-background-color:rgba(251,191,36,0.12);                               -fx-background-radius:10; -fx-padding:7 9 7 9;" text="🎓" textFill="WHITE" />
             </HBox>
         </VBox>
 
-        <!-- Admins -->
-        <VBox alignment="TOP_CENTER" prefHeight="110" prefWidth="210" spacing="10" style="-fx-background-color:rgba(255,255,255,0.06);                      -fx-background-radius:18;                      -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:18;                      -fx-padding:20; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),12,0,0,4);">
+        <VBox prefHeight="80" prefWidth="190" spacing="6" style="-fx-background-color:rgba(255,255,255,0.06); -fx-background-radius:14;                      -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:14;                      -fx-padding:14 16 14 16; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),10,0,0,3);">
             <HBox alignment="CENTER_LEFT" spacing="0">
-                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-size:12; -fx-text-fill:rgba(245,245,244,0.55); -fx-font-weight:600;" text="Administrateurs" />
-                    <Label fx:id="labelTotalAdmins" style="-fx-font-size:34; -fx-font-weight:700; -fx-text-fill:#f87171;" text="0" />
-                    <Label style="-fx-font-size:11; -fx-text-fill:rgba(248,113,113,0.7);" text="▲ +5.2%" />
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.55); -fx-font-weight:600;" text="Administrateurs" />
+                    <Label fx:id="labelTotalAdmins" style="-fx-font-size:26; -fx-font-weight:700; -fx-text-fill:#f87171;" text="0" />
+                    <Label style="-fx-font-size:10; -fx-text-fill:rgba(248,113,113,0.7);" text="▲ +5.2%" />
                 </VBox>
-                <Label style="-fx-font-size:28; -fx-background-color:rgba(248,113,113,0.12);                               -fx-background-radius:14; -fx-padding:10 12 10 12;" text="🛡" />
+                <Label style="-fx-font-size:22; -fx-background-color:rgba(248,113,113,0.12);                               -fx-background-radius:10; -fx-padding:7 9 7 9;" text="🛡" textFill="WHITE" />
             </HBox>
         </VBox>
 
-        <!-- Add button -->
         <HBox fx:id="adminToolbarNew" alignment="CENTER" />
     </HBox>
 
-    <Region prefHeight="24" />
+    <Region prefHeight="16" />
 
     <!-- ══ TABLE CARD ══ -->
-    <VBox spacing="0" style="-fx-background-color:rgba(255,255,255,0.05);                  -fx-background-radius:20;                  -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:20;                  -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.25),16,0,0,6);" VBox.vgrow="ALWAYS">
+    <VBox spacing="0" style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:20;                  -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:20;                  -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.25),16,0,0,6);" VBox.vgrow="ALWAYS">
 
         <!-- Card header -->
-        <HBox alignment="CENTER_LEFT" spacing="16" style="-fx-padding:20 24 16 24;                      -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;                      -fx-border-width:0 0 1 0;">
+        <HBox alignment="CENTER_LEFT" spacing="16" style="-fx-padding:16 20 14 20;                      -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;                      -fx-border-width:0 0 1 0;">
             <VBox spacing="2">
-                <Label style="-fx-font-size:16; -fx-font-weight:700; -fx-text-fill:white;" text="All Users" />
-                <Label style="-fx-font-size:12; -fx-text-fill:rgba(245,245,244,0.45);" text="Manage your user base" />
+                <Label style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:white;" text="All Users" />
+                <Label style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.45);" text="Manage your user base" />
             </VBox>
             <Region HBox.hgrow="ALWAYS" />
-            <Button onAction="#onNewUser" style="-fx-background-color:linear-gradient(to bottom right, #34d399, #059669);                            -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13;                            -fx-padding:14 26 14 26; -fx-background-radius:14; -fx-cursor:hand;                            -fx-border-width:0;                            -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.5),14,0,0,4);" text="＋  Add Student" />
-            <!-- Search -->
-            <HBox alignment="CENTER" spacing="8" style="-fx-background-color:rgba(255,255,255,0.07);                          -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);                          -fx-border-radius:10; -fx-padding:8 14 8 14;">
-                <Label style="-fx-font-size:13; -fx-text-fill:rgba(245,245,244,0.4);" text="🔍" />
-                <TextField fx:id="searchField" onKeyReleased="#onSearch" prefWidth="220" promptText="Search users..." style="-fx-background-color:transparent; -fx-border-width:0;                                   -fx-font-size:13; -fx-text-fill:white;                                   -fx-prompt-text-fill:rgba(245,245,244,0.35);" />
+            <Button onAction="#onNewUser" style="-fx-background-color:linear-gradient(to bottom right, #34d399, #059669);                            -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:12;                            -fx-padding:10 20 10 20; -fx-background-radius:12; -fx-cursor:hand;                            -fx-border-width:0;                            -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.5),10,0,0,3);" text="＋  Add Student" />
+            <HBox alignment="CENTER" spacing="8" style="-fx-background-color:rgba(255,255,255,0.07);                          -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);                          -fx-border-radius:10; -fx-padding:7 12 7 12;">
+                <Label style="-fx-font-size:12; -fx-text-fill:rgba(245,245,244,0.4);" text="🔍" />
+                <TextField fx:id="searchField" onKeyReleased="#onSearch" prefWidth="200" promptText="Search users..." style="-fx-background-color:transparent; -fx-border-width:0;                                   -fx-font-size:13; -fx-text-fill:white;                                   -fx-prompt-text-fill:rgba(245,245,244,0.35);" />
                 <Button onAction="#onClearSearch" style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.4);                                -fx-padding:0 4 0 4; -fx-cursor:hand; -fx-border-width:0; -fx-font-size:12;" text="✕" />
             </HBox>
         </HBox>
@@ -83,9 +78,9 @@
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
             </columnResizePolicy>
             <columns>
-                <TableColumn fx:id="colUser" minWidth="240" text="User" />
+                <TableColumn fx:id="colUser" minWidth="220" text="User" />
                 <TableColumn fx:id="colNiveau" minWidth="110" style="-fx-alignment:CENTER;" text="Level" />
-                <TableColumn fx:id="colCreated" minWidth="110" style="-fx-alignment:CENTER;" text="Joined" />
+                <TableColumn fx:id="colCreated" minWidth="100" style="-fx-alignment:CENTER;" text="Joined" />
                 <TableColumn fx:id="colStatut" minWidth="100" style="-fx-alignment:CENTER;" text="Status" />
                 <TableColumn fx:id="colActions" minWidth="180" sortable="false" style="-fx-alignment:CENTER;" text="Actions" />
             </columns>
