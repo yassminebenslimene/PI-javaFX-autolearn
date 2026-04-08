@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.controllers.ShowUserController"
+      spacing="0" prefWidth="500" maxHeight="620"
+      style="-fx-background-color:#0d1a14;">
+
+    <!-- Header with avatar -->
+    <VBox alignment="CENTER" spacing="8"
+          style="-fx-background-color:rgba(5,150,105,0.15); -fx-padding:24 24 20 24;
+                 -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;">
+        <Label fx:id="labelInitials"
+               style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:26; -fx-font-weight:bold;
+                      -fx-background-radius:50%; -fx-padding:14 18 14 18;"/>
+        <Label fx:id="labelFullName" text=""
+               style="-fx-font-size:18; -fx-font-weight:bold; -fx-text-fill:white;"/>
+        <Label fx:id="labelRoleBadge" text=""
+               style="-fx-background-radius:20; -fx-padding:4 14 4 14; -fx-font-weight:bold; -fx-font-size:12;"/>
+    </VBox>
+
+    <!-- Scrollable details -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;">
+        <VBox spacing="0" style="-fx-padding:8 28 8 28;">
+
+            <HBox style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
+                <Label text="Nom" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                <Label fx:id="valNom" style="-fx-text-fill:white; -fx-font-size:13;"/>
+            </HBox>
+            <HBox style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
+                <Label text="Prénom" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                <Label fx:id="valPrenom" style="-fx-text-fill:white; -fx-font-size:13;"/>
+            </HBox>
+            <HBox style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
+                <Label text="Email" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                <Label fx:id="valEmail" style="-fx-text-fill:white; -fx-font-size:13;"/>
+            </HBox>
+            <HBox style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
+                <Label text="Rôle" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                <Label fx:id="valRole" style="-fx-text-fill:white; -fx-font-size:13;"/>
+            </HBox>
+            <HBox fx:id="rowNiveau" style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
+                <Label text="Niveau" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                <Label fx:id="valNiveau" style="-fx-text-fill:#fbbf24; -fx-font-size:13; -fx-font-weight:bold;"/>
+            </HBox>
+            <HBox style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
+                <Label text="Statut" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                <Label fx:id="valStatut" style="-fx-font-size:13;"/>
+            </HBox>
+            <HBox style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
+                <Label text="Créé le" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                <Label fx:id="valCreated" style="-fx-text-fill:white; -fx-font-size:13;"/>
+            </HBox>
+
+            <!-- Suspension info -->
+            <VBox fx:id="rowSuspension" spacing="0" visible="false" managed="false">
+                <HBox style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
+                    <Label text="Suspendu le" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                    <Label fx:id="valSuspendedAt" style="-fx-text-fill:#f87171; -fx-font-size:13;"/>
+                </HBox>
+                <HBox style="-fx-padding:11 0 11 0;">
+                    <Label text="Raison" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
+                    <Label fx:id="valSuspendedReason" style="-fx-text-fill:#f87171; -fx-font-size:13;" wrapText="true" maxWidth="260"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+
+    <!-- Footer -->
+    <HBox alignment="CENTER_RIGHT"
+          style="-fx-padding:12 28 16 28; -fx-border-color:rgba(255,255,255,0.08) transparent transparent transparent; -fx-border-width:1 0 0 0;">
+        <Button text="Fermer" onAction="#onClose"
+                style="-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:white; -fx-font-size:13;
+                       -fx-padding:9 24 9 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"/>
+    </HBox>
+</VBox>

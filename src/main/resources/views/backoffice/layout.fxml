@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.BackofficeController"
+            prefWidth="1280" prefHeight="760"
+            style="-fx-background-color:#0a0f0d;"
+            stylesheets="@../../css/backoffice.css">
+
+    <center>
+        <HBox>
+            <!-- ══ SIDEBAR (matches Symfony _sidebar.html.twig) ══ -->
+            <VBox prefWidth="260" spacing="0"
+                  style="-fx-background-color:rgba(255,255,255,0.05);
+                         -fx-border-color:rgba(255,255,255,0.1) rgba(255,255,255,0.1) rgba(255,255,255,0.1) transparent;
+                         -fx-border-width:0 1 0 0;">
+
+                <!-- Logo -->
+                <HBox alignment="CENTER_LEFT" spacing="12"
+                      style="-fx-padding:24 20 24 20; -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;">
+                    <Label text="G" style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:18; -fx-font-weight:bold; -fx-background-radius:10; -fx-padding:6 12 6 12;"/>
+                    <Label text="AutoLearn" style="-fx-text-fill:white; -fx-font-size:16; -fx-font-weight:bold;"/>
+                </HBox>
+
+                <!-- MAIN MENU -->
+                <VBox spacing="2" style="-fx-padding:16 8 8 8;">
+                    <Label text="MAIN MENU" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
+                    <Button fx:id="btnDashboard" text="  ⊞   Dashboard" maxWidth="Infinity" onAction="#navigateToDashboard"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                    <Button fx:id="btnUsers" text="  👥   Utilisateurs" maxWidth="Infinity" onAction="#navigateToUsers"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                </VBox>
+
+                <!-- COMPTE -->
+                <VBox spacing="2" style="-fx-padding:8 8 8 8;">
+                    <Label text="COMPTE" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
+                    <Button fx:id="btnProfile" text="  👤   Mon Profil" maxWidth="Infinity" onAction="#navigateToProfile"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                    <Button text="  ⎋   Déconnexion" maxWidth="Infinity" onAction="#onLogout"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <!-- User footer -->
+                <HBox spacing="10" alignment="CENTER_LEFT"
+                      style="-fx-background-color:rgba(255,255,255,0.05); -fx-padding:16 16 16 16;
+                             -fx-border-color:rgba(255,255,255,0.1) transparent transparent transparent; -fx-border-width:1 0 0 0;">
+                    <Label fx:id="labelAvatarSidebar"
+                           style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-weight:bold;
+                                  -fx-font-size:13; -fx-background-radius:50%; -fx-padding:8 10 8 10;"/>
+                    <VBox spacing="1">
+                        <Label fx:id="labelCurrentUser" style="-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold;"/>
+                        <Label fx:id="labelCurrentRole" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:11;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- ══ MAIN CONTENT ══ -->
+            <VBox HBox.hgrow="ALWAYS" spacing="0">
+                <!-- Topbar -->
+                <HBox alignment="CENTER_LEFT" spacing="16"
+                      style="-fx-background-color:rgba(255,255,255,0.03); -fx-min-height:70; -fx-max-height:70;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;">
+                    <padding><Insets left="28" right="28"/></padding>
+                    <Label fx:id="labelPageTitle" text="Gestion des Utilisateurs"
+                           style="-fx-text-fill:white; -fx-font-size:20; -fx-font-weight:bold;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                </HBox>
+
+                <!-- Content area -->
+                <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS"
+                           style="-fx-background-color:#0a0f0d;"/>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

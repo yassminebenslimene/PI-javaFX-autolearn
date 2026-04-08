@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.controllers.RegisterController"
+      prefWidth="960" prefHeight="680">
+
+    <!-- LEFT PANEL -->
+    <VBox prefWidth="360" alignment="CENTER" spacing="16"
+          style="-fx-background-color:#1a1a2e;">
+        <padding><Insets top="60" right="50" bottom="60" left="50"/></padding>
+        <Label text="🎓" style="-fx-font-size:52;"/>
+        <Label text="AutoLearn" style="-fx-font-size:32; -fx-font-weight:bold; -fx-text-fill:white;"/>
+        <Label text="Rejoignez notre communauté d'apprenants"
+               style="-fx-font-size:13; -fx-text-fill:#8892b0;" wrapText="true" textAlignment="CENTER"/>
+        <Region prefHeight="20"/>
+        <VBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="✔  Accès à tous les challenges" style="-fx-text-fill:#8892b0; -fx-font-size:12;"/>
+            <Label text="✔  Suivi de progression" style="-fx-text-fill:#8892b0; -fx-font-size:12;"/>
+            <Label text="✔  Communauté active" style="-fx-text-fill:#8892b0; -fx-font-size:12;"/>
+        </VBox>
+    </VBox>
+
+    <!-- RIGHT PANEL — scrollable form -->
+    <ScrollPane HBox.hgrow="ALWAYS" fitToWidth="true"
+                style="-fx-background-color:#f8f9fa; -fx-background:transparent;">
+        <VBox alignment="CENTER" style="-fx-background-color:#f8f9fa; -fx-padding:40 60 40 60;" spacing="0">
+
+            <VBox spacing="6" maxWidth="380">
+                <Label text="Créer un compte" style="-fx-font-size:26; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;"/>
+                <Label text="Remplissez le formulaire pour vous inscrire."
+                       style="-fx-font-size:13; -fx-text-fill:#6c757d;"/>
+                <Region prefHeight="16"/>
+
+                <!-- Nom -->
+                <Label text="Nom *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#495057;"/>
+                <TextField fx:id="fieldNom" promptText="Ex: Ben Ali"
+                           style="-fx-background-color:white; -fx-border-color:#dee2e6; -fx-border-radius:8;
+                                  -fx-background-radius:8; -fx-padding:9 14 9 14; -fx-font-size:13;"/>
+                <Label fx:id="errorNom" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="14"/>
+
+                <!-- Prénom -->
+                <Label text="Prénom *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#495057;"/>
+                <TextField fx:id="fieldPrenom" promptText="Ex: Mohamed"
+                           style="-fx-background-color:white; -fx-border-color:#dee2e6; -fx-border-radius:8;
+                                  -fx-background-radius:8; -fx-padding:9 14 9 14; -fx-font-size:13;"/>
+                <Label fx:id="errorPrenom" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="14"/>
+
+                <!-- Email -->
+                <Label text="Email *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#495057;"/>
+                <TextField fx:id="fieldEmail" promptText="votre@email.com"
+                           style="-fx-background-color:white; -fx-border-color:#dee2e6; -fx-border-radius:8;
+                                  -fx-background-radius:8; -fx-padding:9 14 9 14; -fx-font-size:13;"/>
+                <Label fx:id="errorEmail" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="14"/>
+
+                <!-- Password -->
+                <Label text="Mot de passe *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#495057;"/>
+                <PasswordField fx:id="fieldPassword" promptText="Min 6 car. — Maj+min+chiffre+spécial"
+                               style="-fx-background-color:white; -fx-border-color:#dee2e6; -fx-border-radius:8;
+                                      -fx-background-radius:8; -fx-padding:9 14 9 14; -fx-font-size:13;"/>
+                <Label fx:id="errorPassword" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="14"/>
+
+                <!-- Confirm -->
+                <Label text="Confirmer le mot de passe *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#495057;"/>
+                <PasswordField fx:id="fieldConfirmPassword" promptText="Répétez le mot de passe"
+                               style="-fx-background-color:white; -fx-border-color:#dee2e6; -fx-border-radius:8;
+                                      -fx-background-radius:8; -fx-padding:9 14 9 14; -fx-font-size:13;"/>
+                <Label fx:id="errorConfirm" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="14"/>
+
+                <!-- Rôle -->
+                <Label text="Rôle *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#495057;"/>
+                <ComboBox fx:id="comboRole" promptText="Choisir un rôle" maxWidth="Infinity"
+                          style="-fx-background-color:white; -fx-border-color:#dee2e6; -fx-border-radius:8;
+                                 -fx-background-radius:8; -fx-font-size:13;"/>
+                <Label fx:id="errorRole" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="14"/>
+
+                <!-- Niveau (Etudiant only) -->
+                <Label fx:id="labelNiveau" text="Niveau *"
+                       style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#495057;"
+                       visible="false" managed="false"/>
+                <ComboBox fx:id="comboNiveau" promptText="Choisir un niveau" maxWidth="Infinity"
+                          style="-fx-background-color:white; -fx-border-color:#dee2e6; -fx-border-radius:8;
+                                 -fx-background-radius:8; -fx-font-size:13;"
+                          visible="false" managed="false"/>
+                <Label fx:id="errorNiveau" style="-fx-text-fill:#e74c3c; -fx-font-size:11;"
+                       visible="false" managed="false" minHeight="14"/>
+
+                <Label fx:id="errorGeneral" style="-fx-text-fill:#e74c3c; -fx-font-size:12;" minHeight="14"/>
+
+                <Region prefHeight="8"/>
+
+                <Button text="Créer mon compte →" onAction="#onRegister" maxWidth="Infinity"
+                        style="-fx-background-color:#1a1a2e; -fx-text-fill:white; -fx-font-size:14;
+                               -fx-font-weight:bold; -fx-padding:12 0 12 0; -fx-background-radius:8;
+                               -fx-cursor:hand;"/>
+
+                <Region prefHeight="12"/>
+
+                <HBox alignment="CENTER" spacing="6">
+                    <Label text="Déjà un compte ?" style="-fx-font-size:12; -fx-text-fill:#6c757d;"/>
+                    <Button text="Se connecter" onAction="#onGoToLogin"
+                            style="-fx-background-color:transparent; -fx-text-fill:#1a1a2e; -fx-font-size:12;
+                                   -fx-font-weight:bold; -fx-cursor:hand; -fx-padding:0;
+                                   -fx-border-width:0; -fx-underline:true;"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+</HBox>
