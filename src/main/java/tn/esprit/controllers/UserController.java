@@ -69,11 +69,55 @@ public class UserController {
     // TABLE
     // ─────────────────────────────────────────────────────────────────────────
     private void initTable() {
-        // ── User column: avatar circle + name + email (like Symfony table-user) ──
+        // Force dark background on the TableView itself
+        tableUsers.setStyle(
+            "-fx-background-color:#0f1a14; -fx-border-width:0;" +
+            "-fx-table-cell-border-color:rgba(255,255,255,0.06);"
+        );
+
+        // Style column headers dark after scene is attached
+        tableUsers.skinProperty().addListener((obs, o, skin) -> {
+            javafx.scene.Node header = tableUsers.lookup("TableHeaderRow");
+            if (header != null) {
+                header.setStyle("-fx-background-color:#0d1710; -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;");
+                // Style each column header label
+                tableUsers.lookupAll(".column-header").forEach(node ->
+                    node.setStyle("-fx-background-color:#0d1710; -fx-border-width:0;")
+                );
+                tableUsers.lookupAll(".column-header .label").forEach(node ->
+                    ((javafx.scene.control.Label) node).setStyle(
+                        "-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:12; -fx-font-weight:700;")
+                );
+                tableUsers.lookupAll(".filler").forEach(node ->
+                    node.setStyle("-fx-background-color:#0d1710;")
+                );
+            }
+        });
+
+        // Force dark row background — overrides JavaFX default white
+        tableUsers.setRowFactory(tv -> {
+            javafx.scene.control.TableRow<User> row = new javafx.scene.control.TableRow<>();
+            row.setStyle("-fx-background-color:#0f1a14;");
+            row.selectedProperty().addListener((obs, wasSelected, isSelected) ->
+                row.setStyle(isSelected
+                    ? "-fx-background-color:rgba(5,150,105,0.18);"
+                    : "-fx-background-color:#0f1a14;")
+            );
+            row.hoverProperty().addListener((obs, wasHover, isHover) -> {
+                if (!row.isSelected())
+                    row.setStyle(isHover
+                        ? "-fx-background-color:rgba(255,255,255,0.04);"
+                        : "-fx-background-color:#0f1a14;");
+            });
+            return row;
+        });
+
+        // ── User column ──
         colUser.setCellValueFactory(data -> new javafx.beans.property.SimpleObjectProperty<>(data.getValue()));
         colUser.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(User user, boolean empty) {
                 super.updateItem(user, empty);
+                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0;");
                 if (empty || user == null) { setGraphic(null); return; }
                 String initials = user.getPrenom().substring(0,1).toUpperCase()
                                 + user.getNom().substring(0,1).toUpperCase();
@@ -94,7 +138,7 @@ public class UserController {
             }
         });
 
-        // ── Level badge (gradient like Symfony level-badge) ──
+        // ── Level badge ──
         colNiveau.setCellValueFactory(data -> {
             User u = data.getValue();
             return new SimpleStringProperty((u instanceof Etudiant e && e.getNiveau() != null) ? e.getNiveau() : "—");
@@ -102,14 +146,15 @@ public class UserController {
         colNiveau.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null || "—".equals(item)) { setText("—"); setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-alignment:CENTER;"); setGraphic(null); return; }
+                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER;");
+                if (empty || item == null || "—".equals(item)) { setText("—"); setGraphic(null); return; }
                 Label badge = new Label(item);
-                String style = "-fx-font-size:11; -fx-font-weight:700; -fx-padding:4 12 4 12; -fx-background-radius:20; -fx-text-fill:white;";
+                String base = "-fx-font-size:11; -fx-font-weight:700; -fx-padding:4 12 4 12; -fx-background-radius:20; -fx-text-fill:white;";
                 switch (item) {
-                    case "DEBUTANT"      -> badge.setStyle(style + "-fx-background-color:linear-gradient(to right,#34d399,#059669);");
-                    case "INTERMEDIAIRE" -> badge.setStyle(style + "-fx-background-color:linear-gradient(to right,#fbbf24,#f59e0b); -fx-text-fill:#1a1a1a;");
-                    case "AVANCE"        -> badge.setStyle(style + "-fx-background-color:linear-gradient(to right,#f87171,#dc2626);");
-                    default              -> badge.setStyle(style + "-fx-background-color:rgba(255,255,255,0.15);");
+                    case "DEBUTANT"      -> badge.setStyle(base + "-fx-background-color:linear-gradient(to right,#34d399,#059669);");
+                    case "INTERMEDIAIRE" -> badge.setStyle(base + "-fx-background-color:linear-gradient(to right,#fbbf24,#f59e0b); -fx-text-fill:#1a1a1a;");
+                    case "AVANCE"        -> badge.setStyle(base + "-fx-background-color:linear-gradient(to right,#f87171,#dc2626);");
+                    default              -> badge.setStyle(base + "-fx-background-color:rgba(255,255,255,0.15);");
                 }
                 HBox wrap = new HBox(badge);
                 wrap.setAlignment(Pos.CENTER);
@@ -123,6 +168,7 @@ public class UserController {
         colStatut.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
+                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER;");
                 if (empty || item == null) { setGraphic(null); setText(null); return; }
                 Label badge = new Label(item);
                 if ("Suspendu".equals(item))
@@ -147,12 +193,12 @@ public class UserController {
         colCreated.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
+                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER; -fx-text-fill:rgba(245,245,244,0.6); -fx-font-size:12;");
                 setText(empty || item == null ? null : item);
-                setStyle("-fx-text-fill:rgba(245,245,244,0.6); -fx-font-size:12; -fx-alignment:CENTER;");
             }
         });
 
-        // ── Inline action buttons (View / Edit / Suspend) ──
+        // ── Actions ──
         colActions.setCellFactory(col -> new TableCell<>() {
             private final Button btnView    = new Button("View");
             private final Button btnEdit    = new Button("Edit");
@@ -161,31 +207,29 @@ public class UserController {
             {
                 String base = "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10;" +
                               "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;";
-                btnView.setStyle(base + "-fx-background-color:rgba(14,165,233,0.2); -fx-text-fill:#38bdf8;");
-                btnEdit.setStyle(base + "-fx-background-color:rgba(99,102,241,0.2); -fx-text-fill:#a5b4fc;");
-                btnSuspend.setStyle(base + "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;");
+                btnView.setStyle(base + "-fx-background-color:rgba(14,165,233,0.25); -fx-text-fill:#38bdf8;");
+                btnEdit.setStyle(base + "-fx-background-color:rgba(99,102,241,0.25); -fx-text-fill:#a5b4fc;");
+                btnSuspend.setStyle(base + "-fx-background-color:rgba(251,191,36,0.25); -fx-text-fill:#fbbf24;");
                 box.setAlignment(Pos.CENTER);
                 btnView.setOnAction(e -> openDetailWindow(getTableView().getItems().get(getIndex())));
                 btnEdit.setOnAction(e -> { onEditUser(getTableView().getItems().get(getIndex())); loadTable(); });
-                btnSuspend.setOnAction(e -> {
-                    User u = getTableView().getItems().get(getIndex());
-                    // Toggle label based on current state
-                    onSuspendUser(u); loadTable();
-                });
+                btnSuspend.setOnAction(e -> { onSuspendUser(getTableView().getItems().get(getIndex())); loadTable(); });
             }
             @Override protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
+                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0;");
                 if (empty) { setGraphic(null); return; }
-                // Update suspend button label dynamically
                 User u = getTableView().getItems().get(getIndex());
                 if (u != null) {
                     String base = "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10;" +
                                   "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;";
-                    if (u.isIsSuspended())
-                        btnSuspend.setStyle(base + "-fx-background-color:rgba(52,211,153,0.2); -fx-text-fill:#34d399;");
-                    else
-                        btnSuspend.setStyle(base + "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;");
-                    btnSuspend.setText(u.isIsSuspended() ? "Réactiver" : "Suspend");
+                    if (u.isIsSuspended()) {
+                        btnSuspend.setStyle(base + "-fx-background-color:rgba(52,211,153,0.25); -fx-text-fill:#34d399;");
+                        btnSuspend.setText("Réactiver");
+                    } else {
+                        btnSuspend.setStyle(base + "-fx-background-color:rgba(251,191,36,0.25); -fx-text-fill:#fbbf24;");
+                        btnSuspend.setText("Suspend");
+                    }
                 }
                 setGraphic(box);
             }

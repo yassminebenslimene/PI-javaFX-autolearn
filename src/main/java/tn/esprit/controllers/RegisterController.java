@@ -41,12 +41,9 @@ public class RegisterController {
         // Show niveau only for ETUDIANT
         comboRole.valueProperty().addListener((obs, o, newVal) -> {
             boolean isEtudiant = "ETUDIANT".equals(newVal);
-            labelNiveau.setVisible(isEtudiant);
-            labelNiveau.setManaged(isEtudiant);
-            comboNiveau.setVisible(isEtudiant);
-            comboNiveau.setManaged(isEtudiant);
-            errorNiveau.setVisible(isEtudiant);
-            errorNiveau.setManaged(isEtudiant);
+            labelNiveau.setVisible(isEtudiant); labelNiveau.setManaged(isEtudiant);
+            comboNiveau.setVisible(isEtudiant); comboNiveau.setManaged(isEtudiant);
+            errorNiveau.setVisible(isEtudiant); errorNiveau.setManaged(isEtudiant);
             if (!isEtudiant) comboNiveau.setValue(null);
         });
     }

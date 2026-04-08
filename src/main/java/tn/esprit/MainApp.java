@@ -3,6 +3,7 @@ package tn.esprit;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
@@ -12,53 +13,52 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         primaryStage = stage;
-        stage.setTitle("AutoLearn");
-        showRegister();
-        stage.show();
+        primaryStage.setTitle("AutoLearn");
+        primaryStage.setResizable(true);
+        primaryStage.setMinWidth(900);
+        primaryStage.setMinHeight(600);
+        showLogin();
+        primaryStage.show();
     }
 
     public static void showRegister() throws Exception {
-        primaryStage.setResizable(false);
-        load("/views/auth/register.fxml", 960, 680);
+        load("/views/auth/register.fxml");
         primaryStage.setTitle("AutoLearn — Inscription");
     }
 
     public static void showLogin() throws Exception {
-        primaryStage.setResizable(false);
-        load("/views/auth/login.fxml", 900, 580);
+        load("/views/auth/login.fxml");
         primaryStage.setTitle("AutoLearn — Connexion");
     }
 
     public static void showResetPassword() throws Exception {
-        primaryStage.setResizable(false);
-        load("/views/auth/reset_password.fxml", 860, 520);
+        load("/views/auth/reset_password.fxml");
         primaryStage.setTitle("AutoLearn — Réinitialisation");
     }
 
     public static void showBackoffice() throws Exception {
-        primaryStage.setResizable(true);
+        load("/views/backoffice/layout.fxml");
         primaryStage.setMaximized(true);
-        load("/views/backoffice/layout.fxml", 1280, 760);
         primaryStage.setTitle("AutoLearn — Backoffice");
     }
 
     public static void showFrontoffice() throws Exception {
-        primaryStage.setResizable(true);
+        load("/views/frontoffice/layout.fxml");
         primaryStage.setMaximized(true);
-        load("/views/frontoffice/layout.fxml", 1100, 680);
         primaryStage.setTitle("AutoLearn — Espace Étudiant");
     }
 
     public static void showProfile() throws Exception {
-        primaryStage.setResizable(true);
+        load("/views/profile.fxml");
         primaryStage.setMaximized(true);
-        load("/views/profile.fxml", 1100, 680);
         primaryStage.setTitle("AutoLearn — Mon Profil");
     }
 
-    private static void load(String fxml, int w, int h) throws Exception {
+    private static void load(String fxml) throws Exception {
+        // Use screen size so the scene always fills the window
+        javafx.geometry.Rectangle2D screen = Screen.getPrimary().getVisualBounds();
         FXMLLoader loader = new FXMLLoader(MainApp.class.getResource(fxml));
-        primaryStage.setScene(new Scene(loader.load(), w, h));
+        primaryStage.setScene(new Scene(loader.load(), screen.getWidth(), screen.getHeight()));
     }
 
     public static Stage getPrimaryStage() { return primaryStage; }

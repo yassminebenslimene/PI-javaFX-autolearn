@@ -18,7 +18,6 @@ public class ShowUserController {
     @FXML private Label valNom;
     @FXML private Label valPrenom;
     @FXML private Label valEmail;
-    @FXML private Label valRole;
     @FXML private Label valNiveau;
     @FXML private HBox  rowNiveau;      // HBox in show.fxml
     @FXML private Label valStatut;
@@ -42,7 +41,6 @@ public class ShowUserController {
         valNom.setText(user.getNom());
         valPrenom.setText(user.getPrenom());
         valEmail.setText(user.getEmail());
-        valRole.setText(user.getRole());
         valCreated.setText(user.getCreatedAt() != null ? SDF.format(user.getCreatedAt()) : "—");
 
         boolean isEtudiant = user instanceof Etudiant;

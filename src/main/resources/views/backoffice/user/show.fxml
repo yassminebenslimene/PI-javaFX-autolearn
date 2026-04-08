@@ -38,10 +38,6 @@
                 <Label text="Email" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
                 <Label fx:id="valEmail" style="-fx-text-fill:white; -fx-font-size:13;"/>
             </HBox>
-            <HBox style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
-                <Label text="Rôle" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
-                <Label fx:id="valRole" style="-fx-text-fill:white; -fx-font-size:13;"/>
-            </HBox>
             <HBox fx:id="rowNiveau" style="-fx-padding:11 0 11 0; -fx-border-color:transparent transparent rgba(255,255,255,0.07) transparent; -fx-border-width:0 0 1 0;">
                 <Label text="Niveau" prefWidth="130" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:13;"/>
                 <Label fx:id="valNiveau" style="-fx-text-fill:#fbbf24; -fx-font-size:13; -fx-font-weight:bold;"/>

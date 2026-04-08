@@ -80,6 +80,9 @@ public class BackofficeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
             contentArea.getChildren().clear();
             contentArea.getChildren().add(loader.load());
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Failed to load: " + path + " — " + e.getMessage());
+        }
     }
 }

@@ -6,8 +6,7 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.FrontofficeController"
             prefWidth="1200" prefHeight="760"
-            style="-fx-background-color:#f5f5f5;"
-            stylesheets="@../../css/frontoffice.css">
+            style="-fx-background-color:#f5f5f5;">
 
     <!-- ══ NAVBAR (Scholar purple style) ══ -->
     <top>

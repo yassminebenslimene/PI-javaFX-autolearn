@@ -17,6 +17,7 @@ public class ProfileController {
     // Header
     @FXML private Label labelInitials;
     @FXML private Label labelFullName;
+    @FXML private Label labelFullName2;   // inside the white card
     @FXML private Label labelEmailHeader;
     @FXML private Label labelRole;
     @FXML private Label labelNiveauBadge;
@@ -64,6 +65,7 @@ public class ProfileController {
                         + u.getNom().substring(0, 1).toUpperCase();
         labelInitials.setText(initials);
         labelFullName.setText(u.getPrenom() + " " + u.getNom());
+        if (labelFullName2 != null) labelFullName2.setText(u.getPrenom() + " " + u.getNom());
         if (labelEmailHeader != null) labelEmailHeader.setText(u.getEmail());
         labelRole.setText(u.getRole());
 
