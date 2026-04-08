@@ -63,16 +63,16 @@ public class ProfileController {
         // Avatar initials
         String initials = u.getPrenom().substring(0, 1).toUpperCase()
                         + u.getNom().substring(0, 1).toUpperCase();
-        labelInitials.setText(initials);
-        labelFullName.setText(u.getPrenom() + " " + u.getNom());
+        if (labelInitials != null) labelInitials.setText(initials);
+        if (labelFullName != null) labelFullName.setText(u.getPrenom() + " " + u.getNom());
         if (labelFullName2 != null) labelFullName2.setText(u.getPrenom() + " " + u.getNom());
         if (labelEmailHeader != null) labelEmailHeader.setText(u.getEmail());
-        labelRole.setText(u.getRole());
+        if (labelRole != null) labelRole.setText(u.getRole());
 
         // Pre-fill form with current data
-        fieldNom.setText(u.getNom());
-        fieldPrenom.setText(u.getPrenom());
-        fieldEmail.setText(u.getEmail());
+        if (fieldNom != null) fieldNom.setText(u.getNom());
+        if (fieldPrenom != null) fieldPrenom.setText(u.getPrenom());
+        if (fieldEmail != null) fieldEmail.setText(u.getEmail());
         if (labelRoleDisplay != null) labelRoleDisplay.setText(u.getRole());
 
         boolean isEtudiant = u instanceof Etudiant;
@@ -162,9 +162,11 @@ public class ProfileController {
     }
 
     private void clearErrors() {
-        errorNom.setText(""); errorPrenom.setText(""); errorEmail.setText("");
-        errorPassword.setText("");
+        if (errorNom != null) errorNom.setText("");
+        if (errorPrenom != null) errorPrenom.setText("");
+        if (errorEmail != null) errorEmail.setText("");
+        if (errorPassword != null) errorPassword.setText("");
         if (errorConfirmPassword != null) errorConfirmPassword.setText("");
-        successLabel.setText(""); successLabel.setVisible(false); successLabel.setManaged(false);
+        if (successLabel != null) { successLabel.setText(""); successLabel.setVisible(false); successLabel.setManaged(false); }
     }
 }

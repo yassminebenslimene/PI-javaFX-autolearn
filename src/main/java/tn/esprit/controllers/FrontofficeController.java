@@ -47,9 +47,15 @@ public class FrontofficeController {
 
     @FXML
     private void onProfile() {
-        try { MainApp.showProfile(); } catch (Exception e) {
+        try {
+            MainApp.showProfile();
+        } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("onProfile error: " + e.getMessage());
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setHeaderText("Impossible d'ouvrir le profil");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
         }
     }
 }
