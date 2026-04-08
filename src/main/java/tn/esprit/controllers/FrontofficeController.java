@@ -51,10 +51,11 @@ public class FrontofficeController {
             MainApp.showProfile();
         } catch (Exception e) {
             e.printStackTrace();
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.setTitle("Erreur");
-            alert.setHeaderText("Impossible d'ouvrir le profil");
-            alert.setContentText(e.getMessage());
+            alert.setTitle("Erreur profil");
+            alert.setHeaderText(e.getClass().getSimpleName() + ": " + e.getMessage());
+            alert.setContentText(cause.getClass().getSimpleName() + ": " + cause.getMessage());
             alert.showAndWait();
         }
     }

@@ -57,7 +57,13 @@ public class MainApp extends Application {
     private static void load(String fxml) throws Exception {
         // Use screen size so the scene always fills the window
         javafx.geometry.Rectangle2D screen = Screen.getPrimary().getVisualBounds();
-        FXMLLoader loader = new FXMLLoader(MainApp.class.getResource(fxml));
+        java.net.URL resource = MainApp.class.getResource(fxml);
+        if (resource == null) {
+            // fallback: try without leading slash
+            resource = MainApp.class.getResource(fxml.startsWith("/") ? fxml.substring(1) : fxml);
+        }
+        if (resource == null) throw new Exception("FXML not found: " + fxml);
+        FXMLLoader loader = new FXMLLoader(resource);
         primaryStage.setScene(new Scene(loader.load(), screen.getWidth(), screen.getHeight()));
     }
 

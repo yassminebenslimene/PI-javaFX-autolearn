@@ -68,7 +68,7 @@
                             <!-- Avatar -->
                             <StackPane minWidth="100" minHeight="100" prefWidth="100" prefHeight="100">
                                 <Circle radius="50"
-                                        fill="linear-gradient(135deg,#a19cec,#58379c)"
+                                        fill="#7a6ad8"
                                         style="-fx-effect:dropshadow(gaussian,rgba(220,202,223,0.8),16,0,0,8);"/>
                                 <Label fx:id="labelInitials" text=""
                                        style="-fx-text-fill:white; -fx-font-size:32; -fx-font-weight:800;"/>
