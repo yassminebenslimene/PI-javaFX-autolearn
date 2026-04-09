@@ -8,8 +8,6 @@ import javafx.scene.layout.StackPane;
 import tn.esprit.MainApp;
 import tn.esprit.session.SessionManager;
 
-import java.io.IOException;
-
 public class BackofficeController {
 
     @FXML private StackPane contentArea;
@@ -21,16 +19,17 @@ public class BackofficeController {
     // Sidebar nav buttons
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
+    @FXML private Button btnExercices;  // ← NOUVEAU BOUTON
     @FXML private Button btnProfile;
 
     private static final String ACTIVE_STYLE =
-        "-fx-background-color:rgba(5,150,105,0.2); -fx-text-fill:#34d399; -fx-font-weight:bold;" +
-        "-fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;" +
-        "-fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;";
+            "-fx-background-color:rgba(5,150,105,0.2); -fx-text-fill:#34d399; -fx-font-weight:bold;" +
+                    "-fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;" +
+                    "-fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;";
     private static final String INACTIVE_STYLE =
-        "-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7); -fx-font-weight:normal;" +
-        "-fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;" +
-        "-fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;";
+            "-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7); -fx-font-weight:normal;" +
+                    "-fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;" +
+                    "-fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;";
 
     @FXML
     public void initialize() {
@@ -39,7 +38,7 @@ public class BackofficeController {
             labelCurrentUser.setText(name);
             labelCurrentRole.setText(SessionManager.getCurrentUser().getRole());
             String initials = SessionManager.getCurrentUser().getPrenom().substring(0,1).toUpperCase()
-                            + SessionManager.getCurrentUser().getNom().substring(0,1).toUpperCase();
+                    + SessionManager.getCurrentUser().getNom().substring(0,1).toUpperCase();
             labelAvatarSidebar.setText(initials);
         }
         navigateToUsers();
@@ -48,13 +47,20 @@ public class BackofficeController {
     @FXML public void navigateToDashboard() {
         setActive(btnDashboard);
         labelPageTitle.setText("Dashboard");
-        loadView("/views/backoffice/user/index.fxml");
+        loadView("/views/backoffice/dashboard.fxml");
     }
 
     @FXML public void navigateToUsers() {
         setActive(btnUsers);
         labelPageTitle.setText("Gestion des Utilisateurs");
         loadView("/views/backoffice/user/index.fxml");
+    }
+
+    // ✅ NOUVELLE MÉTHODE POUR EXERCICES
+    @FXML public void navigateToExercices() {
+        setActive(btnExercices);
+        labelPageTitle.setText("Gestion des Exercices");
+        loadView("/views/backoffice/exercice/exercices.fxml");
     }
 
     @FXML public void navigateToProfile() {
@@ -70,8 +76,11 @@ public class BackofficeController {
     }
 
     private void setActive(Button active) {
-        for (Button b : new Button[]{btnDashboard, btnUsers, btnProfile}) {
-            if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
+        Button[] buttons = {btnDashboard, btnUsers, btnExercices, btnProfile};
+        for (Button b : buttons) {
+            if (b != null) {
+                b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
+            }
         }
     }
 
