@@ -108,15 +108,17 @@ public class NavbarController {
         else navigate(() -> MainApp.showFrontoffice());
     }
     @FXML private void onEvenements() {
-        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/user/index.fxml", "Événements"));
-        else navigate(() -> MainApp.showEvenements());
+        if (SessionManager.isAdmin())
+            navigate(() -> MainApp.showBackofficeView("/views/backoffice/evenement/index.fxml", "Événements"));
+        else
+            navigate(() -> MainApp.showEvenementsFront());
     }
     @FXML private void onCommunaute() {
         if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/user/index.fxml", "Communauté"));
         else navigate(() -> MainApp.showFrontoffice());
     }
     @FXML private void onChallenges() {
-        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/user/index.fxml", "Challenges"));
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/challenge/challenges.fxml", "Challenges"));
         else navigate(() -> MainApp.showFrontoffice());
     }
     @FXML private void onDashboard() { navigate(() -> MainApp.showBackoffice()); }

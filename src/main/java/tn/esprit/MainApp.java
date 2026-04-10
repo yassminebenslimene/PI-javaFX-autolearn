@@ -78,7 +78,7 @@ public class MainApp extends Application {
 
     /** Stub — GestionEvenement module fills this in */
     public static void showEvenements() throws Exception {
-        load("/views/frontoffice/layout.fxml");
+        load("/views/frontoffice/evenements.fxml");
         primaryStage.setMaximized(true);
         primaryStage.setTitle("AutoLearn — Événements");
     }
