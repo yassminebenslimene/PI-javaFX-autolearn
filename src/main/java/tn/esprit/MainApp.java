@@ -58,6 +58,13 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Mon Profil");
     }
 
+    /** Stub — GestionEvenement module fills this in */
+    public static void showEvenements() throws Exception {
+        load("/views/frontoffice/layout.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Événements");
+    }
+
     public static void showEvenementsFront() throws Exception {
         load("/views/frontoffice/evenements.fxml");
         primaryStage.setMaximized(true);
