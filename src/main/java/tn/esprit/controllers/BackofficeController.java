@@ -7,7 +7,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import tn.esprit.MainApp;
 import tn.esprit.session.SessionManager;
-
 public class BackofficeController {
 
     @FXML private StackPane contentArea;
@@ -93,5 +92,13 @@ public class BackofficeController {
             e.printStackTrace();
             System.err.println("Failed to load: " + path + " — " + e.getMessage());
         }
+    }
+    @FXML private Button btnChallenges;
+
+    @FXML
+    public void navigateToChallenges() {
+        setActive(btnChallenges);
+        labelPageTitle.setText("Gestion des Challenges");
+        loadView("/views/backoffice/challenge/challenges.fxml");
     }
 }

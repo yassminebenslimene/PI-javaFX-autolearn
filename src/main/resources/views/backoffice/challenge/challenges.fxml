@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.ChallengeController"
+            fitToWidth="true"
+            style="-fx-background-color:#0a0f0d; -fx-background:transparent;">
+
+    <VBox spacing="24" style="-fx-background-color:#0a0f0d; -fx-padding:28;">
+
+        <!-- Header -->
+        <VBox spacing="4">
+            <Label text="Challenges"
+                   style="-fx-font-size:28; -fx-font-weight:bold; -fx-text-fill:white;"/>
+            <Label text="Manage your challenges"
+                   style="-fx-font-size:14; -fx-text-fill:rgba(245,245,244,0.5);"/>
+        </VBox>
+
+        <!-- Barre d'actions -->
+        <HBox spacing="16" alignment="CENTER_LEFT">
+            <Button text="+ Add Challenge" onAction="#addChallenge"
+                    style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13;
+                           -fx-font-weight:bold; -fx-padding:10 20 10 20; -fx-background-radius:8;
+                           -fx-cursor:hand; -fx-border-width:0;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="searchField" promptText="Search challenges..."
+                       style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
+                              -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
+                              -fx-font-size:13; -fx-text-fill:white; -fx-pref-width:250;"/>
+        </HBox>
+
+        <!-- Success message -->
+        <Label fx:id="successLabel" text="" wrapText="true"
+               style="-fx-background-color:rgba(5,150,105,0.2); -fx-text-fill:#34d399; -fx-font-size:13;
+                      -fx-background-radius:8; -fx-padding:12 16 12 16; -fx-font-weight:bold;"
+               visible="false" managed="false"/>
+
+        <!-- Tableau des challenges -->
+        <VBox spacing="0"
+              style="-fx-background-color:rgba(255,255,255,0.03); -fx-background-radius:12;
+                     -fx-border-color:rgba(255,255,255,0.08); -fx-border-radius:12;">
+
+            <HBox spacing="8" alignment="CENTER_LEFT"
+                  style="-fx-padding:16 20 12 20; -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent; -fx-border-width:0 0 1 0;">
+                <Label text="Titre" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="200"/>
+                <Label text="Description" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="250"/>
+                <Label text="Niveau" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="100"/>
+                <Label text="Durée" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="80"/>
+                <Label text="Actions" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="150"/>
+            </HBox>
+
+            <VBox fx:id="challengesContainer" spacing="1" style="-fx-padding:4 0 4 0;"/>
+            <Label fx:id="emptyLabel" text="No challenges found"
+                   style="-fx-text-fill:rgba(245,245,244,0.3); -fx-font-size:13; -fx-padding:40; -fx-alignment:center;"
+                   visible="false" managed="false"/>
+        </VBox>
+
+        <HBox alignment="CENTER_RIGHT">
+            <Button text="🔄 Refresh" onAction="#refreshChallenges"
+                    style="-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:white; -fx-font-size:12;
+                           -fx-font-weight:bold; -fx-padding:8 16 8 16; -fx-background-radius:8;
+                           -fx-cursor:hand; -fx-border-width:0;"/>
+        </HBox>
+
+    </VBox>
+</ScrollPane>
