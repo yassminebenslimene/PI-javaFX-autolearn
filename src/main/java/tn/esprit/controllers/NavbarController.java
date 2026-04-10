@@ -98,8 +98,14 @@ public class NavbarController {
 
     // ── Navigation handlers ──
     @FXML private void onAccueil()    { navigate(() -> MainApp.showFrontoffice()); }
-    @FXML private void onCours()      { navigate(() -> MainApp.showFrontoffice()); } // replace with showCours()
-    @FXML private void onEvenements() { navigate(() -> MainApp.showEvenements()); }
+    @FXML private void onCours()      { navigate(() -> MainApp.showFrontoffice()); }
+    @FXML private void onEvenements() {
+        // Admin stays in backoffice, student goes to events page
+        if (SessionManager.isAdmin())
+            navigate(() -> MainApp.showBackoffice());
+        else
+            navigate(() -> MainApp.showEvenements());
+    }
     @FXML private void onCommunaute() { navigate(() -> MainApp.showFrontoffice()); }
     @FXML private void onChallenges() { navigate(() -> MainApp.showFrontoffice()); }
     @FXML private void onDashboard()  { navigate(() -> MainApp.showBackoffice()); }
