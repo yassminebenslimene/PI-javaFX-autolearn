@@ -17,6 +17,7 @@ public class BackofficeController {
 
     @FXML
     public void initialize() {
+        MainApp.setBackofficeController(this);
         navigateToUsers();
     }
 

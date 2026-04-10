@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import tn.esprit.controllers.BackofficeController;
 import tn.esprit.controllers.evenement.front.*;
 import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Evenement;
@@ -13,6 +14,23 @@ import tn.esprit.entities.Participation;
 public class MainApp extends Application {
 
     private static Stage primaryStage;
+    private static BackofficeController backofficeController;
+
+    public static void setBackofficeController(BackofficeController c) {
+        backofficeController = c;
+    }
+
+    public static void showBackofficeProfile() throws Exception {
+        if (backofficeController != null) backofficeController.navigateToProfile();
+        else showBackoffice();
+    }
+
+    public static void showBackofficeView(String fxml, String title) throws Exception {
+        if (backofficeController != null) {
+            backofficeController.loadView(fxml);
+            // setActive handled by each module's own controller
+        } else showBackoffice();
+    }
 
     @Override
     public void start(Stage stage) throws Exception {

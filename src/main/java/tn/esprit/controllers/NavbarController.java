@@ -97,20 +97,39 @@ public class NavbarController {
     }
 
     // ── Navigation handlers ──
-    @FXML private void onAccueil()    { navigate(() -> MainApp.showFrontoffice()); }
-    @FXML private void onCours()      { navigate(() -> MainApp.showFrontoffice()); }
-    @FXML private void onEvenements() {
-        // Admin stays in backoffice, student goes to events page
-        if (SessionManager.isAdmin())
-            navigate(() -> MainApp.showBackoffice());
-        else
-            navigate(() -> MainApp.showEvenements());
+    // Rule: ADMIN always stays in backoffice, ETUDIANT always stays in frontoffice
+
+    @FXML private void onAccueil() {
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackoffice());
+        else navigate(() -> MainApp.showFrontoffice());
     }
-    @FXML private void onCommunaute() { navigate(() -> MainApp.showFrontoffice()); }
-    @FXML private void onChallenges() { navigate(() -> MainApp.showFrontoffice()); }
-    @FXML private void onDashboard()  { navigate(() -> MainApp.showBackoffice()); }
-    @FXML private void onUsers()      { navigate(() -> MainApp.showBackoffice()); }
-    @FXML private void onProfile()    { navigate(() -> MainApp.showProfile()); }
+    @FXML private void onCours() {
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/user/index.fxml", "Cours"));
+        else navigate(() -> MainApp.showFrontoffice());
+    }
+    @FXML private void onEvenements() {
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/user/index.fxml", "Événements"));
+        else navigate(() -> MainApp.showEvenements());
+    }
+    @FXML private void onCommunaute() {
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/user/index.fxml", "Communauté"));
+        else navigate(() -> MainApp.showFrontoffice());
+    }
+    @FXML private void onChallenges() {
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/user/index.fxml", "Challenges"));
+        else navigate(() -> MainApp.showFrontoffice());
+    }
+    @FXML private void onDashboard() { navigate(() -> MainApp.showBackoffice()); }
+    @FXML private void onUsers()     { navigate(() -> MainApp.showBackoffice()); }
+    @FXML private void onProfile() {
+        if (SessionManager.isAdmin()) {
+            // For admin: trigger the backoffice profile navigation
+            // The BackofficeController handles loading profile inside contentArea
+            navigate(() -> MainApp.showBackofficeProfile());
+        } else {
+            navigate(() -> MainApp.showProfile());
+        }
+    }
     @FXML private void onLogout() {
         SessionManager.logout();
         navigate(() -> MainApp.showLogin());
