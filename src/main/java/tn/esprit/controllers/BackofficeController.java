@@ -21,6 +21,7 @@ public class BackofficeController {
     // Sidebar nav buttons
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
+    @FXML private Button btnEvenements;
     @FXML private Button btnProfile;
 
     private static final String ACTIVE_STYLE =
@@ -63,6 +64,12 @@ public class BackofficeController {
         loadView("/views/backoffice/profile.fxml");
     }
 
+    @FXML public void navigateToEvenements() {
+        setActive(btnEvenements);
+        labelPageTitle.setText("Gestion des Événements");
+        loadView("/views/backoffice/evenement/index.fxml");
+    }
+
     @FXML
     public void onLogout() {
         SessionManager.logout();
@@ -70,7 +77,7 @@ public class BackofficeController {
     }
 
     private void setActive(Button active) {
-        for (Button b : new Button[]{btnDashboard, btnUsers, btnProfile}) {
+        for (Button b : new Button[]{btnDashboard, btnUsers, btnEvenements, btnProfile}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }

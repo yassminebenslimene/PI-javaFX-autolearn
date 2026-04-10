@@ -40,6 +40,11 @@ public class FrontofficeController {
     @FXML private void onHome() { /* already on home */ }
 
     @FXML
+    private void onEvenements() {
+        try { MainApp.showEvenementsFront(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML
     private void onLogout() {
         SessionManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }

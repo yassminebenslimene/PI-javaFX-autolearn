@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.controllers.evenement.EvenementIndexController"
+      spacing="0" style="-fx-background-color:transparent;">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding:28 32 20 32;">
+        <VBox spacing="4">
+            <Label text="Liste des Événements"
+                   style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:bold;"/>
+            <Label text="Gérez tous les événements de la plateforme"
+                   style="-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:12;"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="➕  Ajouter un événement" onAction="#onAjouter"
+                style="-fx-background-color:linear-gradient(to right,#059669,#34d399);
+                       -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold;
+                       -fx-padding:12 32 12 32; -fx-background-radius:10;
+                       -fx-cursor:hand; -fx-border-width:0;
+                       -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.4),10,0,0,3);"/>
+    </HBox>
+
+    <!-- Table container -->
+    <VBox VBox.vgrow="ALWAYS" style="-fx-padding:0 32 28 32;">
+        <VBox style="-fx-background-color:rgba(255,255,255,0.04);
+                     -fx-background-radius:14;
+                     -fx-border-color:rgba(255,255,255,0.08);
+                     -fx-border-radius:14;
+                     -fx-border-width:1;">
+
+            <!-- Table header -->
+            <HBox style="-fx-padding:14 20 14 20;
+                         -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
+                         -fx-border-width:0 0 1 0;">
+                <Label text="TITRE" prefWidth="180"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="TYPE" prefWidth="100"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="DATE DÉBUT" prefWidth="120"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="DATE FIN" prefWidth="120"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="STATUT" prefWidth="100"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="PLACES MAX" prefWidth="80"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="ACTIONS"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+            </HBox>
+
+            <!-- Rows -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                        style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;"
+                        hbarPolicy="NEVER">
+                <VBox fx:id="tableRows" spacing="0"/>
+            </ScrollPane>
+        </VBox>
+    </VBox>
+</VBox>
