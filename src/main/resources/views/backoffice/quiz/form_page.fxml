@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.QuizFormPageController"
+            stylesheets="@style.css"
+            style="-fx-background-color:#0a0f0d;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="16"
+              style="-fx-padding:20 28 0 28;">
+            <Label fx:id="pageTitle" text="Nouveau Quiz" styleClass="page-title"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color:transparent; -fx-background:transparent;
+                           -fx-border-color:transparent;">
+            <VBox style="-fx-padding:16 28 32 28;" spacing="16">
+
+                <VBox styleClass="glass-card" spacing="0" style="-fx-padding:0;">
+
+                    <!-- Card header -->
+                    <HBox alignment="CENTER_LEFT" spacing="10"
+                          style="-fx-padding:18 24 14 24;
+                                 -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
+                                 -fx-border-width:0 0 1 0;">
+                        <VBox spacing="3">
+                            <Label fx:id="cardTitle" text="Nouveau Quiz"
+                                   style="-fx-text-fill:#f5f5f4; -fx-font-size:16; -fx-font-weight:bold;"/>
+                            <Label fx:id="cardSubtitle" text="Créez un nouveau questionnaire"
+                                   styleClass="card-subtitle"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="← Retour" onAction="#retour"
+                                style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
+                                       -fx-background-radius:8; -fx-padding:8 16; -fx-cursor:hand; -fx-border-width:0;"/>
+                    </HBox>
+
+                    <!-- Form fields -->
+                    <VBox spacing="0" style="-fx-padding:24 28 28 28;">
+
+                        <!-- Titre -->
+                        <Label text="Titre du quiz" styleClass="form-label"
+                               style="-fx-padding:0 0 6 0;"/>
+                        <TextField fx:id="titreField"
+                                   promptText="Entrez le titre du quiz"
+                                   styleClass="text-field"/>
+                        <Label text="Entre 3 et 255 caractères"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Description -->
+                        <Label text="Description" styleClass="form-label"
+                               style="-fx-padding:0 0 6 0;"/>
+                        <TextArea fx:id="descriptionField"
+                                  promptText="Décrivez le contenu du quiz"
+                                  prefRowCount="5" styleClass="text-area"/>
+                        <Label text="Entre 10 et 2000 caractères"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- État -->
+                        <Label text="État" styleClass="form-label"
+                               style="-fx-padding:0 0 6 0;"/>
+                        <ComboBox fx:id="etatCombo" promptText="Sélectionnez un état"
+                                  maxWidth="Infinity" styleClass="combo-box"/>
+                        <Label text="Définissez le statut du quiz"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Durée maximale -->
+                        <Label text="Durée maximale (minutes)" styleClass="form-label"
+                               style="-fx-padding:0 0 6 0;"/>
+                        <TextField fx:id="dureeField"
+                                   promptText="ex: 30"
+                                   styleClass="text-field"/>
+                        <Label text="Laissez vide pour un quiz sans limite de temps"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Seuil de réussite -->
+                        <Label text="Seuil de réussite (%)" styleClass="form-label"
+                               style="-fx-padding:0 0 6 0;"/>
+                        <TextField fx:id="seuilField"
+                                   promptText="ex: 50"
+                                   styleClass="text-field"/>
+                        <Label text="Pourcentage minimum pour valider le quiz (défaut: 50%)"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Nombre max tentatives -->
+                        <Label text="Nombre maximum de tentatives" styleClass="form-label"
+                               style="-fx-padding:0 0 6 0;"/>
+                        <TextField fx:id="tentativesField"
+                                   promptText="ex: 3"
+                                   styleClass="text-field"/>
+                        <Label text="Laissez vide pour un nombre illimité de tentatives"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 20 0;"/>
+
+                        <!-- Message erreur/succès -->
+                        <Label fx:id="messageLabel" wrapText="true"
+                               style="-fx-font-size:13px; -fx-padding:0 0 10 0;"/>
+
+                        <!-- Action buttons -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Button text="← Retour" onAction="#retour"
+                                    style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
+                                           -fx-background-radius:8; -fx-padding:10 20; -fx-cursor:hand; -fx-border-width:0;"/>
+                            <Button text="🏠 Gestion Quiz" onAction="#retour"
+                                    style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
+                                           -fx-background-radius:8; -fx-padding:10 20; -fx-cursor:hand; -fx-border-width:0;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="btnSauvegarder" text="✓ Enregistrer"
+                                    styleClass="btn-add"
+                                    style="-fx-font-size:14px; -fx-padding:10 28;"
+                                    onAction="#sauvegarder"/>
+                        </HBox>
+
+                    </VBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

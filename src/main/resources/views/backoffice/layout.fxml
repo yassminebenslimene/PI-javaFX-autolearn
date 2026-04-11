@@ -36,6 +36,15 @@
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
                 </VBox>
 
+                <!-- GESTION -->
+                <VBox spacing="2" style="-fx-padding:8 8 8 8;">
+                    <Label text="GESTION" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
+                    <Button fx:id="btnQuiz" text="  📋   Gestion Quiz" maxWidth="Infinity" onAction="#navigateToQuiz"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                </VBox>
+
                 <!-- COMPTE -->
                 <VBox spacing="2" style="-fx-padding:8 8 8 8;">
                     <Label text="COMPTE" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>

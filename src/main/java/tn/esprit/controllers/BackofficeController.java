@@ -21,6 +21,7 @@ public class BackofficeController {
     // Sidebar nav buttons
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
+    @FXML private Button btnQuiz;
     @FXML private Button btnProfile;
 
     private static final String ACTIVE_STYLE =
@@ -57,6 +58,12 @@ public class BackofficeController {
         loadView("/views/backoffice/user/index.fxml");
     }
 
+    @FXML public void navigateToQuiz() {
+        setActive(btnQuiz);
+        labelPageTitle.setText("Gestion des Quiz");
+        loadView("/views/backoffice/quiz/index.fxml");
+    }
+
     @FXML public void navigateToProfile() {
         setActive(btnProfile);
         labelPageTitle.setText("Mon Profil");
@@ -70,7 +77,7 @@ public class BackofficeController {
     }
 
     private void setActive(Button active) {
-        for (Button b : new Button[]{btnDashboard, btnUsers, btnProfile}) {
+        for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnProfile}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }

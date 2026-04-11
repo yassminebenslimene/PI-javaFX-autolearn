@@ -98,6 +98,33 @@ public class ServiceQuiz implements IService<Quiz> {
         }
     }
 
+    // Returns all quizzes as a list (used by UI controllers)
+    public java.util.List<Quiz> afficher() {
+        java.util.List<Quiz> quizzes = new java.util.ArrayList<>();
+        String req = "SELECT * FROM quiz";
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(req)) {
+            while (rs.next()) quizzes.add(mapQuiz(rs));
+        } catch (SQLException e) {
+            System.err.println("Erreur affichage quiz : " + e.getMessage());
+        }
+        return quizzes;
+    }
+
+    // Find a single quiz by id (used after edit to refresh)
+    public Quiz findById(int id) {
+        String req = "SELECT * FROM quiz WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(req)) {
+            statement.setInt(1, id);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) return mapQuiz(rs);
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur findById quiz : " + e.getMessage());
+        }
+        return null;
+    }
+
     private Quiz mapQuiz(ResultSet rs) throws SQLException {
         Timestamp updatedAt = rs.getTimestamp("updated_at");
         return new Quiz(

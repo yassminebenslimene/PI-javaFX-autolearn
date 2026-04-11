@@ -85,6 +85,34 @@ public class ServiceOption implements IService<Option> {
         }
     }
 
+    // Returns all options as a list
+    public java.util.List<Option> afficher() {
+        java.util.List<Option> options = new java.util.ArrayList<>();
+        String req = "SELECT * FROM `option`";
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(req)) {
+            while (rs.next()) options.add(mapOption(rs));
+        } catch (SQLException e) {
+            System.err.println("Erreur affichage options : " + e.getMessage());
+        }
+        return options;
+    }
+
+    // Returns options for a specific question
+    public java.util.List<Option> findByQuestionId(int questionId) {
+        java.util.List<Option> options = new java.util.ArrayList<>();
+        String req = "SELECT * FROM `option` WHERE question_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(req)) {
+            statement.setInt(1, questionId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) options.add(mapOption(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur findByQuestionId : " + e.getMessage());
+        }
+        return options;
+    }
+
     private Option mapOption(ResultSet rs) throws SQLException {
         return new Option(
                 rs.getInt("id"),

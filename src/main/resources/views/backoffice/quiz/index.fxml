@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.QuizController"
+            stylesheets="@style.css"
+            style="-fx-background-color:#0a0f0d;">
+
+    <!-- ══ HEADER ══ -->
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              style="-fx-padding:20 28 0 28;">
+            <Label text="Gestion des Quiz" styleClass="page-title"/>
+        </HBox>
+    </top>
+
+    <!-- ══ CONTENT: single scrollable column ══ -->
+    <center>
+        <VBox style="-fx-padding:16 28 24 28;" spacing="0">
+
+            <!-- Card wrapper -->
+            <VBox styleClass="glass-card" style="-fx-padding:0;">
+
+                <!-- Card header -->
+                <HBox alignment="CENTER_LEFT" spacing="12"
+                      style="-fx-padding:16 20 14 20;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="📋" style="-fx-font-size:15;"/>
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label text="Liste des Quiz" styleClass="section-title"/>
+                        <Label text="Cliquez sur « Sélectionner » pour afficher les questions"
+                               styleClass="card-subtitle"/>
+                    </VBox>
+                    <Button text="+ Nouveau Quiz" styleClass="btn-add"
+                            onAction="#ouvrirFormAjout"/>
+                </HBox>
+
+                <!-- Scrollable list -->
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                            style="-fx-background-color:transparent; -fx-background:transparent;
+                                   -fx-border-color:transparent; -fx-min-height:500px;">
+                    <VBox fx:id="mainContainer" spacing="0"
+                          style="-fx-background-color:transparent;"/>
+                </ScrollPane>
+            </VBox>
+        </VBox>
+    </center>
+
+</BorderPane>

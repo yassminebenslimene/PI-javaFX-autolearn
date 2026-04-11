@@ -88,6 +88,34 @@ public class ServiceQuestion implements IService<Question> {
         }
     }
 
+    // Returns all questions as a list (used by UI controllers)
+    public java.util.List<Question> afficher() {
+        java.util.List<Question> questions = new java.util.ArrayList<>();
+        String req = "SELECT * FROM question";
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(req)) {
+            while (rs.next()) questions.add(mapQuestion(rs));
+        } catch (SQLException e) {
+            System.err.println("Erreur affichage questions : " + e.getMessage());
+        }
+        return questions;
+    }
+
+    // Returns questions for a specific quiz (mirrors quiz.getQuestions() in Symfony)
+    public java.util.List<Question> findByQuizId(int quizId) {
+        java.util.List<Question> questions = new java.util.ArrayList<>();
+        String req = "SELECT * FROM question WHERE quiz_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(req)) {
+            statement.setInt(1, quizId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) questions.add(mapQuestion(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur findByQuizId : " + e.getMessage());
+        }
+        return questions;
+    }
+
     private Question mapQuestion(ResultSet rs) throws SQLException {
         Timestamp updatedAt = rs.getTimestamp("updated_at");
         return new Question(
