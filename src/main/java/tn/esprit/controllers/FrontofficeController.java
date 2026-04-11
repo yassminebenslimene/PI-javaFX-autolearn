@@ -1,10 +1,13 @@
 package tn.esprit.controllers;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.session.SessionManager;
+
+import java.io.IOException;
 
 public class FrontofficeController {
 
@@ -57,6 +60,16 @@ public class FrontofficeController {
             alert.setHeaderText(e.getClass().getSimpleName() + ": " + e.getMessage());
             alert.setContentText(cause.getClass().getSimpleName() + ": " + cause.getMessage());
             alert.showAndWait();
+        }
+    }
+    @FXML
+    public void onChallenges() {
+        System.out.println("Bouton Challenges cliqué !");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
+            MainApp.getPrimaryStage().getScene().setRoot(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

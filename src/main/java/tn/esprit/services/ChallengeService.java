@@ -111,7 +111,10 @@ public class ChallengeService {
 
                 // Charger les exercices associés
                 c.setExerciceIds(getChallengeExercices(c.getId()));
-                c.setQuizIds(getChallengeQuizzes(c.getId()));
+
+                // Temporairement, ne pas charger les quiz
+                // c.setQuizIds(getChallengeQuizzes(c.getId()));
+                c.setQuizIds(new ArrayList<>()); // Liste vide
 
                 challenges.add(c);
             }
