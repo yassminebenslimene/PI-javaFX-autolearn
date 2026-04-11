@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.QuizController"
-            stylesheets="@style.css"
-            style="-fx-background-color:#0a0f0d;">
+            style="-fx-background-color:#0a0f0d; -fx-font-family:'Segoe UI',Arial,sans-serif;">
 
-    <!-- ══ HEADER ══ -->
     <top>
-        <HBox alignment="CENTER_LEFT"
-              style="-fx-padding:20 28 0 28;">
-            <Label text="Gestion des Quiz" styleClass="page-title"/>
+        <HBox alignment="CENTER_LEFT" style="-fx-padding:20 28 0 28;">
+            <Label text="Gestion des Quiz"
+                   style="-fx-font-size:22px; -fx-font-weight:bold; -fx-text-fill:#f5f5f4;"/>
         </HBox>
     </top>
 
-    <!-- ══ CONTENT: single scrollable column ══ -->
     <center>
-        <VBox style="-fx-padding:16 28 24 28;" spacing="0">
+        <VBox style="-fx-padding:16 28 24 28;">
 
-            <!-- Card wrapper -->
-            <VBox styleClass="glass-card" style="-fx-padding:0;">
+            <!-- Glass card wrapper -->
+            <VBox style="-fx-background-color:rgba(255,255,255,0.05);
+                         -fx-border-color:rgba(255,255,255,0.1);
+                         -fx-border-radius:16px; -fx-background-radius:16px;
+                         -fx-border-width:1px;
+                         -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),20,0,0,6);">
 
                 <!-- Card header -->
                 <HBox alignment="CENTER_LEFT" spacing="12"
@@ -30,12 +30,17 @@
                              -fx-border-width:0 0 1 0;">
                     <Label text="📋" style="-fx-font-size:15;"/>
                     <VBox spacing="2" HBox.hgrow="ALWAYS">
-                        <Label text="Liste des Quiz" styleClass="section-title"/>
+                        <Label text="Liste des Quiz"
+                               style="-fx-font-size:16px; -fx-font-weight:bold; -fx-text-fill:#f5f5f4;"/>
                         <Label text="Cliquez sur « Sélectionner » pour afficher les questions"
-                               styleClass="card-subtitle"/>
+                               style="-fx-font-size:12px; -fx-text-fill:rgba(245,245,244,0.4);"/>
                     </VBox>
-                    <Button text="+ Nouveau Quiz" styleClass="btn-add"
-                            onAction="#ouvrirFormAjout"/>
+                    <Button text="+ Nouveau Quiz" onAction="#ouvrirFormAjout"
+                            style="-fx-background-color:linear-gradient(to bottom right,#34d399,#059669);
+                                   -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:13px;
+                                   -fx-padding:9px 18px; -fx-background-radius:8px; -fx-cursor:hand;
+                                   -fx-border-width:0;
+                                   -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.4),10,0,0,3);"/>
                 </HBox>
 
                 <!-- Scrollable list -->

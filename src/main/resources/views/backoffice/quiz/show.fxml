@@ -4,21 +4,25 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.QuizShowController"
-            stylesheets="@style.css"
-            style="-fx-background-color:#0a0f0d;">
+            style="-fx-background-color:#0a0f0d; -fx-font-family:'Segoe UI',Arial,sans-serif;">
 
     <top>
-        <HBox alignment="CENTER_LEFT"
-              style="-fx-padding:20 28 0 28;">
-            <Label text="Détails du Quiz" styleClass="page-title"/>
+        <HBox alignment="CENTER_LEFT" style="-fx-padding:20 28 0 28;">
+            <Label text="Détails du Quiz"
+                   style="-fx-font-size:22px; -fx-font-weight:bold; -fx-text-fill:#f5f5f4;"/>
         </HBox>
     </top>
 
     <center>
-        <VBox style="-fx-padding:16 28 32 28;" spacing="0">
-            <VBox styleClass="glass-card" spacing="0" style="-fx-padding:0;">
+        <VBox style="-fx-padding:16 28 32 28;">
+            <VBox style="-fx-background-color:rgba(255,255,255,0.05);
+                         -fx-border-color:rgba(255,255,255,0.1);
+                         -fx-border-radius:16px; -fx-background-radius:16px;
+                         -fx-border-width:1px;
+                         -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),20,0,0,6);"
+                  spacing="0">
 
-                <!-- Header: quiz title + subtitle + Retour + Modifier -->
+                <!-- Header -->
                 <HBox alignment="CENTER_LEFT" spacing="12"
                       style="-fx-padding:20 24 16 24;
                              -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
@@ -27,20 +31,21 @@
                         <Label fx:id="labelTitre" text=""
                                style="-fx-text-fill:#f5f5f4; -fx-font-size:20; -fx-font-weight:bold;"/>
                         <Label fx:id="labelSubtitle" text=""
-                               styleClass="card-subtitle"/>
+                               style="-fx-font-size:12px; -fx-text-fill:rgba(245,245,244,0.4);"/>
                     </VBox>
                     <Button text="← Retour" onAction="#retour"
                             style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
                                    -fx-background-radius:8; -fx-padding:9 18; -fx-cursor:hand; -fx-border-width:0;"/>
-                    <Button text="✎ Modifier" styleClass="btn-edit"
-                            style="-fx-font-size:13px; -fx-padding:9 18;"
-                            onAction="#modifier"/>
+                    <Button text="✎ Modifier" onAction="#modifier"
+                            style="-fx-background-color:linear-gradient(to bottom right,#e8c9a0,#d4a574);
+                                   -fx-text-fill:#0a0f0d; -fx-font-weight:bold; -fx-font-size:13px;
+                                   -fx-padding:9 18; -fx-background-radius:8px; -fx-cursor:hand;
+                                   -fx-border-width:0;"/>
                 </HBox>
 
                 <!-- Body -->
                 <VBox spacing="20" style="-fx-padding:28 28 10 28;">
 
-                    <!-- Titre -->
                     <VBox spacing="6">
                         <Label text="Titre"
                                style="-fx-text-fill:#f5f5f4; -fx-font-weight:bold; -fx-font-size:14;"/>
@@ -48,7 +53,6 @@
                                style="-fx-text-fill:rgba(245,245,244,0.7); -fx-font-size:14;"/>
                     </VBox>
 
-                    <!-- Description -->
                     <VBox spacing="6">
                         <Label text="Description"
                                style="-fx-text-fill:#f5f5f4; -fx-font-weight:bold; -fx-font-size:14;"/>
@@ -56,23 +60,22 @@
                                style="-fx-text-fill:rgba(245,245,244,0.7); -fx-font-size:14;"/>
                     </VBox>
 
-                    <!-- État -->
                     <VBox spacing="8">
                         <Label text="État"
                                style="-fx-text-fill:#f5f5f4; -fx-font-weight:bold; -fx-font-size:14;"/>
                         <Label fx:id="labelEtatBadge" text=""/>
                     </VBox>
 
-                    <!-- Separator -->
-                    <Separator styleClass="separator"/>
+                    <Separator style="-fx-background-color:rgba(255,255,255,0.08);"/>
 
-                    <!-- Supprimer -->
                     <HBox style="-fx-padding:0 0 10 0;">
-                        <Button text="🗑 Supprimer" styleClass="btn-delete"
-                                style="-fx-font-size:13px; -fx-padding:10 22;"
-                                onAction="#supprimer"/>
+                        <Button text="🗑 Supprimer" onAction="#supprimer"
+                                style="-fx-background-color:linear-gradient(to bottom right,#f87171,#dc2626);
+                                       -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:13px;
+                                       -fx-padding:10 22; -fx-background-radius:8px; -fx-cursor:hand;
+                                       -fx-border-width:0;
+                                       -fx-effect:dropshadow(gaussian,rgba(220,38,38,0.4),8,0,0,2);"/>
                     </HBox>
-
                 </VBox>
             </VBox>
         </VBox>
