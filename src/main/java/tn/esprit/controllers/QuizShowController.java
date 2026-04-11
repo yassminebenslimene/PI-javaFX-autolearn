@@ -32,7 +32,15 @@ public class QuizShowController {
         labelDescVal.setText(quiz.getDescription());
 
         labelEtatBadge.setText("● " + capitalize(quiz.getEtat()));
-        labelEtatBadge.getStyleClass().add("badge-" + quiz.getEtat().toLowerCase());
+        String etat = quiz.getEtat().toLowerCase();
+        String badgeStyle = switch (etat) {
+            case "actif"     -> "-fx-background-color:rgba(16,185,129,0.15); -fx-text-fill:#22c55e;";
+            case "inactif"   -> "-fx-background-color:rgba(245,158,11,0.15); -fx-text-fill:#eab308;";
+            case "brouillon" -> "-fx-background-color:rgba(59,130,246,0.15); -fx-text-fill:#0ea5e9;";
+            default          -> "-fx-background-color:rgba(71,85,105,0.3); -fx-text-fill:rgba(245,245,244,0.45);";
+        };
+        labelEtatBadge.setStyle(badgeStyle +
+            "-fx-background-radius:20px; -fx-padding:3 10; -fx-font-size:12px; -fx-font-weight:bold;");
     }
 
     @FXML

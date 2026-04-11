@@ -39,12 +39,12 @@ public class OptionFormController {
         String texte = texteField.getText();
         if (texte == null || texte.trim().isEmpty()) {
             messageLabel.setText("Le texte de l'option est obligatoire.");
-            messageLabel.getStyleClass().add("msg-error");
+            messageLabel.setStyle("-fx-text-fill:#fca5a5; -fx-font-size:13px; -fx-font-weight:bold;");
             return;
         }
         if (texte.trim().length() > 255) {
             messageLabel.setText("L'option ne peut pas dépasser 255 caractères.");
-            messageLabel.getStyleClass().add("msg-error");
+            messageLabel.setStyle("-fx-text-fill:#fca5a5; -fx-font-size:13px; -fx-font-weight:bold;");
             return;
         }
 

@@ -4,7 +4,7 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.QuizFormPageController"
-            style="-fx-background-color:#0a0f0d; -fx-font-family:'Segoe UI',Arial,sans-serif;">
+            style="-fx-background-color:#0f1a14; -fx-font-family:'Segoe UI',Arial,sans-serif;">
 
     <top>
         <HBox alignment="CENTER_LEFT" style="-fx-padding:20 28 0 28;">

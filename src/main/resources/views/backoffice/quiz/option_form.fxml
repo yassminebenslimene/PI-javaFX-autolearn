@@ -5,7 +5,7 @@
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="tn.esprit.controllers.OptionFormController"
       spacing="0"
-      style="-fx-background-color:#0d1a14; -fx-background-radius:16; -fx-border-radius:16;
+      style="-fx-background-color:#0f1a14; -fx-background-radius:16; -fx-border-radius:16;
              -fx-border-color:rgba(255,255,255,0.1); -fx-border-width:1;
              -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.5),30,0,0,10);
              -fx-min-width:420px; -fx-max-width:420px;

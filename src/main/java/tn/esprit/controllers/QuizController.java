@@ -32,9 +32,13 @@ public class QuizController {
     private final ServiceQuestion serviceQuestion = new ServiceQuestion();
     private final ServiceOption serviceOption = new ServiceOption();
 
+    // Search field
+    @FXML private TextField searchField;
+
     // Track which quiz/question is currently expanded
     private Integer expandedQuizId = null;
     private Integer expandedQuestionId = null;
+    private String searchTerm = "";
 
     @FXML
     public void initialize() {
@@ -47,17 +51,44 @@ public class QuizController {
         mainContainer.getChildren().clear();
         List<Quiz> quizzes = serviceQuiz.afficher();
 
+        // Filter by search term
+        if (searchTerm != null && !searchTerm.isBlank()) {
+            String term = searchTerm.toLowerCase();
+            quizzes = quizzes.stream()
+                .filter(q -> q.getTitre().toLowerCase().contains(term)
+                          || q.getDescription().toLowerCase().contains(term))
+                .toList();
+        }
+
         if (quizzes.isEmpty()) {
-            Label empty = new Label("Aucun quiz. Créez-en un avec « + Nouveau Quiz ».");
+            Label empty = new Label(searchTerm.isBlank()
+                ? "Aucun quiz. Créez-en un avec « + Nouveau Quiz »."
+                : "Aucun quiz trouvé pour « " + searchTerm + " ».");
             empty.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:13; -fx-padding:24;");
             mainContainer.getChildren().add(empty);
             return;
         }
 
         for (int i = 0; i < quizzes.size(); i++) {
-            Quiz quiz = quizzes.get(i);
-            mainContainer.getChildren().add(buildQuizBlock(quiz, i + 1));
+            mainContainer.getChildren().add(buildQuizBlock(quizzes.get(i), i + 1));
         }
+    }
+
+    @FXML
+    public void onSearch() {
+        searchTerm = searchField.getText() == null ? "" : searchField.getText().trim();
+        expandedQuizId = null;
+        expandedQuestionId = null;
+        chargerTout();
+    }
+
+    @FXML
+    public void onClearSearch() {
+        searchField.clear();
+        searchTerm = "";
+        expandedQuizId = null;
+        expandedQuestionId = null;
+        chargerTout();
     }
 
     // ── Quiz block (card + optional questions inline) ─────────────────────────
@@ -101,7 +132,15 @@ public class QuizController {
         titre.setStyle("-fx-text-fill:#f5f5f4; -fx-font-size:14; -fx-font-weight:bold;");
 
         Label badge = new Label("+ " + capitalize(quiz.getEtat()));
-        badge.getStyleClass().add("badge-" + quiz.getEtat().toLowerCase());
+        String etat = quiz.getEtat().toLowerCase();
+        String badgeStyle = switch (etat) {
+            case "actif"     -> "-fx-background-color:rgba(16,185,129,0.15); -fx-text-fill:#22c55e;";
+            case "inactif"   -> "-fx-background-color:rgba(245,158,11,0.15); -fx-text-fill:#eab308;";
+            case "brouillon" -> "-fx-background-color:rgba(59,130,246,0.15); -fx-text-fill:#0ea5e9;";
+            default          -> "-fx-background-color:rgba(71,85,105,0.3); -fx-text-fill:rgba(245,245,244,0.45);";
+        };
+        badge.setStyle(badgeStyle +
+            "-fx-background-radius:20px; -fx-padding:3 10; -fx-font-size:11px; -fx-font-weight:bold;");
 
         titleRow.getChildren().addAll(num, titre, badge);
 
@@ -121,11 +160,17 @@ public class QuizController {
 
         boolean isExpanded = expandedQuizId != null && expandedQuizId == quiz.getId();
 
+        // Sélectionner — vert si actif, gris sinon
         Button btnSelect = new Button(isExpanded ? "✓ Sélectionné" : "✓ Sélectionner");
-        btnSelect.getStyleClass().add(isExpanded ? "btn-add" : "btn-select");
         btnSelect.setStyle(isExpanded
-            ? "-fx-font-size:12px; -fx-padding:6 12;"
-            : "-fx-font-size:12px; -fx-padding:6 12;");
+            ? "-fx-background-color:linear-gradient(to bottom right,#34d399,#059669);" +
+              "-fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:12px;" +
+              "-fx-padding:6 12; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
+            : "-fx-background-color:rgba(255,255,255,0.08);" +
+              "-fx-border-color:rgba(255,255,255,0.2); -fx-border-width:1;" +
+              "-fx-border-radius:8; -fx-background-radius:8;" +
+              "-fx-text-fill:rgba(245,245,244,0.85); -fx-font-size:12px;" +
+              "-fx-padding:6 12; -fx-cursor:hand;");
         btnSelect.setOnAction(e -> {
             if (isExpanded) {
                 expandedQuizId = null;
@@ -137,25 +182,37 @@ public class QuizController {
             chargerTout();
         });
 
+        // Voir — bleu
         Button btnVoir = new Button("⊙ Voir");
-        btnVoir.getStyleClass().add("btn-view");
-        btnVoir.setStyle("-fx-font-size:12px; -fx-padding:6 12;");
+        btnVoir.setStyle(
+            "-fx-background-color:rgba(14,165,233,0.15);" +
+            "-fx-border-color:rgba(14,165,233,0.4); -fx-border-width:1;" +
+            "-fx-border-radius:8; -fx-background-radius:8;" +
+            "-fx-text-fill:#38bdf8; -fx-font-size:12px;" +
+            "-fx-padding:6 12; -fx-cursor:hand;");
         btnVoir.setOnAction(e -> voirQuiz(quiz));
 
         row1.getChildren().addAll(btnSelect, btnVoir);
 
-        // Row 2: Modifier + Supprimer (full width like Symfony)
         HBox row2 = new HBox(4);
         row2.setAlignment(Pos.CENTER_RIGHT);
 
+        // Modifier — or/amber
         Button btnEdit = new Button("✎ Modifier");
-        btnEdit.getStyleClass().add("btn-edit");
-        btnEdit.setStyle("-fx-font-size:12px; -fx-padding:6 14; -fx-min-width:100;");
+        btnEdit.setStyle(
+            "-fx-background-color:linear-gradient(to bottom right,#e8c9a0,#d4a574);" +
+            "-fx-text-fill:#0f1a14; -fx-font-weight:bold; -fx-font-size:12px;" +
+            "-fx-padding:6 14; -fx-background-radius:8; -fx-cursor:hand;" +
+            "-fx-border-width:0; -fx-min-width:100;");
         btnEdit.setOnAction(e -> ouvrirFormModification(quiz));
 
+        // Supprimer — rouge
         Button btnDel = new Button("🗑 Supprimer");
-        btnDel.getStyleClass().add("btn-delete");
-        btnDel.setStyle("-fx-font-size:12px; -fx-padding:6 14; -fx-min-width:100;");
+        btnDel.setStyle(
+            "-fx-background-color:linear-gradient(to bottom right,#f87171,#dc2626);" +
+            "-fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:12px;" +
+            "-fx-padding:6 14; -fx-background-radius:8; -fx-cursor:hand;" +
+            "-fx-border-width:0; -fx-min-width:100;");
         btnDel.setOnAction(e -> supprimerQuiz(quiz));
 
         row2.getChildren().addAll(btnEdit, btnDel);
@@ -248,17 +305,30 @@ public class QuizController {
         HBox row1 = new HBox(6);
         row1.setAlignment(Pos.CENTER_RIGHT);
 
+        // Sélectionner — vert si actif, gris sinon
         Button btnSelect = new Button(isExpanded ? "✓ Sélectionné" : "✓ Sélectionner");
-        btnSelect.getStyleClass().add(isExpanded ? "btn-add" : "btn-select");
-        btnSelect.setStyle("-fx-font-size:11px; -fx-padding:5 10;");
+        btnSelect.setStyle(isExpanded
+            ? "-fx-background-color:linear-gradient(to bottom right,#34d399,#059669);" +
+              "-fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:11px;" +
+              "-fx-padding:5 10; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
+            : "-fx-background-color:rgba(255,255,255,0.08);" +
+              "-fx-border-color:rgba(255,255,255,0.2); -fx-border-width:1;" +
+              "-fx-border-radius:8; -fx-background-radius:8;" +
+              "-fx-text-fill:rgba(245,245,244,0.85); -fx-font-size:11px;" +
+              "-fx-padding:5 10; -fx-cursor:hand;");
         btnSelect.setOnAction(e -> {
             expandedQuestionId = isExpanded ? null : q.getId();
             chargerTout();
         });
 
+        // Voir — bleu
         Button btnVoir = new Button("⊙ Voir");
-        btnVoir.getStyleClass().add("btn-view");
-        btnVoir.setStyle("-fx-font-size:11px; -fx-padding:5 10;");
+        btnVoir.setStyle(
+            "-fx-background-color:rgba(14,165,233,0.15);" +
+            "-fx-border-color:rgba(14,165,233,0.4); -fx-border-width:1;" +
+            "-fx-border-radius:8; -fx-background-radius:8;" +
+            "-fx-text-fill:#38bdf8; -fx-font-size:11px;" +
+            "-fx-padding:5 10; -fx-cursor:hand;");
         btnVoir.setOnAction(e -> voirQuestion(q));
 
         row1.getChildren().addAll(btnSelect, btnVoir);
@@ -266,14 +336,20 @@ public class QuizController {
         HBox row2 = new HBox(4);
         row2.setAlignment(Pos.CENTER_RIGHT);
 
+        // Modifier — or/amber
         Button btnEdit = new Button("✎ Modifier");
-        btnEdit.getStyleClass().add("btn-edit");
-        btnEdit.setStyle("-fx-font-size:11px; -fx-padding:5 12;");
+        btnEdit.setStyle(
+            "-fx-background-color:linear-gradient(to bottom right,#e8c9a0,#d4a574);" +
+            "-fx-text-fill:#0f1a14; -fx-font-weight:bold; -fx-font-size:11px;" +
+            "-fx-padding:5 12; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
         btnEdit.setOnAction(e -> ouvrirFormQuestionDialog(q, quizId));
 
+        // Supprimer — rouge
         Button btnDel = new Button("🗑 Supprimer");
-        btnDel.getStyleClass().add("btn-delete");
-        btnDel.setStyle("-fx-font-size:11px; -fx-padding:5 12;");
+        btnDel.setStyle(
+            "-fx-background-color:linear-gradient(to bottom right,#f87171,#dc2626);" +
+            "-fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:11px;" +
+            "-fx-padding:5 12; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
         btnDel.setOnAction(e -> supprimerQuestion(q));
 
         row2.getChildren().addAll(btnEdit, btnDel);
@@ -349,14 +425,20 @@ public class QuizController {
               "-fx-background-radius:12; -fx-padding:2 8; -fx-font-size:11; -fx-font-weight:bold;"
         );
 
+        // Modifier — or/amber
         Button btnEdit = new Button("✎ Modifier");
-        btnEdit.getStyleClass().add("btn-edit");
-        btnEdit.setStyle("-fx-font-size:11px; -fx-padding:4 10;");
+        btnEdit.setStyle(
+            "-fx-background-color:linear-gradient(to bottom right,#e8c9a0,#d4a574);" +
+            "-fx-text-fill:#0f1a14; -fx-font-weight:bold; -fx-font-size:11px;" +
+            "-fx-padding:4 10; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
         btnEdit.setOnAction(e -> ouvrirFormOptionDialog(opt, questionId));
 
+        // Supprimer — rouge
         Button btnDel = new Button("🗑");
-        btnDel.getStyleClass().add("btn-delete");
-        btnDel.setStyle("-fx-font-size:11px; -fx-padding:4 8;");
+        btnDel.setStyle(
+            "-fx-background-color:linear-gradient(to bottom right,#f87171,#dc2626);" +
+            "-fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:11px;" +
+            "-fx-padding:4 8; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
         btnDel.setOnAction(e -> supprimerOption(opt));
 
         row.getChildren().addAll(num, texte, badge, btnEdit, btnDel);
@@ -428,22 +510,16 @@ public class QuizController {
 
     private void ouvrirFormQuestionDialog(Question question, int quizId) {
         try {
+            StackPane contentArea =
+                (StackPane) mainContainer.getScene().lookup("#contentArea");
+            if (contentArea == null) return;
             FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/backoffice/quiz/question_form.fxml"));
-            VBox formNode = loader.load();
-            QuestionFormController ctrl = loader.getController();
-            ctrl.init(question, quizId, this::chargerTout);
-
-            Stage dialog = new Stage();
-            dialog.initOwner(mainContainer.getScene().getWindow());
-            dialog.initModality(Modality.APPLICATION_MODAL);
-            dialog.setResizable(false);
-            dialog.setTitle(question == null ? "Nouvelle Question" : "Modifier Question");
-            javafx.scene.Scene scene = new javafx.scene.Scene(formNode);
-            scene.setFill(javafx.scene.paint.Color.web("#0a0f0d"));
-            dialog.setScene(scene);
-            ctrl.setStage(dialog);
-            dialog.showAndWait();
+                getClass().getResource("/views/backoffice/quiz/question_page.fxml"));
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(loader.load());
+            QuestionPageController ctrl = loader.getController();
+            if (question == null) ctrl.initNouvelle(quizId);
+            else ctrl.initModifier(question);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -480,22 +556,16 @@ public class QuizController {
 
     private void ouvrirFormOptionDialog(Option option, int questionId) {
         try {
+            StackPane contentArea =
+                (StackPane) mainContainer.getScene().lookup("#contentArea");
+            if (contentArea == null) return;
             FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/backoffice/quiz/option_form.fxml"));
-            VBox formNode = loader.load();
-            OptionFormController ctrl = loader.getController();
-            ctrl.init(option, questionId, this::chargerTout);
-
-            Stage dialog = new Stage();
-            dialog.initOwner(mainContainer.getScene().getWindow());
-            dialog.initModality(Modality.APPLICATION_MODAL);
-            dialog.setResizable(false);
-            dialog.setTitle(option == null ? "Nouvelle Option" : "Modifier Option");
-            javafx.scene.Scene scene = new javafx.scene.Scene(formNode);
-            scene.setFill(javafx.scene.paint.Color.web("#0a0f0d"));
-            dialog.setScene(scene);
-            ctrl.setStage(dialog);
-            dialog.showAndWait();
+                getClass().getResource("/views/backoffice/quiz/option_page.fxml"));
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(loader.load());
+            OptionPageController ctrl = loader.getController();
+            if (option == null) ctrl.initNouvelle(questionId);
+            else ctrl.initModifier(option);
         } catch (Exception e) {
             e.printStackTrace();
         }

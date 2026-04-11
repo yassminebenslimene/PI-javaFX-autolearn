@@ -1,55 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="tn.esprit.controllers.QuizFormController"
-      stylesheets="@style.css"
       spacing="0"
-      style="-fx-background-color:#0d1a14; -fx-background-radius:16; -fx-border-radius:16;
+      style="-fx-background-color:#0f1a14; -fx-background-radius:16; -fx-border-radius:16;
              -fx-border-color:rgba(255,255,255,0.1); -fx-border-width:1;
              -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.5),30,0,0,10);
-             -fx-min-width:460px; -fx-max-width:460px;">
+             -fx-min-width:460px; -fx-max-width:460px;
+             -fx-font-family:'Segoe UI',Arial,sans-serif;">
 
-    <!-- Header -->
     <HBox alignment="CENTER_LEFT" spacing="12"
           style="-fx-padding:20 24 16 24;
                  -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
                  -fx-border-width:0 0 1 0;">
-        <Label fx:id="formTitle" text="Nouveau Quiz" styleClass="section-title"/>
+        <Label fx:id="formTitle" text="Nouveau Quiz"
+               style="-fx-font-size:16px; -fx-font-weight:bold; -fx-text-fill:#f5f5f4;"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button text="✕" onAction="#annuler"
                 style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.6);
                        -fx-background-radius:8; -fx-padding:4 9; -fx-cursor:hand; -fx-border-width:0;"/>
     </HBox>
 
-    <!-- Form body -->
     <VBox spacing="14" style="-fx-padding:20 24 20 24;">
 
-        <Label text="Titre *" styleClass="form-label"/>
+        <Label text="Titre *"
+               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
         <TextField fx:id="titreField" promptText="Entrez le titre du quiz (min 3 caractères)"
-                   styleClass="text-field"/>
+                   style="-fx-background-color:rgba(255,255,255,0.05);
+                          -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                          -fx-background-radius:8px; -fx-border-width:1px;
+                          -fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);
+                          -fx-padding:9px 13px; -fx-font-size:13px;"/>
 
-        <Label text="Description *" styleClass="form-label"/>
+        <Label text="Description *"
+               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
         <TextArea fx:id="descriptionField"
                   promptText="Décrivez le contenu du quiz (min 10 caractères)"
-                  prefRowCount="4" styleClass="text-area"/>
+                  prefRowCount="4"
+                  style="-fx-background-color:rgba(255,255,255,0.05);
+                         -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                         -fx-background-radius:8px; -fx-border-width:1px;
+                         -fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);
+                         -fx-padding:9px 13px; -fx-font-size:13px;"/>
 
-        <Label text="État *" styleClass="form-label"/>
-        <ComboBox fx:id="etatCombo" promptText="Sélectionnez un état"
-                  maxWidth="Infinity" styleClass="combo-box"/>
+        <Label text="État *"
+               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
+        <ComboBox fx:id="etatCombo" promptText="Sélectionnez un état" maxWidth="Infinity"
+                  style="-fx-background-color:rgba(255,255,255,0.05);
+                         -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                         -fx-background-radius:8px; -fx-border-width:1px; -fx-padding:3px;"/>
 
-        <!-- Message -->
         <Label fx:id="messageLabel" wrapText="true" style="-fx-font-size:12px;"/>
 
-        <!-- Actions -->
         <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding:6 0 0 0;">
             <Button text="Annuler" onAction="#annuler"
                     style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
                            -fx-background-radius:8; -fx-padding:9 18; -fx-cursor:hand; -fx-border-width:0;"/>
-            <Button fx:id="btnSauvegarder" text="Sauvegarder" styleClass="btn-add"
-                    onAction="#sauvegarder"/>
+            <Button fx:id="btnSauvegarder" text="Sauvegarder" onAction="#sauvegarder"
+                    style="-fx-background-color:linear-gradient(to bottom right,#34d399,#059669);
+                           -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:13px;
+                           -fx-padding:9 18; -fx-background-radius:8px; -fx-cursor:hand;
+                           -fx-border-width:0;"/>
         </HBox>
     </VBox>
 </VBox>

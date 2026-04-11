@@ -58,8 +58,7 @@ public class QuizFormController {
         String erreur = valider(titre, description, etat);
         if (erreur != null) {
             messageLabel.setText(erreur);
-            messageLabel.getStyleClass().removeAll("msg-success");
-            messageLabel.getStyleClass().add("msg-error");
+            messageLabel.setStyle("-fx-text-fill:#fca5a5; -fx-font-size:13px; -fx-font-weight:bold;");
             return;
         }
 
