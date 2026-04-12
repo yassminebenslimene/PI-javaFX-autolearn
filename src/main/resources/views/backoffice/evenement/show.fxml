@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.evenement.EvenementShowController"
+            fitToWidth="true" hbarPolicy="NEVER"
+            style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;">
+
+    <VBox spacing="0" style="-fx-padding:32 40 32 40; -fx-background-color:transparent;">
+
+        <!-- Card -->
+        <VBox spacing="0"
+              style="-fx-background-color:rgba(255,255,255,0.05);
+                     -fx-background-radius:16;
+                     -fx-border-color:rgba(255,255,255,0.1);
+                     -fx-border-radius:16; -fx-border-width:1;">
+
+            <!-- Card header -->
+            <VBox style="-fx-padding:24 28 20 28;
+                         -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
+                         -fx-border-width:0 0 1 0;">
+                <Label fx:id="labelTitre" text=""
+                       style="-fx-text-fill:white; -fx-font-size:20; -fx-font-weight:bold;"/>
+            </VBox>
+
+            <!-- Details -->
+            <VBox spacing="0" style="-fx-padding:8 0 8 0;">
+
+                <HBox style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Type:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelType" style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+
+                <HBox style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Description:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelDescription" wrapText="true"
+                           style="-fx-text-fill:white; -fx-font-size:13;" HBox.hgrow="ALWAYS"/>
+                </HBox>
+
+                <HBox style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Lieu:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelLieu" style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+
+                <HBox style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Date de début:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelDateDebut" style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+
+                <HBox style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Date de fin:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelDateFin" style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Statut:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelStatut"
+                           style="-fx-font-size:12; -fx-font-weight:bold;
+                                  -fx-background-radius:20; -fx-padding:4 12 4 12;"/>
+                </HBox>
+
+                <HBox style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Annulé:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelAnnule" style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+
+                <HBox style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Nombre maximum d'équipes:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelNbMax" style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+
+                <HBox style="-fx-padding:16 28 16 28;
+                             -fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;
+                             -fx-border-width:0 0 1 0;">
+                    <Label text="Nombre d'équipes inscrites:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelNbEquipes" style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+
+                <HBox style="-fx-padding:16 28 16 28;">
+                    <Label text="Nombre de participations:" prefWidth="220"
+                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:13; -fx-font-weight:bold;"/>
+                    <Label fx:id="labelNbParticipations" style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+            </VBox>
+
+            <!-- Action buttons -->
+            <HBox spacing="16" style="-fx-padding:20 28 24 28;
+                                      -fx-border-color:rgba(255,255,255,0.08) transparent transparent transparent;
+                                      -fx-border-width:1 0 0 0;">
+                <Button text="✏  Modifier" onAction="#onModifier"
+                        style="-fx-background-color:linear-gradient(to right,#059669,#34d399);
+                               -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold;
+                               -fx-padding:12 36 12 36; -fx-background-radius:10;
+                               -fx-cursor:hand; -fx-border-width:0;" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button text="↩  Retour à la liste" onAction="#onRetour"
+                        style="-fx-background-color:rgba(255,255,255,0.07);
+                               -fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:13;
+                               -fx-padding:12 36 12 36; -fx-background-radius:10;
+                               -fx-cursor:hand; -fx-border-width:1;
+                               -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:10;"
+                        HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            </HBox>
+        </VBox>
+    </VBox>
+</ScrollPane>
