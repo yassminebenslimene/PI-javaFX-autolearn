@@ -6,9 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Workshop_3A43" />
         <module name="PI_JAVA" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Workshop_3A43" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
