@@ -19,6 +19,8 @@ public class BackofficeController {
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
     @FXML private Button btnEvenements;
+    @FXML private Button btncours;
+    @FXML private Button btnchapitres;
     @FXML private Button btnExercices;  // ← NOUVEAU BOUTON
     @FXML private Button btnProfile;
 
@@ -107,5 +109,18 @@ public class BackofficeController {
         setActive(btnEvenements);
         labelPageTitle.setText("Gestion des Evenements");
         loadView("/views/backoffice/evenement/index.fxml");
+    }
+    @FXML
+    private void navigateToCours() {
+        setActive(btncours);
+        labelPageTitle.setText("Gestion des Cours");
+        loadView("/views/backoffice/cours/index.fxml");
+    }
+
+    @FXML
+    private void navigateToChapitres() {
+        setActive(btnchapitres);
+        labelPageTitle.setText("Gestion des Chapitres");
+        loadView("/views/backoffice/chapitre/index.fxml");
     }
 }

@@ -2,7 +2,10 @@ package tn.esprit.controllers;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.session.SessionManager;
@@ -16,6 +19,7 @@ public class FrontofficeController {
     @FXML private Label labelAvatarNav;
     @FXML private Label labelNiveauStat;
     @FXML private Label welcomeLabel;
+    @FXML private Button btnHome;  // ← AJOUTER CETTE LIGNE
 
     @FXML
     public void initialize() {
@@ -28,7 +32,7 @@ public class FrontofficeController {
 
         // Avatar initials
         String initials = u.getPrenom().substring(0,1).toUpperCase()
-                        + u.getNom().substring(0,1).toUpperCase();
+                + u.getNom().substring(0,1).toUpperCase();
         if (labelAvatarNav != null) labelAvatarNav.setText(initials);
 
         if (u instanceof Etudiant e && e.getNiveau() != null) {
@@ -60,13 +64,14 @@ public class FrontofficeController {
         } catch (Exception e) {
             e.printStackTrace();
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Erreur profil");
             alert.setHeaderText(e.getClass().getSimpleName() + ": " + e.getMessage());
             alert.setContentText(cause.getClass().getSimpleName() + ": " + cause.getMessage());
             alert.showAndWait();
         }
     }
+
     @FXML
     public void onChallenges() {
         System.out.println("Bouton Challenges cliqué !");
@@ -76,5 +81,35 @@ public class FrontofficeController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    private void onViewCourses() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/cours/index.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            // Remplacer le contenu du centre
+            if (btnHome != null) {
+                BorderPane parent = (BorderPane) btnHome.getScene().getRoot();
+                parent.setCenter(root);
+            } else {
+                // Alternative: utiliser MainApp
+                MainApp.getPrimaryStage().getScene().setRoot(root);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page des cours");
+        }
+    }
+
+    // Ajouter la méthode showAlert
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

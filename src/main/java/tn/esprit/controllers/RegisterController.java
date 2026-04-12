@@ -8,6 +8,7 @@ import tn.esprit.entities.Admin;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
 import tn.esprit.services.UserService;
+import tn.esprit.session.SessionManager;
 import tn.esprit.tools.PasswordUtil;
 
 import java.util.List;
@@ -64,12 +65,14 @@ public class RegisterController {
                 : new Etudiant(nom, prenom, email, password, niveau);
 
         service.ajouter(newUser);
+        SessionManager.login(newUser);
 
         try {
             if ("ADMIN".equals(role)) MainApp.showBackoffice();
             else                      MainApp.showFrontoffice();
         } catch (Exception e) {
-            errorGeneral.setText("Erreur lors de la navigation.");
+            String msg = e.getMessage() == null ? "Erreur inconnue." : e.getMessage();
+            errorGeneral.setText("Erreur navigation: " + msg);
             e.printStackTrace();
         }
     }

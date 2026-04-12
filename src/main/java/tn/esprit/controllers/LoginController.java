@@ -69,7 +69,11 @@ public class LoginController {
             if ("ADMIN".equals(found.getRole())) MainApp.showBackoffice();
             else                                  MainApp.showFrontoffice();
         } catch (Exception e) {
-            showError("Erreur de navigation: " + e.getMessage());
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            String detail = (cause.getMessage() == null || cause.getMessage().isBlank())
+                ? cause.getClass().getSimpleName()
+                : cause.getMessage();
+            showError("Erreur de navigation: " + detail);
             e.printStackTrace();
         }
     }

@@ -166,7 +166,7 @@
                         <Label text="Correction automatique et analyse sémantique des réponses grâce à l'IA. Génération intelligente d'exercices adaptés."
                                wrapText="true"
                                style="-fx-font-size:12; -fx-text-fill:#666; -fx-line-spacing:3;"/>
-                        <Button text="Voir le cours  →"
+                        <Button text="Voir le cours  →" onAction="#onViewCourses"
                                 style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
                                        -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;
                                        -fx-padding:9 20 9 20; -fx-background-radius:10;
