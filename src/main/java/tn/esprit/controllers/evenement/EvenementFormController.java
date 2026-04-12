@@ -27,6 +27,14 @@ public class EvenementFormController implements Initializable {
     @FXML private TextField fieldLieu;
     @FXML private Label labelError;
     @FXML private Button btnSubmit;
+    // Inline error labels
+    @FXML private Label errTitre;
+    @FXML private Label errDescription;
+    @FXML private Label errType;
+    @FXML private Label errNbMax;
+    @FXML private Label errDateDebut;
+    @FXML private Label errDateFin;
+    @FXML private Label errLieu;
 
     private final EvenementService service = new EvenementService();
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -112,7 +120,8 @@ public class EvenementFormController implements Initializable {
 
         // Type : obligatoire
         if (comboType.getValue() == null) {
-            labelError.setText("Veuillez sélectionner un type d'événement.");
+            if (errType != null) errType.setText("Veuillez selectionner un type d'evenement.");
+            else labelError.setText("Veuillez selectionner un type d'evenement.");
             valid = false;
         }
 
@@ -226,17 +235,29 @@ public class EvenementFormController implements Initializable {
     private void setFieldError(Control field, String message) {
         field.setStyle(field.getStyle()
                 + "-fx-border-color:#f87171 !important; -fx-border-width:1.5;");
-        labelError.setText(message);
+        // Show inline label
+        Label errLabel = getErrLabel(field);
+        if (errLabel != null) errLabel.setText(message);
+        else labelError.setText(message);
+    }
+
+    private Label getErrLabel(Control field) {
+        if (field == fieldTitre) return errTitre;
+        if (field == fieldDescription) return errDescription;
+        if (field == fieldNbMax) return errNbMax;
+        if (field == fieldDateDebut) return errDateDebut;
+        if (field == fieldDateFin) return errDateFin;
+        if (field == fieldLieu) return errLieu;
+        return null;
     }
 
     private void clearFieldError(Control field) {
-        // Réinitialise la bordure rouge si l'utilisateur corrige
         String style = field.getStyle().replaceAll("-fx-border-color:#f87171 !important;", "")
                                        .replaceAll("-fx-border-width:1\\.5;", "");
         field.setStyle(style);
-        if (labelError.getText() != null && !labelError.getText().isEmpty()) {
-            labelError.setText("");
-        }
+        Label errLabel = getErrLabel(field);
+        if (errLabel != null) errLabel.setText("");
+        if (labelError != null) labelError.setText("");
     }
 
     private void resetFieldStyles() {
@@ -244,6 +265,8 @@ public class EvenementFormController implements Initializable {
             clearFieldError(c);
         }
         clearFieldError(fieldDescription);
+        if (errType != null) errType.setText("");
+        if (labelError != null) labelError.setText("");
     }
 
     private StackPane getContentArea() {

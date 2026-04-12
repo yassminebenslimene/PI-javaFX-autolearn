@@ -212,6 +212,41 @@ public class EquipeService implements IService<Equipe> {
         return 0;
     }
 
+    /** Vérifie si un étudiant est déjà dans une équipe pour cet événement */
+    public boolean etudiantDejaInscritEvenement(int etudiantId, int evenementId) {
+        String req = "SELECT COUNT(*) FROM equipe_etudiant ee "
+                + "JOIN equipe e ON ee.equipe_id = e.id "
+                + "WHERE ee.etudiant_id=? AND e.evenement_id=?";
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setInt(1, etudiantId);
+            ps.setInt(2, evenementId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException ex) {
+            System.err.println("Erreur etudiantDejaInscritEvenement: " + ex.getMessage());
+        }
+        return false;
+    }
+
+    /** Vérifie si un étudiant participe à un événement qui se déroule en même temps */
+    public boolean etudiantConflitHoraire(int etudiantId, java.time.LocalDateTime debut, java.time.LocalDateTime fin) {
+        String req = "SELECT COUNT(*) FROM equipe_etudiant ee "
+                + "JOIN equipe eq ON ee.equipe_id = eq.id "
+                + "JOIN evenement ev ON eq.evenement_id = ev.id "
+                + "WHERE ee.etudiant_id=? "
+                + "AND ev.date_debut < ? AND ev.date_fin > ?";
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setInt(1, etudiantId);
+            ps.setTimestamp(2, java.sql.Timestamp.valueOf(fin));
+            ps.setTimestamp(3, java.sql.Timestamp.valueOf(debut));
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException ex) {
+            System.err.println("Erreur etudiantConflitHoraire: " + ex.getMessage());
+        }
+        return false;
+    }
+
     private Equipe mapRow(ResultSet rs) throws SQLException {
         Equipe e = new Equipe();
         e.setId(rs.getInt("id"));

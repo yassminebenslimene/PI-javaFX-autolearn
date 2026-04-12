@@ -51,9 +51,9 @@
 
                     <!-- Title + status -->
                     <VBox alignment="CENTER" spacing="12">
-                        <Label text="Participation Details"
+                        <Label text="Details de la participation"
                                style="-fx-font-size:26; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
-                        <Label fx:id="labelStatut" text="✓ Accepted"
+                        <Label fx:id="labelStatut" text="&#10003; Accepte"
                                style="-fx-background-color:#d1fae5; -fx-text-fill:#065f46; -fx-font-size:13;
                                       -fx-font-weight:700; -fx-background-radius:20; -fx-padding:6 18 6 18;"/>
                     </VBox>
@@ -64,20 +64,20 @@
                     <VBox spacing="12">
                         <HBox alignment="CENTER_LEFT" spacing="8">
                             <Label text="📅" style="-fx-font-size:16;"/>
-                            <Label text="Event Information"
+                            <Label text="Informations sur l'evenement"
                                    style="-fx-font-size:16; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
                         </HBox>
                         <HBox spacing="12">
                             <VBox fx:id="cardEventName" spacing="4" prefWidth="200"
                                   style="-fx-background-color:#f8f8ff; -fx-background-radius:10;
                                          -fx-border-color:#e8e4ff; -fx-border-radius:10; -fx-border-width:1; -fx-padding:16;">
-                                <Label text="Event Name" style="-fx-font-size:11; -fx-text-fill:#888;"/>
+                                <Label text="Nom de l'evenement" style="-fx-font-size:11; -fx-text-fill:#888;"/>
                                 <Label fx:id="labelEventName" text="" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
                             </VBox>
                             <VBox spacing="4" prefWidth="200"
                                   style="-fx-background-color:#f8f8ff; -fx-background-radius:10;
                                          -fx-border-color:#e8e4ff; -fx-border-radius:10; -fx-border-width:1; -fx-padding:16;">
-                                <Label text="Location" style="-fx-font-size:11; -fx-text-fill:#888;"/>
+                                <Label text="Lieu" style="-fx-font-size:11; -fx-text-fill:#888;"/>
                                 <Label fx:id="labelLieu" text="" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
                             </VBox>
                             <VBox spacing="4" prefWidth="200"
@@ -91,19 +91,19 @@
                             <VBox spacing="4" prefWidth="200"
                                   style="-fx-background-color:#f8f8ff; -fx-background-radius:10;
                                          -fx-border-color:#e8e4ff; -fx-border-radius:10; -fx-border-width:1; -fx-padding:16;">
-                                <Label text="Start Date" style="-fx-font-size:11; -fx-text-fill:#888;"/>
+                                <Label text="Date de debut" style="-fx-font-size:11; -fx-text-fill:#888;"/>
                                 <Label fx:id="labelDateDebut" text="" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
                             </VBox>
                             <VBox spacing="4" prefWidth="200"
                                   style="-fx-background-color:#f8f8ff; -fx-background-radius:10;
                                          -fx-border-color:#e8e4ff; -fx-border-radius:10; -fx-border-width:1; -fx-padding:16;">
-                                <Label text="End Date" style="-fx-font-size:11; -fx-text-fill:#888;"/>
+                                <Label text="Date de fin" style="-fx-font-size:11; -fx-text-fill:#888;"/>
                                 <Label fx:id="labelDateFin" text="" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
                             </VBox>
                             <VBox spacing="4" prefWidth="200"
                                   style="-fx-background-color:#f8f8ff; -fx-background-radius:10;
                                          -fx-border-color:#e8e4ff; -fx-border-radius:10; -fx-border-width:1; -fx-padding:16;">
-                                <Label text="Max Teams" style="-fx-font-size:11; -fx-text-fill:#888;"/>
+                                <Label text="Equipes max" style="-fx-font-size:11; -fx-text-fill:#888;"/>
                                 <Label fx:id="labelNbMax" text="" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
                             </VBox>
                         </HBox>
@@ -123,15 +123,15 @@
                     <VBox spacing="12">
                         <HBox alignment="CENTER_LEFT" spacing="8">
                             <Label text="ℹ" style="-fx-font-size:16;"/>
-                            <Label text="Participation Status"
+                            <Label text="Statut de la participation"
                                    style="-fx-font-size:16; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
                         </HBox>
                         <VBox style="-fx-background-color:#f0f9ff; -fx-background-radius:10;
                                     -fx-border-color:#bae6fd; -fx-border-radius:10; -fx-border-width:0 0 0 4;
                                     -fx-border-color:#7a6ad8; -fx-padding:16;">
-                            <Label text="✓  Your participation has been accepted!"
+                            <Label text="&#10003;  Votre participation a ete acceptee !"
                                    style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e4d8c;"/>
-                            <Label text="Your team is registered for this event. See you there!"
+                            <Label text="Votre equipe est inscrite a cet evenement. A bientot !"
                                    style="-fx-font-size:12; -fx-text-fill:#555;"/>
                         </VBox>
                     </VBox>
@@ -140,15 +140,15 @@
 
                     <!-- Action buttons -->
                     <HBox spacing="12" alignment="CENTER">
-                        <Button text="🚀  Edit Participation" onAction="#onEditParticipation"
+                        <Button text="&#128640;  Modifier la participation" onAction="#onEditParticipation"
                                 style="-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:13;
                                        -fx-font-weight:700; -fx-padding:12 24 12 24; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-width:0;"/>
-                        <Button text="🗑  Delete Participation" onAction="#onDeleteParticipation"
+                        <Button text="&#128465;  Supprimer la participation" onAction="#onDeleteParticipation"
                                 style="-fx-background-color:#fee2e2; -fx-text-fill:#dc2626; -fx-font-size:13;
                                        -fx-font-weight:600; -fx-padding:12 24 12 24; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-color:#fca5a5; -fx-border-width:1; -fx-border-radius:10;"/>
-                        <Button text="← Back to My Participations" onAction="#onBack"
+                        <Button text="&#8592; Retour a mes participations" onAction="#onBack"
                                 style="-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:13;
                                        -fx-font-weight:600; -fx-padding:12 24 12 24; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-color:#ddd; -fx-border-width:1; -fx-border-radius:10;"/>

@@ -57,11 +57,11 @@
                 <!-- Header gradient -->
                 <VBox alignment="CENTER" spacing="8" prefHeight="140"
                       style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c); -fx-padding:30 80 30 80;">
-                    <Button text="← Back to Events" onAction="#onBack"
+                    <Button text="&#8592; Retour aux evenements" onAction="#onBack"
                             style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
                                    -fx-font-size:12; -fx-padding:6 16 6 16; -fx-background-radius:20;
                                    -fx-cursor:hand; -fx-border-width:0;" HBox.hgrow="NEVER"/>
-                    <Label text="🎯  Join the Event"
+                    <Label text="&#127919;  Rejoindre l'evenement"
                            style="-fx-font-size:30; -fx-font-weight:800; -fx-text-fill:white;"/>
                     <Label fx:id="labelEventName" text=""
                            style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.75);"/>
@@ -71,38 +71,38 @@
                 <VBox spacing="20" style="-fx-background-color:white; -fx-padding:40 80 40 80;">
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label text="🚀" style="-fx-font-size:22;"/>
-                        <Label text="Why Participate in Our Events?"
+                        <Label text="&#128640; Pourquoi participer a nos evenements ?"
                                style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
                     </HBox>
-                    <Label text="Our events are carefully designed to provide you with practical, hands-on experience that goes beyond traditional classroom learning."
+                    <Label text="Nos evenements sont soigneusement concus pour vous offrir une experience pratique qui va au-dela de l'apprentissage traditionnel."
                            wrapText="true" style="-fx-font-size:13; -fx-text-fill:#555;"/>
                     <HBox spacing="16">
                         <VBox spacing="8" prefWidth="220"
                               style="-fx-background-color:#f8f8ff; -fx-background-radius:12;
                                      -fx-border-color:#e8e4ff; -fx-border-radius:12; -fx-padding:20;">
-                            <Label text="🤝  Networking" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
-                            <Label text="Connect with peers, mentors, and industry professionals to expand your professional network."
+                            <Label text="&#129309;  Reseautage" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                            <Label text="Connectez-vous avec des pairs, des mentors et des professionnels pour elargir votre reseau."
                                    wrapText="true" style="-fx-font-size:11; -fx-text-fill:#666;"/>
                         </VBox>
                         <VBox spacing="8" prefWidth="220"
                               style="-fx-background-color:#f8f8ff; -fx-background-radius:12;
                                      -fx-border-color:#e8e4ff; -fx-border-radius:12; -fx-padding:20;">
-                            <Label text="💬  Communication" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
-                            <Label text="Enhance your ability to articulate ideas, collaborate effectively, and present solutions."
+                            <Label text="&#128172;  Communication" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                            <Label text="Ameliorez votre capacite a articuler des idees, collaborer efficacement et presenter des solutions."
                                    wrapText="true" style="-fx-font-size:11; -fx-text-fill:#666;"/>
                         </VBox>
                         <VBox spacing="8" prefWidth="220"
                               style="-fx-background-color:#f8f8ff; -fx-background-radius:12;
                                      -fx-border-color:#e8e4ff; -fx-border-radius:12; -fx-padding:20;">
-                            <Label text="👥  Teamwork" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
-                            <Label text="Learn to work efficiently in teams, manage conflicts, and leverage diverse perspectives."
+                            <Label text="&#128101;  Travail en equipe" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                            <Label text="Apprenez a travailler efficacement en equipe, gerer les conflits et tirer parti des perspectives diverses."
                                    wrapText="true" style="-fx-font-size:11; -fx-text-fill:#666;"/>
                         </VBox>
                         <VBox spacing="8" prefWidth="220"
                               style="-fx-background-color:#f8f8ff; -fx-background-radius:12;
                                      -fx-border-color:#e8e4ff; -fx-border-radius:12; -fx-padding:20;">
-                            <Label text="🔧  Technical Skills" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
-                            <Label text="Apply what you've learned through practical projects, hackathons, and workshops."
+                            <Label text="&#128295;  Competences techniques" style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                            <Label text="Appliquez ce que vous avez appris a travers des projets pratiques, hackathons et ateliers."
                                    wrapText="true" style="-fx-font-size:11; -fx-text-fill:#666;"/>
                         </VBox>
                     </HBox>
@@ -110,7 +110,7 @@
 
                 <!-- Choose Your Path -->
                 <VBox spacing="24" style="-fx-background-color:#f0f0f8; -fx-padding:40 80 40 80;">
-                    <Label text="Choose Your Path"
+                    <Label text="Choisissez votre option"
                            style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#1e1e1e; -fx-alignment:CENTER;"/>
                     <HBox spacing="24" alignment="CENTER">
                         <VBox spacing="16" prefWidth="380" alignment="CENTER"
@@ -118,11 +118,11 @@
                                      -fx-border-color:#eeeeee; -fx-border-radius:16;
                                      -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);
                                      -fx-padding:36;">
-                            <Label text="👥" style="-fx-font-size:40; -fx-background-color:#7a6ad8;
+                            <Label text="&#128101;" style="-fx-font-size:40; -fx-background-color:#7a6ad8;
                                           -fx-background-radius:50%; -fx-padding:16 18 16 18; -fx-text-fill:white;"/>
-                            <Label text="Join an Existing Team"
+                            <Label text="Rejoindre une equipe existante"
                                    style="-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
-                            <Label text="Connect with students who are already registered for this event. Teams can have up to 6 members, so you can join any team with available spots."
+                            <Label text="Rejoignez des etudiants deja inscrits a cet evenement. Les equipes peuvent avoir jusqu'a 6 membres."
                                    wrapText="true" style="-fx-font-size:12; -fx-text-fill:#666; -fx-text-alignment:CENTER;"/>
                             <Label fx:id="labelJoinStatus" text=""
                                    style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#e94560;"/>
@@ -133,13 +133,13 @@
                                      -fx-border-color:#eeeeee; -fx-border-radius:16;
                                      -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);
                                      -fx-padding:36;">
-                            <Label text="✨" style="-fx-font-size:40; -fx-background-color:#7a6ad8;
+                            <Label text="&#10024;" style="-fx-font-size:40; -fx-background-color:#7a6ad8;
                                           -fx-background-radius:50%; -fx-padding:16 18 16 18; -fx-text-fill:white;"/>
-                            <Label text="Create a New Team"
+                            <Label text="Creer une nouvelle equipe"
                                    style="-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
-                            <Label text="Start your own team with your classmates! Select 4 to 6 students and give your team a unique name. You'll automatically be registered for this event."
+                            <Label text="Formez votre propre equipe ! Selectionnez 4 a 6 etudiants et donnez un nom unique a votre equipe."
                                    wrapText="true" style="-fx-font-size:12; -fx-text-fill:#666; -fx-text-alignment:CENTER;"/>
-                            <Button text="Create New Team" onAction="#onCreateTeam"
+                            <Button text="Creer une equipe" onAction="#onCreateTeam"
                                     style="-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:13;
                                            -fx-font-weight:700; -fx-padding:12 32 12 32; -fx-background-radius:10;
                                            -fx-cursor:hand; -fx-border-width:0;"/>

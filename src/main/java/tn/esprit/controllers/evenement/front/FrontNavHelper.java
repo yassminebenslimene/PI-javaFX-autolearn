@@ -34,6 +34,14 @@ public class FrontNavHelper {
         try { MainApp.showMesParticipations(successMsg); } catch (Exception e) { e.printStackTrace(); }
     }
 
+    public static void goMesEquipes(String successMsg) {
+        try { MainApp.showMesEquipes(successMsg); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public static void goSelectEvent() {
+        try { MainApp.showSelectEvent(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
     public static void goProfile() {
         try { MainApp.showProfile(); } catch (Exception e) { e.printStackTrace(); }
     }

@@ -119,6 +119,27 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Modifier participation");
     }
 
+    public static void showMesEquipes(String successMsg) throws Exception {
+        if (successMsg != null) MesEquipesController.setPendingSuccess(successMsg);
+        load("/views/frontoffice/mes_equipes.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Mes Equipes");
+    }
+
+    public static void showSelectEvent() throws Exception {
+        load("/views/frontoffice/select_event.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Choisir un evenement");
+    }
+
+    public static void showFeedback(Participation p, Evenement ev) throws Exception {
+        FXMLLoader loader = getLoader("/views/frontoffice/feedback.fxml");
+        setScene(loader);
+        FeedbackController ctrl = loader.getController();
+        ctrl.setData(p, ev);
+        primaryStage.setTitle("AutoLearn — Feedback");
+    }
+
     private static FXMLLoader getLoader(String fxml) throws Exception {
         java.net.URL resource = MainApp.class.getResource(fxml);
         if (resource == null) throw new Exception("FXML not found: " + fxml);

@@ -32,7 +32,7 @@ public class CreateTeamController {
 
     public void setEvenement(Evenement ev) {
         this.evenement = ev;
-        if (labelForEvent != null) labelForEvent.setText("For event: " + ev.getTitre());
+        if (labelForEvent != null) labelForEvent.setText("Pour l'evenement : " + ev.getTitre());
         loadStudents();
     }
 
@@ -56,7 +56,7 @@ public class CreateTeamController {
 
             String label = et.getPrenom() + " " + et.getNom() + " - "
                     + (et.getNiveau() != null ? et.getNiveau().toUpperCase() : "")
-                    + (isCurrentUser ? " (You - Required)" : "");
+                    + (isCurrentUser ? " (Vous - Obligatoire)" : "");
 
             Label lbl = new Label(label);
             lbl.setStyle("-fx-font-size:13; -fx-text-fill:" + (isCurrentUser ? "#7a6ad8" : "#333") + ";"
@@ -80,7 +80,7 @@ public class CreateTeamController {
 
     private void updateCount() {
         long count = checkBoxes.stream().filter(CheckBox::isSelected).count();
-        if (labelCount != null) labelCount.setText(count + " selected");
+        if (labelCount != null) labelCount.setText(count + " selectionne(s)");
     }
 
     @FXML
@@ -98,6 +98,47 @@ public class CreateTeamController {
         if (selectedIds.size() < 4 || selectedIds.size() > 6) {
             labelError.setText("Vous devez sélectionner entre 4 et 6 étudiants.");
             return;
+        }
+
+        // Validation 1 : aucun membre ne doit déjà être dans une équipe pour cet événement
+        for (int etId : selectedIds) {
+            if (equipeService.etudiantDejaInscritEvenement(etId, evenement.getId())) {
+                // Find student name
+                String name = checkBoxes.stream()
+                        .filter(cb -> cb.getUserData().equals(etId))
+                        .findFirst()
+                        .map(cb -> {
+                            int idx = checkBoxes.indexOf(cb);
+                            if (idx >= 0 && idx < studentsContainer.getChildren().size()) {
+                                javafx.scene.layout.HBox row = (javafx.scene.layout.HBox) studentsContainer.getChildren().get(idx);
+                                return ((javafx.scene.control.Label) row.getChildren().get(1)).getText().split(" - ")[0];
+                            }
+                            return "Un étudiant";
+                        }).orElse("Un étudiant");
+                labelError.setText(name + " participe déjà à cet événement avec une autre équipe.");
+                return;
+            }
+        }
+
+        // Validation 2 : conflit horaire — aucun membre ne doit participer à un événement en même temps
+        if (evenement.getDateDebut() != null && evenement.getDateFin() != null) {
+            for (int etId : selectedIds) {
+                if (equipeService.etudiantConflitHoraire(etId, evenement.getDateDebut(), evenement.getDateFin())) {
+                    String name = checkBoxes.stream()
+                            .filter(cb -> cb.getUserData().equals(etId))
+                            .findFirst()
+                            .map(cb -> {
+                                int idx = checkBoxes.indexOf(cb);
+                                if (idx >= 0 && idx < studentsContainer.getChildren().size()) {
+                                    javafx.scene.layout.HBox row = (javafx.scene.layout.HBox) studentsContainer.getChildren().get(idx);
+                                    return ((javafx.scene.control.Label) row.getChildren().get(1)).getText().split(" - ")[0];
+                                }
+                                return "Un étudiant";
+                            }).orElse("Un étudiant");
+                    labelError.setText(name + " participe déjà à un autre événement qui se déroule en même temps.");
+                    return;
+                }
+            }
         }
 
         Equipe equipe = new Equipe(nom, evenement.getId());

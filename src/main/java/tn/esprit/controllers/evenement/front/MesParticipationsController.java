@@ -86,7 +86,7 @@ public class MesParticipationsController {
                 + "-fx-max-width:480;");
 
         // Status badge
-        Label statusBadge = new Label("✓ Accepted");
+        Label statusBadge = new Label("\u2713 Accepte");
         statusBadge.setStyle("-fx-background-color:#d1fae5; -fx-text-fill:#065f46; -fx-font-size:11;"
                 + "-fx-font-weight:700; -fx-background-radius:20; -fx-padding:4 12 4 12;");
 
@@ -96,14 +96,14 @@ public class MesParticipationsController {
         HBox meta1 = new HBox(24);
         meta1.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         meta1.getChildren().addAll(
-                metaLabel("👥 Team: " + eq.getNom()),
-                metaLabel("📍 Location: " + (ev.getLieu() != null ? ev.getLieu() : ""))
+                metaLabel("\uD83D\uDC65 Equipe: " + eq.getNom()),
+                metaLabel("\uD83D\uDCCD Lieu: " + (ev.getLieu() != null ? ev.getLieu() : ""))
         );
         HBox meta2 = new HBox();
         if (ev.getDateDebut() != null)
-            meta2.getChildren().add(metaLabel("📅 Date: " + ev.getDateDebut().format(FMT)));
+            meta2.getChildren().add(metaLabel("\uD83D\uDCC5 Date: " + ev.getDateDebut().format(FMT)));
 
-        Button viewBtn = new Button("🎯  View Details");
+        Button viewBtn = new Button("\uD83C\uDFAF  Voir les details");
         viewBtn.setStyle("-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:12;"
                 + "-fx-font-weight:700; -fx-padding:9 20 9 20; -fx-background-radius:10;"
                 + "-fx-cursor:hand; -fx-border-width:0;");
@@ -111,7 +111,25 @@ public class MesParticipationsController {
             try { MainApp.showParticipationDetails(p, eq, ev); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        card.getChildren().addAll(statusBadge, titre, meta1, meta2, viewBtn);
+        card.getChildren().addAll(statusBadge, titre, meta1, meta2);
+
+        // Feedback button if event is past
+        boolean isPast = ev.getDateFin() != null && java.time.LocalDateTime.now().isAfter(ev.getDateFin());
+        if (isPast) {
+            boolean hasFeedback = p.getFeedbacks() != null && !p.getFeedbacks().isBlank();
+            Button feedbackBtn = new Button(hasFeedback ? "\u2713  Modifier mon feedback" : "Donner mon feedback");
+            feedbackBtn.setStyle("-fx-background-color:" + (hasFeedback ? "#059669" : "#f59e0b") + ";"
+                    + "-fx-text-fill:white; -fx-font-size:12;"
+                    + "-fx-font-weight:700; -fx-padding:9 20 9 20; -fx-background-radius:10;"
+                    + "-fx-cursor:hand; -fx-border-width:0;");
+            feedbackBtn.setOnAction(e -> {
+                try { MainApp.showFeedback(p, ev); } catch (Exception ex) { ex.printStackTrace(); }
+            });
+            HBox btnRow = new HBox(10, viewBtn, feedbackBtn);
+            card.getChildren().add(btnRow);
+        } else {
+            card.getChildren().add(viewBtn);
+        }
         return card;
     }
 

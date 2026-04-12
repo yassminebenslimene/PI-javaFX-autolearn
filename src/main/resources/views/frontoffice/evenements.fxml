@@ -66,9 +66,9 @@
                 <!-- Header -->
                 <VBox alignment="CENTER" spacing="12" prefHeight="160"
                       style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c); -fx-padding:40 80 40 80;">
-                    <Label text="Our Events"
+                    <Label text="Nos Evenements"
                            style="-fx-font-size:34; -fx-font-weight:800; -fx-text-fill:white;"/>
-                    <Button text="📅  View Calendar"
+                    <Button text="&#128197;  Voir le calendrier"
                             style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
                                    -fx-font-weight:600; -fx-padding:8 24 8 24; -fx-background-radius:20;
                                    -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:20; -fx-cursor:hand;"/>
@@ -78,9 +78,9 @@
                 <VBox alignment="CENTER" spacing="8"
                       style="-fx-background-color:white; -fx-padding:24 80 24 80;
                              -fx-border-color:transparent transparent #eeeeee transparent; -fx-border-width:0 0 1 0;">
-                    <Label text="🎯  Enhance Your Skills Through Practical Experience"
+                    <Label text="&#127919;  Developpez vos competences par la pratique"
                            style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#333;"/>
-                    <Label text="Our events are designed to help students develop essential technical and soft skills through hands-on projects."
+                    <Label text="Nos evenements sont concus pour aider les etudiants a developper des competences techniques et relationnelles."
                            wrapText="true" style="-fx-font-size:12; -fx-text-fill:#666; -fx-text-alignment:CENTER;"/>
                 </VBox>
 
