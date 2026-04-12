@@ -1,4 +1,4 @@
-package tn.esprit.controllers.evenement.front;
+﻿package tn.esprit.controllers.evenement.front;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -17,9 +17,7 @@ import java.util.List;
 
 public class ParticipationDetailsController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private Label labelStatut;
     @FXML private Label labelEventName;
     @FXML private Label labelLieu;
@@ -47,8 +45,7 @@ public class ParticipationDetailsController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-    }
+            }
 
     private void refresh() {
         if (labelEventName != null) labelEventName.setText(evenement.getTitre());

@@ -1,4 +1,4 @@
-package tn.esprit.controllers.evenement.front;
+﻿package tn.esprit.controllers.evenement.front;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -19,9 +19,7 @@ import java.util.List;
 
 public class EvenementFrontController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private VBox eventsContainer;
 
     private final EvenementService evenementService = new EvenementService();
@@ -31,8 +29,7 @@ public class EvenementFrontController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-        loadEvenements();
+                loadEvenements();
     }
 
     private void loadEvenements() {

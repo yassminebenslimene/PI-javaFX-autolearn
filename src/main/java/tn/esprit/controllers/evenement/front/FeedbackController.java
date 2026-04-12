@@ -1,4 +1,4 @@
-package tn.esprit.controllers.evenement.front;
+﻿package tn.esprit.controllers.evenement.front;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -15,9 +15,7 @@ import java.time.format.DateTimeFormatter;
 
 public class FeedbackController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private Label labelEventName;
     @FXML private Label labelEventMeta;
     @FXML private HBox starsGlobal;
@@ -127,8 +125,7 @@ public class FeedbackController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-        buildStars(starsGlobal, 5, val -> {
+                buildStars(starsGlobal, 5, val -> {
             ratingGlobal = val;
             labelGlobalRating.setText(GLOBAL_LABELS[val]);
             labelGlobalRating.setStyle("-fx-font-size:12; -fx-text-fill:#7a6ad8; -fx-font-weight:700;");

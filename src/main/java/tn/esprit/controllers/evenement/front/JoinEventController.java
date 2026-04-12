@@ -1,4 +1,4 @@
-package tn.esprit.controllers.evenement.front;
+﻿package tn.esprit.controllers.evenement.front;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -14,9 +14,7 @@ import java.util.List;
 
 public class JoinEventController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private Label labelEventName;
     @FXML private Label labelJoinStatus;
     @FXML private VBox joinTeamsContainer;
@@ -32,8 +30,7 @@ public class JoinEventController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-    }
+            }
 
     private void loadJoinOptions() {
         joinTeamsContainer.getChildren().clear();

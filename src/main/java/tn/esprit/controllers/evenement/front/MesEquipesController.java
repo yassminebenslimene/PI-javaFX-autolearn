@@ -1,4 +1,4 @@
-package tn.esprit.controllers.evenement.front;
+﻿package tn.esprit.controllers.evenement.front;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -16,9 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 public class MesEquipesController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private VBox teamsContainer;
     @FXML private VBox successBannerContainer;
     @FXML private Label labelSuccessBanner;
@@ -33,9 +31,7 @@ public class MesEquipesController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-
-        if (pendingSuccessMsg != null && !pendingSuccessMsg.isEmpty()) {
+                if (pendingSuccessMsg != null && !pendingSuccessMsg.isEmpty()) {
             labelSuccessBanner.setText(pendingSuccessMsg);
             labelSuccessBanner.setVisible(true);
             labelSuccessBanner.setManaged(true);
