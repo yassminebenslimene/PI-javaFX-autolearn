@@ -7,7 +7,7 @@ import javafx.scene.layout.StackPane;
 import tn.esprit.entities.Question;
 import tn.esprit.services.ServiceQuestion;
 
-public class QuestionPageController {
+public class QuestionController {
 
     @FXML private Label pageTitle;
     @FXML private Label cardTitle;

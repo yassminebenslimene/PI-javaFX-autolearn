@@ -463,10 +463,10 @@ public class QuizController {
                 (StackPane) mainContainer.getScene().lookup("#contentArea");
             if (contentArea == null) return;
             FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/backoffice/quiz/form_page.fxml"));
+                getClass().getResource("/views/backoffice/quiz/quiz_form.fxml"));
             contentArea.getChildren().clear();
             contentArea.getChildren().add(loader.load());
-            QuizFormPageController ctrl = loader.getController();
+            QuizFormController ctrl = loader.getController();
             if (quiz != null) ctrl.initEdit(quiz);
         } catch (Exception e) {
             e.printStackTrace();
@@ -514,10 +514,10 @@ public class QuizController {
                 (StackPane) mainContainer.getScene().lookup("#contentArea");
             if (contentArea == null) return;
             FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/backoffice/quiz/question_page.fxml"));
+                getClass().getResource("/views/backoffice/quiz/question_form.fxml"));
             contentArea.getChildren().clear();
             contentArea.getChildren().add(loader.load());
-            QuestionPageController ctrl = loader.getController();
+            QuestionController ctrl = loader.getController();
             if (question == null) ctrl.initNouvelle(quizId);
             else ctrl.initModifier(question);
         } catch (Exception e) {
@@ -560,10 +560,10 @@ public class QuizController {
                 (StackPane) mainContainer.getScene().lookup("#contentArea");
             if (contentArea == null) return;
             FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/backoffice/quiz/option_page.fxml"));
+                getClass().getResource("/views/backoffice/quiz/option_form.fxml"));
             contentArea.getChildren().clear();
             contentArea.getChildren().add(loader.load());
-            OptionPageController ctrl = loader.getController();
+            OptionController ctrl = loader.getController();
             if (option == null) ctrl.initNouvelle(questionId);
             else ctrl.initModifier(option);
         } catch (Exception e) {

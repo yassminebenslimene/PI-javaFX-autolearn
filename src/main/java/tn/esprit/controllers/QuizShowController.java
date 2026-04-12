@@ -55,10 +55,10 @@ public class QuizShowController {
                 (StackPane) labelTitre.getScene().lookup("#contentArea");
             if (contentArea == null) return;
             FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/backoffice/quiz/form_page.fxml"));
+                getClass().getResource("/views/backoffice/quiz/quiz_form.fxml"));
             contentArea.getChildren().clear();
             contentArea.getChildren().add(loader.load());
-            QuizFormPageController ctrl = loader.getController();
+            QuizFormController ctrl = loader.getController();
             ctrl.initEdit(quiz);
         } catch (Exception e) {
             e.printStackTrace();

@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="tn.esprit.controllers.QuizFormPageController"
+            fx:controller="tn.esprit.controllers.QuizFormController"
             style="-fx-background-color:#0f1a14; -fx-font-family:'Segoe UI',Arial,sans-serif;">
 
     <top>

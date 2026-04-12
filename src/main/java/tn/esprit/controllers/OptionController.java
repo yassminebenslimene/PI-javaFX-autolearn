@@ -8,7 +8,7 @@ import tn.esprit.entities.Option;
 import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 
-public class OptionPageController {
+public class OptionController {
 
     @FXML private Label pageTitle;
     @FXML private Label cardTitle;
