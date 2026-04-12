@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
@@ -10,7 +16,7 @@
 
     <center>
         <HBox>
-            <!-- ══ SIDEBAR (matches Symfony _sidebar.html.twig) ══ -->
+            <!-- ══ SIDEBAR ══ -->
             <VBox prefWidth="260" spacing="0"
                   style="-fx-background-color:rgba(255,255,255,0.05);
                          -fx-border-color:rgba(255,255,255,0.1) rgba(255,255,255,0.1) rgba(255,255,255,0.1) transparent;
@@ -26,11 +32,43 @@
                 <!-- MAIN MENU -->
                 <VBox spacing="2" style="-fx-padding:16 8 8 8;">
                     <Label text="MAIN MENU" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
+
                     <Button fx:id="btnDashboard" text="  ⊞   Dashboard" maxWidth="Infinity" onAction="#navigateToDashboard"
                             style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
                     <Button fx:id="btnUsers" text="  👥   Utilisateurs" maxWidth="Infinity" onAction="#navigateToUsers"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
+                    <Button fx:id="btnEvenements" text="  📅   Événements" maxWidth="Infinity" onAction="#navigateToEvenements"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
+                    <Button fx:id="btnQuiz" text="  📋   Quiz" maxWidth="Infinity" onAction="#navigateToQuiz"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
+                    <Button fx:id="btnCours" text="  📚   Cours" maxWidth="Infinity" onAction="#navigateToCours"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
+                    <Button fx:id="btnChapitres" text="  📖   Chapitres" maxWidth="Infinity" onAction="#navigateToChapitres"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
+                    <Button fx:id="btnExercices" text="  📝   Exercices" maxWidth="Infinity" onAction="#navigateToExercices"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
+                    <Button fx:id="btnChallenges" text="  🏆   Challenges" maxWidth="Infinity" onAction="#navigateToChallenges"
                             style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>

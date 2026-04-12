@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.evenement.EvenementFormController"
+            fitToWidth="true" hbarPolicy="NEVER"
+            style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;">
+
+    <VBox spacing="24" style="-fx-padding:32 40 32 40; -fx-background-color:transparent;">
+
+        <!-- Title -->
+        <Label fx:id="labelFormTitle" text="Nouvel Événement"
+               style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:bold;"/>
+
+        <!-- Titre -->
+        <VBox spacing="8">
+            <Label text="Titre" style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
+            <TextField fx:id="fieldTitre" promptText="Ex: Hackathon 2026"
+                       style="-fx-background-color:rgba(255,255,255,0.07);
+                              -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
+                              -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                              -fx-border-radius:10; -fx-border-width:1;
+                              -fx-padding:12 16 12 16; -fx-font-size:13;"/>
+        </VBox>
+
+        <!-- Description -->
+        <VBox spacing="8">
+            <Label text="Description" style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
+            <TextArea fx:id="fieldDescription" promptText="Décrivez l'événement..."
+                      prefRowCount="4" wrapText="true"
+                      style="-fx-control-inner-background:#1a2e25;
+                             -fx-background-color:rgba(255,255,255,0.07);
+                             -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
+                             -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                             -fx-border-radius:10; -fx-border-width:1;
+                             -fx-padding:12 16 12 16; -fx-font-size:13;"/>
+        </VBox>
+
+        <!-- Type + NbMax -->
+        <HBox spacing="24">
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Type" style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
+                <ComboBox fx:id="comboType" maxWidth="Infinity"
+                          style="-fx-background-color:rgba(255,255,255,0.07);
+                                 -fx-text-fill:white;
+                                 -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                                 -fx-border-radius:10; -fx-border-width:1;
+                                 -fx-padding:4 8 4 8; -fx-font-size:13;"/>
+            </VBox>
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Nombre maximum d'équipes"
+                       style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
+                <TextField fx:id="fieldNbMax" promptText="Ex: 10"
+                           style="-fx-background-color:rgba(255,255,255,0.07);
+                                  -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
+                                  -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                                  -fx-border-radius:10; -fx-border-width:1;
+                                  -fx-padding:12 16 12 16; -fx-font-size:13;"/>
+            </VBox>
+        </HBox>
+
+        <!-- Date début + Date fin -->
+        <HBox spacing="24">
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Date de début"
+                       style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
+                <TextField fx:id="fieldDateDebut" promptText="jj/MM/aaaa HH:mm"
+                           style="-fx-background-color:rgba(255,255,255,0.07);
+                                  -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
+                                  -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                                  -fx-border-radius:10; -fx-border-width:1;
+                                  -fx-padding:12 16 12 16; -fx-font-size:13;"/>
+            </VBox>
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Date de fin"
+                       style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
+                <TextField fx:id="fieldDateFin" promptText="jj/MM/aaaa HH:mm"
+                           style="-fx-background-color:rgba(255,255,255,0.07);
+                                  -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
+                                  -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                                  -fx-border-radius:10; -fx-border-width:1;
+                                  -fx-padding:12 16 12 16; -fx-font-size:13;"/>
+            </VBox>
+        </HBox>
+
+        <!-- Lieu -->
+        <VBox spacing="8">
+            <Label text="Lieu" style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
+            <TextField fx:id="fieldLieu" promptText="Ex: Salle A, Bâtiment B"
+                       style="-fx-background-color:rgba(255,255,255,0.07);
+                              -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
+                              -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                              -fx-border-radius:10; -fx-border-width:1;
+                              -fx-padding:12 16 12 16; -fx-font-size:13;"/>
+        </VBox>
+
+        <!-- Error label -->
+        <Label fx:id="labelError" text="" wrapText="true"
+               style="-fx-text-fill:#f87171; -fx-font-size:12;"/>
+
+        <!-- Buttons -->
+        <VBox spacing="12">
+            <Button fx:id="btnSubmit" text="💾  Créer" maxWidth="Infinity" onAction="#onSubmit"
+                    style="-fx-background-color:linear-gradient(to right,#059669,#34d399);
+                           -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:bold;
+                           -fx-padding:14 0 14 0; -fx-background-radius:10;
+                           -fx-cursor:hand; -fx-border-width:0;
+                           -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.4),10,0,0,3);"/>
+            <Button text="✖  Annuler" maxWidth="Infinity" onAction="#onAnnuler"
+                    style="-fx-background-color:rgba(255,255,255,0.07);
+                           -fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:13;
+                           -fx-padding:12 0 12 0; -fx-background-radius:10;
+                           -fx-cursor:hand; -fx-border-width:1;
+                           -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:10;"/>
+        </VBox>
+    </VBox>
+</ScrollPane>

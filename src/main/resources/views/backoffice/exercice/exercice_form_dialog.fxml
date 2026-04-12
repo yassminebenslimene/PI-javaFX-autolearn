@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<DialogPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.ExerciceFormController"
+            prefWidth="550"
+            style="-fx-background-color:#0a0f0d; -fx-background-radius:16; -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:16;">
+
+    <header>
+        <Label fx:id="dialogTitle" text="Add Exercise"
+               style="-fx-font-size:18; -fx-font-weight:bold; -fx-text-fill:white; -fx-padding:24 0 16 0;"/>
+    </header>
+
+    <content>
+        <VBox spacing="0" style="-fx-background-color:#0a0f0d; -fx-padding:0 0 20 0;">
+
+            <!-- Carte du formulaire -->
+            <VBox spacing="0"
+                  style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:16;
+                         -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:16;">
+
+                <Label text="Informations Exercice"
+                       style="-fx-font-size:15; -fx-font-weight:bold; -fx-text-fill:white;
+                              -fx-padding:20 24 16 24; -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;"/>
+
+                <VBox spacing="8" style="-fx-padding:20 24 24 24;">
+
+                    <!-- Champ ID (caché) -->
+                    <TextField fx:id="txtId" visible="false" managed="false"/>
+
+                    <!-- Question -->
+                    <Label text="Question *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
+                    <TextField fx:id="txtQuestion" promptText="Enter the question"
+                               style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
+                                      -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
+                                      -fx-font-size:13; -fx-text-fill:white;"/>
+                    <Label fx:id="errorQuestion" style="-fx-text-fill:#f87171; -fx-font-size:11;" minHeight="14"/>
+
+                    <!-- Réponse -->
+                    <Label text="Answer *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
+                    <TextField fx:id="txtReponse" promptText="Enter the answer"
+                               style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
+                                      -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
+                                      -fx-font-size:13; -fx-text-fill:white;"/>
+                    <Label fx:id="errorReponse" style="-fx-text-fill:#f87171; -fx-font-size:11;" minHeight="14"/>
+
+                    <!-- Points -->
+                    <Label text="Points *" style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);"/>
+                    <TextField fx:id="txtPoints" promptText="Enter points (e.g., 10)"
+                               style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
+                                      -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
+                                      -fx-font-size:13; -fx-text-fill:white;"/>
+                    <Label fx:id="errorPoints" style="-fx-text-fill:#f87171; -fx-font-size:11;" minHeight="14"/>
+
+                </VBox>
+            </VBox>
+        </VBox>
+    </content>
+
+</DialogPane>
