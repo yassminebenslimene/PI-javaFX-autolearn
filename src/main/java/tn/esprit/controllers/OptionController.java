@@ -93,14 +93,17 @@ public class OptionController {
         }
 
         // ── Sauvegarde ──
+        boolean ok;
         if (optionAModifier == null) {
-            serviceOption.ajouter(new Option(texte, estCorrecteCheck.isSelected(), questionId));
+            ok = serviceOption.ajouter(new Option(texte, estCorrecteCheck.isSelected(), questionId));
+            showAlert(ok, "Option ajoutée avec succès !", "Échec de l'ajout de l'option.");
         } else {
             optionAModifier.setTexteOption(texte);
             optionAModifier.setEstCorrecte(estCorrecteCheck.isSelected());
-            serviceOption.modifier(optionAModifier);
+            ok = serviceOption.modifier(optionAModifier);
+            showAlert(ok, "Option modifiée avec succès !", "Échec de la modification de l'option.");
         }
-        retour();
+        if (ok) retour();
     }
 
     @FXML
@@ -113,6 +116,14 @@ public class OptionController {
                 contentArea.getChildren().add(loader.load());
             }
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void showAlert(boolean success, String msgOk, String msgEchec) {
+        Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+        alert.setHeaderText(null);
+        alert.setTitle(success ? "✅ Succès" : "❌ Échec");
+        alert.setContentText(success ? msgOk : msgEchec);
+        alert.showAndWait();
     }
 
     private void markError(String msg) {

@@ -15,34 +15,36 @@ public class ServiceQuestion implements IService<Question> {
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     @Override
-    public void ajouter(Question question) {
+    public boolean ajouter(Question question) {
         String req = "INSERT INTO question (texte_question, point, updated_at, quiz_id) VALUES (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, question.getTexteQuestion());
             statement.setInt(2, question.getPoint());
             statement.setTimestamp(3, question.getUpdatedAt() == null ? null : Timestamp.valueOf(question.getUpdatedAt()));
             statement.setInt(4, question.getQuizId());
-            statement.executeUpdate();
-            System.out.println("Question ajoutee avec succes.");
+            int rows = statement.executeUpdate();
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur ajout question : " + e.getMessage());
+            return false;
         }
     }
 
     @Override
-    public void supprimer(Question question) {
+    public boolean supprimer(Question question) {
         String req = "DELETE FROM question WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setInt(1, question.getId());
             int rows = statement.executeUpdate();
-            System.out.println(rows > 0 ? "Question supprimee avec succes." : "Aucune question trouvee pour suppression.");
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur suppression question : " + e.getMessage());
+            return false;
         }
     }
 
     @Override
-    public void modifier(Question question) {
+    public boolean modifier(Question question) {
         String req = "UPDATE question SET texte_question = ?, point = ?, updated_at = ?, quiz_id = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, question.getTexteQuestion());
@@ -51,9 +53,10 @@ public class ServiceQuestion implements IService<Question> {
             statement.setInt(4, question.getQuizId());
             statement.setInt(5, question.getId());
             int rows = statement.executeUpdate();
-            System.out.println(rows > 0 ? "Question modifiee avec succes." : "Aucune question trouvee pour modification.");
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur modification question : " + e.getMessage());
+            return false;
         }
     }
 

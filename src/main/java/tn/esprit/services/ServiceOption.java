@@ -14,33 +14,35 @@ public class ServiceOption implements IService<Option> {
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     @Override
-    public void ajouter(Option option) {
+    public boolean ajouter(Option option) {
         String req = "INSERT INTO `option` (texte_option, est_correcte, question_id) VALUES (?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, option.getTexteOption());
             statement.setBoolean(2, option.isEstCorrecte());
             statement.setInt(3, option.getQuestionId());
-            statement.executeUpdate();
-            System.out.println("Option ajoutee avec succes.");
+            int rows = statement.executeUpdate();
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur ajout option : " + e.getMessage());
+            return false;
         }
     }
 
     @Override
-    public void supprimer(Option option) {
+    public boolean supprimer(Option option) {
         String req = "DELETE FROM `option` WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setInt(1, option.getId());
             int rows = statement.executeUpdate();
-            System.out.println(rows > 0 ? "Option supprimee avec succes." : "Aucune option trouvee pour suppression.");
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur suppression option : " + e.getMessage());
+            return false;
         }
     }
 
     @Override
-    public void modifier(Option option) {
+    public boolean modifier(Option option) {
         String req = "UPDATE `option` SET texte_option = ?, est_correcte = ?, question_id = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, option.getTexteOption());
@@ -48,9 +50,10 @@ public class ServiceOption implements IService<Option> {
             statement.setInt(3, option.getQuestionId());
             statement.setInt(4, option.getId());
             int rows = statement.executeUpdate();
-            System.out.println(rows > 0 ? "Option modifiee avec succes." : "Aucune option trouvee pour modification.");
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur modification option : " + e.getMessage());
+            return false;
         }
     }
 

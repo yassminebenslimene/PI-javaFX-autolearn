@@ -110,14 +110,17 @@ public class QuestionController {
         if (!valid) return;
 
         int point = Integer.parseInt(pointStr);
+        boolean ok;
         if (questionAModifier == null) {
-            serviceQuestion.ajouter(new Question(texte, point, null, quizId));
+            ok = serviceQuestion.ajouter(new Question(texte, point, null, quizId));
+            showAlert(ok, "Question ajoutée avec succès !", "Échec de l'ajout de la question.");
         } else {
             questionAModifier.setTexteQuestion(texte);
             questionAModifier.setPoint(point);
-            serviceQuestion.modifier(questionAModifier);
+            ok = serviceQuestion.modifier(questionAModifier);
+            showAlert(ok, "Question modifiée avec succès !", "Échec de la modification de la question.");
         }
-        retour();
+        if (ok) retour();
     }
 
     @FXML
@@ -130,6 +133,14 @@ public class QuestionController {
                 contentArea.getChildren().add(loader.load());
             }
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void showAlert(boolean success, String msgOk, String msgEchec) {
+        Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+        alert.setHeaderText(null);
+        alert.setTitle(success ? "✅ Succès" : "❌ Échec");
+        alert.setContentText(success ? msgOk : msgEchec);
+        alert.showAndWait();
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

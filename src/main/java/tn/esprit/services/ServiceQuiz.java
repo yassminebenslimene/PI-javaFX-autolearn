@@ -15,7 +15,7 @@ public class ServiceQuiz implements IService<Quiz> {
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     @Override
-    public void ajouter(Quiz quiz) {
+    public boolean ajouter(Quiz quiz) {
         String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, image_name, image_size, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, quiz.getTitre());
@@ -27,27 +27,29 @@ public class ServiceQuiz implements IService<Quiz> {
             statement.setString(7, quiz.getImageName());
             statement.setObject(8, quiz.getImageSize());
             statement.setTimestamp(9, quiz.getUpdatedAt() == null ? null : Timestamp.valueOf(quiz.getUpdatedAt()));
-            statement.executeUpdate();
-            System.out.println("Quiz ajoute avec succes.");
+            int rows = statement.executeUpdate();
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur ajout quiz : " + e.getMessage());
+            return false;
         }
     }
 
     @Override
-    public void supprimer(Quiz quiz) {
+    public boolean supprimer(Quiz quiz) {
         String req = "DELETE FROM quiz WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setInt(1, quiz.getId());
             int rows = statement.executeUpdate();
-            System.out.println(rows > 0 ? "Quiz supprime avec succes." : "Aucun quiz trouve pour suppression.");
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur suppression quiz : " + e.getMessage());
+            return false;
         }
     }
 
     @Override
-    public void modifier(Quiz quiz) {
+    public boolean modifier(Quiz quiz) {
         String req = "UPDATE quiz SET titre = ?, description = ?, etat = ?, duree_max_minutes = ?, seuil_reussite = ?, max_tentatives = ?, image_name = ?, image_size = ?, updated_at = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, quiz.getTitre());
@@ -61,9 +63,10 @@ public class ServiceQuiz implements IService<Quiz> {
             statement.setTimestamp(9, quiz.getUpdatedAt() == null ? null : Timestamp.valueOf(quiz.getUpdatedAt()));
             statement.setInt(10, quiz.getId());
             int rows = statement.executeUpdate();
-            System.out.println(rows > 0 ? "Quiz modifie avec succes." : "Aucun quiz trouve pour modification.");
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur modification quiz : " + e.getMessage());
+            return false;
         }
     }
 

@@ -166,8 +166,10 @@ public class QuizFormController {
         if (!valid) return;
 
         // ── Sauvegarde ──
+        boolean ok;
         if (quizAModifier == null) {
-            serviceQuiz.ajouter(new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null));
+            ok = serviceQuiz.ajouter(new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null));
+            showAlert(ok, "Quiz ajouté avec succès !", "Échec de l'ajout du quiz.");
         } else {
             quizAModifier.setTitre(titre);
             quizAModifier.setDescription(description);
@@ -175,9 +177,10 @@ public class QuizFormController {
             quizAModifier.setDureeMaxMinutes(duree);
             quizAModifier.setSeuilReussite(seuil);
             quizAModifier.setMaxTentatives(tentatives);
-            serviceQuiz.modifier(quizAModifier);
+            ok = serviceQuiz.modifier(quizAModifier);
+            showAlert(ok, "Quiz modifié avec succès !", "Échec de la modification du quiz.");
         }
-        navigateToList();
+        if (ok) navigateToList();
     }
 
     @FXML
@@ -224,5 +227,13 @@ public class QuizFormController {
                 contentArea.getChildren().add(loader.load());
             }
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void showAlert(boolean success, String msgOk, String msgEchec) {
+        Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+        alert.setHeaderText(null);
+        alert.setTitle(success ? "✅ Succès" : "❌ Échec");
+        alert.setContentText(success ? msgOk : msgEchec);
+        alert.showAndWait();
     }
 }

@@ -480,12 +480,15 @@ public class QuizController {
         confirm.setHeaderText(null);
         confirm.showAndWait().ifPresent(r -> {
             if (r == ButtonType.YES) {
-                serviceQuiz.supprimer(quiz);
-                if (expandedQuizId != null && expandedQuizId == quiz.getId()) {
-                    expandedQuizId = null;
-                    expandedQuestionId = null;
+                boolean ok = serviceQuiz.supprimer(quiz);
+                showAlert(ok, "Quiz supprimé avec succès !", "Échec de la suppression du quiz.");
+                if (ok) {
+                    if (expandedQuizId != null && expandedQuizId == quiz.getId()) {
+                        expandedQuizId = null;
+                        expandedQuestionId = null;
+                    }
+                    chargerTout();
                 }
-                chargerTout();
             }
         });
     }
@@ -531,11 +534,13 @@ public class QuizController {
         confirm.setHeaderText(null);
         confirm.showAndWait().ifPresent(r -> {
             if (r == ButtonType.YES) {
-                serviceQuestion.supprimer(q);
-                if (expandedQuestionId != null && expandedQuestionId == q.getId()) {
-                    expandedQuestionId = null;
+                boolean ok = serviceQuestion.supprimer(q);
+                showAlert(ok, "Question supprimée avec succès !", "Échec de la suppression de la question.");
+                if (ok) {
+                    if (expandedQuestionId != null && expandedQuestionId == q.getId())
+                        expandedQuestionId = null;
+                    chargerTout();
                 }
-                chargerTout();
             }
         });
     }
@@ -577,13 +582,22 @@ public class QuizController {
         confirm.setHeaderText(null);
         confirm.showAndWait().ifPresent(r -> {
             if (r == ButtonType.YES) {
-                serviceOption.supprimer(opt);
-                chargerTout();
+                boolean ok = serviceOption.supprimer(opt);
+                showAlert(ok, "Option supprimée avec succès !", "Échec de la suppression de l'option.");
+                if (ok) chargerTout();
             }
         });
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void showAlert(boolean success, String msgOk, String msgEchec) {
+        Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+        alert.setHeaderText(null);
+        alert.setTitle(success ? "✅ Succès" : "❌ Échec");
+        alert.setContentText(success ? msgOk : msgEchec);
+        alert.showAndWait();
+    }
 
     private String truncate(String s, int max) {
         if (s == null) return "";
