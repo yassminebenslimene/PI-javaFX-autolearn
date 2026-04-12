@@ -60,13 +60,26 @@ public class ServiceCours implements IService<Cours> {
 
     @Override
     public void supprimer(int id) {
-        String req = "DELETE FROM cours WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(req)) {
-            statement.setInt(1, id);
-            statement.executeUpdate();
-            System.out.println("Cours supprime.");
+        // Supprimer d'abord les chapitres liés (contrainte FK)
+        String deleteChapitres = "DELETE FROM chapitre WHERE cours_id = ?";
+        String deleteCours = "DELETE FROM cours WHERE id = ?";
+        try {
+            connection.setAutoCommit(false);
+            try (PreparedStatement s1 = connection.prepareStatement(deleteChapitres)) {
+                s1.setInt(1, id);
+                s1.executeUpdate();
+            }
+            try (PreparedStatement s2 = connection.prepareStatement(deleteCours)) {
+                s2.setInt(1, id);
+                s2.executeUpdate();
+            }
+            connection.commit();
+            System.out.println("Cours et ses chapitres supprimes.");
         } catch (SQLException e) {
+            try { connection.rollback(); } catch (SQLException ex) { System.err.println(ex.getMessage()); }
             System.err.println(e.getMessage());
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException e) { System.err.println(e.getMessage()); }
         }
     }
 

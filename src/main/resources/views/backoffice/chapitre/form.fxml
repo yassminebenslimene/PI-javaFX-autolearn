@@ -40,8 +40,9 @@
             <TextArea fx:id="areaContenu" prefHeight="110" wrapText="true"
                       promptText="Description du chapitre..."
                       style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
-                             -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
-                             -fx-font-size:13; -fx-text-fill:white;"/>
+                             -fx-border-radius:8; -fx-background-radius:8;
+                             -fx-font-size:13; -fx-text-fill:white; -fx-control-inner-background:#1a2e20;
+                             -fx-highlight-fill:#60a5fa; -fx-highlight-text-fill:white;"/>
             <Label fx:id="errorContenu" minHeight="14" style="-fx-text-fill:#f87171; -fx-font-size:11;"/>
 
             <HBox spacing="14">
