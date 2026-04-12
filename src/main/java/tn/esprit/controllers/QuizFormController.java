@@ -10,20 +10,27 @@ import tn.esprit.services.ServiceQuiz;
 
 import java.util.List;
 
+/**
+ * Controller du formulaire Quiz (quiz_form.fxml).
+ * Gère à la fois la création d'un nouveau quiz et la modification d'un quiz existant.
+ * Si quizAModifier == null → mode création, sinon → mode modification.
+ */
 public class QuizFormController {
 
-    @FXML private Label pageTitle;
-    @FXML private Label cardTitle;
-    @FXML private Label cardSubtitle;
-    @FXML private TextField titreField;
-    @FXML private TextArea descriptionField;
-    @FXML private ComboBox<String> etatCombo;
-    @FXML private TextField dureeField;
-    @FXML private TextField seuilField;
-    @FXML private TextField tentativesField;
-    @FXML private Label messageLabel;
-    @FXML private Button btnSauvegarder;
+    // ── Composants FXML (liés aux éléments de quiz_form.fxml) ────────────────
+    @FXML private Label pageTitle;        // titre en haut de la page
+    @FXML private Label cardTitle;        // titre de la carte
+    @FXML private Label cardSubtitle;     // sous-titre de la carte
+    @FXML private TextField titreField;   // champ texte pour le titre
+    @FXML private TextArea descriptionField; // zone de texte pour la description
+    @FXML private ComboBox<String> etatCombo;  // liste déroulante pour l'état
+    @FXML private TextField dureeField;   // champ pour la durée max (optionnel)
+    @FXML private TextField seuilField;   // champ pour le seuil de réussite (optionnel)
+    @FXML private TextField tentativesField; // champ pour le nb de tentatives (optionnel)
+    @FXML private Label messageLabel;     // affiche les messages d'erreur
+    @FXML private Button btnSauvegarder;  // bouton Enregistrer / Mettre à jour
 
+    // Style normal d'un champ de saisie
     private static final String FIELD_NORMAL =
         "-fx-background-color:rgba(255,255,255,0.05);" +
         "-fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;" +
@@ -31,6 +38,7 @@ public class QuizFormController {
         "-fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);" +
         "-fx-padding:9px 13px; -fx-font-size:13px;";
 
+    // Style d'un champ en erreur (bordure rouge)
     private static final String FIELD_ERROR =
         "-fx-background-color:rgba(239,68,68,0.08);" +
         "-fx-border-color:rgba(239,68,68,0.6); -fx-border-radius:8px;" +
@@ -38,15 +46,20 @@ public class QuizFormController {
         "-fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);" +
         "-fx-padding:9px 13px; -fx-font-size:13px;";
 
+    // Service pour les opérations BDD sur les quiz
     private final ServiceQuiz serviceQuiz = new ServiceQuiz();
+
+    // Le quiz à modifier (null si on est en mode création)
     private Quiz quizAModifier = null;
 
+    // ── Initialisation : appelée automatiquement au chargement du FXML ───────
     @FXML
     public void initialize() {
+        // Remplir la liste déroulante avec les 4 états possibles
         etatCombo.setItems(FXCollections.observableArrayList(
             "actif", "inactif", "brouillon", "archive"
         ));
-        // Real-time: clear error on typing
+        // Effacer les erreurs dès que l'utilisateur commence à taper
         titreField.textProperty().addListener((o, ov, nv) -> resetField(titreField));
         descriptionField.textProperty().addListener((o, ov, nv) -> resetField(descriptionField));
         dureeField.textProperty().addListener((o, ov, nv) -> resetField(dureeField));
@@ -54,12 +67,16 @@ public class QuizFormController {
         tentativesField.textProperty().addListener((o, ov, nv) -> resetField(tentativesField));
     }
 
+    // ── Mode modification : pré-remplir le formulaire avec les données du quiz ─
+    // Appelé depuis QuizController quand on clique "Modifier"
     public void initEdit(Quiz quiz) {
         this.quizAModifier = quiz;
+        // Changer les textes pour indiquer qu'on est en mode modification
         pageTitle.setText("Modifier le Quiz");
         cardTitle.setText("Modifier le Quiz");
         cardSubtitle.setText("Mettez à jour les informations");
         btnSauvegarder.setText("✓ Mettre à jour");
+        // Pré-remplir les champs avec les valeurs actuelles du quiz
         titreField.setText(quiz.getTitre());
         descriptionField.setText(quiz.getDescription());
         etatCombo.setValue(quiz.getEtat());
@@ -68,11 +85,13 @@ public class QuizFormController {
         if (quiz.getMaxTentatives() != null)   tentativesField.setText(String.valueOf(quiz.getMaxTentatives()));
     }
 
+    // ── Sauvegarder : appelé quand on clique sur le bouton Enregistrer ────────
     @FXML
     public void sauvegarder() {
-        resetAll();
+        resetAll(); // effacer les erreurs précédentes
         boolean valid = true;
 
+        // Récupérer les valeurs saisies (trim() enlève les espaces inutiles)
         String titre = titreField.getText() == null ? "" : titreField.getText().trim();
         String description = descriptionField.getText() == null ? "" : descriptionField.getText().trim();
         String etat = etatCombo.getValue();
@@ -80,7 +99,7 @@ public class QuizFormController {
         String seuilStr = seuilField.getText() == null ? "" : seuilField.getText().trim();
         String tentStr  = tentativesField.getText() == null ? "" : tentativesField.getText().trim();
 
-        // ── Titre ──
+        // ── Validation du titre ──
         if (titre.isEmpty()) {
             markError(titreField, "⚠ Le titre du quiz est obligatoire.");
             valid = false;
@@ -92,7 +111,7 @@ public class QuizFormController {
             valid = false;
         }
 
-        // ── Description ──
+        // ── Validation de la description ──
         if (valid) {
             if (description.isEmpty()) {
                 markError(descriptionField, "⚠ La description est obligatoire.");
@@ -106,13 +125,13 @@ public class QuizFormController {
             }
         }
 
-        // ── État ──
+        // ── Validation de l'état (doit être dans la liste) ──
         if (valid && (etat == null || !List.of("actif","inactif","brouillon","archive").contains(etat))) {
             showError("⚠ Veuillez sélectionner un état parmi : Actif, Inactif, Brouillon, Archive.");
             valid = false;
         }
 
-        // ── Durée (optionnelle mais doit être un entier positif si renseignée) ──
+        // ── Validation de la durée (optionnelle, entier positif max 600) ──
         Integer duree = null;
         if (valid && !dureeStr.isEmpty()) {
             try {
@@ -130,7 +149,7 @@ public class QuizFormController {
             }
         }
 
-        // ── Seuil de réussite (optionnel, entre 0 et 100) ──
+        // ── Validation du seuil de réussite (optionnel, entre 0 et 100) ──
         Integer seuil = null;
         if (valid && !seuilStr.isEmpty()) {
             try {
@@ -145,7 +164,7 @@ public class QuizFormController {
             }
         }
 
-        // ── Tentatives (optionnelles, entier positif) ──
+        // ── Validation du nombre de tentatives (optionnel, entier positif max 100) ──
         Integer tentatives = null;
         if (valid && !tentStr.isEmpty()) {
             try {
@@ -163,14 +182,17 @@ public class QuizFormController {
             }
         }
 
+        // Si une validation a échoué, on arrête ici
         if (!valid) return;
 
-        // ── Sauvegarde ──
+        // ── Sauvegarde en BDD ──
         boolean ok;
         if (quizAModifier == null) {
+            // Mode création : créer un nouveau quiz et l'insérer en BDD
             ok = serviceQuiz.ajouter(new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null));
             showAlert(ok, "Quiz ajouté avec succès !", "Échec de l'ajout du quiz.");
         } else {
+            // Mode modification : mettre à jour le quiz existant
             quizAModifier.setTitre(titre);
             quizAModifier.setDescription(description);
             quizAModifier.setEtat(etat);
@@ -180,19 +202,23 @@ public class QuizFormController {
             ok = serviceQuiz.modifier(quizAModifier);
             showAlert(ok, "Quiz modifié avec succès !", "Échec de la modification du quiz.");
         }
+        // Si succès → retourner à la liste des quiz
         if (ok) navigateToList();
     }
 
+    // ── Retour : revenir à la liste sans sauvegarder ─────────────────────────
     @FXML
     public void retour() { navigateToList(); }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
+    // Marque un champ en erreur et affiche le message
     private void markError(Control field, String msg) {
         field.setStyle(FIELD_ERROR);
         showError(msg);
     }
 
+    // Affiche un message d'erreur en rouge sous le formulaire
     private void showError(String msg) {
         messageLabel.setText(msg);
         messageLabel.setStyle(
@@ -202,12 +228,14 @@ public class QuizFormController {
             "-fx-border-radius:8; -fx-border-width:1;");
     }
 
+    // Remet un champ à son style normal et efface le message d'erreur
     private void resetField(Control field) {
         field.setStyle(FIELD_NORMAL);
         messageLabel.setText("");
         messageLabel.setStyle("");
     }
 
+    // Remet tous les champs à leur style normal
     private void resetAll() {
         titreField.setStyle(FIELD_NORMAL);
         descriptionField.setStyle(FIELD_NORMAL);
@@ -218,6 +246,7 @@ public class QuizFormController {
         messageLabel.setStyle("");
     }
 
+    // Navigue vers la liste des quiz (index.fxml) dans la zone de contenu principale
     private void navigateToList() {
         try {
             StackPane contentArea = (StackPane) titreField.getScene().lookup("#contentArea");
@@ -229,11 +258,12 @@ public class QuizFormController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    // Affiche une alerte de succès (vert) ou d'échec (rouge) selon le résultat
     private void showAlert(boolean success, String msgOk, String msgEchec) {
         Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
         alert.setHeaderText(null);
         alert.setTitle(success ? "✅ Succès" : "❌ Échec");
         alert.setContentText(success ? msgOk : msgEchec);
-        alert.showAndWait();
+        alert.showAndWait(); // bloque jusqu'à ce que l'utilisateur ferme l'alerte
     }
 }
