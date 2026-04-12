@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.evenement.front.TeamDetailsController"
+            prefWidth="1200" prefHeight="760"
+            style="-fx-background-color:#f0f0f8;">
+
+    <!-- NAVBAR fixe -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="0"
+              style="-fx-background-color:rgba(122,106,216,0.96);
+                     -fx-min-height:68; -fx-max-height:68;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
+            <padding><Insets left="36" right="36"/></padding>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="🎓" style="-fx-font-size:24;"/>
+                <Label text="AutoLearn" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;"/>
+            </HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox alignment="CENTER" spacing="12">
+                <Label fx:id="labelAvatarNav"
+                       style="-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white;
+                              -fx-font-weight:700; -fx-font-size:14; -fx-background-radius:50%;
+                              -fx-padding:8 11 8 11;"/>
+                <Label fx:id="labelCurrentUser" text=""
+                       style="-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;"/>
+                <MenuButton fx:id="menuUser" text="▾"
+                            style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                                   -fx-font-size:13; -fx-padding:7 14 7 14; -fx-background-radius:20;
+                                   -fx-cursor:hand; -fx-border-width:0;">
+                    <items>
+                        <MenuItem text="👤  Mon Profil" onAction="#onProfile"/>
+                        <MenuItem text="🏆  Mes Participations" onAction="#onMesParticipations"/>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="⎋  Déconnexion" onAction="#onLogout"/>
+                    </items>
+                </MenuButton>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                    style="-fx-background-color:#f0f0f8; -fx-background:transparent; -fx-border-width:0;">
+            <VBox spacing="0">
+                <VBox alignment="CENTER" spacing="20"
+                      style="-fx-background-color:white; -fx-padding:48 200 48 200;">
+
+                    <!-- Success banner -->
+                    <HBox fx:id="successBanner" spacing="12" alignment="CENTER_LEFT"
+                          style="-fx-background-color:#ede9fe; -fx-background-radius:10;
+                                 -fx-border-color:#c4b5fd; -fx-border-radius:10; -fx-border-width:1;
+                                 -fx-padding:16;">
+                        <Label text="✓" style="-fx-font-size:16; -fx-text-fill:#7c3aed; -fx-font-weight:700;
+                                              -fx-background-color:#7c3aed; -fx-text-fill:white;
+                                              -fx-background-radius:50%; -fx-padding:4 8 4 8;"/>
+                        <VBox spacing="2">
+                            <Label text="Success!" style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#5b21b6;"/>
+                            <Label text="Équipe créée avec succès !" style="-fx-font-size:12; -fx-text-fill:#6d28d9;"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Team name -->
+                    <Label fx:id="labelTeamName" text=""
+                           style="-fx-font-size:26; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                    <Label fx:id="labelMembersCount" text=""
+                           style="-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:12;
+                                  -fx-font-weight:700; -fx-background-radius:20; -fx-padding:4 14 4 14;"/>
+
+                    <!-- Members list -->
+                    <VBox spacing="8" maxWidth="500">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="👥" style="-fx-font-size:16;"/>
+                            <Label fx:id="labelMembersTitle" text="Team Members"
+                                   style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                        </HBox>
+                        <VBox fx:id="membersContainer" spacing="8"/>
+                    </VBox>
+
+                    <!-- Action buttons -->
+                    <HBox spacing="12" alignment="CENTER">
+                        <Button fx:id="btnParticipate" text="" onAction="#onParticipate"
+                                style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:12;
+                                       -fx-font-weight:700; -fx-padding:10 20 10 20; -fx-background-radius:10;
+                                       -fx-cursor:hand; -fx-border-width:0;"/>
+                        <Button text="✏  Edit Team" onAction="#onEditTeam"
+                                style="-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:12;
+                                       -fx-font-weight:600; -fx-padding:10 20 10 20; -fx-background-radius:10;
+                                       -fx-cursor:hand; -fx-border-color:#ddd; -fx-border-width:1; -fx-border-radius:10;"/>
+                        <Button text="🗑  Delete Team" onAction="#onDeleteTeam"
+                                style="-fx-background-color:#fee2e2; -fx-text-fill:#dc2626; -fx-font-size:12;
+                                       -fx-font-weight:600; -fx-padding:10 20 10 20; -fx-background-radius:10;
+                                       -fx-cursor:hand; -fx-border-color:#fca5a5; -fx-border-width:1; -fx-border-radius:10;"/>
+                        <Button text="← Back to Events" onAction="#onBackToEvents"
+                                style="-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:12;
+                                       -fx-font-weight:600; -fx-padding:10 20 10 20; -fx-background-radius:10;
+                                       -fx-cursor:hand; -fx-border-color:#ddd; -fx-border-width:1; -fx-border-radius:10;"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <HBox alignment="CENTER" prefHeight="56" style="-fx-background-color:#1e1e1e;">
+            <Label text="&#169; 2026 AutoLearn &#8212; Tous droits r&#233;serv&#233;s"
+                   style="-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:12;"/>
+        </HBox>
+    </bottom>
+</BorderPane>

@@ -18,6 +18,7 @@ public class BackofficeController {
     // Sidebar nav buttons
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
+    @FXML private Button btnEvenements;
     @FXML private Button btnExercices;  // ← NOUVEAU BOUTON
     @FXML private Button btnProfile;
 
@@ -100,5 +101,11 @@ public class BackofficeController {
         setActive(btnChallenges);
         labelPageTitle.setText("Gestion des Challenges");
         loadView("/views/backoffice/challenge/challenges.fxml");
+    }
+    @FXML
+    private void navigateToEvenements() {
+        setActive(btnEvenements);
+        labelPageTitle.setText("Gestion des Evenements");
+        loadView("/views/backoffice/evenement/index.fxml");
     }
 }
