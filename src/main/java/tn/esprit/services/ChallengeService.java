@@ -14,10 +14,31 @@ public class ChallengeService {
 
     public ChallengeService() {
         connection = MyConnection.getInstance().getConnection();
+        detectColumnNames();
+    }
+
+    // Noms de colonnes détectés dynamiquement
+    private String colDateDebut = "date_debut";
+    private String colDateFin   = "date_fin";
+    private String colCreatedBy = "created_by";
+
+    /** Détecte les vrais noms de colonnes de la table challenge */
+    private void detectColumnNames() {
+        try {
+            java.sql.ResultSet rs = connection.getMetaData().getColumns(null, null, "challenge", null);
+            while (rs.next()) {
+                String col = rs.getString("COLUMN_NAME").toLowerCase();
+                if (col.equals("datedebut") || col.equals("date_debut")) colDateDebut = rs.getString("COLUMN_NAME");
+                if (col.equals("datefin")   || col.equals("date_fin"))   colDateFin   = rs.getString("COLUMN_NAME");
+                if (col.equals("createdby") || col.equals("created_by")) colCreatedBy = rs.getString("COLUMN_NAME");
+            }
+        } catch (java.sql.SQLException e) {
+            // Garder les valeurs par défaut
+        }
     }
 
     public void add(Challenge challenge) {
-        String query = "INSERT INTO challenge (titre, description, date_debut, date_fin, niveau, duree, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO challenge (titre, description, " + colDateDebut + ", " + colDateFin + ", niveau, duree, " + colCreatedBy + ") VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement pst = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             pst.setString(1, challenge.getTitre());
@@ -48,7 +69,7 @@ public class ChallengeService {
     }
 
     public void update(Challenge challenge) {
-        String query = "UPDATE challenge SET titre=?, description=?, date_debut=?, date_fin=?, niveau=?, duree=?, created_by=? WHERE id=?";
+        String query = "UPDATE challenge SET titre=?, description=?, " + colDateDebut + "=?, " + colDateFin + "=?, niveau=?, duree=?, " + colCreatedBy + "=? WHERE id=?";
         try {
             PreparedStatement pst = connection.prepareStatement(query);
             pst.setString(1, challenge.getTitre());
@@ -99,26 +120,41 @@ public class ChallengeService {
             Statement stmt = connection.createStatement();
             ResultSet rs = stmt.executeQuery(query);
             while (rs.next()) {
-                Challenge c = new Challenge();
-                c.setId(rs.getInt("id"));
-                c.setTitre(rs.getString("titre"));
-                c.setDescription(rs.getString("description"));
-                c.setDateDebut(rs.getDate("date_debut").toLocalDate());
-                c.setDateFin(rs.getDate("date_fin").toLocalDate());
-                c.setNiveau(rs.getString("niveau"));
-                c.setDuree(rs.getInt("duree"));
-                c.setCreatedBy(rs.getInt("created_by"));
-
-                // Charger les exercices associés
-                c.setExerciceIds(getChallengeExercices(c.getId()));
-                c.setQuizIds(getChallengeQuizzes(c.getId()));
-
+                Challenge c = mapRow(rs);
                 challenges.add(c);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return challenges;
+    }
+
+    public Challenge getById(int id) {
+        String query = "SELECT * FROM challenge WHERE id=?";
+        try {
+            PreparedStatement pst = connection.prepareStatement(query);
+            pst.setInt(1, id);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) return mapRow(rs);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Challenge mapRow(ResultSet rs) throws SQLException {
+        Challenge c = new Challenge();
+        c.setId(rs.getInt("id"));
+        c.setTitre(rs.getString("titre"));
+        c.setDescription(rs.getString("description"));
+        c.setDateDebut(rs.getDate(colDateDebut).toLocalDate());
+        c.setDateFin(rs.getDate(colDateFin).toLocalDate());
+        c.setNiveau(rs.getString("niveau"));
+        c.setDuree(rs.getInt("duree"));
+        try { c.setCreatedBy(rs.getInt(colCreatedBy)); } catch (java.sql.SQLException ignored) {}
+        c.setExerciceIds(getChallengeExercices(c.getId()));
+        c.setQuizIds(new ArrayList<>());
+        return c;
     }
 
     // Gestion des relations

@@ -73,4 +73,23 @@ public class ExerciceService {
         }
         return exercices;
     }
+    public Exercice getById(int id) {
+        String query = "SELECT * FROM exercice WHERE id = ?";
+        try {
+            PreparedStatement pst = connection.prepareStatement(query);
+            pst.setInt(1, id);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                Exercice e = new Exercice();
+                e.setId(rs.getInt("id"));
+                e.setQuestion(rs.getString("question"));
+                e.setReponse(rs.getString("reponse"));
+                e.setPoints(rs.getInt("points"));
+                return e;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
