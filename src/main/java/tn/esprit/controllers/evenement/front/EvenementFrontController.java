@@ -1,4 +1,4 @@
-﻿package tn.esprit.controllers.evenement.front;
+package tn.esprit.controllers.evenement.front;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;

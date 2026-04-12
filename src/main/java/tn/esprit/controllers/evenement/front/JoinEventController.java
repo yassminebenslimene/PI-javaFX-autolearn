@@ -1,4 +1,4 @@
-﻿package tn.esprit.controllers.evenement.front;
+package tn.esprit.controllers.evenement.front;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -83,6 +83,13 @@ public class JoinEventController {
     private void joinTeam(Equipe eq) {
         var user = SessionManager.getCurrentUser();
         if (!(user instanceof Etudiant etudiant)) return;
+
+        // Vérifier que l'étudiant ne participe pas déjà à cet événement
+        if (equipeService.etudiantDejaInscritEvenement(etudiant.getId(), evenement.getId())) {
+            labelJoinStatus.setText("Vous participez deja a cet evenement avec une autre equipe.");
+            return;
+        }
+
         equipeService.ajouterEtudiantEquipe(eq.getId(), etudiant.getId());
         // Create participation
         tn.esprit.entities.Participation p = new tn.esprit.entities.Participation(eq.getId(), evenement.getId());
