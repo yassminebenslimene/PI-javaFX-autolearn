@@ -242,8 +242,13 @@ public class QuizFormController {
         // ── Sauvegarde en BDD ──
         boolean ok;
         if (quizAModifier == null) {
-            ok = serviceQuiz.ajouter(new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null, chapitreSelectionne.getId()));
-            showAlert(ok, "Quiz ajouté avec succès !", "Échec de l'ajout du quiz.");
+            Quiz newQuiz = new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null, chapitreSelectionne.getId());
+            ok = serviceQuiz.ajouter(newQuiz);
+            if (!ok) {
+                showError("❌ Échec de l'ajout — vérifiez que la table 'quiz' existe et que le chapitre_id est valide.");
+                return;
+            }
+            showAlert(true, "Quiz ajouté avec succès !", "");
         } else {
             quizAModifier.setTitre(titre);
             quizAModifier.setDescription(description);
