@@ -103,9 +103,35 @@ public class FrontCommunauteDetailController {
         // Auteur + date
         String auteur  = getUserName(p.getUserId());
         String dateStr = p.getCreatedAt() != null
-                ? p.getCreatedAt().toString().substring(0, 16).replace("T", " à ") : "";
-        Label lblMeta = new Label("✍  " + auteur + "   •   " + dateStr);
+                ? p.getCreatedAt().toString().substring(0, 16).replace("T", " a ") : "";
+        Label lblMeta = new Label("   " + auteur + "   •   " + dateStr);
         lblMeta.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
+
+        // Header : titre + bouton trois points (owner seulement)
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(8, lblTitre, spacer);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        int currentUserId = SessionManager.getCurrentUser() != null
+                ? SessionManager.getCurrentUser().getId() : -1;
+        if (p.getUserId() == currentUserId) {
+            Button btnMenu = new Button("⋮");
+            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#888; -fx-font-size:18; " +
+                             "-fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 4;");
+
+            ContextMenu menu = new ContextMenu();
+            MenuItem itemModifier  = new MenuItem("✏  Modifier");
+            MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
+            menu.getItems().addAll(itemModifier, itemSupprimer);
+
+            itemModifier.setOnAction(e -> onModifierPost(p, card, lblTitre, lblContenu));
+            itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));
+
+            btnMenu.setOnAction(e -> menu.show(btnMenu,
+                    javafx.geometry.Side.BOTTOM, 0, 0));
+            header.getChildren().add(btnMenu);
+        }
 
         // Commentaires
         VBox commentsBox = new VBox(6);
@@ -134,8 +160,45 @@ public class FrontCommunauteDetailController {
         });
 
         addComment.getChildren().addAll(commentField, btnComment);
-        card.getChildren().addAll(lblTitre, lblContenu, lblMeta, commentsBox, addComment);
+        card.getChildren().addAll(header, lblContenu, lblMeta, commentsBox, addComment);
         return card;
+    }
+
+    private void onModifierPost(Post p, VBox card, Label lblTitre, Label lblContenu) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Modifier le post");
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(20));
+        TextField fTitre = new TextField(p.getTitre());
+        TextArea  fContenu = new TextArea(p.getContenu());
+        fContenu.setPrefRowCount(4);
+        content.getChildren().addAll(new Label("Titre :"), fTitre, new Label("Contenu :"), fContenu);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK && !fContenu.getText().isBlank()) {
+                p.setTitre(fTitre.getText().trim());
+                p.setContenu(fContenu.getText().trim());
+                servicePost.modifier(p);
+                lblTitre.setText(p.getTitre() != null && !p.getTitre().isEmpty()
+                        ? p.getTitre() : "(sans titre)");
+                lblContenu.setText(p.getContenu());
+            }
+        });
+    }
+
+    private void onSupprimerPost(Post p, VBox card) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Supprimer ce post ?", ButtonType.YES, ButtonType.NO);
+        confirm.setHeaderText(null);
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.YES) {
+                servicePost.supprimer(p);
+                postsPane.getChildren().remove(card);
+            }
+        });
     }
 
     // Affiche "💬 Nom Prenom : texte"
