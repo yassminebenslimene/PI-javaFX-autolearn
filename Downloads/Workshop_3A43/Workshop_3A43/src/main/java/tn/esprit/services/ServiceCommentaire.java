@@ -1,4 +1,4 @@
-﻿package tn.esprit.services;
+package tn.esprit.services;
 
 import tn.esprit.entities.Commentaire;
 import tn.esprit.tools.MyConnection;
@@ -13,37 +13,49 @@ public class ServiceCommentaire {
         return MyConnection.getInstance().getConnection();
     }
 
-    // â”€â”€ Lecture â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Nom exact de la colonne date dans la table commentaire
+    // (certaines DB ont "created_at", d'autres "creaed_at" par faute de frappe)
+    private static final String DATE_COL = detectDateColumn();
 
-    // OneToMany : tous les commentaires d'un post (orphanRemoval)
+    private static String detectDateColumn() {
+        try {
+            Connection c = MyConnection.getInstance().getConnection();
+            ResultSet rs = c.getMetaData().getColumns(null, null, "commentaire", null);
+            while (rs.next()) {
+                String col = rs.getString("COLUMN_NAME");
+                if (col.equalsIgnoreCase("created_at") || col.equalsIgnoreCase("creaed_at")) {
+                    System.out.println("[ServiceCommentaire] date column = " + col);
+                    return col;
+                }
+            }
+        } catch (Exception e) { System.err.println("[ServiceCommentaire] detectDateColumn: " + e.getMessage()); }
+        return "created_at"; // fallback
+    }
+
     public List<Commentaire> getByPost(int postId) {
         List<Commentaire> list = new ArrayList<>();
-        String req = "SELECT * FROM commentaire WHERE post_id=? ORDER BY creaed_at ASC";
+        String req = "SELECT * FROM commentaire WHERE post_id=? ORDER BY " + DATE_COL + " ASC";
         try {
             PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, postId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) list.add(fromRs(rs));
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServiceCommentaire] getByPost: " + e.getMessage()); }
         return list;
     }
 
     public Commentaire getById(int id) {
-        String req = "SELECT * FROM commentaire WHERE id=?";
         try {
-            PreparedStatement ps = conn().prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement("SELECT * FROM commentaire WHERE id=?");
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return fromRs(rs);
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServiceCommentaire] getById: " + e.getMessage()); }
         return null;
     }
 
-    // â”€â”€ Ã‰criture â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     public void ajouter(Commentaire c) {
-        String req = "INSERT INTO commentaire (contenu, creaed_at, sentiment, sentiment_score, post_id, user_id) " +
-                     "VALUES (?,?,?,?,?,?)";
+        String req = "INSERT INTO commentaire (contenu, " + DATE_COL + ", sentiment, sentiment_score, post_id, user_id) VALUES (?,?,?,?,?,?)";
         try {
             PreparedStatement ps = conn().prepareStatement(req, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, c.getContenu());
@@ -57,7 +69,7 @@ public class ServiceCommentaire {
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) c.setId(keys.getInt(1));
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServiceCommentaire] ajouter: " + e.getMessage()); }
     }
 
     public void modifier(Commentaire c) {
@@ -71,36 +83,32 @@ public class ServiceCommentaire {
             ps.setInt(5, c.getUserId());
             ps.setInt(6, c.getId());
             ps.executeUpdate();
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServiceCommentaire] modifier: " + e.getMessage()); }
     }
 
-    // Supprime un commentaire (orphanRemoval gÃ©rÃ© par le post parent)
     public void supprimer(Commentaire c) {
-        String req = "DELETE FROM commentaire WHERE id=?";
         try {
-            PreparedStatement ps = conn().prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement("DELETE FROM commentaire WHERE id=?");
             ps.setInt(1, c.getId());
             ps.executeUpdate();
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServiceCommentaire] supprimer: " + e.getMessage()); }
     }
 
-    // Supprime tous les commentaires d'un post (cascade depuis Post)
     public void supprimerByPost(int postId) {
-        String req = "DELETE FROM commentaire WHERE post_id=?";
         try {
-            PreparedStatement ps = conn().prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement("DELETE FROM commentaire WHERE post_id=?");
             ps.setInt(1, postId);
             ps.executeUpdate();
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServiceCommentaire] supprimerByPost: " + e.getMessage()); }
     }
 
-    // â”€â”€ Helper privÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     private Commentaire fromRs(ResultSet rs) throws SQLException {
+        Timestamp ts = null;
+        try { ts = rs.getTimestamp(DATE_COL); } catch (SQLException ignored) {}
         return new Commentaire(
             rs.getInt("id"),
             rs.getString("contenu"),
-            rs.getTimestamp("creaed_at") != null ? rs.getTimestamp("creaed_at").toLocalDateTime() : null,
+            ts != null ? ts.toLocalDateTime() : null,
             rs.getString("sentiment"),
             rs.getDouble("sentiment_score"),
             rs.getInt("post_id"),
@@ -108,4 +116,3 @@ public class ServiceCommentaire {
         );
     }
 }
-

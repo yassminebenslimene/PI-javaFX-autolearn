@@ -18,7 +18,7 @@ public class ServicePost {
 
     public List<Post> getByCommunaute(int communauteId) {
         List<Post> list = new ArrayList<>();
-        String req = "SELECT * FROM post WHERE communeute_id=? ORDER BY created_at DESC";
+        String req = "SELECT * FROM post WHERE communaute_id=? ORDER BY created_at DESC";
         try {
             PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, communauteId);
@@ -44,7 +44,7 @@ public class ServicePost {
 
     public void ajouter(Post p) {
         String req = "INSERT INTO post (contenu, titre, ai_reaction, ai_reaction_data, summary, " +
-                     "image_file, video_file, created_at, communeute_id, user_id) VALUES (?,?,?,?,?,?,?,?,?,?)";
+                     "image_file, video_file, created_at, communaute_id, user_id) VALUES (?,?,?,?,?,?,?,?,?,?)";
         try {
             PreparedStatement ps = conn().prepareStatement(req, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, p.getContenu());
@@ -70,7 +70,7 @@ public class ServicePost {
 
     public void modifier(Post p) {
         String req = "UPDATE post SET contenu=?, titre=?, ai_reaction=?, ai_reaction_data=?, " +
-                     "summary=?, image_file=?, video_file=?, communeute_id=?, user_id=? WHERE id=?";
+                     "summary=?, image_file=?, video_file=?, communaute_id=?, user_id=? WHERE id=?";
         try {
             PreparedStatement ps = conn().prepareStatement(req);
             ps.setString(1, p.getContenu());
@@ -109,7 +109,7 @@ public class ServicePost {
             rs.getString("image_file"),
             rs.getString("video_file"),
             rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null,
-            rs.getInt("communeute_id"),
+            rs.getInt("communaute_id"),
             rs.getInt("user_id")
         );
     }
