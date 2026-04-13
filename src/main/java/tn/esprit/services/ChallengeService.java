@@ -147,8 +147,8 @@ public class ChallengeService {
         c.setId(rs.getInt("id"));
         c.setTitre(rs.getString("titre"));
         c.setDescription(rs.getString("description"));
-        c.setDateDebut(rs.getDate(colDateDebut).toLocalDate());
-        c.setDateFin(rs.getDate(colDateFin).toLocalDate());
+        c.setDateDebut(rs.getDate(colDateDebut) != null ? rs.getDate(colDateDebut).toLocalDate() : LocalDate.now());
+        c.setDateFin(rs.getDate(colDateFin) != null ? rs.getDate(colDateFin).toLocalDate() : LocalDate.now());
         c.setNiveau(rs.getString("niveau"));
         c.setDuree(rs.getInt("duree"));
         try { c.setCreatedBy(rs.getInt(colCreatedBy)); } catch (java.sql.SQLException ignored) {}
