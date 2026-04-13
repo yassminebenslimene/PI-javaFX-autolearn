@@ -99,29 +99,41 @@ public class ChallengeService {
             Statement stmt = connection.createStatement();
             ResultSet rs = stmt.executeQuery(query);
             while (rs.next()) {
-                Challenge c = new Challenge();
-                c.setId(rs.getInt("id"));
-                c.setTitre(rs.getString("titre"));
-                c.setDescription(rs.getString("description"));
-                c.setDateDebut(rs.getDate("date_debut").toLocalDate());
-                c.setDateFin(rs.getDate("date_fin").toLocalDate());
-                c.setNiveau(rs.getString("niveau"));
-                c.setDuree(rs.getInt("duree"));
-                c.setCreatedBy(rs.getInt("created_by"));
-
-                // Charger les exercices associés
-                c.setExerciceIds(getChallengeExercices(c.getId()));
-
-                // Temporairement, ne pas charger les quiz
-                // c.setQuizIds(getChallengeQuizzes(c.getId()));
-                c.setQuizIds(new ArrayList<>()); // Liste vide
-
+                Challenge c = mapRow(rs);
                 challenges.add(c);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return challenges;
+    }
+
+    public Challenge getById(int id) {
+        String query = "SELECT * FROM challenge WHERE id=?";
+        try {
+            PreparedStatement pst = connection.prepareStatement(query);
+            pst.setInt(1, id);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) return mapRow(rs);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Challenge mapRow(ResultSet rs) throws SQLException {
+        Challenge c = new Challenge();
+        c.setId(rs.getInt("id"));
+        c.setTitre(rs.getString("titre"));
+        c.setDescription(rs.getString("description"));
+        c.setDateDebut(rs.getDate("date_debut").toLocalDate());
+        c.setDateFin(rs.getDate("date_fin").toLocalDate());
+        c.setNiveau(rs.getString("niveau"));
+        c.setDuree(rs.getInt("duree"));
+        c.setCreatedBy(rs.getInt("created_by"));
+        c.setExerciceIds(getChallengeExercices(c.getId()));
+        c.setQuizIds(new ArrayList<>());
+        return c;
     }
 
     // Gestion des relations
