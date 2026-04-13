@@ -39,10 +39,7 @@ public class UserChallengeService {
                 // Récupérer les réponses (stockées en JSON)
                 String answersJson = rs.getString("answers");
                 if (answersJson != null && !answersJson.isEmpty()) {
-                    // Parser JSON simple
-                    Map<Integer, String> answers = new HashMap<>();
-                    // Implémentez le parsing JSON selon votre format
-                    uc.setAnswersMap(answers);
+                    uc.setAnswersMap(parseAnswersJson(answersJson));
                 }
                 return uc;
             }
@@ -107,5 +104,47 @@ public class UserChallengeService {
     private String escapeJson(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    /** Parse le JSON simple {"questionId":"réponse",...} généré par convertAnswersToJson() */
+    private Map<Integer, String> parseAnswersJson(String json) {
+        Map<Integer, String> map = new HashMap<>();
+        if (json == null || json.equals("{}")) return map;
+        // Supprimer les accolades
+        String content = json.trim();
+        if (content.startsWith("{")) content = content.substring(1);
+        if (content.endsWith("}")) content = content.substring(0, content.length() - 1);
+        if (content.isEmpty()) return map;
+        // Découper par virgule (attention aux virgules dans les valeurs)
+        // Format : "key":"value","key2":"value2"
+        int i = 0;
+        while (i < content.length()) {
+            // Lire la clé
+            if (content.charAt(i) != '"') { i++; continue; }
+            int keyStart = i + 1;
+            int keyEnd = content.indexOf('"', keyStart);
+            if (keyEnd < 0) break;
+            String key = content.substring(keyStart, keyEnd);
+            i = keyEnd + 1;
+            // Passer le ':'
+            if (i < content.length() && content.charAt(i) == ':') i++;
+            // Lire la valeur
+            if (i >= content.length() || content.charAt(i) != '"') { i++; continue; }
+            int valStart = i + 1;
+            // Trouver la fin de la valeur (gérer les échappements)
+            int valEnd = valStart;
+            while (valEnd < content.length()) {
+                if (content.charAt(valEnd) == '\\') { valEnd += 2; continue; }
+                if (content.charAt(valEnd) == '"') break;
+                valEnd++;
+            }
+            String value = content.substring(valStart, valEnd)
+                .replace("\\\"", "\"").replace("\\\\", "\\");
+            try { map.put(Integer.parseInt(key), value); } catch (NumberFormatException ignored) {}
+            i = valEnd + 1;
+            // Passer la virgule
+            if (i < content.length() && content.charAt(i) == ',') i++;
+        }
+        return map;
     }
 }

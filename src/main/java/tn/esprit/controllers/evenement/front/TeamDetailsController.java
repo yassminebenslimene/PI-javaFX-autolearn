@@ -52,8 +52,8 @@ public class TeamDetailsController {
         if (labelTeamName != null) labelTeamName.setText(equipe.getNom());
 
         List<Etudiant> membres = equipeService.getEtudiantsByEquipe(equipe.getId());
-        if (labelMembersCount != null) labelMembersCount.setText(membres.size() + " Members");
-        if (labelMembersTitle != null) labelMembersTitle.setText("Team Members (" + membres.size() + ")");
+        if (labelMembersCount != null) labelMembersCount.setText(membres.size() + " Membres");
+        if (labelMembersTitle != null) labelMembersTitle.setText("Membres de l'equipe (" + membres.size() + ")");
 
         if (membersContainer != null) {
             membersContainer.getChildren().clear();
@@ -63,7 +63,7 @@ public class TeamDetailsController {
         }
 
         if (btnParticipate != null) {
-            btnParticipate.setText("🎯  Participate in " + evenement.getTitre());
+            btnParticipate.setText("\uD83C\uDFAF  Participer a " + evenement.getTitre());
         }
     }
 
@@ -83,7 +83,7 @@ public class TeamDetailsController {
         VBox info = new VBox(2);
         Label name = new Label(et.getPrenom() + " " + et.getNom());
         name.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
-        Label emailLvl = new Label(et.getEmail() + " • Level: " + (et.getNiveau() != null ? et.getNiveau().toUpperCase() : ""));
+        Label emailLvl = new Label(et.getEmail() + " \u2022 Niveau: " + (et.getNiveau() != null ? et.getNiveau().toUpperCase() : ""));
         emailLvl.setStyle("-fx-font-size:11; -fx-text-fill:#888;");
         info.getChildren().addAll(name, emailLvl);
 
@@ -108,7 +108,7 @@ public class TeamDetailsController {
     @FXML
     private void onDeleteTeam() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer l'équipe \"" + equipe.getNom() + "\" et ses participations ?", ButtonType.YES, ButtonType.NO);
+                "Supprimer l'equipe \"" + equipe.getNom() + "\" et ses participations ?", ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Confirmer la suppression");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.YES) {

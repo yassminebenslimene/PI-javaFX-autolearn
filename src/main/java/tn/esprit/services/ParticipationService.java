@@ -98,6 +98,17 @@ public class ParticipationService implements IService<Participation> {
         return 0;
     }
 
+    public void saveFeedback(int participationId, String feedbackJson) {
+        String req = "UPDATE participation SET feedbacks=? WHERE id=?";
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setString(1, feedbackJson);
+            ps.setInt(2, participationId);
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            System.err.println("Erreur saveFeedback: " + ex.getMessage());
+        }
+    }
+
     public int ajouterEtRetournerId(Participation p) {
         String req = "INSERT INTO participation (equipe_id, evenement_id, statut) VALUES (?,?,?)";
         try (PreparedStatement ps = connection.prepareStatement(req, Statement.RETURN_GENERATED_KEYS)) {

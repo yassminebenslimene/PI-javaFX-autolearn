@@ -49,16 +49,16 @@
                 <VBox alignment="CENTER" spacing="24"
                       style="-fx-background-color:white; -fx-padding:48 200 48 200;">
 
-                    <Label text="Edit Participation"
+                    <Label text="Modifier la participation"
                            style="-fx-font-size:26; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
-                    <Label text="Update your team's participation details"
+                    <Label text="Mettez a jour les details de votre participation"
                            style="-fx-font-size:13; -fx-text-fill:#666;"/>
 
                     <!-- Note -->
                     <VBox style="-fx-background-color:#eff6ff; -fx-background-radius:8;
                                  -fx-border-color:#bfdbfe; -fx-border-radius:8; -fx-border-width:1; -fx-padding:14;"
                           maxWidth="500">
-                        <Label text="Note: Changing the team or event will re-validate the participation according to event capacity and student availability rules."
+                        <Label text="Note: Modifier l'equipe ou l'evenement re-validera la participation selon la capacite et les regles de disponibilite."
                                wrapText="true" style="-fx-font-size:12; -fx-text-fill:#1d4ed8;"/>
                     </VBox>
 
@@ -69,7 +69,7 @@
                         <ComboBox fx:id="comboEquipe" prefWidth="500"
                                   style="-fx-font-size:13; -fx-padding:4; -fx-background-radius:8;
                                          -fx-border-color:#ddd; -fx-border-radius:8; -fx-border-width:1;"/>
-                        <Label text="Select the team participating in this event"
+                        <Label text="Selectionnez l'equipe participant a cet evenement"
                                style="-fx-font-size:11; -fx-text-fill:#888;"/>
                     </VBox>
 
@@ -80,7 +80,7 @@
                         <ComboBox fx:id="comboEvenement" prefWidth="500"
                                   style="-fx-font-size:13; -fx-padding:4; -fx-background-radius:8;
                                          -fx-border-color:#ddd; -fx-border-radius:8; -fx-border-width:1;"/>
-                        <Label text="Select the event to participate in"
+                        <Label text="Selectionnez l'evenement auquel participer"
                                style="-fx-font-size:11; -fx-text-fill:#888;"/>
                     </VBox>
 
@@ -89,11 +89,11 @@
 
                     <!-- Buttons -->
                     <HBox spacing="16" alignment="CENTER">
-                        <Button text="✓  Update Participation" onAction="#onUpdate"
+                        <Button text="&#10003;  Mettre a jour la participation" onAction="#onUpdate"
                                 style="-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:13;
                                        -fx-font-weight:700; -fx-padding:12 32 12 32; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-width:0;"/>
-                        <Button text="✗  Cancel" onAction="#onCancel"
+                        <Button text="&#10007;  Annuler" onAction="#onCancel"
                                 style="-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:13;
                                        -fx-font-weight:600; -fx-padding:12 32 12 32; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-color:#ddd; -fx-border-width:1; -fx-border-radius:10;"/>

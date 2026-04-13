@@ -126,8 +126,8 @@ public class ChallengeController {
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             DialogPane dialogPane = loader.load();
             ChallengeFormController formController = loader.getController();
-            formController.setChallenge(challenge);
-            formController.setExerciceService(exerciceService);
+            formController.setExerciceService(exerciceService);  // charger les exercices D'ABORD
+            formController.setChallenge(challenge);               // puis pré-remplir le formulaire
 
             ButtonType saveButton = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
             ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);

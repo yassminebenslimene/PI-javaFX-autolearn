@@ -59,7 +59,7 @@ public class ParticipationDetailsController {
         if (labelDateFin != null && evenement.getDateFin() != null)
             labelDateFin.setText(evenement.getDateFin().format(FMT));
         if (labelNbMax != null) labelNbMax.setText(String.valueOf(evenement.getNbMax()));
-        if (labelTeamTitle != null) labelTeamTitle.setText("Team: " + equipe.getNom());
+        if (labelTeamTitle != null) labelTeamTitle.setText("Equipe: " + equipe.getNom());
 
         List<Etudiant> membres = equipeService.getEtudiantsByEquipe(equipe.getId());
         if (membersContainer != null) {
@@ -99,8 +99,8 @@ public class ParticipationDetailsController {
     @FXML
     private void onDeleteParticipation() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Supprimer cette participation et l'équipe associée ?", ButtonType.YES, ButtonType.NO);
-        confirm.setTitle("Confirmer");
+                "Supprimer cette participation et l'equipe associee ?", ButtonType.YES, ButtonType.NO);
+        confirm.setTitle("Confirmer la suppression");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.YES) {
                 participationService.supprimerAvecEquipe(participation.getId());

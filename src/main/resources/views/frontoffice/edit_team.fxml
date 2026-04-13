@@ -49,9 +49,9 @@
                 <VBox alignment="CENTER" spacing="24"
                       style="-fx-background-color:white; -fx-padding:48 200 48 200;">
 
-                    <Label text="Edit Team"
+                    <Label text="Modifier l'equipe"
                            style="-fx-font-size:28; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
-                    <Label text="Modify your team information"
+                    <Label text="Modifiez les informations de votre equipe"
                            style="-fx-font-size:13; -fx-text-fill:#666;"/>
 
                     <!-- Nom équipe -->
@@ -68,7 +68,7 @@
                         <HBox alignment="CENTER_LEFT" spacing="12">
                             <Label text="Membres de l'équipe (4 à 6 étudiants)"
                                    style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#333;"/>
-                            <Label fx:id="labelCount" text="0 selected"
+                            <Label fx:id="labelCount" text="0 selectionne"
                                    style="-fx-background-color:#7a6ad8; -fx-text-fill:white;
                                           -fx-font-size:11; -fx-font-weight:700; -fx-background-radius:20;
                                           -fx-padding:3 10 3 10;"/>
@@ -76,13 +76,13 @@
                         <VBox spacing="4"
                               style="-fx-background-color:#eff6ff; -fx-background-radius:8;
                                      -fx-border-color:#bfdbfe; -fx-border-radius:8; -fx-border-width:1; -fx-padding:12;">
-                            <Label text="💡  How to select students:"
+                            <Label text="&#128161;  Comment selectionner les etudiants :"
                                    style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#1d4ed8;"/>
-                            <Label text="• Check the boxes next to the students you want in your team"
+                            <Label text="&#8226; Cochez les cases a cote des etudiants que vous voulez dans votre equipe"
                                    style="-fx-font-size:11; -fx-text-fill:#374151;"/>
-                            <Label text="• You must select between 4 and 6 students"
+                            <Label text="&#8226; Vous devez selectionner entre 4 et 6 etudiants"
                                    style="-fx-font-size:11; -fx-text-fill:#374151;"/>
-                            <Label text="• Click on a checked box again to deselect"
+                            <Label text="&#8226; Cliquez a nouveau sur une case cochee pour la decocher"
                                    style="-fx-font-size:11; -fx-text-fill:#374151;"/>
                         </VBox>
                         <ScrollPane prefHeight="260" fitToWidth="true" hbarPolicy="NEVER"
@@ -95,11 +95,11 @@
                            style="-fx-text-fill:#e94560; -fx-font-size:12;"/>
 
                     <HBox spacing="16" alignment="CENTER">
-                        <Button text="✓  Update Team" onAction="#onUpdateTeam"
+                        <Button text="&#10003;  Mettre a jour l'equipe" onAction="#onUpdateTeam"
                                 style="-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:13;
                                        -fx-font-weight:700; -fx-padding:12 32 12 32; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-width:0;"/>
-                        <Button text="✗  Cancel" onAction="#onCancel"
+                        <Button text="&#10007;  Annuler" onAction="#onCancel"
                                 style="-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:13;
                                        -fx-font-weight:600; -fx-padding:12 32 12 32; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-color:#ddd; -fx-border-width:1; -fx-border-radius:10;"/>

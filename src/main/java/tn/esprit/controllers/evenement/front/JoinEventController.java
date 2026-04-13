@@ -38,25 +38,48 @@ public class JoinEventController {
     private void loadJoinOptions() {
         joinTeamsContainer.getChildren().clear();
         List<Equipe> equipes = equipeService.getByEvenement(evenement.getId());
-        // Filter teams with < 6 members
         List<Equipe> available = equipes.stream()
                 .filter(eq -> equipeService.countMembres(eq.getId()) < 6)
                 .toList();
 
         if (available.isEmpty()) {
-            labelJoinStatus.setText("No teams available with open spots");
+            labelJoinStatus.setText("Aucune equipe disponible avec des places libres");
         } else {
             labelJoinStatus.setText("");
+            Label title = new Label("Equipes disponibles (" + available.size() + ")");
+            title.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#1e1e1e; -fx-padding:8 0 8 0;");
+            joinTeamsContainer.getChildren().add(title);
+
+            // Cards grid
+            javafx.scene.layout.FlowPane grid = new javafx.scene.layout.FlowPane(16, 16);
             for (Equipe eq : available) {
                 int membres = equipeService.countMembres(eq.getId());
-                Button btn = new Button("Join \"" + eq.getNom() + "\" (" + membres + "/6 members)");
-                btn.setStyle("-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:12;"
-                        + "-fx-font-weight:600; -fx-padding:8 20 8 20; -fx-background-radius:8;"
+                int spots = 6 - membres;
+                javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(8);
+                card.setPadding(new javafx.geometry.Insets(16));
+                card.setPrefWidth(200);
+                card.setStyle("-fx-background-color:white; -fx-background-radius:12;"
+                        + "-fx-border-color:#eeeeee; -fx-border-radius:12; -fx-border-width:1;"
+                        + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),8,0,0,2);");
+
+                Label nomLbl = new Label(eq.getNom());
+                nomLbl.setStyle("-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#1e1e1e;");
+                Label membresLbl = new Label("\uD83D\uDC65 " + membres + " / 6 membres");
+                membresLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+                Label spotsLbl = new Label("\u2713 " + spots + " places disponibles");
+                spotsLbl.setStyle("-fx-font-size:11; -fx-text-fill:#059669; -fx-font-weight:600;");
+
+                Button joinBtn = new Button("Rejoindre cette equipe");
+                joinBtn.setStyle("-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:12;"
+                        + "-fx-font-weight:700; -fx-padding:8 16 8 16; -fx-background-radius:8;"
                         + "-fx-cursor:hand; -fx-border-width:0;");
                 final Equipe selected = eq;
-                btn.setOnAction(e -> joinTeam(selected));
-                joinTeamsContainer.getChildren().add(btn);
+                joinBtn.setOnAction(e -> joinTeam(selected));
+
+                card.getChildren().addAll(nomLbl, membresLbl, spotsLbl, joinBtn);
+                grid.getChildren().add(card);
             }
+            joinTeamsContainer.getChildren().add(grid);
         }
     }
 

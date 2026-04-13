@@ -62,7 +62,7 @@ public class EditTeamController {
 
             String label = et.getPrenom() + " " + et.getNom() + " - "
                     + (et.getNiveau() != null ? et.getNiveau().toUpperCase() : "")
-                    + (isCurrentUser ? " (You - Required)" : "");
+                    + (isCurrentUser ? " (Vous - Obligatoire)" : "");
             Label lbl = new Label(label);
             lbl.setStyle("-fx-font-size:13; -fx-text-fill:" + (isCurrentUser ? "#7a6ad8" : "#333") + ";"
                     + (isCurrentUser ? "-fx-font-weight:700;" : ""));
@@ -81,7 +81,7 @@ public class EditTeamController {
 
     private void updateCount() {
         long count = checkBoxes.stream().filter(CheckBox::isSelected).count();
-        if (labelCount != null) labelCount.setText(count + " selected");
+        if (labelCount != null) labelCount.setText(count + " selectionne(s)");
     }
 
     @FXML
@@ -102,7 +102,7 @@ public class EditTeamController {
         equipeService.supprimerEtudiantsEquipe(equipe.getId());
         for (int etId : selectedIds) equipeService.ajouterEtudiantEquipe(equipe.getId(), etId);
 
-        try { MainApp.showTeamDetails(equipe, evenement, false); }
+        try { MainApp.showMesEquipes("Equipe modifiee avec succes !"); }
         catch (Exception e) { e.printStackTrace(); }
     }
 

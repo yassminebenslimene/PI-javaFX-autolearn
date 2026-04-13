@@ -58,8 +58,8 @@
                                               -fx-background-color:#7c3aed; -fx-text-fill:white;
                                               -fx-background-radius:50%; -fx-padding:4 8 4 8;"/>
                         <VBox spacing="2">
-                            <Label text="Success!" style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#5b21b6;"/>
-                            <Label text="Équipe créée avec succès !" style="-fx-font-size:12; -fx-text-fill:#6d28d9;"/>
+                            <Label text="Succes !" style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#5b21b6;"/>
+                            <Label text="Equipe creee avec succes !" style="-fx-font-size:12; -fx-text-fill:#6d28d9;"/>
                         </VBox>
                     </HBox>
 
@@ -74,7 +74,7 @@
                     <VBox spacing="8" maxWidth="500">
                         <HBox alignment="CENTER_LEFT" spacing="8">
                             <Label text="👥" style="-fx-font-size:16;"/>
-                            <Label fx:id="labelMembersTitle" text="Team Members"
+                            <Label fx:id="labelMembersTitle" text="Membres de l'equipe"
                                    style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
                         </HBox>
                         <VBox fx:id="membersContainer" spacing="8"/>
@@ -86,15 +86,15 @@
                                 style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:12;
                                        -fx-font-weight:700; -fx-padding:10 20 10 20; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-width:0;"/>
-                        <Button text="✏  Edit Team" onAction="#onEditTeam"
+                        <Button text="&#9999;  Modifier l'equipe" onAction="#onEditTeam"
                                 style="-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:12;
                                        -fx-font-weight:600; -fx-padding:10 20 10 20; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-color:#ddd; -fx-border-width:1; -fx-border-radius:10;"/>
-                        <Button text="🗑  Delete Team" onAction="#onDeleteTeam"
+                        <Button text="&#128465;  Supprimer l'equipe" onAction="#onDeleteTeam"
                                 style="-fx-background-color:#fee2e2; -fx-text-fill:#dc2626; -fx-font-size:12;
                                        -fx-font-weight:600; -fx-padding:10 20 10 20; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-color:#fca5a5; -fx-border-width:1; -fx-border-radius:10;"/>
-                        <Button text="← Back to Events" onAction="#onBackToEvents"
+                        <Button text="&#8592; Retour aux evenements" onAction="#onBackToEvents"
                                 style="-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:12;
                                        -fx-font-weight:600; -fx-padding:10 20 10 20; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-color:#ddd; -fx-border-width:1; -fx-border-radius:10;"/>

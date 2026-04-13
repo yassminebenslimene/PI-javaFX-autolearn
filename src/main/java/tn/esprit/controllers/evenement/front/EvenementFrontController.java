@@ -76,7 +76,7 @@ public class EvenementFrontController {
                 + "-fx-font-weight:700; -fx-background-radius:20; -fx-padding:3 10 3 10;");
         badges.getChildren().add(typeBadge);
         if (isCancelled) {
-            Label cancelBadge = new Label("✗  CANCELLED");
+            Label cancelBadge = new Label("✗  ANNULE");
             cancelBadge.setStyle("-fx-background-color:#fee2e2; -fx-text-fill:#dc2626; -fx-font-size:10;"
                     + "-fx-font-weight:700; -fx-background-radius:20; -fx-padding:3 10 3 10;");
             badges.getChildren().add(cancelBadge);
@@ -94,7 +94,7 @@ public class EvenementFrontController {
         }
         if (ev.getLieu() != null) meta.getChildren().add(metaLabel("📍 " + ev.getLieu()));
         int nbEquipes = equipeService.countByEvenement(ev.getId());
-        meta.getChildren().add(metaLabel("👥 " + nbEquipes + " / " + ev.getNbMax() + " teams"));
+        meta.getChildren().add(metaLabel("\uD83D\uDC65 " + nbEquipes + " / " + ev.getNbMax() + " equipes"));
 
         info.getChildren().addAll(badges, titre, meta);
 
@@ -129,7 +129,7 @@ public class EvenementFrontController {
 
     private void buildDetails(VBox details, Evenement ev, boolean isCancelled, boolean isPast, int nbEquipes) {
         // About
-        Label aboutTitle = new Label("ℹ  About This Event");
+        Label aboutTitle = new Label("\u2139  A propos de cet evenement");
         aboutTitle.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;");
         Label desc = new Label(ev.getDescription() != null ? ev.getDescription() : "");
         desc.setWrapText(true);
@@ -138,25 +138,25 @@ public class EvenementFrontController {
 
         // Available spots
         int spots = ev.getNbMax() - nbEquipes;
-        Label spotsTitle = new Label("⊙  Available Spots");
+        Label spotsTitle = new Label("\u2299  Places disponibles");
         spotsTitle.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;");
         HBox spotsBox = new HBox();
         spotsBox.setStyle("-fx-background-color:#eff6ff; -fx-background-radius:8;"
                 + "-fx-border-color:#bfdbfe; -fx-border-radius:8; -fx-border-width:0 0 0 4;"
                 + "-fx-border-color:#7a6ad8; -fx-padding:12;");
-        Label spotsLabel = new Label(spots + " spots remaining out of " + ev.getNbMax() + " total");
+        Label spotsLabel = new Label(spots + " places restantes sur " + ev.getNbMax() + " au total");
         spotsLabel.setStyle("-fx-font-size:13; -fx-text-fill:#1e4d8c;");
         spotsBox.getChildren().add(spotsLabel);
         details.getChildren().addAll(spotsTitle, spotsBox);
 
         // Participating teams
         List<Equipe> equipes = equipeService.getByEvenement(ev.getId());
-        Label teamsTitle = new Label("👥  Participating Teams (" + equipes.size() + ")");
+        Label teamsTitle = new Label("\uD83D\uDC65  Equipes participantes (" + equipes.size() + ")");
         teamsTitle.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;");
         details.getChildren().add(teamsTitle);
 
         if (equipes.isEmpty()) {
-            Label noTeams = new Label("No teams registered yet. Be the first to participate!");
+            Label noTeams = new Label("Aucune equipe inscrite. Soyez le premier a participer !");
             noTeams.setStyle("-fx-font-size:12; -fx-text-fill:#888;");
             details.getChildren().add(noTeams);
         } else {
@@ -176,7 +176,7 @@ public class EvenementFrontController {
                 Label nomEq = new Label(eq.getNom());
                 nomEq.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
                 int membres = equipeService.countMembres(eq.getId());
-                Label membresLabel = new Label("👥 " + membres + " members");
+                Label membresLabel = new Label("\uD83D\uDC65 " + membres + " membres");
                 membresLabel.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
                 teamCard.getChildren().addAll(avatar, typeBadge, nomEq, membresLabel);
                 teamsRow.getChildren().add(teamCard);
@@ -190,7 +190,7 @@ public class EvenementFrontController {
         } else if (isPast) {
             details.getChildren().add(buildCompletedBanner());
         } else if (spots > 0) {
-            Button participateBtn = new Button("🎯  Participate in This Event");
+            Button participateBtn = new Button("\uD83C\uDFAF  Participer a cet evenement");
             participateBtn.setStyle("-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13;"
                     + "-fx-font-weight:700; -fx-padding:12 32 12 32; -fx-background-radius:30;"
                     + "-fx-cursor:hand; -fx-border-width:0;"
@@ -219,12 +219,12 @@ public class EvenementFrontController {
         box.setStyle("-fx-background-color:#fffbeb; -fx-background-radius:12;"
                 + "-fx-border-color:#f59e0b; -fx-border-radius:12; -fx-border-width:2;"
                 + "-fx-padding:12 16 12 16; -fx-min-width:100;");
-        Label title = new Label("TIME LEFT");
+        Label title = new Label("TEMPS RESTANT");
         title.setStyle("-fx-font-size:10; -fx-font-weight:700; -fx-text-fill:#92400e;");
         long days = ev.getDateDebut() != null
                 ? Math.max(0, ChronoUnit.DAYS.between(LocalDateTime.now(), ev.getDateDebut()))
                 : 0;
-        Label daysLabel = new Label(days + " days");
+        Label daysLabel = new Label(days + " jours");
         daysLabel.setStyle("-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:#f59e0b;");
         box.getChildren().addAll(title, daysLabel);
         return box;
@@ -239,9 +239,9 @@ public class EvenementFrontController {
         content.setAlignment(javafx.geometry.Pos.CENTER);
         Label icon = new Label("✕");
         icon.setStyle("-fx-font-size:24; -fx-text-fill:#dc2626;");
-        Label title = new Label("Event Cancelled");
+        Label title = new Label("Evenement annule");
         title.setStyle("-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#dc2626;");
-        Label msg = new Label("This event has been cancelled. No registrations are accepted.");
+        Label msg = new Label("Cet evenement a ete annule. Aucune inscription n'est acceptee.");
         msg.setStyle("-fx-font-size:12; -fx-text-fill:#666;");
         content.getChildren().addAll(icon, title, msg);
         banner.getChildren().add(content);
@@ -257,9 +257,9 @@ public class EvenementFrontController {
         content.setAlignment(javafx.geometry.Pos.CENTER);
         Label icon = new Label("🏁");
         icon.setStyle("-fx-font-size:24;");
-        Label title = new Label("Event Completed");
+        Label title = new Label("Evenement termine");
         title.setStyle("-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#3949ab;");
-        Label msg = new Label("This event has ended. Registrations are now closed.");
+        Label msg = new Label("Cet evenement est termine. Les inscriptions sont closes.");
         msg.setStyle("-fx-font-size:12; -fx-text-fill:#666;");
         content.getChildren().addAll(icon, title, msg);
         banner.getChildren().add(content);
