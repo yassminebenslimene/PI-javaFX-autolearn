@@ -1,24 +1,26 @@
 package tn.esprit.services;
 
+import java.util.List;
+
 /**
- * Interface générique pour les opérations CRUD.
- * Chaque service (ServiceQuiz, ServiceQuestion, ServiceOption) doit implémenter ces méthodes.
- * Le type T représente l'entité concernée (Quiz, Question, Option).
+ * Interface générique CRUD — utilisée par ServiceCours et ServiceChapitre.
+ * ServiceQuiz, ServiceQuestion, ServiceOption n'implémentent pas cette interface
+ * car ils ont des signatures différentes (boolean, supprimer(T t)).
  */
 public interface IService<T> {
 
-    // Ajoute un nouvel enregistrement en base de données → retourne true si succès
-    public boolean ajouter(T t);
+    // Ajouter un enregistrement
+    void ajouter(T t);
 
-    // Supprime un enregistrement de la base de données → retourne true si succès
-    public boolean supprimer(T t);
+    // Modifier un enregistrement
+    void modifier(T t);
 
-    // Modifie un enregistrement existant → retourne true si succès
-    public boolean modifier(T t);
+    // Supprimer par id
+    void supprimer(int id);
 
-    // Affiche tous les enregistrements dans la console (pour debug)
-    public void getAll();
+    // Retourner tous les enregistrements
+    List<T> consulter();
 
-    // Affiche un enregistrement par son identifiant (pour debug)
-    public void getOneById(int id);
+    // Retourner un enregistrement par id
+    T consulterParId(int id);
 }
