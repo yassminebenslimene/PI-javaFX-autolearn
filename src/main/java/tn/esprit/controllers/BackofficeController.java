@@ -89,7 +89,6 @@ public class BackofficeController {
     }
 
     @FXML public void navigateToChapitres() {
-        setActive(btnChapitres);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Chapitres");
         loadView("/views/backoffice/chapitre/index.fxml");
     }
