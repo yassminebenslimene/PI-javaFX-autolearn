@@ -45,15 +45,29 @@ public class FrontCommunauteController {
     }
 
     private VBox buildCard(Communaute c) {
+        int currentUserId = SessionManager.getCurrentUser() != null
+                ? SessionManager.getCurrentUser().getId() : -1;
+        boolean hasAccess = c.getOwnerId() == currentUserId
+                || c.getMemberIds().contains(currentUserId);
+
         VBox card = new VBox(10);
         card.setPrefWidth(300);
         card.setStyle("-fx-background-color:white; -fx-background-radius:14; " +
                       "-fx-border-color:#eeeeee; -fx-border-radius:14; " +
                       "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3); -fx-padding:22;");
 
+        // Icône + badge cadenas si accès restreint
+        HBox iconRow = new HBox(8);
+        iconRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label icon = new Label("👥");
         icon.setStyle("-fx-font-size:28; -fx-background-color:rgba(122,106,216,0.1); " +
                       "-fx-background-radius:12; -fx-padding:10 12 10 12;");
+        iconRow.getChildren().add(icon);
+        if (!hasAccess) {
+            Label lock = new Label("🔒");
+            lock.setStyle("-fx-font-size:14; -fx-text-fill:#e94560;");
+            iconRow.getChildren().add(lock);
+        }
 
         Label nom = new Label(c.getNom());
         nom.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
@@ -62,13 +76,21 @@ public class FrontCommunauteController {
         desc.setWrapText(true);
         desc.setStyle("-fx-font-size:12; -fx-text-fill:#666;");
 
-        javafx.scene.control.Button btn = new javafx.scene.control.Button("Voir la communauté →");
-        btn.setStyle("-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c); " +
-                     "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700; " +
-                     "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
-        btn.setOnAction(e -> ouvrirDetail(c));
+        javafx.scene.control.Button btn;
+        if (hasAccess) {
+            btn = new javafx.scene.control.Button("Voir la communauté →");
+            btn.setStyle("-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c); " +
+                         "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700; " +
+                         "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+            btn.setOnAction(e -> ouvrirDetail(c));
+        } else {
+            btn = new javafx.scene.control.Button("🔒  Accès restreint");
+            btn.setStyle("-fx-background-color:#f5f5f5; -fx-text-fill:#aaa; -fx-font-size:12; " +
+                         "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-border-width:0;");
+            btn.setDisable(true);
+        }
 
-        card.getChildren().addAll(icon, nom, desc, btn);
+        card.getChildren().addAll(iconRow, nom, desc, btn);
         return card;
     }
 

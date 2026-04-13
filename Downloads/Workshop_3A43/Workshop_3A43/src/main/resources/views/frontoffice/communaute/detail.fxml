@@ -18,6 +18,12 @@
                style="-fx-font-size:28; -fx-font-weight:800; -fx-text-fill:white;"/>
         <Label fx:id="labelDescription" text="" wrapText="true"
                style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.75);"/>
+        <!-- Bouton membres visible uniquement pour le owner -->
+        <Button fx:id="btnGererMembres" text="👥  Gérer les membres" onAction="#onGererMembres"
+                visible="false" managed="false"
+                style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
+                       -fx-font-size:12; -fx-font-weight:600; -fx-padding:7 18 7 18;
+                       -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"/>
     </VBox>
 
     <!-- Posts section -->
