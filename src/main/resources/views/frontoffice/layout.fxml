@@ -89,7 +89,7 @@
                     <Label fx:id="welcomeLabel" text=""
                            style="-fx-font-size:16; -fx-text-fill:rgba(255,255,255,0.8);"/>
                     <HBox spacing="16" alignment="CENTER">
-                        <Button text="▶  Voir les cours" onAction="#onHome"
+                        <Button text="▶  Voir les cours" onAction="#onCours"
                                 style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:13;
                                        -fx-font-weight:700; -fx-padding:12 28 12 28; -fx-background-radius:30;
                                        -fx-cursor:hand; -fx-border-width:0;

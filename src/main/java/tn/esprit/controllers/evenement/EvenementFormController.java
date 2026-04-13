@@ -164,22 +164,41 @@ public class EvenementFormController implements Initializable {
             }
         }
 
-        // Date debut : obligatoire, doit être dans le futur (mode ajout)
+        // Date debut : obligatoire, ne peut pas être dans le passé (heure incluse)
+        // Force commit si l'utilisateur a tapé la date sans passer par le calendrier
+        if (pickerDateDebut.getValue() == null && pickerDateDebut.getEditor().getText() != null
+                && !pickerDateDebut.getEditor().getText().trim().isEmpty()) {
+            pickerDateDebut.getEditor().commitValue();
+        }
         LocalDateTime dateDebut = null;
         if (pickerDateDebut.getValue() == null) {
-            if (errDateDebut != null) errDateDebut.setText("La date de debut est obligatoire.");
+            if (errDateDebut != null) errDateDebut.setText("La date de début est obligatoire.");
             valid = false;
         } else {
             int h = spinnerHeureDebut.getValue();
             int m = spinnerMinDebut.getValue();
             dateDebut = pickerDateDebut.getValue().atTime(h, m);
-            if (evenementToEdit == null && dateDebut.isBefore(LocalDateTime.now())) {
-                if (errDateDebut != null) errDateDebut.setText("La date de debut doit etre dans le futur.");
-                valid = false;
+            if (evenementToEdit == null) {
+                LocalDateTime now = LocalDateTime.now();
+                if (dateDebut.isBefore(now)) {
+                    if (pickerDateDebut.getValue().isBefore(java.time.LocalDate.now())) {
+                        if (errDateDebut != null) errDateDebut.setText("Impossible de planifier un événement dans le passé.");
+                    } else {
+                        // même jour mais heure passée
+                        if (errDateDebut != null) errDateDebut.setText("L'heure de début doit être supérieure à l'heure actuelle (" +
+                            String.format("%02d:%02d", now.getHour(), now.getMinute()) + ").");
+                    }
+                    valid = false;
+                }
             }
         }
 
-        // Date fin : obligatoire, doit être après date début
+        // Date fin : obligatoire, doit être strictement après date début
+        // Force commit si l'utilisateur a tapé la date sans passer par le calendrier
+        if (pickerDateFin.getValue() == null && pickerDateFin.getEditor().getText() != null
+                && !pickerDateFin.getEditor().getText().trim().isEmpty()) {
+            pickerDateFin.getEditor().commitValue();
+        }
         LocalDateTime dateFin = null;
         if (pickerDateFin.getValue() == null) {
             if (errDateFin != null) errDateFin.setText("La date de fin est obligatoire.");
@@ -188,8 +207,14 @@ public class EvenementFormController implements Initializable {
             int h = spinnerHeureFin.getValue();
             int m = spinnerMinFin.getValue();
             dateFin = pickerDateFin.getValue().atTime(h, m);
-            if (dateDebut != null && dateFin.isBefore(dateDebut)) {
-                if (errDateFin != null) errDateFin.setText("La date de fin doit etre apres la date de debut.");
+            if (dateDebut != null && !dateFin.isAfter(dateDebut)) {
+                if (dateFin.toLocalDate().isBefore(dateDebut.toLocalDate())) {
+                    if (errDateFin != null) errDateFin.setText("La date de fin ne peut pas être antérieure à la date de début.");
+                } else {
+                    // même jour, heure inférieure ou égale
+                    if (errDateFin != null) errDateFin.setText("L'heure de fin doit être supérieure à l'heure de début (" +
+                        String.format("%02d:%02d", dateDebut.getHour(), dateDebut.getMinute()) + ").");
+                }
                 valid = false;
             }
         }
