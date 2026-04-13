@@ -21,6 +21,8 @@ public class BackofficeController {
     @FXML private Button btnQuiz;
     @FXML private Button btnCours;
     @FXML private Button btnCommunaute;
+    @FXML private Button btnPost;
+    @FXML private Button btnCommentaire;
     @FXML private Button btnProfile;
 
     private static final String ACTIVE_STYLE =
@@ -76,6 +78,18 @@ public class BackofficeController {
         loadView("/views/backoffice/communaute/index.fxml");
     }
 
+    @FXML public void navigateToPost() {
+        setActive(btnPost);
+        labelPageTitle.setText("Gestion des Posts");
+        loadView("/views/backoffice/post/index.fxml");
+    }
+
+    @FXML public void navigateToCommentaire() {
+        setActive(btnCommentaire);
+        labelPageTitle.setText("Gestion des Commentaires");
+        loadView("/views/backoffice/commentaire/index.fxml");
+    }
+
     @FXML public void navigateToProfile() {
         setActive(btnProfile);
         labelPageTitle.setText("Mon Profil");
@@ -89,7 +103,7 @@ public class BackofficeController {
     }
 
     private void setActive(Button active) {
-        for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnCours, btnCommunaute, btnProfile}) {
+        for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnCours, btnCommunaute, btnPost, btnCommentaire, btnProfile}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }

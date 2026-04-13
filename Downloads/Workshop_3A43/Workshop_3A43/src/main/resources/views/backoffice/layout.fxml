@@ -51,6 +51,14 @@
                             style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                    <Button fx:id="btnPost" text="  📝   Posts" maxWidth="Infinity" onAction="#navigateToPost"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                    <Button fx:id="btnCommentaire" text="  💬   Commentaires" maxWidth="Infinity" onAction="#navigateToCommentaire"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
                 </VBox>
 
                 <!-- COMPTE -->

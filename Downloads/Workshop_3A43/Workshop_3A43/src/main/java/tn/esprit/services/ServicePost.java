@@ -16,6 +16,15 @@ public class ServicePost {
 
     // ── Lecture ──────────────────────────────────────────────────────────────
 
+    public List<Post> getAll() {
+        List<Post> list = new ArrayList<>();
+        try {
+            ResultSet rs = conn().createStatement().executeQuery("SELECT * FROM post ORDER BY created_at DESC");
+            while (rs.next()) list.add(fromRs(rs));
+        } catch (SQLException e) { System.err.println("[ServicePost] getAll: " + e.getMessage()); }
+        return list;
+    }
+
     public List<Post> getByCommunaute(int communauteId) {
         List<Post> list = new ArrayList<>();
         String req = "SELECT * FROM post WHERE communaute_id=? ORDER BY created_at DESC";

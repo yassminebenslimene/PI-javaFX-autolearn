@@ -32,6 +32,16 @@ public class ServiceCommentaire {
         return "created_at"; // fallback
     }
 
+    public List<Commentaire> getAll() {
+        List<Commentaire> list = new ArrayList<>();
+        String req = "SELECT * FROM commentaire ORDER BY " + DATE_COL + " DESC";
+        try {
+            ResultSet rs = conn().createStatement().executeQuery(req);
+            while (rs.next()) list.add(fromRs(rs));
+        } catch (SQLException e) { System.err.println("[ServiceCommentaire] getAll: " + e.getMessage()); }
+        return list;
+    }
+
     public List<Commentaire> getByPost(int postId) {
         List<Commentaire> list = new ArrayList<>();
         String req = "SELECT * FROM commentaire WHERE post_id=? ORDER BY " + DATE_COL + " ASC";

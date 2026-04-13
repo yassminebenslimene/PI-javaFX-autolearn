@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.controllers.CommentaireAdminController"
+      spacing="0" style="-fx-background-color:#f5f5f5;">
+
+    <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+
+    <Label text="💬  Gestion des Commentaires"
+           style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#1e1e1e; -fx-padding:0 0 18 0;"/>
+
+    <VBox style="-fx-background-color:white; -fx-background-radius:14;
+                 -fx-border-color:#eeeeee; -fx-border-radius:14;
+                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),10,0,0,3);">
+        <VBox fx:id="tableContainer"/>
+    </VBox>
+</VBox>
