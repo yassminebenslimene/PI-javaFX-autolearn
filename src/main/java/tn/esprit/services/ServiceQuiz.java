@@ -21,7 +21,7 @@ public class ServiceQuiz {
 
     // ── CREATE : Insérer un nouveau quiz en BDD ───────────────────────────────
     public boolean ajouter(Quiz quiz) {
-        String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, image_name, image_size, updated_at, chapitre_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, chapitre_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, quiz.getTitre());
             statement.setString(2, quiz.getDescription());
@@ -29,14 +29,12 @@ public class ServiceQuiz {
             statement.setObject(4, quiz.getDureeMaxMinutes());
             statement.setObject(5, quiz.getSeuilReussite());
             statement.setObject(6, quiz.getMaxTentatives());
-            statement.setString(7, quiz.getImageName());
-            statement.setObject(8, quiz.getImageSize());
-            statement.setTimestamp(9, quiz.getUpdatedAt() == null ? null : Timestamp.valueOf(quiz.getUpdatedAt()));
-            statement.setObject(10, quiz.getChapitreId());
+            statement.setObject(7, quiz.getChapitreId());
             int rows = statement.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur ajout quiz : " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -70,7 +68,7 @@ public class ServiceQuiz {
 
     // ── UPDATE : Modifier un quiz existant ────────────────────────────────────
     public boolean modifier(Quiz quiz) {
-        String req = "UPDATE quiz SET titre = ?, description = ?, etat = ?, duree_max_minutes = ?, seuil_reussite = ?, max_tentatives = ?, image_name = ?, image_size = ?, updated_at = ?, chapitre_id = ? WHERE id = ?";
+        String req = "UPDATE quiz SET titre = ?, description = ?, etat = ?, duree_max_minutes = ?, seuil_reussite = ?, max_tentatives = ?, chapitre_id = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, quiz.getTitre());
             statement.setString(2, quiz.getDescription());
@@ -78,11 +76,8 @@ public class ServiceQuiz {
             statement.setObject(4, quiz.getDureeMaxMinutes());
             statement.setObject(5, quiz.getSeuilReussite());
             statement.setObject(6, quiz.getMaxTentatives());
-            statement.setString(7, quiz.getImageName());
-            statement.setObject(8, quiz.getImageSize());
-            statement.setTimestamp(9, quiz.getUpdatedAt() == null ? null : Timestamp.valueOf(quiz.getUpdatedAt()));
-            statement.setObject(10, quiz.getChapitreId());
-            statement.setInt(11, quiz.getId());
+            statement.setObject(7, quiz.getChapitreId());
+            statement.setInt(8, quiz.getId());
             int rows = statement.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
@@ -152,7 +147,6 @@ public class ServiceQuiz {
 
     // ── Méthode privée : convertit une ligne SQL en objet Quiz ────────────────
     private Quiz mapQuiz(ResultSet rs) throws SQLException {
-        Timestamp updatedAt = rs.getTimestamp("updated_at");
         return new Quiz(
                 rs.getInt("id"),
                 rs.getString("titre"),
@@ -161,9 +155,7 @@ public class ServiceQuiz {
                 (Integer) rs.getObject("duree_max_minutes"),
                 (Integer) rs.getObject("seuil_reussite"),
                 (Integer) rs.getObject("max_tentatives"),
-                rs.getString("image_name"),
-                (Integer) rs.getObject("image_size"),
-                updatedAt == null ? null : updatedAt.toLocalDateTime(),
+                null, null, null,
                 (Integer) rs.getObject("chapitre_id")
         );
     }

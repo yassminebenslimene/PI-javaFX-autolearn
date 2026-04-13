@@ -22,58 +22,88 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * CoursController — gère deux vues FXML :
+ *   1. backoffice/cours/index.fxml  → tableau de liste des cours (backoffice admin)
+ *   2. backoffice/cours/form.fxml   → formulaire création/modification d'un cours
+ *
+ * Ce controller est partagé entre les deux vues grâce aux annotations @FXML :
+ * - Les champs de la table (tableCours, colTitre...) sont utilisés dans index.fxml
+ * - Les champs du formulaire (fieldTitre, fieldMatiere...) sont utilisés dans form.fxml
+ * - JavaFX ignore les @FXML null (champ absent dans la vue chargée)
+ */
 public class CoursController {
 
-    @FXML private TableView<Cours> tableCours;
+    // ── Composants de la vue INDEX (liste des cours) ──────────────────────────
+    @FXML private TableView<Cours>         tableCours;
     @FXML private TableColumn<Cours, String> colTitre;
     @FXML private TableColumn<Cours, String> colMatiere;
     @FXML private TableColumn<Cours, String> colNiveau;
     @FXML private TableColumn<Cours, Number> colDuree;
-    @FXML private TableColumn<Cours, Number> colChapitres;
-    @FXML private TableColumn<Cours, Void> colActions;
-    @FXML private TextField searchField;
-    @FXML private Label labelTotalCours;
-    @FXML private Label labelTotalChapitres;
+    @FXML private TableColumn<Cours, Number> colChapitres; // nb chapitres par cours
+    @FXML private TableColumn<Cours, Void>   colActions;   // boutons Edit/Supprimer/Chapitres
+    @FXML private TextField                  searchField;
+    @FXML private Label                      labelTotalCours;
+    @FXML private Label                      labelTotalChapitres;
 
-    @FXML private Label formTitle;
-    @FXML private TextField fieldTitre;
-    @FXML private TextField fieldMatiere;
-    @FXML private TextArea areaDescription;
-    @FXML private ComboBox<String> comboNiveau;
-    @FXML private TextField fieldDuree;
-    @FXML private Label errorTitre;
-    @FXML private Label errorMatiere;
-    @FXML private Label errorDescription;
-    @FXML private Label errorNiveau;
-    @FXML private Label errorDuree;
+    // ── Composants de la vue FORM (formulaire cours) ──────────────────────────
+    @FXML private Label        formTitle;       // "Nouveau cours" ou "Modifier cours"
+    @FXML private TextField    fieldTitre;
+    @FXML private TextField    fieldMatiere;
+    @FXML private TextArea     areaDescription;
+    @FXML private ComboBox<String> comboNiveau; // DEBUTANT / INTERMEDIAIRE / AVANCE
+    @FXML private TextField    fieldDuree;
+    @FXML private Label        errorTitre;      // messages d'erreur de validation
+    @FXML private Label        errorMatiere;
+    @FXML private Label        errorDescription;
+    @FXML private Label        errorNiveau;
+    @FXML private Label        errorDuree;
 
-    private final ServiceCours serviceCours = new ServiceCours();
+    // ── Services (accès BDD) ──────────────────────────────────────────────────
+    private final ServiceCours    serviceCours    = new ServiceCours();
     private final ServiceChapitre serviceChapitre = new ServiceChapitre();
 
+    // ── État interne ──────────────────────────────────────────────────────────
+    // Map : coursId → nombre de chapitres (pour afficher la colonne "Nb chapitres")
     private Map<Integer, Integer> chapitreCountByCours = new HashMap<>();
-    private Cours editingCours;
-    private boolean editMode;
+    private Cours   editingCours; // cours en cours de modification (null si création)
+    private boolean editMode;     // true = modification, false = création
 
+    // ── INITIALISATION ────────────────────────────────────────────────────────
+    /**
+     * Appelée automatiquement par JavaFX après le chargement du FXML.
+     * On détecte quelle vue est chargée selon les composants présents.
+     */
     @FXML
     public void initialize() {
+        // Si tableCours existe → on est dans index.fxml → initialiser la table
         if (tableCours != null) initTable();
+        // Si comboNiveau existe → on est dans form.fxml → remplir la liste des niveaux
         if (comboNiveau != null) {
             comboNiveau.setItems(FXCollections.observableArrayList("DEBUTANT", "INTERMEDIAIRE", "AVANCE"));
         }
     }
 
+    // ── INITIALISATION DE LA TABLE ────────────────────────────────────────────
+    /**
+     * Configure le style dark theme de la table et définit le contenu de chaque colonne.
+     * Chaque colonne a un CellValueFactory (source de données) et un CellFactory (rendu visuel).
+     */
     private void initTable() {
+        // Style de fond sombre pour la table
         tableCours.setStyle(
             "-fx-background-color:#0f1a14; -fx-border-width:0;" +
             "-fx-table-cell-border-color:rgba(255,255,255,0.06);"
         );
 
+        // Appliquer le thème sombre sur le header dès que le skin est prêt
         tableCours.skinProperty().addListener((obs, o, skin) ->
             javafx.application.Platform.runLater(this::applyTableDarkTheme));
         tableCours.sceneProperty().addListener((obs, o, scene) -> {
             if (scene != null) javafx.application.Platform.runLater(this::applyTableDarkTheme);
         });
 
+        // Style des lignes : fond sombre + highlight au survol et à la sélection
         tableCours.setRowFactory(tv -> {
             javafx.scene.control.TableRow<Cours> row = new javafx.scene.control.TableRow<>();
             row.setStyle("-fx-background-color:#0f1a14;");
@@ -86,7 +116,7 @@ public class CoursController {
             return row;
         });
 
-        // Titre
+        // Colonne Titre : texte blanc gras
         colTitre.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTitre()));
         colTitre.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
@@ -96,7 +126,7 @@ public class CoursController {
             }
         });
 
-        // Matiere
+        // Colonne Matière : texte grisé centré
         colMatiere.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMatiere()));
         colMatiere.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
@@ -106,7 +136,7 @@ public class CoursController {
             }
         });
 
-        // Niveau badge
+        // Colonne Niveau : badge coloré selon le niveau (vert/jaune/rouge)
         colNiveau.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getNiveau()));
         colNiveau.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
@@ -127,7 +157,7 @@ public class CoursController {
             }
         });
 
-        // Duree
+        // Colonne Durée : nombre d'heures, texte grisé
         colDuree.setCellValueFactory(data -> new SimpleIntegerProperty(data.getValue().getDuree()));
         colDuree.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(Number item, boolean empty) {
@@ -137,7 +167,7 @@ public class CoursController {
             }
         });
 
-        // Nb chapitres
+        // Colonne Nb chapitres : nombre calculé depuis la map chapitreCountByCours, en bleu
         colChapitres.setCellValueFactory(data -> new SimpleIntegerProperty(chapitreCountByCours.getOrDefault(data.getValue().getId(), 0)));
         colChapitres.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(Number item, boolean empty) {
@@ -147,7 +177,7 @@ public class CoursController {
             }
         });
 
-        // Actions
+        // Colonne Actions : 3 boutons par ligne (Edit / Supprimer / Chapitres)
         colActions.setCellFactory(col -> new TableCell<>() {
             private final Button btnEdit      = new Button("Edit");
             private final Button btnDelete    = new Button("Supprimer");
@@ -159,11 +189,11 @@ public class CoursController {
                 btnDelete.setStyle(base + "-fx-background-color:rgba(248,113,113,0.25); -fx-text-fill:#fda4af;");
                 btnChapitres.setStyle(base + "-fx-background-color:rgba(52,211,153,0.25); -fx-text-fill:#34d399;");
                 box.setAlignment(Pos.CENTER);
+                // Chaque bouton récupère le cours de la ligne courante via getIndex()
                 btnEdit.setOnAction(e -> onEditCours(getTableView().getItems().get(getIndex())));
                 btnDelete.setOnAction(e -> onDeleteCours(getTableView().getItems().get(getIndex())));
                 btnChapitres.setOnAction(e -> openChapitreWindow(getTableView().getItems().get(getIndex())));
             }
-
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
@@ -172,37 +202,44 @@ public class CoursController {
             }
         });
 
-        loadTable();
+        loadTable(); // charger les données depuis la BDD
     }
 
+    // ── THÈME SOMBRE SUR LE HEADER ────────────────────────────────────────────
+    /**
+     * Applique le style dark sur les éléments CSS internes de la TableView
+     * (header, scrollbars, filler) qui ne peuvent pas être stylisés directement en FXML.
+     */
     private void applyTableDarkTheme() {
         javafx.scene.Node header = tableCours.lookup("TableHeaderRow");
         if (header != null)
             header.setStyle("-fx-background-color:#0d1710; -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent; -fx-border-width:0 0 1 0;");
-        tableCours.lookupAll(".column-header").forEach(n ->
-            n.setStyle("-fx-background-color:#0d1710; -fx-border-width:0;"));
+        tableCours.lookupAll(".column-header").forEach(n -> n.setStyle("-fx-background-color:#0d1710; -fx-border-width:0;"));
         tableCours.lookupAll(".column-header .label").forEach(n ->
-            ((javafx.scene.control.Label) n).setStyle(
-                "-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:12; -fx-font-weight:700;"));
-        tableCours.lookupAll(".filler").forEach(n ->
-            n.setStyle("-fx-background-color:#0d1710;"));
-        tableCours.lookupAll(".scroll-bar").forEach(n ->
-            n.setStyle("-fx-background-color:transparent;"));
-        tableCours.lookupAll(".scroll-bar .track").forEach(n ->
-            n.setStyle("-fx-background-color:transparent; -fx-border-color:transparent;"));
-        tableCours.lookupAll(".scroll-bar .thumb").forEach(n ->
-            n.setStyle("-fx-background-color:rgba(52,211,153,0.22); -fx-background-radius:4;"));
-        tableCours.lookupAll(".increment-button, .decrement-button").forEach(n ->
-            n.setStyle("-fx-background-color:transparent; -fx-pref-height:0; -fx-pref-width:0;"));
-        tableCours.lookupAll(".corner").forEach(n ->
-            n.setStyle("-fx-background-color:transparent;"));
+            ((Label) n).setStyle("-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:12; -fx-font-weight:700;"));
+        tableCours.lookupAll(".filler").forEach(n -> n.setStyle("-fx-background-color:#0d1710;"));
+        tableCours.lookupAll(".scroll-bar").forEach(n -> n.setStyle("-fx-background-color:transparent;"));
+        tableCours.lookupAll(".scroll-bar .track").forEach(n -> n.setStyle("-fx-background-color:transparent; -fx-border-color:transparent;"));
+        tableCours.lookupAll(".scroll-bar .thumb").forEach(n -> n.setStyle("-fx-background-color:rgba(52,211,153,0.22); -fx-background-radius:4;"));
+        tableCours.lookupAll(".increment-button, .decrement-button").forEach(n -> n.setStyle("-fx-background-color:transparent; -fx-pref-height:0; -fx-pref-width:0;"));
+        tableCours.lookupAll(".corner").forEach(n -> n.setStyle("-fx-background-color:transparent;"));
     }
 
+    // ── CHARGEMENT DES DONNÉES ────────────────────────────────────────────────
+    /**
+     * Charge tous les cours depuis la BDD et les affiche dans la table.
+     * Calcule aussi le nombre de chapitres par cours pour la colonne "Nb chapitres".
+     * Applique le filtre de recherche si le champ searchField n'est pas vide.
+     */
     private void loadTable() {
         List<Cours> coursList = serviceCours.consulter();
+
+        // Compter les chapitres par cours : on parcourt tous les chapitres
+        // et on incrémente le compteur pour chaque cours_id trouvé
         chapitreCountByCours = new HashMap<>();
         serviceChapitre.consulter().forEach(ch -> chapitreCountByCours.merge(ch.getCoursId(), 1, Integer::sum));
 
+        // Filtrer selon la recherche (titre, matière ou niveau)
         String q = searchField == null ? "" : searchField.getText().trim().toLowerCase();
         if (!q.isEmpty()) {
             coursList = coursList.stream().filter(c ->
@@ -213,21 +250,18 @@ public class CoursController {
         }
 
         if (tableCours != null) tableCours.setItems(FXCollections.observableArrayList(coursList));
-        if (labelTotalCours != null) labelTotalCours.setText(String.valueOf(serviceCours.consulter().size()));
+        // Mettre à jour les compteurs dans les stats cards
+        if (labelTotalCours     != null) labelTotalCours.setText(String.valueOf(serviceCours.consulter().size()));
         if (labelTotalChapitres != null) labelTotalChapitres.setText(String.valueOf(serviceChapitre.consulter().size()));
     }
 
-    @FXML
-    private void onSearch() {
-        loadTable();
-    }
+    // ── RECHERCHE ─────────────────────────────────────────────────────────────
+    @FXML private void onSearch()      { loadTable(); }
+    @FXML private void onClearSearch() { if (searchField != null) searchField.clear(); loadTable(); }
 
-    @FXML
-    private void onClearSearch() {
-        if (searchField != null) searchField.clear();
-        loadTable();
-    }
+    // ── ACTIONS CRUD ──────────────────────────────────────────────────────────
 
+    /** Ouvre le formulaire de création (cours = null → mode création). */
     @FXML
     private void onNewCours() {
         if (!SessionManager.isAdmin()) {
@@ -237,6 +271,7 @@ public class CoursController {
         openFormWindow(null);
     }
 
+    /** Ouvre le formulaire pré-rempli pour modifier un cours existant. */
     private void onEditCours(Cours cours) {
         if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
@@ -245,41 +280,52 @@ public class CoursController {
         openFormWindow(cours);
     }
 
+    /** Demande confirmation puis supprime le cours ET ses chapitres (cascade). */
     private void onDeleteCours(Cours cours) {
         if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
-
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirmation");
         confirm.setHeaderText("Supprimer le cours");
         confirm.setContentText("Voulez-vous supprimer le cours '" + cours.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                serviceCours.supprimer(cours.getId());
+                serviceCours.supprimer(cours.getId()); // supprime aussi les chapitres (cascade)
                 loadTable();
             }
         });
     }
 
+    // ── OUVERTURE DES FENÊTRES MODALES ────────────────────────────────────────
+
+    /**
+     * Ouvre le formulaire cours dans une fenêtre modale.
+     * Si cours == null → création, sinon → modification.
+     * Après fermeture, recharge la table pour refléter les changements.
+     */
     private void openFormWindow(Cours cours) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/backoffice/cours/form.fxml"));
             Stage stage = new Stage();
-            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initModality(Modality.APPLICATION_MODAL); // bloque la fenêtre parente
             stage.setTitle(cours == null ? "Nouveau cours" : "Modifier cours");
             stage.setResizable(false);
             stage.setScene(new Scene(loader.load(), 560, 560));
             CoursController ctrl = loader.getController();
-            ctrl.setEditingCours(cours);
-            stage.showAndWait();
-            loadTable();
+            ctrl.setEditingCours(cours); // injecter le cours à modifier (ou null)
+            stage.showAndWait();         // attendre la fermeture avant de continuer
+            loadTable();                 // rafraîchir la liste
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Ouvre la liste des chapitres d'un cours dans une fenêtre modale.
+     * Utilise ChapitreController avec le cours sélectionné.
+     */
     private void openChapitreWindow(Cours cours) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/backoffice/chapitre/index.fxml"));
@@ -288,19 +334,23 @@ public class CoursController {
             stage.setTitle("Chapitres - " + cours.getTitre());
             stage.setScene(new Scene(loader.load(), 1000, 640));
             ChapitreController ctrl = loader.getController();
-            ctrl.setCours(cours);
+            ctrl.setCours(cours); // injecter le cours pour filtrer ses chapitres
             stage.showAndWait();
-            loadTable();
+            loadTable(); // rafraîchir le nb de chapitres après fermeture
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    // ── INITIALISATION DU FORMULAIRE ──────────────────────────────────────────
+    /**
+     * Appelé depuis openFormWindow() pour pré-remplir le formulaire en mode modification.
+     * En mode création (cours == null), le formulaire reste vide.
+     */
     public void setEditingCours(Cours cours) {
         this.editingCours = cours;
-        this.editMode = cours != null;
-
-        if (formTitle == null) return;
+        this.editMode     = cours != null;
+        if (formTitle == null) return; // sécurité si appelé hors contexte form
 
         if (editMode) {
             formTitle.setText("Modifier cours");
@@ -314,20 +364,24 @@ public class CoursController {
         }
     }
 
+    // ── SAUVEGARDE DU FORMULAIRE ──────────────────────────────────────────────
+    /** Valide le formulaire puis crée ou modifie le cours en BDD. */
     @FXML
     private void onSave() {
-        if (!validateForm()) return;
+        if (!validateForm()) return; // arrêter si validation échoue
 
-        String titre = fieldTitre.getText().trim();
-        String matiere = fieldMatiere.getText().trim();
+        String titre       = fieldTitre.getText().trim();
+        String matiere     = fieldMatiere.getText().trim();
         String description = areaDescription.getText().trim();
-        String niveau = comboNiveau.getValue();
-        int duree = Integer.parseInt(fieldDuree.getText().trim());
+        String niveau      = comboNiveau.getValue();
+        int    duree       = Integer.parseInt(fieldDuree.getText().trim());
 
         if (!editMode) {
+            // Création : construire un nouvel objet Cours et l'insérer en BDD
             Cours cours = new Cours(titre, description, matiere, niveau, duree, LocalDateTime.now());
             serviceCours.ajouter(cours);
         } else {
+            // Modification : mettre à jour les champs de l'objet existant
             editingCours.setTitre(titre);
             editingCours.setMatiere(matiere);
             editingCours.setDescription(description);
@@ -336,97 +390,83 @@ public class CoursController {
             serviceCours.modifier(editingCours);
         }
 
+        // Fermer la fenêtre modale après sauvegarde
         ((Stage) fieldTitre.getScene().getWindow()).close();
     }
 
+    /** Ferme le formulaire sans sauvegarder. */
     @FXML
     private void onCancel() {
         ((Stage) fieldTitre.getScene().getWindow()).close();
     }
 
+    // ── VALIDATION DU FORMULAIRE ──────────────────────────────────────────────
+    /**
+     * Vérifie chaque champ avec des règles métier significatives.
+     * Affiche un message d'erreur sous chaque champ invalide.
+     * Retourne true si tout est valide, false sinon.
+     */
     private boolean validateForm() {
-        errorTitre.setText("");
-        errorMatiere.setText("");
-        errorDescription.setText("");
-        errorNiveau.setText("");
-        errorDuree.setText("");
-
+        // Réinitialiser tous les messages d'erreur
+        errorTitre.setText(""); errorMatiere.setText(""); errorDescription.setText("");
+        errorNiveau.setText(""); errorDuree.setText("");
         boolean valid = true;
 
-        // Titre : 3 à 100 caractères, lettres/chiffres/espaces autorisés
+        // Titre : 3 à 100 caractères, lettres/chiffres/ponctuation basique
         String titre = fieldTitre.getText().trim();
         if (titre.isEmpty()) {
-            errorTitre.setText("Le titre est obligatoire");
-            valid = false;
+            errorTitre.setText("Le titre est obligatoire"); valid = false;
         } else if (titre.length() < 3) {
-            errorTitre.setText("Le titre doit contenir au moins 3 caractères");
-            valid = false;
+            errorTitre.setText("Le titre doit contenir au moins 3 caractères"); valid = false;
         } else if (titre.length() > 100) {
-            errorTitre.setText("Le titre ne peut pas dépasser 100 caractères");
-            valid = false;
+            errorTitre.setText("Le titre ne peut pas dépasser 100 caractères"); valid = false;
         } else if (!titre.matches("^[\\p{L}0-9 \\-_.,:'\"()]+$")) {
-            errorTitre.setText("Caractères spéciaux non autorisés dans le titre");
-            valid = false;
+            errorTitre.setText("Caractères spéciaux non autorisés dans le titre"); valid = false;
         }
 
-        // Matière : lettres et espaces uniquement, 2 à 50 caractères
+        // Matière : lettres et espaces uniquement (pas de chiffres ni symboles)
         String matiere = fieldMatiere.getText().trim();
         if (matiere.isEmpty()) {
-            errorMatiere.setText("La matière est obligatoire");
-            valid = false;
+            errorMatiere.setText("La matière est obligatoire"); valid = false;
         } else if (matiere.length() < 2) {
-            errorMatiere.setText("La matière doit contenir au moins 2 caractères");
-            valid = false;
+            errorMatiere.setText("La matière doit contenir au moins 2 caractères"); valid = false;
         } else if (matiere.length() > 50) {
-            errorMatiere.setText("La matière ne peut pas dépasser 50 caractères");
-            valid = false;
+            errorMatiere.setText("La matière ne peut pas dépasser 50 caractères"); valid = false;
         } else if (!matiere.matches("^[\\p{L} \\-]+$")) {
-            errorMatiere.setText("La matière doit contenir uniquement des lettres");
-            valid = false;
+            errorMatiere.setText("La matière doit contenir uniquement des lettres"); valid = false;
         }
 
-        // Description : minimum 20 caractères pour être significative
+        // Description : min 20 chars (une description d'une seule phrase n'a pas de sens)
         String desc = areaDescription.getText().trim();
         if (desc.isEmpty()) {
-            errorDescription.setText("La description est obligatoire");
-            valid = false;
+            errorDescription.setText("La description est obligatoire"); valid = false;
         } else if (desc.length() < 20) {
-            errorDescription.setText("La description doit contenir au moins 20 caractères");
-            valid = false;
+            errorDescription.setText("La description doit contenir au moins 20 caractères"); valid = false;
         } else if (desc.length() > 500) {
-            errorDescription.setText("La description ne peut pas dépasser 500 caractères");
-            valid = false;
+            errorDescription.setText("La description ne peut pas dépasser 500 caractères"); valid = false;
         }
 
-        // Niveau : sélection obligatoire
+        // Niveau : doit être sélectionné dans la liste
         if (comboNiveau.getValue() == null || comboNiveau.getValue().isBlank()) {
-            errorNiveau.setText("Veuillez sélectionner un niveau");
-            valid = false;
+            errorNiveau.setText("Veuillez sélectionner un niveau"); valid = false;
         }
 
-        // Durée : nombre entier entre 1 et 500 heures
+        // Durée : entier entre 1 et 500 heures (un cours de 0h ou 1000h n'a pas de sens)
         try {
             int duree = Integer.parseInt(fieldDuree.getText().trim());
-            if (duree < 1) {
-                errorDuree.setText("La durée doit être d'au moins 1 heure");
-                valid = false;
-            } else if (duree > 500) {
-                errorDuree.setText("La durée ne peut pas dépasser 500 heures");
-                valid = false;
-            }
+            if (duree < 1)   { errorDuree.setText("La durée doit être d'au moins 1 heure"); valid = false; }
+            else if (duree > 500) { errorDuree.setText("La durée ne peut pas dépasser 500 heures"); valid = false; }
         } catch (NumberFormatException e) {
-            errorDuree.setText("La durée doit être un nombre entier (ex: 12)");
-            valid = false;
+            errorDuree.setText("La durée doit être un nombre entier (ex: 12)"); valid = false;
         }
 
         return valid;
     }
 
+    // ── UTILITAIRE ────────────────────────────────────────────────────────────
     private void showAlert(Alert.AlertType type, String title, String msg) {
         Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
+        alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(msg);
         alert.showAndWait();
     }
 }
