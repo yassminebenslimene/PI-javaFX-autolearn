@@ -22,12 +22,12 @@ import java.util.List;
 
 public class FrontCommunauteDetailController {
 
-    @FXML private Label  labelNom;
-    @FXML private Label  labelDescription;
-    @FXML private Button btnGererMembres;
+    @FXML private Label     labelNom;
+    @FXML private Label     labelDescription;
+    @FXML private Button    btnGererMembres;
     @FXML private TextField fieldTitre;
     @FXML private TextArea  fieldContenu;
-    @FXML private VBox postsPane;
+    @FXML private VBox      postsPane;
 
     private final ServicePost        servicePost        = new ServicePost();
     private final ServiceCommentaire serviceCommentaire = new ServiceCommentaire();
@@ -38,35 +38,24 @@ public class FrontCommunauteDetailController {
     private Runnable   onRetour;
     private Label      emptyLabel;
 
-    // ── Initialisation ───────────────────────────────────────────────────────
-
     public void setCommunaute(Communaute c, Runnable retour) {
         this.communaute = c;
         this.onRetour   = retour;
-
         labelNom.setText(c.getNom());
         labelDescription.setText(c.getDescription() != null ? c.getDescription() : "");
-
-        // Afficher le bouton "Gérer les membres" uniquement pour le owner
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
         if (currentUserId == c.getOwnerId()) {
             btnGererMembres.setVisible(true);
             btnGererMembres.setManaged(true);
         }
-
         loadPosts();
     }
-
-    // ── Posts ────────────────────────────────────────────────────────────────
 
     private void loadPosts() {
         postsPane.getChildren().clear();
         emptyLabel = null;
-
-        System.out.println("[DEBUG] loadPosts communauteId=" + communaute.getId());
         List<Post> posts = servicePost.getByCommunaute(communaute.getId());
-        System.out.println("[DEBUG] posts trouvés: " + posts.size());
         if (posts.isEmpty()) {
             emptyLabel = new Label("Aucun post pour l'instant. Soyez le premier !");
             emptyLabel.setStyle("-fx-text-fill:#aaa; -fx-font-size:13; -fx-padding:8 0 0 0;");
@@ -81,19 +70,15 @@ public class FrontCommunauteDetailController {
         String titre   = fieldTitre.getText().trim();
         String contenu = fieldContenu.getText().trim();
         if (contenu.isEmpty()) return;
-
         int userId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : 0;
-
         Post p = new Post(contenu, titre, communaute.getId(), userId);
         p.setCreatedAt(LocalDateTime.now());
         servicePost.ajouter(p);
-
         if (emptyLabel != null) {
             postsPane.getChildren().remove(emptyLabel);
             emptyLabel = null;
         }
-
         postsPane.getChildren().add(0, buildPostCard(p));
         fieldTitre.clear();
         fieldContenu.clear();
@@ -101,29 +86,34 @@ public class FrontCommunauteDetailController {
 
     private VBox buildPostCard(Post p) {
         VBox card = new VBox(10);
-        card.setStyle(
-            "-fx-background-color:white; -fx-background-radius:12; " +
-            "-fx-border-color:#eeeeee; -fx-border-radius:12; " +
-            "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2); -fx-padding:18;");
+        card.setStyle("-fx-background-color:white; -fx-background-radius:12; " +
+                      "-fx-border-color:#eeeeee; -fx-border-radius:12; " +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2); -fx-padding:18;");
 
+        // Titre
         Label lblTitre = new Label(p.getTitre() != null && !p.getTitre().isEmpty()
                 ? p.getTitre() : "(sans titre)");
         lblTitre.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
 
+        // Contenu
         Label lblContenu = new Label(p.getContenu());
         lblContenu.setWrapText(true);
         lblContenu.setStyle("-fx-font-size:13; -fx-text-fill:#444;");
 
+        // Auteur + date
+        String auteur  = getUserName(p.getUserId());
         String dateStr = p.getCreatedAt() != null
                 ? p.getCreatedAt().toString().substring(0, 16).replace("T", " à ") : "";
-        Label lblDate = new Label(dateStr);
-        lblDate.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
+        Label lblMeta = new Label("✍  " + auteur + "   •   " + dateStr);
+        lblMeta.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
 
+        // Commentaires
         VBox commentsBox = new VBox(6);
         commentsBox.setStyle("-fx-padding:8 0 0 0;");
         for (Commentaire c : serviceCommentaire.getByPost(p.getId()))
-            commentsBox.getChildren().add(buildCommentLabel(c.getContenu()));
+            commentsBox.getChildren().add(buildCommentLabel(c.getContenu(), c.getUserId()));
 
+        // Champ commentaire
         HBox addComment = new HBox(8);
         TextField commentField = new TextField();
         commentField.setPromptText("Ajouter un commentaire...");
@@ -140,64 +130,63 @@ public class FrontCommunauteDetailController {
             int uid = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
             serviceCommentaire.ajouter(new Commentaire(txt, p.getId(), uid));
             commentField.clear();
-            commentsBox.getChildren().add(buildCommentLabel(txt));
+            commentsBox.getChildren().add(buildCommentLabel(txt, uid));
         });
 
         addComment.getChildren().addAll(commentField, btnComment);
-        card.getChildren().addAll(lblTitre, lblContenu, lblDate, commentsBox, addComment);
+        card.getChildren().addAll(lblTitre, lblContenu, lblMeta, commentsBox, addComment);
         return card;
     }
 
-    private Label buildCommentLabel(String text) {
-        Label lbl = new Label("💬  " + text);
+    // Affiche "💬 Nom Prenom : texte"
+    private Label buildCommentLabel(String text, int userId) {
+        String nom = getUserName(userId);
+        Label lbl = new Label("💬  " + nom + " : " + text);
         lbl.setWrapText(true);
         lbl.setStyle("-fx-font-size:12; -fx-text-fill:#555; " +
                      "-fx-background-color:#f5f5f5; -fx-background-radius:8; -fx-padding:6 10 6 10;");
         return lbl;
     }
 
-    // ── Gestion des membres (owner uniquement) ───────────────────────────────
+    // Retourne "Prenom Nom" ou "Utilisateur #id" si introuvable
+    private String getUserName(int userId) {
+        User u = userService.trouver(userId);
+        if (u != null) return u.getPrenom() + " " + u.getNom();
+        return "Utilisateur #" + userId;
+    }
 
     @FXML
     public void onGererMembres() {
-        // Recharger la communauté pour avoir les membres à jour
         Communaute fresh = serviceCommunaute.getById(communaute.getId());
         if (fresh != null) communaute = fresh;
 
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("Gérer les membres — " + communaute.getNom());
+        dialog.setTitle("Gerer les membres — " + communaute.getNom());
         dialog.setMinWidth(500);
 
         VBox root = new VBox(16);
         root.setPadding(new Insets(24));
         root.setStyle("-fx-background-color:#f9f9f9;");
 
-        // ── Membres actuels ──
         Label lblMembres = new Label("Membres actuels");
         lblMembres.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
-
         VBox membresBox = new VBox(6);
         refreshMembresBox(membresBox, dialog);
 
-        // ── Ajouter un étudiant ──
-        Label lblAjouter = new Label("Ajouter un étudiant");
+        Label lblAjouter = new Label("Ajouter un etudiant");
         lblAjouter.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e; -fx-padding:8 0 0 0;");
-
-        // Liste de tous les étudiants non encore membres
         ListView<User> listView = new ListView<>();
         listView.setPrefHeight(180);
-        listView.setStyle("-fx-background-radius:10; -fx-border-radius:10;");
         refreshStudentList(listView);
 
         listView.setCellFactory(lv -> new ListCell<>() {
-            @Override
-            protected void updateItem(User u, boolean empty) {
+            @Override protected void updateItem(User u, boolean empty) {
                 super.updateItem(u, empty);
                 if (empty || u == null) { setText(null); setGraphic(null); return; }
                 HBox row = new HBox(10);
                 row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-                Label name = new Label(u.getPrenom() + " " + u.getNom());
+                Label name  = new Label(u.getPrenom() + " " + u.getNom());
                 name.setStyle("-fx-font-size:13; -fx-text-fill:#1e1e1e;");
                 Label email = new Label(u.getEmail());
                 email.setStyle("-fx-font-size:11; -fx-text-fill:#888;");
@@ -213,8 +202,7 @@ public class FrontCommunauteDetailController {
                     refreshMembresBox(membresBox, dialog);
                 });
                 row.getChildren().addAll(new VBox(2, name, email), spacer, btnAdd);
-                setGraphic(row);
-                setText(null);
+                setGraphic(row); setText(null);
             }
         });
 
@@ -268,10 +256,8 @@ public class FrontCommunauteDetailController {
 
     private void refreshStudentList(ListView<User> listView) {
         listView.getItems().clear();
-        List<User> tous = userService.afficher();
         int ownerId = communaute.getOwnerId();
-        for (User u : tous) {
-            // Exclure le owner, les admins et les membres déjà ajoutés
+        for (User u : userService.afficher()) {
             if (u.getId() == ownerId) continue;
             if (!(u instanceof tn.esprit.entities.Etudiant)) continue;
             if (communaute.getMemberIds().contains(u.getId())) continue;
@@ -279,12 +265,7 @@ public class FrontCommunauteDetailController {
         }
     }
 
-    // ── Navigation ───────────────────────────────────────────────────────────
-
-    @FXML
-    public void onRefresh() {
-        loadPosts();
-    }
+    @FXML public void onRefresh() { loadPosts(); }
 
     @FXML
     public void onRetour() {
