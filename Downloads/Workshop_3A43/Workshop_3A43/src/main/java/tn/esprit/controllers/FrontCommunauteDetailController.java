@@ -69,7 +69,25 @@ public class FrontCommunauteDetailController {
     public void onPublier() {
         String titre   = fieldTitre.getText().trim();
         String contenu = fieldContenu.getText().trim();
-        if (contenu.isEmpty()) return;
+
+        // Validation
+        if (contenu.isEmpty()) {
+            showFieldError(fieldContenu, "Le contenu est obligatoire.");
+            return;
+        }
+        if (contenu.length() < 10) {
+            showFieldError(fieldContenu, "Le contenu doit contenir au moins 10 caractères.");
+            return;
+        }
+        if (contenu.length() > 2000) {
+            showFieldError(fieldContenu, "Le contenu ne peut pas dépasser 2000 caractères.");
+            return;
+        }
+        if (!titre.isEmpty() && titre.length() > 100) {
+            showFieldError(fieldTitre, "Le titre ne peut pas dépasser 100 caractères.");
+            return;
+        }
+
         int userId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : 0;
         Post p = new Post(contenu, titre, communaute.getId(), userId);
@@ -82,6 +100,24 @@ public class FrontCommunauteDetailController {
         postsPane.getChildren().add(0, buildPostCard(p));
         fieldTitre.clear();
         fieldContenu.clear();
+        clearFieldError(fieldTitre);
+        clearFieldError(fieldContenu);
+    }
+
+    private void showFieldError(javafx.scene.control.Control field, String msg) {
+        field.setStyle(field.getStyle().replace("-fx-border-color:#ddd;", "")
+                + "-fx-border-color:#e94560; -fx-border-width:1.5; -fx-border-radius:8;");
+        field.setTooltip(new Tooltip(msg));
+        // Show an inline alert
+        Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle("Saisie invalide");
+        alert.showAndWait();
+    }
+
+    private void clearFieldError(javafx.scene.control.Control field) {
+        field.setStyle("");
+        field.setTooltip(null);
     }
 
     private VBox buildPostCard(Post p) {
@@ -166,7 +202,26 @@ public class FrontCommunauteDetailController {
                             "-fx-padding:8 16 8 16; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
         btnComment.setOnAction(e -> {
             String txt = commentField.getText().trim();
-            if (txt.isEmpty()) return;
+            if (txt.isEmpty()) {
+                commentField.setStyle("-fx-background-color:#ffe0e0; -fx-background-radius:20; " +
+                                      "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
+                commentField.setPromptText("Le commentaire ne peut pas être vide !");
+                return;
+            }
+            if (txt.length() < 2) {
+                commentField.setStyle("-fx-background-color:#ffe0e0; -fx-background-radius:20; " +
+                                      "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
+                commentField.setPromptText("Minimum 2 caractères.");
+                return;
+            }
+            if (txt.length() > 500) {
+                commentField.setStyle("-fx-background-color:#ffe0e0; -fx-background-radius:20; " +
+                                      "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
+                commentField.setPromptText("Maximum 500 caractères.");
+                return;
+            }
+            commentField.setStyle("-fx-background-color:#f0f2f5; -fx-background-radius:20; " +
+                                  "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
             int uid = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
             Commentaire newC = new Commentaire(txt, p.getId(), uid);
             serviceCommentaire.ajouter(newC);
@@ -187,13 +242,35 @@ public class FrontCommunauteDetailController {
         VBox content = new VBox(10);
         content.setPadding(new Insets(20));
         TextField fTitre = new TextField(p.getTitre());
+        fTitre.setPromptText("Titre (max 100 caractères)");
         TextArea  fContenu = new TextArea(p.getContenu());
+        fContenu.setPromptText("Contenu * (10–2000 caractères)");
         fContenu.setPrefRowCount(4);
-        content.getChildren().addAll(new Label("Titre :"), fTitre, new Label("Contenu :"), fContenu);
+        Label errLabel = new Label();
+        errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:11;");
+        content.getChildren().addAll(new Label("Titre :"), fTitre, new Label("Contenu :"), fContenu, errLabel);
         dialog.getDialogPane().setContent(content);
 
+        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+            String titre   = fTitre.getText().trim();
+            String contenu = fContenu.getText().trim();
+            if (contenu.length() < 10) {
+                errLabel.setText("Le contenu doit contenir au moins 10 caractères.");
+                e.consume();
+            } else if (contenu.length() > 2000) {
+                errLabel.setText("Le contenu ne peut pas dépasser 2000 caractères.");
+                e.consume();
+            } else if (!titre.isEmpty() && titre.length() > 100) {
+                errLabel.setText("Le titre ne peut pas dépasser 100 caractères.");
+                e.consume();
+            } else {
+                errLabel.setText("");
+            }
+        });
+
         dialog.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.OK && !fContenu.getText().isBlank()) {
+            if (btn == ButtonType.OK) {
                 p.setTitre(fTitre.getText().trim());
                 p.setContenu(fContenu.getText().trim());
                 servicePost.modifier(p);
@@ -259,16 +336,22 @@ public class FrontCommunauteDetailController {
             menu.getItems().addAll(itemModifier, itemSupprimer);
 
             itemModifier.setOnAction(e -> {
-                TextInputDialog dialog = new TextInputDialog(c.getContenu());
-                dialog.setTitle("Modifier le commentaire");
-                dialog.setHeaderText(null);
-                dialog.setContentText("Contenu :");
-                dialog.showAndWait().ifPresent(txt -> {
-                    if (!txt.isBlank()) {
-                        c.setContenu(txt.trim());
-                        serviceCommentaire.modifier(c);
-                        lblContenu.setText(c.getContenu());
+                TextInputDialog inputDialog = new TextInputDialog(c.getContenu());
+                inputDialog.setTitle("Modifier le commentaire");
+                inputDialog.setHeaderText(null);
+                inputDialog.setContentText("Contenu :");
+                inputDialog.showAndWait().ifPresent(txt -> {
+                    String trimmed = txt.trim();
+                    if (trimmed.length() < 2 || trimmed.length() > 500) {
+                        Alert err = new Alert(Alert.AlertType.WARNING,
+                            "Le commentaire doit contenir entre 2 et 500 caractères.", ButtonType.OK);
+                        err.setHeaderText(null);
+                        err.showAndWait();
+                        return;
                     }
+                    c.setContenu(trimmed);
+                    serviceCommentaire.modifier(c);
+                    lblContenu.setText(c.getContenu());
                 });
             });
 

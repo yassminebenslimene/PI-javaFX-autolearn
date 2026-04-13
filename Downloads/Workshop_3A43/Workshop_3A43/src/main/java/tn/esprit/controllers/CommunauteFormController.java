@@ -32,17 +32,35 @@ public class CommunauteFormController {
 
     @FXML
     public void onSave() {
-        String nom = fieldNom.getText().trim();
-        String desc = fieldDescription.getText().trim();
+        String nom      = fieldNom.getText().trim();
+        String desc     = fieldDescription.getText().trim();
         String ownerStr = fieldOwnerId.getText().trim();
 
-        if (nom.isEmpty() || ownerStr.isEmpty()) {
-            labelError.setText("Le nom et l'owner ID sont obligatoires.");
+        labelError.setText("");
+
+        if (nom.length() < 3 || nom.length() > 80) {
+            labelError.setText("Le nom doit contenir entre 3 et 80 caractères.");
+            return;
+        }
+        if (desc.length() < 15) {
+            labelError.setText("La description doit contenir au moins 15 caractères.");
+            return;
+        }
+        if (desc.length() > 500) {
+            labelError.setText("La description ne peut pas dépasser 500 caractères.");
+            return;
+        }
+        if (ownerStr.isEmpty()) {
+            labelError.setText("L'owner ID est obligatoire.");
             return;
         }
         int ownerId;
         try { ownerId = Integer.parseInt(ownerStr); }
-        catch (NumberFormatException e) { labelError.setText("Owner ID doit être un nombre."); return; }
+        catch (NumberFormatException e) { labelError.setText("Owner ID doit être un nombre entier."); return; }
+        if (ownerId <= 0) {
+            labelError.setText("Owner ID doit être un nombre positif.");
+            return;
+        }
 
         if (communaute == null) {
             service.ajouter(new Communaute(nom, desc, ownerId));
