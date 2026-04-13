@@ -119,16 +119,18 @@ public class FrontCommunauteController {
 
     private void ouvrirDetail(Communaute c) {
         try {
-            // Recharger depuis la DB pour avoir l'ID et les membres à jour
             Communaute fresh = service.getById(c.getId());
             if (fresh == null) fresh = c;
-
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/views/frontoffice/communaute/detail.fxml"));
-            Parent view = loader.load();
+            javafx.scene.Parent view = loader.load();
             FrontCommunauteDetailController ctrl = loader.getController();
-            ctrl.setCommunaute(fresh, () -> setCenter(buildSelf()));
-            setCenter(view);
+            ctrl.setCommunaute(fresh, () -> {
+                try {
+                    tn.esprit.MainApp.showCommunauteFront();
+                } catch (Exception ex) { ex.printStackTrace(); }
+            });
+            tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(view);
         } catch (Exception e) { e.printStackTrace(); }
     }
 

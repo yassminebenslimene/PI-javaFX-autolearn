@@ -157,6 +157,12 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Choisir un evenement");
     }
 
+    public static void showChallengesFront() throws Exception {
+        load("/views/frontoffice/showchallenges.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Challenges");
+    }
+
     public static void showCommunauteFront() throws Exception {
         load("/views/frontoffice/communaute/index.fxml");
         primaryStage.setMaximized(true);

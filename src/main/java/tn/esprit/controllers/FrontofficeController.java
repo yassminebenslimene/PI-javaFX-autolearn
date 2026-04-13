@@ -100,6 +100,11 @@ public class FrontofficeController {
     }
 
     @FXML
+    public void onCommunaute() {
+        try { MainApp.showCommunauteFront(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML
     public void onEvenements() {
         try { MainApp.showEvenementsFront(); } catch (Exception e) { e.printStackTrace(); }
     }

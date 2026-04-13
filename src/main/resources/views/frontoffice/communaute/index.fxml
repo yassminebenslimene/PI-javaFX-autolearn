@@ -3,9 +3,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns:fx="http://javafx.com/fxml"
       fx:controller="tn.esprit.controllers.FrontCommunauteController"
-      spacing="0" style="-fx-background-color:#f5f5f5;">
+      style="-fx-background-color:#f5f5f5;">
+    <top>
+        <fx:include source="../../components/navbar_front.fxml" fx:id="navbar"/>
+    </top>
+    <center>
+    <VBox spacing="0" style="-fx-background-color:#f5f5f5;">
 
     <!-- Header -->
     <VBox alignment="CENTER" spacing="12" prefHeight="180"
@@ -38,3 +43,5 @@
         </VBox>
     </ScrollPane>
 </VBox>
+    </center>
+</BorderPane>

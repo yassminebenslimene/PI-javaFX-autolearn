@@ -3,9 +3,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns:fx="http://javafx.com/fxml"
       fx:controller="tn.esprit.controllers.FrontCommunauteDetailController"
-      spacing="0" style="-fx-background-color:#f5f5f5;">
+      style="-fx-background-color:#f5f5f5;">
+    <top>
+        <fx:include source="../../components/navbar_front.fxml" fx:id="navbar"/>
+    </top>
+    <center>
+    <VBox spacing="0" style="-fx-background-color:#f5f5f5;">
 
     <!-- Header communauté -->
     <VBox spacing="10" style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
@@ -63,3 +68,5 @@
         </ScrollPane>
     </VBox>
 </VBox>
+    </center>
+</BorderPane>
