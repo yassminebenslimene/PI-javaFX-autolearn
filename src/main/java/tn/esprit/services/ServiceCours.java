@@ -103,7 +103,7 @@ public class ServiceCours implements IService<Cours> {
     // ── READ ALL ──────────────────────────────────────────────────────────────
     /** Retourne la liste de tous les cours de la BDD. */
     @Override
-    public List<Cours> consulter() {
+    public List<Cours> getAll() {
         List<Cours> coursList = new ArrayList<>();
         String req = "SELECT * FROM cours";
         try (Statement statement = connection.createStatement();
@@ -120,7 +120,7 @@ public class ServiceCours implements IService<Cours> {
     // ── READ ONE ──────────────────────────────────────────────────────────────
     /** Retourne un cours par son id, ou null s'il n'existe pas. */
     @Override
-    public Cours consulterParId(int id) {
+    public Cours getById(int id) {
         String req = "SELECT * FROM cours WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setInt(1, id);
@@ -132,6 +132,10 @@ public class ServiceCours implements IService<Cours> {
         }
         return null;
     }
+
+    // Alias pour compatibilité avec le code existant
+    public List<Cours> consulter() { return getAll(); }
+    public Cours consulterParId(int id) { return getById(id); }
 
     // ── MAPPING ───────────────────────────────────────────────────────────────
     /** Convertit une ligne SQL (ResultSet) en objet Java Cours. */

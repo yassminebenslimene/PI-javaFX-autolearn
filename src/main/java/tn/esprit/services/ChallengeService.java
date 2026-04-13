@@ -33,16 +33,22 @@ public class ChallengeService {
             ResultSet rs = pst.getGeneratedKeys();
             if (rs.next()) {
                 int challengeId = rs.getInt(1);
-                // Ajouter les relations avec les exercices
-                for (int exerciceId : challenge.getExerciceIds()) {
-                    addChallengeExercice(challengeId, exerciceId);
+                System.out.println("Challenge inséré avec id=" + challengeId);
+                // Ajouter les relations avec les exercices (si la table existe)
+                if (challenge.getExerciceIds() != null) {
+                    for (int exerciceId : challenge.getExerciceIds()) {
+                        addChallengeExercice(challengeId, exerciceId);
+                    }
                 }
-                // Ajouter les relations avec les quiz
-                for (int quizId : challenge.getQuizIds()) {
-                    addChallengeQuiz(challengeId, quizId);
+                // Ajouter les relations avec les quiz (si la table existe)
+                if (challenge.getQuizIds() != null) {
+                    for (int quizId : challenge.getQuizIds()) {
+                        addChallengeQuiz(challengeId, quizId);
+                    }
                 }
             }
         } catch (SQLException e) {
+            System.err.println("Erreur add challenge: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -108,17 +114,13 @@ public class ChallengeService {
                 c.setNiveau(rs.getString("niveau"));
                 c.setDuree(rs.getInt("duree"));
                 c.setCreatedBy(rs.getInt("created_by"));
-
-                // Charger les exercices associés
                 c.setExerciceIds(getChallengeExercices(c.getId()));
-
-                // Temporairement, ne pas charger les quiz
-                // c.setQuizIds(getChallengeQuizzes(c.getId()));
-                c.setQuizIds(new ArrayList<>()); // Liste vide
-
+                c.setQuizIds(new ArrayList<>());
                 challenges.add(c);
             }
+            System.out.println("Challenges chargés: " + challenges.size());
         } catch (SQLException e) {
+            System.err.println("Erreur getAll challenges: " + e.getMessage());
             e.printStackTrace();
         }
         return challenges;
