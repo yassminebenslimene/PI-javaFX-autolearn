@@ -67,6 +67,13 @@ public class QuestionController {
                 if (quizErrorLabel != null) { quizErrorLabel.setVisible(false); quizErrorLabel.setManaged(false); }
             }
         });
+
+        // Forcer le fond sombre sur le TextArea
+        javafx.application.Platform.runLater(() -> {
+            javafx.scene.Node content = texteField.lookup(".content");
+            if (content != null) content.setStyle("-fx-background-color:#1a2e1f;");
+        });
+
         texteField.textProperty().addListener((o, ov, nv) -> resetField(texteField));
         pointField.textProperty().addListener((o, ov, nv) -> resetField(pointField));
     }

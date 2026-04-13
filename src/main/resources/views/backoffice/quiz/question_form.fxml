@@ -68,7 +68,8 @@
                         <!-- fx:id="texteField" → lu par sauvegarder() dans le controller -->
                         <TextArea fx:id="texteField" promptText="Entrez votre question"
                                   prefRowCount="5"
-                                  style="-fx-background-color:rgba(255,255,255,0.05);
+                                  style="-fx-control-inner-background:rgba(30,50,35,0.95);
+                                         -fx-background-color:rgba(255,255,255,0.05);
                                          -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
                                          -fx-background-radius:8px; -fx-border-width:1px;
                                          -fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);
@@ -98,9 +99,10 @@
                                       -fx-padding:0 0 6 0;"/>
                         <ComboBox fx:id="quizCombo" maxWidth="Infinity"
                                   promptText="Choisissez le quiz auquel appartient cette question"
-                                  style="-fx-background-color:rgba(255,255,255,0.05);
+                                  style="-fx-background-color:#1a2e1f;
                                          -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
-                                         -fx-background-radius:8px; -fx-border-width:1px; -fx-padding:3px;"/>
+                                         -fx-background-radius:8px; -fx-border-width:1px; -fx-padding:3px;
+                                         -fx-text-fill:#f5f5f4;"/>
                         <Label fx:id="quizErrorLabel" text="⚠ Veuillez sélectionner un quiz"
                                visible="false" managed="false"
                                style="-fx-text-fill:#fca5a5; -fx-font-size:12; -fx-font-weight:bold;"/>

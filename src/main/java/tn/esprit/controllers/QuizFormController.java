@@ -90,6 +90,12 @@ public class QuizFormController {
             }
         });
 
+        // Forcer le fond sombre sur le TextArea (le style inline ne suffit pas)
+        javafx.application.Platform.runLater(() -> {
+            javafx.scene.Node content = descriptionField.lookup(".content");
+            if (content != null) content.setStyle("-fx-background-color:#1a2e1f;");
+        });
+
         // Effacer les erreurs dès que l'utilisateur commence à taper
         titreField.textProperty().addListener((o, ov, nv) -> resetField(titreField));
         descriptionField.textProperty().addListener((o, ov, nv) -> resetField(descriptionField));
