@@ -90,52 +90,66 @@ public class FrontCommunauteDetailController {
                       "-fx-border-color:#eeeeee; -fx-border-radius:12; " +
                       "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2); -fx-padding:18;");
 
+        String auteur  = getUserName(p.getUserId());
+        String dateStr = tempsRelatif(p.getCreatedAt());
+
+        // Avatar avec initiale
+        String initiale = auteur.isEmpty() ? "?" : String.valueOf(auteur.charAt(0)).toUpperCase();
+        Label avatar = new Label(initiale);
+        avatar.setMinSize(40, 40);
+        avatar.setMaxSize(40, 40);
+        avatar.setAlignment(javafx.geometry.Pos.CENTER);
+        avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c); " +
+                        "-fx-background-radius:50; -fx-text-fill:white; " +
+                        "-fx-font-size:15; -fx-font-weight:700;");
+
+        // Nom + date empilés
+        Label lblAuteur = new Label(auteur);
+        lblAuteur.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        Label lblDate = new Label("🕐  " + dateStr);
+        lblDate.setStyle("-fx-font-size:11; -fx-text-fill:#999;");
+        VBox authorInfo = new VBox(1, lblAuteur, lblDate);
+
+        // Spacer + bouton ⋮
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox topRow = new HBox(10, avatar, authorInfo, spacer);
+        topRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
         // Titre
         Label lblTitre = new Label(p.getTitre() != null && !p.getTitre().isEmpty()
                 ? p.getTitre() : "(sans titre)");
-        lblTitre.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        lblTitre.setStyle("-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#1e1e1e; " +
+                          "-fx-padding:6 0 0 0;");
 
         // Contenu
         Label lblContenu = new Label(p.getContenu());
         lblContenu.setWrapText(true);
-        lblContenu.setStyle("-fx-font-size:13; -fx-text-fill:#444;");
+        lblContenu.setStyle("-fx-font-size:13; -fx-text-fill:#444; -fx-padding:2 0 4 0;");
 
-        // Auteur + date
-        String auteur  = getUserName(p.getUserId());
-        String dateStr = p.getCreatedAt() != null
-                ? p.getCreatedAt().toString().substring(0, 16).replace("T", " a ") : "";
-        Label lblMeta = new Label("   " + auteur + "   •   " + dateStr);
-        lblMeta.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
-
-        // Header : titre + bouton trois points (owner seulement)
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(8, lblTitre, spacer);
-        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        // Séparateur
+        javafx.scene.control.Separator sep = new javafx.scene.control.Separator();
+        sep.setStyle("-fx-background-color:#f0f0f0;");
 
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
         if (p.getUserId() == currentUserId) {
             Button btnMenu = new Button("⋮");
-            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#888; -fx-font-size:18; " +
+            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#bbb; -fx-font-size:18; " +
                              "-fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 4;");
-
             ContextMenu menu = new ContextMenu();
             MenuItem itemModifier  = new MenuItem("✏  Modifier");
             MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
             menu.getItems().addAll(itemModifier, itemSupprimer);
-
             itemModifier.setOnAction(e -> onModifierPost(p, card, lblTitre, lblContenu));
             itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));
-
-            btnMenu.setOnAction(e -> menu.show(btnMenu,
-                    javafx.geometry.Side.BOTTOM, 0, 0));
-            header.getChildren().add(btnMenu);
+            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
+            topRow.getChildren().add(btnMenu);
         }
 
         // Commentaires
         VBox commentsBox = new VBox(6);
-        commentsBox.setStyle("-fx-padding:8 0 0 0;");
+        commentsBox.setStyle("-fx-padding:4 0 0 0;");
         for (Commentaire c : serviceCommentaire.getByPost(p.getId()))
             commentsBox.getChildren().add(buildCommentRow(c));
 
@@ -143,13 +157,13 @@ public class FrontCommunauteDetailController {
         HBox addComment = new HBox(8);
         TextField commentField = new TextField();
         commentField.setPromptText("Ajouter un commentaire...");
-        commentField.setStyle("-fx-background-color:#f5f5f5; -fx-background-radius:8; " +
-                              "-fx-border-width:0; -fx-padding:8 12 8 12; -fx-font-size:12;");
+        commentField.setStyle("-fx-background-color:#f0f2f5; -fx-background-radius:20; " +
+                              "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
         HBox.setHgrow(commentField, Priority.ALWAYS);
 
         Button btnComment = new Button("Envoyer");
         btnComment.setStyle("-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:12; " +
-                            "-fx-padding:8 16 8 16; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
+                            "-fx-padding:8 16 8 16; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
         btnComment.setOnAction(e -> {
             String txt = commentField.getText().trim();
             if (txt.isEmpty()) return;
@@ -161,7 +175,7 @@ public class FrontCommunauteDetailController {
         });
 
         addComment.getChildren().addAll(commentField, btnComment);
-        card.getChildren().addAll(header, lblContenu, lblMeta, commentsBox, addComment);
+        card.getChildren().addAll(topRow, lblTitre, lblContenu, sep, commentsBox, addComment);
         return card;
     }
 
@@ -202,17 +216,35 @@ public class FrontCommunauteDetailController {
         });
     }
 
-    // Affiche "💬 Nom Prenom : texte" avec menu ⋮ pour le créateur
+    // Style Facebook : avatar rond + bulle grise avec nom en gras
     private HBox buildCommentRow(Commentaire c) {
         String nom = getUserName(c.getUserId());
-        Label lbl = new Label("💬  " + nom + " : " + c.getContenu());
-        lbl.setWrapText(true);
-        lbl.setStyle("-fx-font-size:12; -fx-text-fill:#555; " +
-                     "-fx-background-color:#f5f5f5; -fx-background-radius:8; -fx-padding:6 10 6 10;");
-        HBox.setHgrow(lbl, Priority.ALWAYS);
 
-        HBox row = new HBox(6, lbl);
-        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        // Avatar cercle avec initiale
+        String initiale = nom.isEmpty() ? "?" : String.valueOf(nom.charAt(0)).toUpperCase();
+        Label avatar = new Label(initiale);
+        avatar.setMinSize(32, 32);
+        avatar.setMaxSize(32, 32);
+        avatar.setAlignment(javafx.geometry.Pos.CENTER);
+        avatar.setStyle("-fx-background-color:#7a6ad8; -fx-background-radius:50; " +
+                        "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;");
+
+        // Bulle : nom en gras + contenu
+        Label lblNom = new Label(nom);
+        lblNom.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+
+        Label lblContenu = new Label(c.getContenu());
+        lblContenu.setWrapText(true);
+        lblContenu.setStyle("-fx-font-size:12; -fx-text-fill:#333;");
+
+        VBox bubble = new VBox(2, lblNom, lblContenu);
+        bubble.setStyle("-fx-background-color:#f0f2f5; -fx-background-radius:18; " +
+                        "-fx-padding:8 14 8 14;");
+        HBox.setHgrow(bubble, Priority.ALWAYS);
+
+        HBox row = new HBox(8, avatar, bubble);
+        row.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+        row.setPadding(new Insets(2, 0, 2, 0));
 
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
@@ -235,7 +267,7 @@ public class FrontCommunauteDetailController {
                     if (!txt.isBlank()) {
                         c.setContenu(txt.trim());
                         serviceCommentaire.modifier(c);
-                        lbl.setText("💬  " + nom + " : " + c.getContenu());
+                        lblContenu.setText(c.getContenu());
                     }
                 });
             });
@@ -266,6 +298,23 @@ public class FrontCommunauteDetailController {
         lbl.setStyle("-fx-font-size:12; -fx-text-fill:#555; " +
                      "-fx-background-color:#f5f5f5; -fx-background-radius:8; -fx-padding:6 10 6 10;");
         return lbl;
+    }
+
+    private String tempsRelatif(java.time.LocalDateTime dt) {
+        if (dt == null) return "";
+        long minutes = java.time.Duration.between(dt, java.time.LocalDateTime.now()).toMinutes();
+        if (minutes < 1)   return "à l'instant";
+        if (minutes < 60)  return "il y a " + minutes + " min";
+        long heures = minutes / 60;
+        if (heures < 24)   return "il y a " + heures + " heure" + (heures > 1 ? "s" : "");
+        long jours = heures / 24;
+        if (jours < 7)     return "il y a " + jours + " jour" + (jours > 1 ? "s" : "");
+        long semaines = jours / 7;
+        if (semaines < 4)  return "il y a " + semaines + " semaine" + (semaines > 1 ? "s" : "");
+        long mois = jours / 30;
+        if (mois < 12)     return "il y a " + mois + " mois";
+        long ans = jours / 365;
+        return "il y a " + ans + " an" + (ans > 1 ? "s" : "");
     }
 
     // Retourne "Prenom Nom" ou "Utilisateur #id" si introuvable
