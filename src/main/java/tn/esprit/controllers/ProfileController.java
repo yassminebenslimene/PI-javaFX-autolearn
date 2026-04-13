@@ -2,6 +2,7 @@ package tn.esprit.controllers;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
@@ -9,7 +10,7 @@ import tn.esprit.entities.User;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
 import javafx.scene.layout.VBox;
-
+import java.io.IOException;
 import tn.esprit.tools.PasswordUtil;
 
 public class ProfileController {

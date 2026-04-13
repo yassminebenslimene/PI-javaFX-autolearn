@@ -21,12 +21,15 @@ public class BackofficeController {
     @FXML private Button btnQuiz;
     @FXML private Button btnCours;
     @FXML private Button btnEvenements;
+    @FXML private Button btnChapitres;
+    @FXML private Button btnExercices;
+    @FXML private Button btnChallenges;
     @FXML private Button btnProfile;
 
     private static final String ACTIVE_STYLE =
-        "-fx-background-color:rgba(5,150,105,0.2); -fx-text-fill:#34d399; -fx-font-weight:bold;" +
+        "-fx-background-color:rgba(122,106,216,0.25); -fx-text-fill:#a5b4fc;" +
         "-fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;" +
-        "-fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;";
+        "-fx-font-size:13; -fx-font-weight:600; -fx-cursor:hand; -fx-border-width:0;";
 
     private static final String INACTIVE_STYLE =
         "-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7); -fx-font-weight:normal;" +
@@ -35,63 +38,84 @@ public class BackofficeController {
 
     @FXML
     public void initialize() {
+        MainApp.setBackofficeController(this);
         if (SessionManager.getCurrentUser() != null) {
             String name = SessionManager.getCurrentUser().getPrenom() + " " + SessionManager.getCurrentUser().getNom();
-            labelCurrentUser.setText(name);
-            labelCurrentRole.setText(SessionManager.getCurrentUser().getRole());
-            String initials = SessionManager.getCurrentUser().getPrenom().substring(0,1).toUpperCase()
-                            + SessionManager.getCurrentUser().getNom().substring(0,1).toUpperCase();
-            labelAvatarSidebar.setText(initials);
+            if (labelCurrentUser != null) labelCurrentUser.setText(name);
+            if (labelCurrentRole != null) labelCurrentRole.setText(SessionManager.getCurrentUser().getRole());
+            if (labelAvatarSidebar != null) {
+                String initials = SessionManager.getCurrentUser().getPrenom().substring(0,1).toUpperCase()
+                                + SessionManager.getCurrentUser().getNom().substring(0,1).toUpperCase();
+                labelAvatarSidebar.setText(initials);
+            }
         }
-        navigateToUsers();
+        javafx.application.Platform.runLater(this::navigateToUsers);
+    }
+
+    private void setActive(Button active) {
+        for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnCours, btnEvenements,
+                                      btnChapitres, btnExercices, btnChallenges, btnProfile}) {
+            if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
+        }
     }
 
     @FXML public void navigateToDashboard() {
         setActive(btnDashboard);
-        labelPageTitle.setText("Dashboard");
+        if (labelPageTitle != null) labelPageTitle.setText("Dashboard");
         loadView("/views/backoffice/user/index.fxml");
     }
 
     @FXML public void navigateToUsers() {
         setActive(btnUsers);
-        labelPageTitle.setText("Gestion des Utilisateurs");
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Utilisateurs");
         loadView("/views/backoffice/user/index.fxml");
     }
 
     @FXML public void navigateToQuiz() {
         setActive(btnQuiz);
-        labelPageTitle.setText("Gestion des Quiz");
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Quiz");
         loadView("/views/backoffice/quiz/index.fxml");
     }
 
     @FXML public void navigateToCours() {
         setActive(btnCours);
-        labelPageTitle.setText("Gestion des Cours");
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Cours");
         loadView("/views/backoffice/cours/index.fxml");
     }
 
     @FXML public void navigateToEvenements() {
         setActive(btnEvenements);
-        labelPageTitle.setText("Gestion des Événements");
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Événements");
         loadView("/views/backoffice/evenement/index.fxml");
+    }
+
+    @FXML public void navigateToChapitres() {
+        setActive(btnChapitres);
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Chapitres");
+        loadView("/views/backoffice/chapitre/index.fxml");
+    }
+
+    @FXML public void navigateToExercices() {
+        setActive(btnExercices);
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Exercices");
+        loadView("/views/backoffice/exercice/exercices.fxml");
+    }
+
+    @FXML public void navigateToChallenges() {
+        setActive(btnChallenges);
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Challenges");
+        loadView("/views/backoffice/challenge/challenges.fxml");
     }
 
     @FXML public void navigateToProfile() {
         setActive(btnProfile);
-        labelPageTitle.setText("Mon Profil");
+        if (labelPageTitle != null) labelPageTitle.setText("Mon Profil");
         loadView("/views/backoffice/profile.fxml");
     }
 
-    @FXML
-    public void onLogout() {
+    @FXML public void onLogout() {
         SessionManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private void setActive(Button active) {
-        for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnCours, btnEvenements, btnProfile}) {
-            if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
-        }
     }
 
     public void loadView(String path) {
