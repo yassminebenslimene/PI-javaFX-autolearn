@@ -29,6 +29,9 @@
                 <Button fx:id="btnHome" text="Accueil" onAction="#onHome"
                         style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
                                -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Cours" onAction="#onCours"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
+                               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
                 <Button text="Challenges"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
@@ -86,7 +89,7 @@
                     <Label fx:id="welcomeLabel" text=""
                            style="-fx-font-size:16; -fx-text-fill:rgba(255,255,255,0.8);"/>
                     <HBox spacing="16" alignment="CENTER">
-                        <Button text="▶  Voir les cours"
+                        <Button text="▶  Voir les cours" onAction="#onHome"
                                 style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:13;
                                        -fx-font-weight:700; -fx-padding:12 28 12 28; -fx-background-radius:30;
                                        -fx-cursor:hand; -fx-border-width:0;
