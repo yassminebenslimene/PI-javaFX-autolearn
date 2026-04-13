@@ -160,6 +160,21 @@ public class FrontofficeController {
     }
 
     @FXML
+    private void onEvenements() {
+        try {
+            MainApp.showEvenementsFront();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Erreur Evenements");
+            alert.setHeaderText(e.getMessage());
+            alert.setContentText(cause.getClass().getSimpleName() + ": " + cause.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
     private void onLogout() {
         SessionManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
