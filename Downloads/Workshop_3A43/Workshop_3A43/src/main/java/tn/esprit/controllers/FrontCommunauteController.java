@@ -91,6 +91,29 @@ public class FrontCommunauteController {
         }
 
         card.getChildren().addAll(iconRow, nom, desc, btn);
+
+        // Boutons modifier / supprimer visibles uniquement pour le créateur
+        boolean isOwner = c.getOwnerId() == currentUserId;
+        if (isOwner) {
+            HBox ownerActions = new HBox(8);
+            ownerActions.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+            javafx.scene.control.Button btnEdit = new javafx.scene.control.Button("✏ Modifier");
+            btnEdit.setStyle("-fx-background-color:#f0eeff; -fx-text-fill:#7a6ad8; -fx-font-size:11; " +
+                             "-fx-font-weight:700; -fx-padding:6 14 6 14; -fx-background-radius:8; " +
+                             "-fx-cursor:hand; -fx-border-width:0;");
+            btnEdit.setOnAction(e -> onModifier(c));
+
+            javafx.scene.control.Button btnDel = new javafx.scene.control.Button("🗑 Supprimer");
+            btnDel.setStyle("-fx-background-color:#fff0f0; -fx-text-fill:#e94560; -fx-font-size:11; " +
+                            "-fx-font-weight:700; -fx-padding:6 14 6 14; -fx-background-radius:8; " +
+                            "-fx-cursor:hand; -fx-border-width:0;");
+            btnDel.setOnAction(e -> onSupprimer(c));
+
+            ownerActions.getChildren().addAll(btnEdit, btnDel);
+            card.getChildren().add(ownerActions);
+        }
+
         return card;
     }
 
@@ -150,6 +173,52 @@ public class FrontCommunauteController {
         sp.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
         root.setCenter(sp);
+    }
+
+    private void onModifier(Communaute c) {
+        javafx.scene.control.Dialog<Communaute> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("Modifier la communauté");
+        dialog.getDialogPane().getButtonTypes().addAll(
+            javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+
+        VBox content = new VBox(10);
+        content.setPadding(new javafx.geometry.Insets(20));
+        TextField fNom = new TextField(c.getNom());
+        javafx.scene.control.TextArea fDesc = new javafx.scene.control.TextArea(c.getDescription());
+        fDesc.setPrefRowCount(3);
+        content.getChildren().addAll(new Label("Nom :"), fNom, new Label("Description :"), fDesc);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == javafx.scene.control.ButtonType.OK && !fNom.getText().isBlank()) {
+                c.setNom(fNom.getText().trim());
+                c.setDescription(fDesc.getText().trim());
+                return c;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(updated -> {
+            service.modifier(updated);
+            allCommunautes = service.getList();
+            afficher(searchField.getText());
+        });
+    }
+
+    private void onSupprimer(Communaute c) {
+        javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(
+            javafx.scene.control.Alert.AlertType.CONFIRMATION,
+            "Supprimer la communauté \"" + c.getNom() + "\" ?",
+            javafx.scene.control.ButtonType.YES, javafx.scene.control.ButtonType.NO);
+        confirm.setTitle("Confirmation");
+        confirm.setHeaderText(null);
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == javafx.scene.control.ButtonType.YES) {
+                service.supprimer(c);
+                allCommunautes = service.getList();
+                afficher(searchField.getText());
+            }
+        });
     }
 
     private Parent buildSelf() {
