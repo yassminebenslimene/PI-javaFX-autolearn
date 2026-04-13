@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="0"
+      style="-fx-background-color:linear-gradient(to bottom right,#4c1d95,#7c3aed,#6d28d9);"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="tn.esprit.controllers.FrontQuizController">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="12"
+          style="-fx-padding:16 24 16 24; -fx-background-color:rgba(0,0,0,0.2);">
+        <Label fx:id="labelTitreHeader" text="Quiz"
+               style="-fx-text-fill:white; -fx-font-size:15; -fx-font-weight:700;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="labelTimer" text="⏱  —"
+               style="-fx-background-color:linear-gradient(to right,#f59e0b,#d97706);
+                      -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;
+                      -fx-padding:6 16 6 16; -fx-background-radius:20;"/>
+    </HBox>
+
+    <!-- Progress -->
+    <HBox alignment="CENTER" style="-fx-padding:20 0 8 0;">
+        <Label fx:id="labelProgress" text="Question 1 / 1"
+               style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
+                      -fx-font-size:13; -fx-font-weight:700; -fx-padding:6 20 6 20;
+                      -fx-background-radius:20;"/>
+    </HBox>
+
+    <!-- Question card -->
+    <VBox alignment="CENTER" style="-fx-padding:0 32 16 32;">
+        <VBox alignment="CENTER" spacing="8"
+              style="-fx-background-color:white; -fx-background-radius:18;
+                     -fx-padding:28 24 28 24;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),16,0,0,4);">
+            <Label fx:id="labelQuestion" text=""
+                   style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:#0f172a;
+                          -fx-text-alignment:CENTER;"
+                   wrapText="true" maxWidth="600"/>
+            <Label fx:id="labelPoints" text="⭐ 10 points"
+                   style="-fx-font-size:12; -fx-text-fill:#f59e0b; -fx-font-weight:700;"/>
+        </VBox>
+    </VBox>
+
+    <!-- Options -->
+    <VBox fx:id="optionsContainer" spacing="10"
+          style="-fx-padding:0 32 20 32;"/>
+
+    <!-- Footer -->
+    <HBox alignment="CENTER_RIGHT" style="-fx-padding:8 32 24 32;">
+        <Label fx:id="labelRepondues" text="0 / 0 questions répondues"
+               style="-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:12;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnSoumettre" text="✔   Soumettre le Quiz" onAction="#onSoumettre"
+                style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
+                       -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 22 10 22;
+                       -fx-background-radius:12; -fx-cursor:hand; -fx-border-width:0;"/>
+    </HBox>
+</VBox>

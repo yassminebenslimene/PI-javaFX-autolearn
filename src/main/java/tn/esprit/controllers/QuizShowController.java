@@ -4,7 +4,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Quiz;
+import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceQuiz;
 
 /**
@@ -15,14 +18,17 @@ import tn.esprit.services.ServiceQuiz;
 public class QuizShowController {
 
     // ── Composants FXML (liés aux éléments de show.fxml) ─────────────────────
-    @FXML private Label labelTitre;      // grand titre en haut (nom du quiz)
-    @FXML private Label labelSubtitle;   // sous-titre "Quiz #id"
-    @FXML private Label labelTitreVal;   // valeur du titre dans le corps
-    @FXML private Label labelDescVal;    // valeur de la description
-    @FXML private Label labelEtatBadge;  // badge coloré de l'état (actif, inactif...)
+    @FXML private Label labelTitre;
+    @FXML private Label labelSubtitle;
+    @FXML private Label labelTitreVal;
+    @FXML private Label labelDescVal;
+    @FXML private Label labelEtatBadge;
+    @FXML private Label labelChapitreTitre;
+    @FXML private Label labelChapitreDetail;
+    @FXML private VBox  boxChapitre;
 
-    // Service pour les opérations BDD sur les quiz
     private final ServiceQuiz serviceQuiz = new ServiceQuiz();
+    private final ServiceChapitre serviceChapitre = new ServiceChapitre();
 
     // Le quiz actuellement affiché
     private Quiz quiz;
@@ -35,11 +41,24 @@ public class QuizShowController {
         this.quiz = quiz;
         this.onBack = onBack;
 
-        // Remplir les labels avec les données du quiz
         labelTitre.setText(quiz.getTitre());
         labelSubtitle.setText("Quiz #" + quiz.getId());
         labelTitreVal.setText(quiz.getTitre());
         labelDescVal.setText(quiz.getDescription());
+
+        // Chapitre lié
+        if (quiz.getChapitreId() != null) {
+            Chapitre ch = serviceChapitre.consulterParId(quiz.getChapitreId());
+            if (ch != null) {
+                labelChapitreTitre.setText(ch.getTitre());
+                labelChapitreDetail.setText("Chapitre #" + ch.getId() + " – Ordre : " + ch.getOrdre());
+                boxChapitre.setVisible(true);
+                boxChapitre.setManaged(true);
+            }
+        } else {
+            boxChapitre.setVisible(false);
+            boxChapitre.setManaged(false);
+        }
 
         // Afficher le badge d'état avec la couleur correspondante
         labelEtatBadge.setText("● " + capitalize(quiz.getEtat()));

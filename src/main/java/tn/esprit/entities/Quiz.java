@@ -38,13 +38,16 @@ public class Quiz {
     // Date et heure de la dernière modification
     private LocalDateTime updatedAt;
 
+    // Clé étrangère vers le chapitre auquel appartient ce quiz (OBLIGATOIRE)
+    private Integer chapitreId;
+
     // Constructeur vide (nécessaire pour JavaFX et JDBC)
     public Quiz() {
     }
 
     // Constructeur sans id (utilisé pour créer un nouveau quiz avant insertion en BDD)
     public Quiz(String titre, String description, String etat, Integer dureeMaxMinutes, Integer seuilReussite,
-                Integer maxTentatives, String imageName, Integer imageSize, LocalDateTime updatedAt) {
+                Integer maxTentatives, String imageName, Integer imageSize, LocalDateTime updatedAt, Integer chapitreId) {
         this.titre = titre;
         this.description = description;
         this.etat = etat;
@@ -54,11 +57,12 @@ public class Quiz {
         this.imageName = imageName;
         this.imageSize = imageSize;
         this.updatedAt = updatedAt;
+        this.chapitreId = chapitreId;
     }
 
     // Constructeur complet avec id (utilisé quand on lit un quiz depuis la BDD)
     public Quiz(int id, String titre, String description, String etat, Integer dureeMaxMinutes, Integer seuilReussite,
-                Integer maxTentatives, String imageName, Integer imageSize, LocalDateTime updatedAt) {
+                Integer maxTentatives, String imageName, Integer imageSize, LocalDateTime updatedAt, Integer chapitreId) {
         this.id = id;
         this.titre = titre;
         this.description = description;
@@ -69,6 +73,7 @@ public class Quiz {
         this.imageName = imageName;
         this.imageSize = imageSize;
         this.updatedAt = updatedAt;
+        this.chapitreId = chapitreId;
     }
 
     // ── Getters et Setters ────────────────────────────────────────────────────
@@ -103,6 +108,9 @@ public class Quiz {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Integer getChapitreId() { return chapitreId; }
+    public void setChapitreId(Integer chapitreId) { this.chapitreId = chapitreId; }
 
     // Affichage du quiz sous forme de texte (utile pour le debug)
     @Override

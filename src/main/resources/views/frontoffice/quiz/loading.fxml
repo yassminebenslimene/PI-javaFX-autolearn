@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+
+<StackPane fx:id="rootPane"
+           xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="tn.esprit.controllers.FrontQuizLoadingController"
+           style="-fx-background-color:linear-gradient(to bottom right,#667eea,#764ba2);"
+           prefWidth="1000" prefHeight="700">
+
+    <VBox alignment="CENTER" spacing="24">
+
+        <!-- Logo 4 carrés -->
+        <StackPane fx:id="logoContainer" prefWidth="120" prefHeight="120">
+
+            <Rectangle fx:id="squareBlue"
+                       width="55" height="55" arcWidth="12" arcHeight="12"
+                       fill="#3498db" translateX="-28" translateY="-28"/>
+
+            <Rectangle fx:id="squareGreen"
+                       width="55" height="55" arcWidth="12" arcHeight="12"
+                       fill="#2ecc71" translateX="28" translateY="-28"/>
+
+            <Rectangle fx:id="squareRed"
+                       width="55" height="55" arcWidth="12" arcHeight="12"
+                       fill="#e74c3c" translateX="-28" translateY="28"/>
+
+            <Rectangle fx:id="squareOrange"
+                       width="55" height="55" arcWidth="12" arcHeight="12"
+                       fill="#f39c12" translateX="28" translateY="28"/>
+
+        </StackPane>
+
+        <!-- Texte principal -->
+        <Label fx:id="loadingLabel" text="Chargement du Quiz..."
+               style="-fx-text-fill:white; -fx-font-size:28; -fx-font-weight:bold;"/>
+
+        <!-- Nom du quiz -->
+        <Label fx:id="quizNameLabel" text=""
+               style="-fx-text-fill:rgba(255,255,255,0.8); -fx-font-size:16;"/>
+
+    </VBox>
+
+</StackPane>

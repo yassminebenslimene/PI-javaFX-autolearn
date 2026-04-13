@@ -5,7 +5,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
+import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Quiz;
+import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceQuiz;
 
 import java.util.List;
@@ -24,6 +26,8 @@ public class QuizFormController {
     @FXML private TextField titreField;   // champ texte pour le titre
     @FXML private TextArea descriptionField; // zone de texte pour la description
     @FXML private ComboBox<String> etatCombo;  // liste déroulante pour l'état
+    @FXML private ComboBox<Chapitre> chapitreCombo; // liste déroulante chapitre (OBLIGATOIRE)
+    @FXML private Label chapitreErrorLabel;    // message d'erreur chapitre
     @FXML private TextField dureeField;   // champ pour la durée max (optionnel)
     @FXML private TextField seuilField;   // champ pour le seuil de réussite (optionnel)
     @FXML private TextField tentativesField; // champ pour le nb de tentatives (optionnel)
@@ -48,6 +52,7 @@ public class QuizFormController {
 
     // Service pour les opérations BDD sur les quiz
     private final ServiceQuiz serviceQuiz = new ServiceQuiz();
+    private final ServiceChapitre serviceChapitre = new ServiceChapitre();
 
     // Le quiz à modifier (null si on est en mode création)
     private Quiz quizAModifier = null;
@@ -55,10 +60,36 @@ public class QuizFormController {
     // ── Initialisation : appelée automatiquement au chargement du FXML ───────
     @FXML
     public void initialize() {
-        // Remplir la liste déroulante avec les 4 états possibles
+        // Remplir la liste déroulante états
         etatCombo.setItems(FXCollections.observableArrayList(
             "actif", "inactif", "brouillon", "archive"
         ));
+
+        // Remplir la ComboBox chapitres
+        List<Chapitre> chapitres = serviceChapitre.consulter();
+        chapitreCombo.getItems().addAll(chapitres);
+        chapitreCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Chapitre item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getTitre());
+            }
+        });
+        chapitreCombo.setButtonCell(new ListCell<>() {
+            @Override protected void updateItem(Chapitre item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "Sélectionnez un chapitre obligatoirement" : item.getTitre());
+            }
+        });
+        chapitreCombo.valueProperty().addListener((o, ov, nv) -> {
+            if (nv != null) {
+                chapitreCombo.setStyle(FIELD_NORMAL);
+                if (chapitreErrorLabel != null) {
+                    chapitreErrorLabel.setVisible(false);
+                    chapitreErrorLabel.setManaged(false);
+                }
+            }
+        });
+
         // Effacer les erreurs dès que l'utilisateur commence à taper
         titreField.textProperty().addListener((o, ov, nv) -> resetField(titreField));
         descriptionField.textProperty().addListener((o, ov, nv) -> resetField(descriptionField));
@@ -68,21 +99,25 @@ public class QuizFormController {
     }
 
     // ── Mode modification : pré-remplir le formulaire avec les données du quiz ─
-    // Appelé depuis QuizController quand on clique "Modifier"
     public void initEdit(Quiz quiz) {
         this.quizAModifier = quiz;
-        // Changer les textes pour indiquer qu'on est en mode modification
         pageTitle.setText("Modifier le Quiz");
         cardTitle.setText("Modifier le Quiz");
         cardSubtitle.setText("Mettez à jour les informations");
         btnSauvegarder.setText("✓ Mettre à jour");
-        // Pré-remplir les champs avec les valeurs actuelles du quiz
         titreField.setText(quiz.getTitre());
         descriptionField.setText(quiz.getDescription());
         etatCombo.setValue(quiz.getEtat());
         if (quiz.getDureeMaxMinutes() != null) dureeField.setText(String.valueOf(quiz.getDureeMaxMinutes()));
         if (quiz.getSeuilReussite() != null)   seuilField.setText(String.valueOf(quiz.getSeuilReussite()));
         if (quiz.getMaxTentatives() != null)   tentativesField.setText(String.valueOf(quiz.getMaxTentatives()));
+        // Pré-sélectionner le chapitre
+        if (quiz.getChapitreId() != null) {
+            chapitreCombo.getItems().stream()
+                .filter(c -> c.getId() == quiz.getChapitreId())
+                .findFirst()
+                .ifPresent(chapitreCombo::setValue);
+        }
     }
 
     // ── Sauvegarder : appelé quand on clique sur le bouton Enregistrer ────────
@@ -128,6 +163,19 @@ public class QuizFormController {
         // ── Validation de l'état (doit être dans la liste) ──
         if (valid && (etat == null || !List.of("actif","inactif","brouillon","archive").contains(etat))) {
             showError("⚠ Veuillez sélectionner un état parmi : Actif, Inactif, Brouillon, Archive.");
+            valid = false;
+        }
+
+        // ── Validation du chapitre (OBLIGATOIRE) ──
+        Chapitre chapitreSelectionne = chapitreCombo.getValue();
+        if (valid && chapitreSelectionne == null) {
+            chapitreCombo.setStyle(FIELD_ERROR);
+            if (chapitreErrorLabel != null) {
+                chapitreErrorLabel.setText("🔒 OBLIGATOIRE : Sélectionnez un chapitre");
+                chapitreErrorLabel.setVisible(true);
+                chapitreErrorLabel.setManaged(true);
+            }
+            showError("🔒 Un quiz doit obligatoirement appartenir à un chapitre.");
             valid = false;
         }
 
@@ -188,17 +236,16 @@ public class QuizFormController {
         // ── Sauvegarde en BDD ──
         boolean ok;
         if (quizAModifier == null) {
-            // Mode création : créer un nouveau quiz et l'insérer en BDD
-            ok = serviceQuiz.ajouter(new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null));
+            ok = serviceQuiz.ajouter(new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null, chapitreSelectionne.getId()));
             showAlert(ok, "Quiz ajouté avec succès !", "Échec de l'ajout du quiz.");
         } else {
-            // Mode modification : mettre à jour le quiz existant
             quizAModifier.setTitre(titre);
             quizAModifier.setDescription(description);
             quizAModifier.setEtat(etat);
             quizAModifier.setDureeMaxMinutes(duree);
             quizAModifier.setSeuilReussite(seuil);
             quizAModifier.setMaxTentatives(tentatives);
+            quizAModifier.setChapitreId(chapitreSelectionne.getId());
             ok = serviceQuiz.modifier(quizAModifier);
             showAlert(ok, "Quiz modifié avec succès !", "Échec de la modification du quiz.");
         }

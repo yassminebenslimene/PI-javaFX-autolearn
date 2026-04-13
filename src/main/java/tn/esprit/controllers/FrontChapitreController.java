@@ -14,6 +14,7 @@ import tn.esprit.services.ServiceChapitre;
 
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class FrontChapitreController {
 
@@ -24,9 +25,14 @@ public class FrontChapitreController {
 
     private final ServiceChapitre serviceChapitre = new ServiceChapitre();
     private BiConsumer<Cours, Chapitre> onLireChapitre;
+    private Consumer<Chapitre> onPasserQuiz;
 
     public void setOnLireChapitre(BiConsumer<Cours, Chapitre> callback) {
         this.onLireChapitre = callback;
+    }
+
+    public void setOnPasserQuiz(Consumer<Chapitre> callback) {
+        this.onPasserQuiz = callback;
     }
 
     public void setCours(Cours cours) {
@@ -128,6 +134,9 @@ public class FrontChapitreController {
             "-fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13;" +
             "-fx-padding:11 0 11 0; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;"
         );
+        btnQuiz.setOnAction(e -> {
+            if (onPasserQuiz != null) onPasserQuiz.accept(chapitre);
+        });
 
         VBox buttons = new VBox(8, btnLire, btnPdf, btnQuiz);
 

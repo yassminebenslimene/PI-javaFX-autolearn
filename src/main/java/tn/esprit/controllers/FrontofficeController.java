@@ -99,8 +99,22 @@ public class FrontofficeController {
                         }
                     });
 
-                    chapCtrl.setCours(cours);
-                    setCenter(chapView);
+                    chapCtrl.setOnPasserQuiz(chapitre -> {
+                        try {
+                            FXMLLoader quizLoader = new FXMLLoader(
+                                getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                            Parent quizView = quizLoader.load();
+                            FrontQuizController quizCtrl = quizLoader.getController();
+                            quizCtrl.setChapitre(chapitre, () -> setCenter(chapView));
+                            // Vue quiz : mettre directement sans ScrollPane pour garder le fond violet
+                            setCenterDirect(quizView);
+                            javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+
+                    chapCtrl.setCours(cours);                    setCenter(chapView);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -116,17 +130,33 @@ public class FrontofficeController {
 
     // ── Remplace le contenu central du BorderPane ─────────────────────────────
     private void setCenter(Parent view) {
-        // Chercher le BorderPane racine via le label (qui est dans le layout)
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
         BorderPane root = (BorderPane) scene.getRoot();
-        // Remplacer le ScrollPane central par la nouvelle vue
-        ScrollPane sp = new ScrollPane(view);
-        sp.setFitToWidth(true);
-        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
-        root.setCenter(sp);
+        // Les vues quiz ont leur propre fond violet — les mettre directement sans ScrollPane
+        String styleId = view.getClass().getSimpleName();
+        boolean isQuizView = view.getStyle() != null && view.getStyle().contains("6b21a8")
+                          || view.getStyle() != null && view.getStyle().contains("667eea")
+                          || view.getStyle() != null && view.getStyle().contains("4c1d95");
+        if (isQuizView) {
+            root.setCenter(view);
+        } else {
+            ScrollPane sp = new ScrollPane(view);
+            sp.setFitToWidth(true);
+            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
+            root.setCenter(sp);
+        }
+    }
+
+    /** Met la vue directement sans ScrollPane (pour les vues à fond plein comme le quiz) */
+    private void setCenterDirect(Parent view) {
+        if (labelCurrentUser == null) return;
+        var scene = labelCurrentUser.getScene();
+        if (scene == null) return;
+        BorderPane root = (BorderPane) scene.getRoot();
+        root.setCenter(view);
     }
 
     @FXML

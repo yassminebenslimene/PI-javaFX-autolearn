@@ -21,23 +21,23 @@ public class ServiceQuiz {
 
     // ── CREATE : Insérer un nouveau quiz en BDD ───────────────────────────────
     public boolean ajouter(Quiz quiz) {
-        String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, image_name, image_size, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, image_name, image_size, updated_at, chapitre_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
-            // On remplace chaque "?" par la valeur correspondante du quiz
             statement.setString(1, quiz.getTitre());
             statement.setString(2, quiz.getDescription());
             statement.setString(3, quiz.getEtat());
-            statement.setObject(4, quiz.getDureeMaxMinutes());   // null si non renseigné
-            statement.setObject(5, quiz.getSeuilReussite());     // null si non renseigné
-            statement.setObject(6, quiz.getMaxTentatives());     // null si non renseigné
+            statement.setObject(4, quiz.getDureeMaxMinutes());
+            statement.setObject(5, quiz.getSeuilReussite());
+            statement.setObject(6, quiz.getMaxTentatives());
             statement.setString(7, quiz.getImageName());
             statement.setObject(8, quiz.getImageSize());
             statement.setTimestamp(9, quiz.getUpdatedAt() == null ? null : Timestamp.valueOf(quiz.getUpdatedAt()));
-            int rows = statement.executeUpdate(); // nombre de lignes insérées
-            return rows > 0; // true = insertion réussie
+            statement.setObject(10, quiz.getChapitreId());
+            int rows = statement.executeUpdate();
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur ajout quiz : " + e.getMessage());
-            return false; // false = erreur SQL
+            return false;
         }
     }
 
@@ -56,7 +56,7 @@ public class ServiceQuiz {
 
     // ── UPDATE : Modifier un quiz existant ────────────────────────────────────
     public boolean modifier(Quiz quiz) {
-        String req = "UPDATE quiz SET titre = ?, description = ?, etat = ?, duree_max_minutes = ?, seuil_reussite = ?, max_tentatives = ?, image_name = ?, image_size = ?, updated_at = ? WHERE id = ?";
+        String req = "UPDATE quiz SET titre = ?, description = ?, etat = ?, duree_max_minutes = ?, seuil_reussite = ?, max_tentatives = ?, image_name = ?, image_size = ?, updated_at = ?, chapitre_id = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, quiz.getTitre());
             statement.setString(2, quiz.getDescription());
@@ -67,9 +67,10 @@ public class ServiceQuiz {
             statement.setString(7, quiz.getImageName());
             statement.setObject(8, quiz.getImageSize());
             statement.setTimestamp(9, quiz.getUpdatedAt() == null ? null : Timestamp.valueOf(quiz.getUpdatedAt()));
-            statement.setInt(10, quiz.getId()); // condition WHERE id = ?
+            statement.setObject(10, quiz.getChapitreId());
+            statement.setInt(11, quiz.getId());
             int rows = statement.executeUpdate();
-            return rows > 0; // true = modification réussie
+            return rows > 0;
         } catch (SQLException e) {
             System.err.println("Erreur modification quiz : " + e.getMessage());
             return false;
@@ -136,7 +137,6 @@ public class ServiceQuiz {
     }
 
     // ── Méthode privée : convertit une ligne SQL en objet Quiz ────────────────
-    // Appelée à chaque fois qu'on lit un résultat depuis la BDD
     private Quiz mapQuiz(ResultSet rs) throws SQLException {
         Timestamp updatedAt = rs.getTimestamp("updated_at");
         return new Quiz(
@@ -149,8 +149,24 @@ public class ServiceQuiz {
                 (Integer) rs.getObject("max_tentatives"),
                 rs.getString("image_name"),
                 (Integer) rs.getObject("image_size"),
-                updatedAt == null ? null : updatedAt.toLocalDateTime()
+                updatedAt == null ? null : updatedAt.toLocalDateTime(),
+                (Integer) rs.getObject("chapitre_id")
         );
+    }
+
+    // ── READ BY CHAPITRE : Retourne les quiz d'un chapitre spécifique ─────────
+    public java.util.List<Quiz> findByChapitreId(int chapitreId) {
+        java.util.List<Quiz> quizzes = new java.util.ArrayList<>();
+        String req = "SELECT * FROM quiz WHERE chapitre_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(req)) {
+            statement.setInt(1, chapitreId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) quizzes.add(mapQuiz(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur findByChapitreId : " + e.getMessage());
+        }
+        return quizzes;
     }
 }
 

@@ -74,18 +74,29 @@
                     <VBox spacing="6">
                         <Label text="Description"
                                style="-fx-text-fill:#f5f5f4; -fx-font-weight:bold; -fx-font-size:14;"/>
-                        <!-- wrapText=true pour afficher les longues descriptions sur plusieurs lignes -->
-                        <!-- fx:id="labelDescVal" → rempli par init() avec quiz.getDescription() -->
                         <Label fx:id="labelDescVal" text="" wrapText="true"
                                style="-fx-text-fill:rgba(245,245,244,0.7); -fx-font-size:14;"/>
+                    </VBox>
+
+                    <!-- Section : Chapitre lié -->
+                    <VBox fx:id="boxChapitre" spacing="8" visible="false" managed="false">
+                        <Label text="🔗 Chapitre lié"
+                               style="-fx-text-fill:#34d399; -fx-font-weight:bold; -fx-font-size:13;"/>
+                        <VBox spacing="4"
+                              style="-fx-background-color:rgba(52,211,153,0.08);
+                                     -fx-border-color:rgba(52,211,153,0.35); -fx-border-radius:10;
+                                     -fx-background-radius:10; -fx-border-width:1; -fx-padding:14 16;">
+                            <Label fx:id="labelChapitreTitre" text=""
+                                   style="-fx-text-fill:#f5f5f4; -fx-font-size:14; -fx-font-weight:bold;"/>
+                            <Label fx:id="labelChapitreDetail" text=""
+                                   style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12;"/>
+                        </VBox>
                     </VBox>
 
                     <!-- Section : État du quiz avec badge coloré -->
                     <VBox spacing="8">
                         <Label text="État"
                                style="-fx-text-fill:#f5f5f4; -fx-font-weight:bold; -fx-font-size:14;"/>
-                        <!-- fx:id="labelEtatBadge" → rempli et stylisé par init() selon l'état -->
-                        <!-- Couleur : vert=actif, orange=inactif, bleu=brouillon, gris=archive -->
                         <Label fx:id="labelEtatBadge" text=""/>
                     </VBox>
 

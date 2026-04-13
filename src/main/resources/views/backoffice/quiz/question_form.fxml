@@ -92,6 +92,21 @@
                         <Label text="Entre 1 et 100 points"
                                style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
 
+                        <!-- Champ : Quiz associé (obligatoire) -->
+                        <Label text="Quiz associé"
+                               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);
+                                      -fx-padding:0 0 6 0;"/>
+                        <ComboBox fx:id="quizCombo" maxWidth="Infinity"
+                                  promptText="Choisissez le quiz auquel appartient cette question"
+                                  style="-fx-background-color:rgba(255,255,255,0.05);
+                                         -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                                         -fx-background-radius:8px; -fx-border-width:1px; -fx-padding:3px;"/>
+                        <Label fx:id="quizErrorLabel" text="⚠ Veuillez sélectionner un quiz"
+                               visible="false" managed="false"
+                               style="-fx-text-fill:#fca5a5; -fx-font-size:12; -fx-font-weight:bold;"/>
+                        <Label text="Choisissez le quiz auquel appartient cette question"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
                         <!-- Zone d'affichage des messages d'erreur (remplie par le controller) -->
                         <Label fx:id="messageLabel" wrapText="true"
                                style="-fx-font-size:13px; -fx-padding:0 0 10 0;"/>

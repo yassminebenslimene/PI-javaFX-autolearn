@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import tn.esprit.entities.Option;
+import tn.esprit.entities.Question;
 import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 
@@ -15,12 +16,13 @@ import tn.esprit.services.ServiceQuestion;
  */
 public class OptionController {
 
-    // ── Composants FXML (liés aux éléments de option_form.fxml) ──────────────
-    @FXML private Label pageTitle;          // titre en haut de la page
-    @FXML private Label cardTitle;          // titre de la carte
-    @FXML private TextField texteField;     // champ texte pour l'option de réponse
-    @FXML private CheckBox estCorrecteCheck; // case à cocher : bonne réponse ou non
-    @FXML private Label messageLabel;       // affiche les messages d'erreur
+    @FXML private Label pageTitle;
+    @FXML private Label cardTitle;
+    @FXML private TextField texteField;
+    @FXML private CheckBox estCorrecteCheck;
+    @FXML private ComboBox<Question> questionCombo;
+    @FXML private Label questionErrorLabel;
+    @FXML private Label messageLabel;
 
     // Style normal d'un champ de saisie
     private static final String FIELD_NORMAL =
@@ -38,22 +40,33 @@ public class OptionController {
         "-fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);" +
         "-fx-padding:9px 13px; -fx-font-size:13px;";
 
-    // Service pour les opérations BDD sur les options
     private final ServiceOption serviceOption = new ServiceOption();
-
-    // Service question (utilisé pour vérifier les doublons)
     private final ServiceQuestion serviceQuestion = new ServiceQuestion();
-
-    // L'option à modifier (null si on est en mode création)
     private Option optionAModifier = null;
-
-    // L'id de la question à laquelle appartient cette option
     private int questionId;
 
-    // ── Initialisation : appelée automatiquement au chargement du FXML ───────
     @FXML
     public void initialize() {
-        // Effacer les erreurs dès que l'utilisateur commence à taper
+        // Remplir la ComboBox questions
+        questionCombo.getItems().addAll(serviceQuestion.afficher());
+        questionCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Question item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getTexteQuestion());
+            }
+        });
+        questionCombo.setButtonCell(new ListCell<>() {
+            @Override protected void updateItem(Question item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "Choisissez la question à laquelle appartient cette option" : item.getTexteQuestion());
+            }
+        });
+        questionCombo.valueProperty().addListener((o, ov, nv) -> {
+            if (nv != null) {
+                questionCombo.setStyle("");
+                if (questionErrorLabel != null) { questionErrorLabel.setVisible(false); questionErrorLabel.setManaged(false); }
+            }
+        });
         texteField.textProperty().addListener((o, ov, nv) -> {
             texteField.setStyle(FIELD_NORMAL);
             messageLabel.setText("");
@@ -61,23 +74,20 @@ public class OptionController {
         });
     }
 
-    // ── Mode création : définir la question parente ───────────────────────────
-    // Appelé depuis QuizController quand on clique "+ Nouvelle Option"
     public void initNouvelle(int questionId) {
-        this.questionId = questionId; // on mémorise l'id de la question pour l'insertion
+        this.questionId = questionId;
+        questionCombo.getItems().stream().filter(q -> q.getId() == questionId).findFirst().ifPresent(questionCombo::setValue);
     }
 
-    // ── Mode modification : pré-remplir le formulaire ─────────────────────────
-    // Appelé depuis QuizController quand on clique "Modifier" sur une option
     public void initModifier(Option option) {
         this.optionAModifier = option;
         this.questionId = option.getQuestionId();
-        // Changer les textes pour indiquer le mode modification
         pageTitle.setText("Modifier l'Option");
         cardTitle.setText("Modifier l'Option");
-        // Pré-remplir les champs avec les valeurs actuelles
         texteField.setText(option.getTexteOption());
-        estCorrecteCheck.setSelected(option.isEstCorrecte()); // cocher si bonne réponse
+        estCorrecteCheck.setSelected(option.isEstCorrecte());
+        // Pré-sélectionner la question
+        questionCombo.getItems().stream().filter(q -> q.getId() == option.getQuestionId()).findFirst().ifPresent(questionCombo::setValue);
     }
 
     // ── Sauvegarder : appelé quand on clique sur le bouton Enregistrer ────────
@@ -107,7 +117,6 @@ public class OptionController {
         }
 
         // ── Vérification des doublons (uniquement en mode création) ──
-        // On vérifie qu'il n'existe pas déjà une option identique pour cette question
         if (optionAModifier == null) {
             boolean doublon = serviceOption.findByQuestionId(questionId).stream()
                 .anyMatch(o -> o.getTexteOption().equalsIgnoreCase(texte));
@@ -117,6 +126,16 @@ public class OptionController {
                 return;
             }
         }
+
+        // ── Validation de la question associée ──
+        Question questionSelectionnee = questionCombo.getValue();
+        if (questionSelectionnee == null) {
+            questionCombo.setStyle(FIELD_ERROR);
+            if (questionErrorLabel != null) { questionErrorLabel.setVisible(true); questionErrorLabel.setManaged(true); }
+            markError("⚠ Veuillez choisir la question à laquelle appartient cette option.");
+            return;
+        }
+        questionId = questionSelectionnee.getId();
 
         // ── Sauvegarde en BDD ──
         boolean ok;
