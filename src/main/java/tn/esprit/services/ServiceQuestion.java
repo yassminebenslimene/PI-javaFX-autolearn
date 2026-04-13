@@ -14,13 +14,12 @@ import java.sql.Timestamp;
  * Service Question — gère toutes les opérations SQL sur la table "question".
  * Implémente IService<Question> pour les 4 opérations CRUD de base.
  */
-public class ServiceQuestion implements IService<Question> {
+public class ServiceQuestion {
 
     // Connexion à la base de données (singleton partagé)
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     // ── CREATE : Insérer une nouvelle question en BDD ─────────────────────────
-    @Override
     public boolean ajouter(Question question) {
         String req = "INSERT INTO question (texte_question, point, updated_at, quiz_id) VALUES (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -38,7 +37,6 @@ public class ServiceQuestion implements IService<Question> {
     }
 
     // ── DELETE : Supprimer une question par son id ────────────────────────────
-    @Override
     public boolean supprimer(Question question) {
         String req = "DELETE FROM question WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -52,7 +50,6 @@ public class ServiceQuestion implements IService<Question> {
     }
 
     // ── UPDATE : Modifier une question existante ──────────────────────────────
-    @Override
     public boolean modifier(Question question) {
         String req = "UPDATE question SET texte_question = ?, point = ?, updated_at = ?, quiz_id = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -70,7 +67,6 @@ public class ServiceQuestion implements IService<Question> {
     }
 
     // ── READ ALL (console) : Affiche toutes les questions dans la console ─────
-    @Override
     public void getAll() {
         String req = "SELECT * FROM question";
         try (Statement statement = connection.createStatement();
@@ -84,7 +80,6 @@ public class ServiceQuestion implements IService<Question> {
     }
 
     // ── READ ONE (console) : Affiche une question par son id ─────────────────
-    @Override
     public void getOneById(int id) {
         String req = "SELECT * FROM question WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -143,3 +138,4 @@ public class ServiceQuestion implements IService<Question> {
         );
     }
 }
+

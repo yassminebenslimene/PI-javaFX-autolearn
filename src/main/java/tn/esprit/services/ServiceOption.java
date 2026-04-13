@@ -14,13 +14,12 @@ import java.sql.Statement;
  * ATTENTION : "option" est un mot réservé en SQL, on utilise des backticks : `option`
  * Implémente IService<Option> pour les 4 opérations CRUD de base.
  */
-public class ServiceOption implements IService<Option> {
+public class ServiceOption {
 
     // Connexion à la base de données (singleton partagé)
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     // ── CREATE : Insérer une nouvelle option en BDD ───────────────────────────
-    @Override
     public boolean ajouter(Option option) {
         // Backticks autour de `option` car c'est un mot réservé SQL
         String req = "INSERT INTO `option` (texte_option, est_correcte, question_id) VALUES (?, ?, ?)";
@@ -37,7 +36,6 @@ public class ServiceOption implements IService<Option> {
     }
 
     // ── DELETE : Supprimer une option par son id ──────────────────────────────
-    @Override
     public boolean supprimer(Option option) {
         String req = "DELETE FROM `option` WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -51,7 +49,6 @@ public class ServiceOption implements IService<Option> {
     }
 
     // ── UPDATE : Modifier une option existante ────────────────────────────────
-    @Override
     public boolean modifier(Option option) {
         String req = "UPDATE `option` SET texte_option = ?, est_correcte = ?, question_id = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -68,7 +65,6 @@ public class ServiceOption implements IService<Option> {
     }
 
     // ── READ ALL (console) : Affiche toutes les options dans la console ───────
-    @Override
     public void getAll() {
         String req = "SELECT * FROM `option`";
         try (Statement statement = connection.createStatement();
@@ -82,7 +78,6 @@ public class ServiceOption implements IService<Option> {
     }
 
     // ── READ ONE (console) : Affiche une option par son id ───────────────────
-    @Override
     public void getOneById(int id) {
         String req = "SELECT * FROM `option` WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -138,3 +133,4 @@ public class ServiceOption implements IService<Option> {
         );
     }
 }
+

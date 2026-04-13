@@ -14,13 +14,12 @@ import java.sql.Timestamp;
  * Service Quiz — gère toutes les opérations SQL sur la table "quiz".
  * Implémente IService<Quiz> pour les 4 opérations CRUD de base.
  */
-public class ServiceQuiz implements IService<Quiz> {
+public class ServiceQuiz {
 
     // Connexion à la base de données (singleton partagé dans toute l'application)
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     // ── CREATE : Insérer un nouveau quiz en BDD ───────────────────────────────
-    @Override
     public boolean ajouter(Quiz quiz) {
         String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, image_name, image_size, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -43,7 +42,6 @@ public class ServiceQuiz implements IService<Quiz> {
     }
 
     // ── DELETE : Supprimer un quiz par son id ─────────────────────────────────
-    @Override
     public boolean supprimer(Quiz quiz) {
         String req = "DELETE FROM quiz WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -57,7 +55,6 @@ public class ServiceQuiz implements IService<Quiz> {
     }
 
     // ── UPDATE : Modifier un quiz existant ────────────────────────────────────
-    @Override
     public boolean modifier(Quiz quiz) {
         String req = "UPDATE quiz SET titre = ?, description = ?, etat = ?, duree_max_minutes = ?, seuil_reussite = ?, max_tentatives = ?, image_name = ?, image_size = ?, updated_at = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -80,7 +77,6 @@ public class ServiceQuiz implements IService<Quiz> {
     }
 
     // ── READ ALL (console) : Affiche tous les quiz dans la console ────────────
-    @Override
     public void getAll() {
         String req = "SELECT * FROM quiz";
         try (Statement statement = connection.createStatement();
@@ -94,7 +90,6 @@ public class ServiceQuiz implements IService<Quiz> {
     }
 
     // ── READ ONE (console) : Affiche un quiz par son id dans la console ───────
-    @Override
     public void getOneById(int id) {
         String req = "SELECT * FROM quiz WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -158,3 +153,4 @@ public class ServiceQuiz implements IService<Quiz> {
         );
     }
 }
+
