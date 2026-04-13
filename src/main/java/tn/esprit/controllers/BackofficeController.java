@@ -23,6 +23,7 @@ public class BackofficeController {
     @FXML private Button btnEvenements;
     @FXML private Button btnExercices;
     @FXML private Button btnChallenges;
+    @FXML private Button btnCommunaute;
     @FXML private Button btnProfile;
 
     private static final String ACTIVE_STYLE =
@@ -53,7 +54,7 @@ public class BackofficeController {
 
     private void setActive(Button active) {
         for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnCours, btnEvenements,
-                                      btnExercices, btnChallenges, btnProfile}) {
+                                      btnExercices, btnChallenges, btnCommunaute, btnProfile}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }
@@ -103,6 +104,12 @@ public class BackofficeController {
         setActive(btnChallenges);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Challenges");
         loadView("/views/backoffice/challenge/challenges.fxml");
+    }
+
+    @FXML public void navigateToCommunaute() {
+        setActive(btnCommunaute);
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion de la Communauté");
+        loadView("/views/backoffice/communaute/index.fxml");
     }
 
     @FXML public void navigateToProfile() {
