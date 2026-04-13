@@ -28,6 +28,7 @@ public class BackofficeController {
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
     @FXML private Button btnQuiz;
+    @FXML private Button btnCours;  // bouton Gestion Cours
     @FXML private Button btnProfile;
 
     // Style d'un bouton actif (page actuellement affichée) — fond vert
@@ -80,6 +81,13 @@ public class BackofficeController {
         loadView("/views/backoffice/quiz/index.fxml");
     }
 
+    // ── Navigation vers la gestion des cours ──────────────────────────────────
+    @FXML public void navigateToCours() {
+        setActive(btnCours);
+        labelPageTitle.setText("Gestion des Cours");
+        loadView("/views/backoffice/cours/index.fxml");
+    }
+
     // ── Navigation vers le profil ─────────────────────────────────────────────
     @FXML public void navigateToProfile() {
         setActive(btnProfile);
@@ -96,7 +104,7 @@ public class BackofficeController {
 
     // ── Marquer un bouton comme actif et les autres comme inactifs ────────────
     private void setActive(Button active) {
-        for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnProfile}) {
+        for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnCours, btnProfile}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }
