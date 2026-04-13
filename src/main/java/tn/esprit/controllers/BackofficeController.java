@@ -21,7 +21,6 @@ public class BackofficeController {
     @FXML private Button btnQuiz;
     @FXML private Button btnCours;
     @FXML private Button btnEvenements;
-    @FXML private Button btnChapitres;
     @FXML private Button btnExercices;
     @FXML private Button btnChallenges;
     @FXML private Button btnProfile;
@@ -54,7 +53,7 @@ public class BackofficeController {
 
     private void setActive(Button active) {
         for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnCours, btnEvenements,
-                                      btnChapitres, btnExercices, btnChallenges, btnProfile}) {
+                                      btnExercices, btnChallenges, btnProfile}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }
