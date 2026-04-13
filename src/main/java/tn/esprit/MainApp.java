@@ -157,6 +157,12 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Choisir un evenement");
     }
 
+    public static void showCommunauteFront() throws Exception {
+        load("/views/frontoffice/communaute/index.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Communauté");
+    }
+
     public static void showFeedback(Participation p, Evenement ev) throws Exception {
         FXMLLoader loader = getLoader("/views/frontoffice/feedback.fxml");
         setScene(loader);
