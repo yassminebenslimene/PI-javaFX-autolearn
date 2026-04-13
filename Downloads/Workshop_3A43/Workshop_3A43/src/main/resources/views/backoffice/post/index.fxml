@@ -1,20 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="tn.esprit.controllers.PostAdminController"
-      spacing="0" style="-fx-background-color:#f5f5f5;">
+<VBox spacing="0" style="-fx-background-color:#0f1a14;"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="tn.esprit.controllers.PostAdminController">
+    <padding><Insets bottom="20" left="28" right="28" top="20"/></padding>
 
-    <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+    <!-- STATS -->
+    <HBox alignment="CENTER_LEFT" spacing="14">
+        <VBox prefHeight="80" prefWidth="190" spacing="6"
+              style="-fx-background-color:rgba(255,255,255,0.06); -fx-background-radius:14;
+                     -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:14;
+                     -fx-padding:14 16 14 16; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),10,0,0,3);">
+            <HBox alignment="CENTER_LEFT">
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.55); -fx-font-weight:600;" text="Total Posts"/>
+                    <Label fx:id="labelTotal" style="-fx-font-size:26; -fx-font-weight:700; -fx-text-fill:#60a5fa;" text="0"/>
+                    <Label style="-fx-font-size:10; -fx-text-fill:rgba(96,165,250,0.7);" text="posts publies"/>
+                </VBox>
+                <Label style="-fx-font-size:22; -fx-background-color:rgba(96,165,250,0.12); -fx-background-radius:10; -fx-padding:7 9 7 9;" text="📝"/>
+            </HBox>
+        </VBox>
+    </HBox>
 
-    <Label text="📝  Gestion des Posts"
-           style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#1e1e1e; -fx-padding:0 0 18 0;"/>
+    <Region prefHeight="16"/>
 
-    <VBox style="-fx-background-color:white; -fx-background-radius:14;
-                 -fx-border-color:#eeeeee; -fx-border-radius:14;
-                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),10,0,0,3);">
-        <VBox fx:id="tableContainer"/>
+    <!-- TABLE CARD -->
+    <VBox spacing="0"
+          style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:20;
+                 -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:20;
+                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.25),16,0,0,6);"
+          VBox.vgrow="ALWAYS">
+
+        <HBox alignment="CENTER_LEFT" spacing="16"
+              style="-fx-padding:16 20 14 20; -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent; -fx-border-width:0 0 1 0;">
+            <VBox spacing="2">
+                <Label style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:white;" text="Gestion des Posts"/>
+                <Label style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.45);" text="Moderez les posts des communautes"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox alignment="CENTER" spacing="8"
+                  style="-fx-background-color:rgba(255,255,255,0.07); -fx-background-radius:10;
+                         -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:10; -fx-padding:7 12 7 12;">
+                <Label style="-fx-font-size:12; -fx-text-fill:rgba(245,245,244,0.4);" text="🔍"/>
+                <TextField fx:id="searchField" onKeyReleased="#onSearch" prefWidth="200"
+                           promptText="Rechercher..."
+                           style="-fx-background-color:transparent; -fx-border-width:0;
+                                  -fx-font-size:13; -fx-text-fill:white; -fx-prompt-text-fill:rgba(245,245,244,0.35);"/>
+                <Button onAction="#onClearSearch"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.4);
+                               -fx-padding:0 4 0 4; -fx-cursor:hand; -fx-border-width:0; -fx-font-size:12;" text="✕"/>
+            </HBox>
+        </HBox>
+
+        <TableView fx:id="tableView"
+                   style="-fx-background-color:#0f1a14; -fx-border-width:0;
+                          -fx-table-cell-border-color:rgba(255,255,255,0.06); -fx-background-radius:0 0 20 20;"
+                   VBox.vgrow="ALWAYS">
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="colId"          minWidth="60"  text="ID"/>
+                <TableColumn fx:id="colTitre"       minWidth="200" text="Titre"/>
+                <TableColumn fx:id="colAuteur"      minWidth="150" text="Auteur"/>
+                <TableColumn fx:id="colCommunaute"  minWidth="120" style="-fx-alignment:CENTER;" text="Communaute"/>
+                <TableColumn fx:id="colDate"        minWidth="150" style="-fx-alignment:CENTER;" text="Date"/>
+                <TableColumn fx:id="colActions"     minWidth="160" sortable="false" style="-fx-alignment:CENTER;" text="Actions"/>
+            </columns>
+            <placeholder>
+                <VBox alignment="CENTER" spacing="12" style="-fx-padding:60;">
+                    <Label style="-fx-font-size:44;" text="📭"/>
+                    <Label style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:14;" text="Aucun post trouve."/>
+                </VBox>
+            </placeholder>
+        </TableView>
     </VBox>
 </VBox>
