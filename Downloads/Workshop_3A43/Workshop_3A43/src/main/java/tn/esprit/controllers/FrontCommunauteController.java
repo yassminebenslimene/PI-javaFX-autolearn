@@ -134,9 +134,8 @@ public class FrontCommunauteController {
 
     @FXML
     public void onCreer() {
-        // Seul un utilisateur connecté peut créer
         if (SessionManager.getCurrentUser() == null) return;
-        // Ouvrir un dialog simple
+
         javafx.scene.control.Dialog<Communaute> dialog = new javafx.scene.control.Dialog<>();
         dialog.setTitle("Nouvelle Communauté");
         dialog.getDialogPane().getButtonTypes().addAll(
@@ -144,14 +143,36 @@ public class FrontCommunauteController {
 
         VBox content = new VBox(10);
         content.setPadding(new javafx.geometry.Insets(20));
-        TextField fNom = new TextField(); fNom.setPromptText("Nom *");
+        TextField fNom = new TextField(); fNom.setPromptText("Nom * (3–80 caractères)");
         javafx.scene.control.TextArea fDesc = new javafx.scene.control.TextArea();
-        fDesc.setPromptText("Description"); fDesc.setPrefRowCount(3);
-        content.getChildren().addAll(new Label("Nom :"), fNom, new Label("Description :"), fDesc);
+        fDesc.setPromptText("Description (max 500 caractères)"); fDesc.setPrefRowCount(3);
+        Label errLabel = new Label();
+        errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:11;");
+        content.getChildren().addAll(new Label("Nom :"), fNom, new Label("Description :"), fDesc, errLabel);
         dialog.getDialogPane().setContent(content);
 
+        // Désactiver OK tant que le nom est invalide
+        javafx.scene.control.Button okBtn = (javafx.scene.control.Button)
+            dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+            String nom  = fNom.getText().trim();
+            String desc = fDesc.getText().trim();
+            if (nom.length() < 3 || nom.length() > 80) {
+                errLabel.setText("Le nom doit contenir entre 3 et 80 caractères.");
+                e.consume();
+            } else if (desc.length() < 15) {
+                errLabel.setText("La description doit contenir au moins 15 caractères.");
+                e.consume();
+            } else if (desc.length() > 500) {
+                errLabel.setText("La description ne peut pas dépasser 500 caractères.");
+                e.consume();
+            } else {
+                errLabel.setText("");
+            }
+        });
+
         dialog.setResultConverter(btn -> {
-            if (btn == javafx.scene.control.ButtonType.OK && !fNom.getText().isBlank()) {
+            if (btn == javafx.scene.control.ButtonType.OK) {
                 return new Communaute(fNom.getText().trim(), fDesc.getText().trim(),
                                       SessionManager.getCurrentUser().getId());
             }
@@ -186,11 +207,32 @@ public class FrontCommunauteController {
         TextField fNom = new TextField(c.getNom());
         javafx.scene.control.TextArea fDesc = new javafx.scene.control.TextArea(c.getDescription());
         fDesc.setPrefRowCount(3);
-        content.getChildren().addAll(new Label("Nom :"), fNom, new Label("Description :"), fDesc);
+        Label errLabel = new Label();
+        errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:11;");
+        content.getChildren().addAll(new Label("Nom :"), fNom, new Label("Description :"), fDesc, errLabel);
         dialog.getDialogPane().setContent(content);
 
+        javafx.scene.control.Button okBtn = (javafx.scene.control.Button)
+            dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+            String nom  = fNom.getText().trim();
+            String desc = fDesc.getText().trim();
+            if (nom.length() < 3 || nom.length() > 80) {
+                errLabel.setText("Le nom doit contenir entre 3 et 80 caractères.");
+                e.consume();
+            } else if (desc.length() < 15) {
+                errLabel.setText("La description doit contenir au moins 15 caractères.");
+                e.consume();
+            } else if (desc.length() > 500) {
+                errLabel.setText("La description ne peut pas dépasser 500 caractères.");
+                e.consume();
+            } else {
+                errLabel.setText("");
+            }
+        });
+
         dialog.setResultConverter(btn -> {
-            if (btn == javafx.scene.control.ButtonType.OK && !fNom.getText().isBlank()) {
+            if (btn == javafx.scene.control.ButtonType.OK) {
                 c.setNom(fNom.getText().trim());
                 c.setDescription(fDesc.getText().trim());
                 return c;
