@@ -1,6 +1,8 @@
 package tn.esprit.entities;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Post {
     private int id;
@@ -12,8 +14,11 @@ public class Post {
     private String imageFile;
     private String videoFile;
     private LocalDateTime createdAt;
-    private int communauteId;
+    private int communauteId; // FK vers communaute.id
     private int userId;
+
+    // OneToMany : commentaires du post (orphanRemoval)
+    private List<Commentaire> commentaires = new ArrayList<>();
 
     public Post() {}
 
@@ -74,9 +79,11 @@ public class Post {
     public int getUserId() { return userId; }
     public void setUserId(int userId) { this.userId = userId; }
 
+    public List<Commentaire> getCommentaires() { return commentaires; }
+    public void setCommentaires(List<Commentaire> commentaires) { this.commentaires = commentaires; }
+
     @Override
     public String toString() {
-        return "Post{id=" + id + ", titre='" + titre + "', contenu='" + contenu +
-               "', communauteId=" + communauteId + ", userId=" + userId + ", createdAt=" + createdAt + '}';
+        return "Post{id=" + id + ", titre='" + titre + "', communauteId=" + communauteId + ", userId=" + userId + '}';
     }
 }

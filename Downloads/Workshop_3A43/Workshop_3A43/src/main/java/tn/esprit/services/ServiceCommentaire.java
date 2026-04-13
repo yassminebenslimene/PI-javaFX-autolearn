@@ -11,14 +11,9 @@ public class ServiceCommentaire {
 
     private Connection connection = MyConnection.getInstance().getConnection();
 
-    private Commentaire fromRs(ResultSet rs) throws SQLException {
-        return new Commentaire(
-            rs.getInt("id"), rs.getString("contenu"),
-            rs.getTimestamp("creaed_at") != null ? rs.getTimestamp("creaed_at").toLocalDateTime() : null,
-            rs.getString("sentiment"), rs.getDouble("sentiment_score"),
-            rs.getInt("post_id"), rs.getInt("user_id"));
-    }
+    // ── Lecture ──────────────────────────────────────────────────────────────
 
+    // OneToMany : tous les commentaires d'un post (orphanRemoval)
     public List<Commentaire> getByPost(int postId) {
         List<Commentaire> list = new ArrayList<>();
         String req = "SELECT * FROM commentaire WHERE post_id=? ORDER BY creaed_at ASC";
@@ -31,17 +26,35 @@ public class ServiceCommentaire {
         return list;
     }
 
-    public void ajouter(Commentaire c) {
-        String req = "INSERT INTO commentaire (contenu, creaed_at, sentiment, sentiment_score, post_id, user_id) VALUES (?,?,?,?,?,?)";
+    public Commentaire getById(int id) {
+        String req = "SELECT * FROM commentaire WHERE id=?";
         try {
             PreparedStatement ps = connection.prepareStatement(req);
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return fromRs(rs);
+        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        return null;
+    }
+
+    // ── Écriture ─────────────────────────────────────────────────────────────
+
+    public void ajouter(Commentaire c) {
+        String req = "INSERT INTO commentaire (contenu, creaed_at, sentiment, sentiment_score, post_id, user_id) " +
+                     "VALUES (?,?,?,?,?,?)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(req, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, c.getContenu());
-            ps.setTimestamp(2, c.getCreatedAt() != null ? Timestamp.valueOf(c.getCreatedAt()) : Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setTimestamp(2, c.getCreatedAt() != null
+                ? Timestamp.valueOf(c.getCreatedAt())
+                : Timestamp.valueOf(java.time.LocalDateTime.now()));
             ps.setString(3, c.getSentiment());
             ps.setDouble(4, c.getSentimentScore());
             ps.setInt(5, c.getPostId());
             ps.setInt(6, c.getUserId());
             ps.executeUpdate();
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) c.setId(keys.getInt(1));
         } catch (SQLException e) { System.err.println(e.getMessage()); }
     }
 
@@ -59,6 +72,7 @@ public class ServiceCommentaire {
         } catch (SQLException e) { System.err.println(e.getMessage()); }
     }
 
+    // Supprime un commentaire (orphanRemoval géré par le post parent)
     public void supprimer(Commentaire c) {
         String req = "DELETE FROM commentaire WHERE id=?";
         try {
@@ -66,5 +80,29 @@ public class ServiceCommentaire {
             ps.setInt(1, c.getId());
             ps.executeUpdate();
         } catch (SQLException e) { System.err.println(e.getMessage()); }
+    }
+
+    // Supprime tous les commentaires d'un post (cascade depuis Post)
+    public void supprimerByPost(int postId) {
+        String req = "DELETE FROM commentaire WHERE post_id=?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(req);
+            ps.setInt(1, postId);
+            ps.executeUpdate();
+        } catch (SQLException e) { System.err.println(e.getMessage()); }
+    }
+
+    // ── Helper privé ─────────────────────────────────────────────────────────
+
+    private Commentaire fromRs(ResultSet rs) throws SQLException {
+        return new Commentaire(
+            rs.getInt("id"),
+            rs.getString("contenu"),
+            rs.getTimestamp("creaed_at") != null ? rs.getTimestamp("creaed_at").toLocalDateTime() : null,
+            rs.getString("sentiment"),
+            rs.getDouble("sentiment_score"),
+            rs.getInt("post_id"),
+            rs.getInt("user_id")
+        );
     }
 }

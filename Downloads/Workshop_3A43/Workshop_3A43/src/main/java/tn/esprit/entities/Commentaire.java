@@ -8,7 +8,7 @@ public class Commentaire {
     private LocalDateTime createdAt;
     private String sentiment;
     private double sentimentScore;
-    private int postId;
+    private int postId;   // FK vers post.id (orphanRemoval depuis Post)
     private int userId;
 
     public Commentaire() {}
@@ -54,7 +54,6 @@ public class Commentaire {
 
     @Override
     public String toString() {
-        return "Commentaire{id=" + id + ", contenu='" + contenu + "', sentiment='" + sentiment +
-               "', postId=" + postId + ", userId=" + userId + ", createdAt=" + createdAt + '}';
+        return "Commentaire{id=" + id + ", contenu='" + contenu + "', postId=" + postId + ", userId=" + userId + '}';
     }
 }

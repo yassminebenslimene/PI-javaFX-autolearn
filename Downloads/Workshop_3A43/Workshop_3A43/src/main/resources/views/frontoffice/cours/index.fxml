@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color:transparent; -fx-background:#f1f5f9;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.FrontCoursController">
+    <content>
+        <VBox spacing="14" style="-fx-background-color:#f1f5f9;">
+            <padding><Insets top="20" right="20" bottom="28" left="20"/></padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color:white; -fx-background-radius:14; -fx-border-color:#e2e8f0; -fx-border-radius:14; -fx-padding:16;">
+                <Label text="Catalogue des cours" style="-fx-text-fill:#0f172a; -fx-font-size:24; -fx-font-weight:900;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Total:" style="-fx-text-fill:#64748b; -fx-font-weight:700;"/>
+                <Label fx:id="labelTotalCours" text="0" style="-fx-text-fill:#2563eb; -fx-font-size:20; -fx-font-weight:900;"/>
+            </HBox>
+
+            <Label fx:id="labelEmpty" text="Aucun cours disponible pour le moment." visible="false" managed="false"
+                   style="-fx-text-fill:#64748b; -fx-font-size:13; -fx-padding:8 4 8 4;"/>
+
+            <VBox fx:id="cardsContainer" spacing="12"/>
+        </VBox>
+    </content>
+</ScrollPane>
