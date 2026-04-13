@@ -12,7 +12,6 @@ public class PasswordUtil {
         try {
             return BCrypt.checkpw(plainPassword, hashedPassword);
         } catch (Exception e) {
-            // fallback: plain-text comparison (for legacy/test data)
             return plainPassword.equals(hashedPassword);
         }
     }

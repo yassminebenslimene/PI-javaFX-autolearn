@@ -32,10 +32,10 @@
                 <Button text="Cours" onAction="#onCours"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
                                -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
-                <Button text="Challenges"
+                <Button text="Challenges" onAction="#onChallenges"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
-                <Button text="Événements"
+                <Button text="Événements" onAction="#onEvenements"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
                 <Button text="Communauté"
@@ -94,7 +94,7 @@
                                        -fx-font-weight:700; -fx-padding:12 28 12 28; -fx-background-radius:30;
                                        -fx-cursor:hand; -fx-border-width:0;
                                        -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,3);"/>
-                        <Button text="🏆  Challenges"
+                        <Button text="🏆  Challenges" onAction="#onChallenges"
                                 style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
                                        -fx-font-size:13; -fx-font-weight:600; -fx-padding:12 28 12 28;
                                        -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:1;

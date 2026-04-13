@@ -3,24 +3,24 @@ package tn.esprit.services;
 import java.util.List;
 
 /**
- * Interface générique CRUD — utilisée par ServiceCours et ServiceChapitre.
- * ServiceQuiz, ServiceQuestion, ServiceOption n'implémentent pas cette interface
- * car ils ont des signatures différentes (boolean, supprimer(T t)).
+ * Interface générique CRUD partagée par tous les services.
+ *
+ * ServiceCours / ServiceChapitre → implémentent consulter() et consulterParId()
+ * EvenementService / EquipeService / ParticipationService → implémentent getAll() et getById()
  */
 public interface IService<T> {
 
-    // Ajouter un enregistrement
     void ajouter(T t);
-
-    // Modifier un enregistrement
     void modifier(T t);
-
-    // Supprimer par id
     void supprimer(int id);
 
-    // Retourner tous les enregistrements
-    List<T> consulter();
+    // ── Méthodes READ ─────────────────────────────────────────────────────────
+    // Chaque service implémente l'une OU l'autre paire.
+    // Les default assurent la compatibilité croisée sans récursion.
 
-    // Retourner un enregistrement par id
-    T consulterParId(int id);
+    default List<T> consulter()      { return getAll(); }
+    default T consulterParId(int id) { return getById(id); }
+
+    default List<T> getAll()         { return consulter(); }
+    default T getById(int id)        { return consulterParId(id); }
 }

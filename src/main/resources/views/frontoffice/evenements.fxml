@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.evenement.front.EvenementFrontController"
+            prefWidth="1200" prefHeight="760"
+            style="-fx-background-color:#f0f0f8;">
+
+    <!-- NAVBAR fixe -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="0"
+              style="-fx-background-color:rgba(122,106,216,0.96);
+                     -fx-min-height:68; -fx-max-height:68;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
+            <padding><Insets left="36" right="36"/></padding>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="🎓" style="-fx-font-size:24;"/>
+                <Label text="AutoLearn" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;"/>
+            </HBox>
+            <HBox spacing="0" alignment="CENTER" style="-fx-padding:0 0 0 36;">
+                <Button text="Accueil" onAction="#onHome"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75);
+                               -fx-font-size:13; -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Cours"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75);
+                               -fx-font-size:13; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Événements"
+                        style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                               -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand; -fx-padding:8 16 8 16;
+                               -fx-background-radius:20; -fx-border-width:0;"/>
+                <Button text="Communauté"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75);
+                               -fx-font-size:13; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+            </HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox alignment="CENTER" spacing="12">
+                <Label fx:id="labelAvatarNav"
+                       style="-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white;
+                              -fx-font-weight:700; -fx-font-size:14; -fx-background-radius:50%;
+                              -fx-padding:8 11 8 11;"/>
+                <Label fx:id="labelCurrentUser" text=""
+                       style="-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;"/>
+                <Separator orientation="VERTICAL" style="-fx-background-color:rgba(255,255,255,0.3); -fx-pref-height:28;"/>
+                <!-- User dropdown button -->
+                <MenuButton fx:id="menuUser" text="▾"
+                            style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                                   -fx-font-size:13; -fx-font-weight:600; -fx-padding:7 14 7 14;
+                                   -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;">
+                    <items>
+                        <MenuItem text="👤  Mon Profil" onAction="#onProfile"/>
+                        <MenuItem text="🏆  Mes Participations" onAction="#onMesParticipations"/>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="⎋  Déconnexion" onAction="#onLogout"/>
+                    </items>
+                </MenuButton>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                    style="-fx-background-color:#f0f0f8; -fx-background:transparent; -fx-border-width:0;">
+            <VBox spacing="0">
+                <!-- Header -->
+                <VBox alignment="CENTER" spacing="12" prefHeight="160"
+                      style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c); -fx-padding:40 80 40 80;">
+                    <Label text="Nos Evenements"
+                           style="-fx-font-size:34; -fx-font-weight:800; -fx-text-fill:white;"/>
+                    <Button text="&#128197;  Voir le calendrier"
+                            style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
+                                   -fx-font-weight:600; -fx-padding:8 24 8 24; -fx-background-radius:20;
+                                   -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:20; -fx-cursor:hand;"/>
+                </VBox>
+
+                <!-- Intro banner -->
+                <VBox alignment="CENTER" spacing="8"
+                      style="-fx-background-color:white; -fx-padding:24 80 24 80;
+                             -fx-border-color:transparent transparent #eeeeee transparent; -fx-border-width:0 0 1 0;">
+                    <Label text="&#127919;  Developpez vos competences par la pratique"
+                           style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#333;"/>
+                    <Label text="Nos evenements sont concus pour aider les etudiants a developper des competences techniques et relationnelles."
+                           wrapText="true" style="-fx-font-size:12; -fx-text-fill:#666; -fx-text-alignment:CENTER;"/>
+                </VBox>
+
+                <!-- Events list -->
+                <VBox fx:id="eventsContainer" spacing="16"
+                      style="-fx-padding:32 80 32 80; -fx-background-color:#f0f0f8;"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER" prefHeight="56" style="-fx-background-color:#1e1e1e;">
+            <Label text="© 2026 AutoLearn — Tous droits réservés"
+                   style="-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:12;"/>
+        </HBox>
+    </bottom>
+</BorderPane>

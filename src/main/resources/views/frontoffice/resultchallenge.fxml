@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.ResultChallengeController"
+            maxWidth="Infinity" maxHeight="Infinity"
+            style="-fx-background-color:#f5f5f5;">
+
+    <!-- Navbar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="0"
+              style="-fx-background-color:rgba(122,106,216,0.96);
+                     -fx-min-height:64; -fx-max-height:64;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
+            <padding><Insets left="36" right="36"/></padding>
+            <Label text="🎓" style="-fx-font-size:22;"/>
+            <Label text="  AutoLearn"
+                   style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="← Quitter" onAction="#onQuit"
+                    style="-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;
+                           -fx-font-size:12; -fx-font-weight:600; -fx-cursor:hand;
+                           -fx-border-width:0; -fx-padding:8 20 8 20; -fx-background-radius:20;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color:#f5f5f5; -fx-background:transparent; -fx-border-width:0;">
+            <VBox alignment="TOP_CENTER" spacing="0"
+                  style="-fx-background-color:#f5f5f5;">
+
+                <!-- Hero banner -->
+                <VBox alignment="CENTER" spacing="8" prefHeight="160"
+                      style="-fx-background-color:linear-gradient(to bottom right,rgba(158,159,245,0.9),rgba(122,106,216,0.85));
+                             -fx-padding:40 80 40 80;">
+                    <Label text="RÉSULTAT"
+                           style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.8);
+                                  -fx-letter-spacing:1;"/>
+                    <Label fx:id="challengeTitle" text=""
+                           style="-fx-font-size:34; -fx-font-weight:800; -fx-text-fill:white;"/>
+                </VBox>
+
+                <!-- Main content -->
+                <VBox alignment="TOP_CENTER" spacing="24"
+                      style="-fx-padding:40 0 60 0; -fx-background-color:#f5f5f5;">
+                    <VBox spacing="24" prefWidth="500" maxWidth="500">
+
+                        <!-- Carte de résultat -->
+                        <VBox spacing="20"
+                              style="-fx-background-color:white; -fx-background-radius:23;
+                                     -fx-border-color:#eeeeee; -fx-border-radius:23;
+                                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),44,0,0,0);
+                                     -fx-padding:40 32 40 32;">
+
+                            <VBox spacing="12" alignment="CENTER">
+                                <Label fx:id="scoreLabel" text="0/100"
+                                       style="-fx-font-size:48; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
+                                <Label fx:id="percentageLabel" text="0%"
+                                       style="-fx-font-size:20; -fx-font-weight:600; -fx-text-fill:#777;"/>
+                            </VBox>
+
+                            <Separator style="-fx-background-color:#eeeeee;"/>
+
+                            <VBox spacing="8">
+                                <HBox spacing="10">
+                                    <Label text="📅 Date début" style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#777;" prefWidth="120"/>
+                                    <Label fx:id="dateDebutLabel" text="" style="-fx-font-size:14; -fx-text-fill:#1e1e1e;"/>
+                                </HBox>
+                                <HBox spacing="10">
+                                    <Label text="📅 Date fin" style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#777;" prefWidth="120"/>
+                                    <Label fx:id="dateFinLabel" text="" style="-fx-font-size:14; -fx-text-fill:#1e1e1e;"/>
+                                </HBox>
+                                <HBox spacing="10">
+                                    <Label text="⭐ Niveau" style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#777;" prefWidth="120"/>
+                                    <Label fx:id="niveauLabel" text="" style="-fx-font-size:14; -fx-text-fill:#1e1e1e;"/>
+                                </HBox>
+                            </VBox>
+
+                            <Separator style="-fx-background-color:#eeeeee;"/>
+
+                            <!-- Section rating 5 étoiles -->
+                            <VBox spacing="10" alignment="CENTER">
+                                <Label text="Évaluez ce challenge"
+                                       style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                                <HBox fx:id="starsContainer" spacing="8" alignment="CENTER">
+                                    <!-- Les étoiles seront ajoutées dynamiquement -->
+                                </HBox>
+                                <Label fx:id="ratingMessage" text=""
+                                       style="-fx-font-size:12; -fx-text-fill:#28a745;"/>
+                            </VBox>
+
+                            <Button text="🏠 Retour aux challenges" onAction="#onBackToChallenges"
+                                    style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                                           -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:700;
+                                           -fx-padding:14 36 14 36; -fx-background-radius:30;
+                                           -fx-cursor:hand; -fx-border-width:0;
+                                           -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.4),12,0,0,4);"/>
+                        </VBox>
+
+                    </VBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
