@@ -9,7 +9,10 @@ import java.util.List;
 
 public class ServicePost {
 
-    private Connection connection = MyConnection.getInstance().getConnection();
+    // Toujours récupérer la connexion fraîche (auto-reconnect)
+    private Connection conn() {
+        return MyConnection.getInstance().getConnection();
+    }
 
     // ── Lecture ──────────────────────────────────────────────────────────────
 
@@ -17,22 +20,23 @@ public class ServicePost {
         List<Post> list = new ArrayList<>();
         String req = "SELECT * FROM post WHERE communeute_id=? ORDER BY created_at DESC";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, communauteId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) list.add(fromRs(rs));
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+            System.out.println("[ServicePost] getByCommunaute(" + communauteId + ") -> " + list.size() + " posts");
+        } catch (SQLException e) { System.err.println("[ServicePost] getByCommunaute: " + e.getMessage()); }
         return list;
     }
 
     public Post getById(int id) {
         String req = "SELECT * FROM post WHERE id=?";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return fromRs(rs);
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServicePost] getById: " + e.getMessage()); }
         return null;
     }
 
@@ -42,7 +46,7 @@ public class ServicePost {
         String req = "INSERT INTO post (contenu, titre, ai_reaction, ai_reaction_data, summary, " +
                      "image_file, video_file, created_at, communeute_id, user_id) VALUES (?,?,?,?,?,?,?,?,?,?)";
         try {
-            PreparedStatement ps = connection.prepareStatement(req, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = conn().prepareStatement(req, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, p.getContenu());
             ps.setString(2, p.getTitre());
             ps.setString(3, p.getAiReaction());
@@ -57,15 +61,18 @@ public class ServicePost {
             ps.setInt(10, p.getUserId());
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) p.setId(keys.getInt(1));
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+            if (keys.next()) {
+                p.setId(keys.getInt(1));
+                System.out.println("[ServicePost] ajouter OK id=" + p.getId() + " communauteId=" + p.getCommunauteId());
+            }
+        } catch (SQLException e) { System.err.println("[ServicePost] ajouter: " + e.getMessage()); }
     }
 
     public void modifier(Post p) {
         String req = "UPDATE post SET contenu=?, titre=?, ai_reaction=?, ai_reaction_data=?, " +
                      "summary=?, image_file=?, video_file=?, communeute_id=?, user_id=? WHERE id=?";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setString(1, p.getContenu());
             ps.setString(2, p.getTitre());
             ps.setString(3, p.getAiReaction());
@@ -77,17 +84,16 @@ public class ServicePost {
             ps.setInt(9, p.getUserId());
             ps.setInt(10, p.getId());
             ps.executeUpdate();
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServicePost] modifier: " + e.getMessage()); }
     }
 
-    // Supprime le post + cascade commentaires (orphanRemoval via FK ON DELETE CASCADE en DB)
     public void supprimer(Post p) {
         String req = "DELETE FROM post WHERE id=?";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, p.getId());
             ps.executeUpdate();
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) { System.err.println("[ServicePost] supprimer: " + e.getMessage()); }
     }
 
     // ── Helper privé ─────────────────────────────────────────────────────────

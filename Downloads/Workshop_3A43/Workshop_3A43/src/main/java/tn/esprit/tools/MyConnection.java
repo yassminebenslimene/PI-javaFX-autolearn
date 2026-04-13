@@ -36,6 +36,15 @@ public class MyConnection {
     }
 
     public Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed() || !connection.isValid(2)) {
+                System.out.println("Reconnexion DB...");
+                connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                System.out.println("Reconnexion réussie.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur reconnexion: " + e.getMessage());
+        }
         return connection;
     }
 

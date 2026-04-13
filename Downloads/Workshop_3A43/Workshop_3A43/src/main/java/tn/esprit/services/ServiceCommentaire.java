@@ -1,4 +1,4 @@
-package tn.esprit.services;
+﻿package tn.esprit.services;
 
 import tn.esprit.entities.Commentaire;
 import tn.esprit.tools.MyConnection;
@@ -9,16 +9,18 @@ import java.util.List;
 
 public class ServiceCommentaire {
 
-    private Connection connection = MyConnection.getInstance().getConnection();
+    private Connection conn() {
+        return MyConnection.getInstance().getConnection();
+    }
 
-    // ── Lecture ──────────────────────────────────────────────────────────────
+    // â”€â”€ Lecture â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     // OneToMany : tous les commentaires d'un post (orphanRemoval)
     public List<Commentaire> getByPost(int postId) {
         List<Commentaire> list = new ArrayList<>();
         String req = "SELECT * FROM commentaire WHERE post_id=? ORDER BY creaed_at ASC";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, postId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) list.add(fromRs(rs));
@@ -29,7 +31,7 @@ public class ServiceCommentaire {
     public Commentaire getById(int id) {
         String req = "SELECT * FROM commentaire WHERE id=?";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return fromRs(rs);
@@ -37,13 +39,13 @@ public class ServiceCommentaire {
         return null;
     }
 
-    // ── Écriture ─────────────────────────────────────────────────────────────
+    // â”€â”€ Ã‰criture â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public void ajouter(Commentaire c) {
         String req = "INSERT INTO commentaire (contenu, creaed_at, sentiment, sentiment_score, post_id, user_id) " +
                      "VALUES (?,?,?,?,?,?)";
         try {
-            PreparedStatement ps = connection.prepareStatement(req, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = conn().prepareStatement(req, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, c.getContenu());
             ps.setTimestamp(2, c.getCreatedAt() != null
                 ? Timestamp.valueOf(c.getCreatedAt())
@@ -61,7 +63,7 @@ public class ServiceCommentaire {
     public void modifier(Commentaire c) {
         String req = "UPDATE commentaire SET contenu=?, sentiment=?, sentiment_score=?, post_id=?, user_id=? WHERE id=?";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setString(1, c.getContenu());
             ps.setString(2, c.getSentiment());
             ps.setDouble(3, c.getSentimentScore());
@@ -72,11 +74,11 @@ public class ServiceCommentaire {
         } catch (SQLException e) { System.err.println(e.getMessage()); }
     }
 
-    // Supprime un commentaire (orphanRemoval géré par le post parent)
+    // Supprime un commentaire (orphanRemoval gÃ©rÃ© par le post parent)
     public void supprimer(Commentaire c) {
         String req = "DELETE FROM commentaire WHERE id=?";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, c.getId());
             ps.executeUpdate();
         } catch (SQLException e) { System.err.println(e.getMessage()); }
@@ -86,13 +88,13 @@ public class ServiceCommentaire {
     public void supprimerByPost(int postId) {
         String req = "DELETE FROM commentaire WHERE post_id=?";
         try {
-            PreparedStatement ps = connection.prepareStatement(req);
+            PreparedStatement ps = conn().prepareStatement(req);
             ps.setInt(1, postId);
             ps.executeUpdate();
         } catch (SQLException e) { System.err.println(e.getMessage()); }
     }
 
-    // ── Helper privé ─────────────────────────────────────────────────────────
+    // â”€â”€ Helper privÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private Commentaire fromRs(ResultSet rs) throws SQLException {
         return new Commentaire(
@@ -106,3 +108,4 @@ public class ServiceCommentaire {
         );
     }
 }
+

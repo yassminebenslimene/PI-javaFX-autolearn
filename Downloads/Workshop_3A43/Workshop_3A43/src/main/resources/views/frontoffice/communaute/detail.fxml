@@ -50,6 +50,13 @@
         </VBox>
 
         <!-- Posts list -->
+        <HBox alignment="CENTER_RIGHT">
+            <Button text="🔄  Rafraîchir" onAction="#onRefresh"
+                    style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8;
+                           -fx-font-size:12; -fx-font-weight:600; -fx-cursor:hand;
+                           -fx-border-color:#7a6ad8; -fx-border-radius:8; -fx-border-width:1;
+                           -fx-padding:6 14 6 14; -fx-background-radius:8;"/>
+        </HBox>
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
                     style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;">
             <VBox fx:id="postsPane" spacing="16"/>

@@ -96,11 +96,15 @@ public class FrontCommunauteController {
 
     private void ouvrirDetail(Communaute c) {
         try {
+            // Recharger depuis la DB pour avoir l'ID et les membres à jour
+            Communaute fresh = service.getById(c.getId());
+            if (fresh == null) fresh = c;
+
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/views/frontoffice/communaute/detail.fxml"));
             Parent view = loader.load();
             FrontCommunauteDetailController ctrl = loader.getController();
-            ctrl.setCommunaute(c, () -> setCenter(buildSelf()));
+            ctrl.setCommunaute(fresh, () -> setCenter(buildSelf()));
             setCenter(view);
         } catch (Exception e) { e.printStackTrace(); }
     }

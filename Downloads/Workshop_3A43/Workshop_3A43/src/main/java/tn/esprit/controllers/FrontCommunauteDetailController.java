@@ -64,7 +64,9 @@ public class FrontCommunauteDetailController {
         postsPane.getChildren().clear();
         emptyLabel = null;
 
+        System.out.println("[DEBUG] loadPosts communauteId=" + communaute.getId());
         List<Post> posts = servicePost.getByCommunaute(communaute.getId());
+        System.out.println("[DEBUG] posts trouvés: " + posts.size());
         if (posts.isEmpty()) {
             emptyLabel = new Label("Aucun post pour l'instant. Soyez le premier !");
             emptyLabel.setStyle("-fx-text-fill:#aaa; -fx-font-size:13; -fx-padding:8 0 0 0;");
@@ -278,6 +280,11 @@ public class FrontCommunauteDetailController {
     }
 
     // ── Navigation ───────────────────────────────────────────────────────────
+
+    @FXML
+    public void onRefresh() {
+        loadPosts();
+    }
 
     @FXML
     public void onRetour() {
