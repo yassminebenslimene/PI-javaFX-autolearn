@@ -10,63 +10,55 @@ import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.session.SessionManager;
 
+import java.io.IOException;
+
 public class FrontofficeController {
 
+    @FXML private Label welcomeLabel;
+    @FXML private Label labelNiveauStat;
+    @FXML private Label labelAvatarNav;
     @FXML private Label labelCurrentUser;
     @FXML private Label labelNiveauUser;
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelNiveauStat;
-    @FXML private Label welcomeLabel;
 
-    // Référence au BorderPane principal pour changer le contenu
-    private BorderPane mainRoot;
-
-    // Sauvegarde du contenu d'accueil original
     private javafx.scene.Node originalCenter;
 
     @FXML
     public void initialize() {
-        if (SessionManager.getCurrentUser() == null) return;
-
         var u = SessionManager.getCurrentUser();
-        String name = u.getPrenom() + " " + u.getNom();
-        if (labelCurrentUser != null) labelCurrentUser.setText(name);
+        if (u == null) return;
+
+        if (labelCurrentUser != null) labelCurrentUser.setText(u.getPrenom() + " " + u.getNom());
         if (welcomeLabel != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Prêt à apprendre aujourd'hui ?");
-
-        String initials = u.getPrenom().substring(0,1).toUpperCase()
-                        + u.getNom().substring(0,1).toUpperCase();
-        if (labelAvatarNav != null) labelAvatarNav.setText(initials);
-
+        if (labelAvatarNav != null) {
+            String initials = u.getPrenom().substring(0,1).toUpperCase()
+                            + u.getNom().substring(0,1).toUpperCase();
+            labelAvatarNav.setText(initials);
+        }
         if (u instanceof Etudiant e && e.getNiveau() != null) {
-            labelNiveauUser.setText("Niveau : " + e.getNiveau());
+            if (labelNiveauUser != null) labelNiveauUser.setText("Niveau : " + e.getNiveau());
             if (labelNiveauStat != null) labelNiveauStat.setText(e.getNiveau());
-        } else {
-            labelNiveauUser.setText("");
-            if (labelNiveauStat != null) labelNiveauStat.setText("—");
         }
 
-        // Sauvegarder le center original (hero + stats + cards) après le rendu
+        // Sauvegarder le center original après le rendu
         javafx.application.Platform.runLater(() -> {
-            if (labelCurrentUser.getScene() != null) {
+            if (labelCurrentUser != null && labelCurrentUser.getScene() != null) {
                 BorderPane root = (BorderPane) labelCurrentUser.getScene().getRoot();
                 originalCenter = root.getCenter();
             }
         });
     }
 
-    // ── Navigation vers la liste des cours ───────────────────────────────────
+    // ── Accueil ───────────────────────────────────────────────────────────────
     @FXML
     public void onHome() {
-        // Restaurer le contenu d'accueil original (hero + stats + cards)
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
         BorderPane root = (BorderPane) scene.getRoot();
-        if (originalCenter != null) {
-            root.setCenter(originalCenter);
-        }
+        if (originalCenter != null) root.setCenter(originalCenter);
     }
 
+    // ── Cours ─────────────────────────────────────────────────────────────────
     @FXML
     public void onCours() {
         naviguerVersCours();
@@ -74,71 +66,97 @@ public class FrontofficeController {
 
     private void naviguerVersCours() {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/frontoffice/cours/index.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/cours/index.fxml"));
             Parent view = loader.load();
             FrontCoursController ctrl = loader.getController();
 
             ctrl.setOnVoirChapitres(cours -> {
                 try {
-                    FXMLLoader chapLoader = new FXMLLoader(
-                        getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
+                    FXMLLoader chapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
                     Parent chapView = chapLoader.load();
                     FrontChapitreController chapCtrl = chapLoader.getController();
 
                     chapCtrl.setOnLireChapitre((c, chapitre) -> {
                         try {
-                            FXMLLoader detailLoader = new FXMLLoader(
-                                getClass().getResource("/views/frontoffice/chapitre/detail.fxml"));
+                            FXMLLoader detailLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/detail.fxml"));
                             Parent detailView = detailLoader.load();
                             FrontChapitreDetailController detailCtrl = detailLoader.getController();
                             detailCtrl.setChapitre(c, chapitre, () -> setCenter(chapView));
                             setCenter(detailView);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
+                        } catch (Exception ex) { ex.printStackTrace(); }
                     });
 
                     chapCtrl.setOnPasserQuiz(chapitre -> {
                         try {
-                            FXMLLoader quizLoader = new FXMLLoader(
-                                getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                            FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
                             Parent quizView = quizLoader.load();
                             FrontQuizController quizCtrl = quizLoader.getController();
                             quizCtrl.setChapitre(chapitre, () -> setCenter(chapView));
-                            // Vue quiz : mettre directement sans ScrollPane pour garder le fond violet
                             setCenterDirect(quizView);
                             javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
+                        } catch (Exception ex) { ex.printStackTrace(); }
                     });
 
-                    chapCtrl.setCours(cours);                    setCenter(chapView);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
+                    chapCtrl.setCours(cours);
+                    setCenter(chapView);
+                } catch (Exception ex) { ex.printStackTrace(); }
             });
 
             ctrl.loadData();
             setCenter(view);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
 
+    // ── Événements ────────────────────────────────────────────────────────────
+    @FXML
+    public void onEvenements() {
+        try {
+            MainApp.showEvenementsFront();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // ── Remplace le contenu central du BorderPane ─────────────────────────────
+    // ── Challenges ────────────────────────────────────────────────────────────
+    @FXML
+    public void onChallenges() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
+            MainApp.getPrimaryStage().getScene().setRoot(loader.load());
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    // ── Voir les cours (bouton hero) ──────────────────────────────────────────
+    @FXML
+    public void onViewCourses() {
+        naviguerVersCours();
+    }
+
+    // ── Profil ────────────────────────────────────────────────────────────────
+    @FXML
+    public void onProfile() {
+        try {
+            MainApp.showProfile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ── Déconnexion ───────────────────────────────────────────────────────────
+    @FXML
+    public void onLogout() {
+        SessionManager.logout();
+        try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // ── Navigation centrale ───────────────────────────────────────────────────
     private void setCenter(Parent view) {
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
         BorderPane root = (BorderPane) scene.getRoot();
-        // Les vues quiz ont leur propre fond violet — les mettre directement sans ScrollPane
-        String styleId = view.getClass().getSimpleName();
-        boolean isQuizView = view.getStyle() != null && view.getStyle().contains("6b21a8")
-                          || view.getStyle() != null && view.getStyle().contains("667eea")
-                          || view.getStyle() != null && view.getStyle().contains("4c1d95");
+        boolean isQuizView = view.getStyle() != null &&
+            (view.getStyle().contains("6b21a8") || view.getStyle().contains("667eea") || view.getStyle().contains("4c1d95"));
         if (isQuizView) {
             root.setCenter(view);
         } else {
@@ -150,32 +168,10 @@ public class FrontofficeController {
         }
     }
 
-    /** Met la vue directement sans ScrollPane (pour les vues à fond plein comme le quiz) */
     private void setCenterDirect(Parent view) {
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
-        BorderPane root = (BorderPane) scene.getRoot();
-        root.setCenter(view);
-    }
-
-    @FXML
-    private void onLogout() {
-        SessionManager.logout();
-        try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    @FXML
-    private void onProfile() {
-        try {
-            MainApp.showProfile();
-        } catch (Exception e) {
-            e.printStackTrace();
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                javafx.scene.control.Alert.AlertType.ERROR);
-            alert.setTitle("Erreur profil");
-            alert.setHeaderText(e.getMessage());
-            alert.showAndWait();
-        }
+        ((BorderPane) scene.getRoot()).setCenter(view);
     }
 }

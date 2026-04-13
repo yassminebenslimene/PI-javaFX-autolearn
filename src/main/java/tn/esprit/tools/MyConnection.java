@@ -70,10 +70,59 @@ public class MyConnection {
                 "CONSTRAINT fk_option_question FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE" +
                 ")";
 
+        String createExerciceTable = "CREATE TABLE IF NOT EXISTS exercice (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "question LONGTEXT NOT NULL," +
+                "reponse VARCHAR(255) NOT NULL," +
+                "points INT NOT NULL DEFAULT 10" +
+                ")";
+
+        String createChallengeTable = "CREATE TABLE IF NOT EXISTS challenge (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "titre VARCHAR(255) NOT NULL," +
+                "description LONGTEXT," +
+                "date_debut DATE NOT NULL," +
+                "date_fin DATE NOT NULL," +
+                "niveau VARCHAR(50)," +
+                "duree INT DEFAULT 30," +
+                "created_by INT DEFAULT 0" +
+                ")";
+
+        String createChallengeExerciceTable = "CREATE TABLE IF NOT EXISTS challenge_exercice (" +
+                "challenge_id INT NOT NULL," +
+                "exercice_id INT NOT NULL," +
+                "PRIMARY KEY (challenge_id, exercice_id)" +
+                ")";
+
+        String createUserChallengeTable = "CREATE TABLE IF NOT EXISTS user_challenge (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "user_id INT NOT NULL," +
+                "challenge_id INT NOT NULL," +
+                "current_index INT DEFAULT 0," +
+                "answers TEXT," +
+                "score INT DEFAULT 0," +
+                "total_points INT DEFAULT 0," +
+                "completed TINYINT(1) DEFAULT 0," +
+                "completed_at DATETIME NULL" +
+                ")";
+
+        String createVoteTable = "CREATE TABLE IF NOT EXISTS vote (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "user_id INT NOT NULL," +
+                "challenge_id INT NOT NULL," +
+                "valeur INT NOT NULL," +
+                "createdvote_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ")";
+
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(createQuizTable);
             statement.executeUpdate(createQuestionTable);
             statement.executeUpdate(createOptionTable);
+            statement.executeUpdate(createExerciceTable);
+            statement.executeUpdate(createChallengeTable);
+            statement.executeUpdate(createChallengeExerciceTable);
+            statement.executeUpdate(createUserChallengeTable);
+            statement.executeUpdate(createVoteTable);
         }
     }
 }

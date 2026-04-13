@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.ShowChallengesController"
+            maxWidth="Infinity" maxHeight="Infinity"
+            style="-fx-background-color:#f5f5f5;">
+
+    <!-- Navbar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="0"
+              style="-fx-background-color:rgba(122,106,216,0.96);
+                     -fx-min-height:64; -fx-max-height:64;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
+            <padding><Insets left="36" right="36"/></padding>
+            <Label text="🎓" style="-fx-font-size:22;"/>
+            <Label text="  AutoLearn"
+                   style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Accueil" onAction="#onHome"
+                    style="-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;
+                           -fx-font-size:12; -fx-font-weight:600; -fx-cursor:hand;
+                           -fx-border-width:0; -fx-padding:8 20 8 20; -fx-background-radius:20;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color:#f5f5f5; -fx-background:transparent; -fx-border-width:0;">
+            <VBox alignment="TOP_CENTER" spacing="0"
+                  style="-fx-background-color:#f5f5f5;">
+
+                <!-- Hero banner -->
+                <VBox alignment="CENTER" spacing="8" prefHeight="160"
+                      style="-fx-background-color:linear-gradient(to bottom right,rgba(158,159,245,0.9),rgba(122,106,216,0.85));
+                             -fx-padding:40 80 40 80;">
+                    <Label text="DÉFIS"
+                           style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.8);
+                                  -fx-letter-spacing:1;"/>
+                    <Label text="Challenges disponibles"
+                           style="-fx-font-size:34; -fx-font-weight:800; -fx-text-fill:white;"/>
+                </VBox>
+
+                <!-- Main content -->
+                <VBox alignment="TOP_CENTER" spacing="24"
+                      style="-fx-padding:40 0 60 0; -fx-background-color:#f5f5f5;">
+                    <VBox spacing="24" prefWidth="800" maxWidth="800">
+
+                        <!-- Message d'erreur/succès -->
+                        <Label fx:id="messageLabel" text="" wrapText="true"
+                               style="-fx-background-color:#d4edda;
+                                      -fx-border-color:#28a745; -fx-border-width:0 0 0 4;
+                                      -fx-border-radius:5; -fx-background-radius:5;
+                                      -fx-text-fill:#155724; -fx-font-size:13;
+                                      -fx-padding:14 20 14 20; -fx-font-weight:bold;"
+                               visible="false" managed="false"/>
+
+                        <!-- Grille des challenges -->
+                        <FlowPane fx:id="challengesContainer" hgap="20" vgap="20"
+                                  style="-fx-padding:0;"/>
+
+                    </VBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
