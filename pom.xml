@@ -53,7 +53,19 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>tn.esprit.MainApp</mainClass>
+                    <options>
+                        <option>--add-modules</option>
+                        <option>javafx.controls,javafx.fxml,javafx.graphics</option>
+                    </options>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>default-cli</id>
+                        <configuration>
+                            <mainClass>tn.esprit.MainApp</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Compiler plugin -->
