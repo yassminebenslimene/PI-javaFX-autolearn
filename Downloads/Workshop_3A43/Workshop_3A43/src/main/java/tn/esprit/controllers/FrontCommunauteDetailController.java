@@ -137,7 +137,7 @@ public class FrontCommunauteDetailController {
         VBox commentsBox = new VBox(6);
         commentsBox.setStyle("-fx-padding:8 0 0 0;");
         for (Commentaire c : serviceCommentaire.getByPost(p.getId()))
-            commentsBox.getChildren().add(buildCommentLabel(c.getContenu(), c.getUserId()));
+            commentsBox.getChildren().add(buildCommentRow(c));
 
         // Champ commentaire
         HBox addComment = new HBox(8);
@@ -154,9 +154,10 @@ public class FrontCommunauteDetailController {
             String txt = commentField.getText().trim();
             if (txt.isEmpty()) return;
             int uid = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
-            serviceCommentaire.ajouter(new Commentaire(txt, p.getId(), uid));
+            Commentaire newC = new Commentaire(txt, p.getId(), uid);
+            serviceCommentaire.ajouter(newC);
             commentField.clear();
-            commentsBox.getChildren().add(buildCommentLabel(txt, uid));
+            commentsBox.getChildren().add(buildCommentRow(newC));
         });
 
         addComment.getChildren().addAll(commentField, btnComment);
@@ -201,7 +202,63 @@ public class FrontCommunauteDetailController {
         });
     }
 
-    // Affiche "💬 Nom Prenom : texte"
+    // Affiche "💬 Nom Prenom : texte" avec menu ⋮ pour le créateur
+    private HBox buildCommentRow(Commentaire c) {
+        String nom = getUserName(c.getUserId());
+        Label lbl = new Label("💬  " + nom + " : " + c.getContenu());
+        lbl.setWrapText(true);
+        lbl.setStyle("-fx-font-size:12; -fx-text-fill:#555; " +
+                     "-fx-background-color:#f5f5f5; -fx-background-radius:8; -fx-padding:6 10 6 10;");
+        HBox.setHgrow(lbl, Priority.ALWAYS);
+
+        HBox row = new HBox(6, lbl);
+        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        int currentUserId = SessionManager.getCurrentUser() != null
+                ? SessionManager.getCurrentUser().getId() : -1;
+        if (c.getUserId() == currentUserId) {
+            Button btnMenu = new Button("⋮");
+            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#888; -fx-font-size:15; " +
+                             "-fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 4;");
+
+            ContextMenu menu = new ContextMenu();
+            MenuItem itemModifier  = new MenuItem("✏  Modifier");
+            MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
+            menu.getItems().addAll(itemModifier, itemSupprimer);
+
+            itemModifier.setOnAction(e -> {
+                TextInputDialog dialog = new TextInputDialog(c.getContenu());
+                dialog.setTitle("Modifier le commentaire");
+                dialog.setHeaderText(null);
+                dialog.setContentText("Contenu :");
+                dialog.showAndWait().ifPresent(txt -> {
+                    if (!txt.isBlank()) {
+                        c.setContenu(txt.trim());
+                        serviceCommentaire.modifier(c);
+                        lbl.setText("💬  " + nom + " : " + c.getContenu());
+                    }
+                });
+            });
+
+            itemSupprimer.setOnAction(e -> {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                        "Supprimer ce commentaire ?", ButtonType.YES, ButtonType.NO);
+                confirm.setHeaderText(null);
+                confirm.showAndWait().ifPresent(btn -> {
+                    if (btn == ButtonType.YES) {
+                        serviceCommentaire.supprimer(c);
+                        ((VBox) row.getParent()).getChildren().remove(row);
+                    }
+                });
+            });
+
+            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
+            row.getChildren().add(btnMenu);
+        }
+        return row;
+    }
+
+    // Garde la compatibilité pour les appels existants
     private Label buildCommentLabel(String text, int userId) {
         String nom = getUserName(userId);
         Label lbl = new Label("💬  " + nom + " : " + text);
