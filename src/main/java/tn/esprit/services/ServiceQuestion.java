@@ -36,13 +36,21 @@ public class ServiceQuestion {
         }
     }
 
-    // ── DELETE : Supprimer une question par son id ────────────────────────────
+    // ── DELETE : Supprimer une question et toutes ses options en cascade ──────
     public boolean supprimer(Question question) {
-        String req = "DELETE FROM question WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(req)) {
-            statement.setInt(1, question.getId());
-            int rows = statement.executeUpdate();
-            return rows > 0;
+        try {
+            // Étape 1 : supprimer toutes les options de cette question
+            String delOptions = "DELETE FROM `option` WHERE question_id = ?";
+            try (PreparedStatement st = connection.prepareStatement(delOptions)) {
+                st.setInt(1, question.getId());
+                st.executeUpdate();
+            }
+            // Étape 2 : supprimer la question elle-même
+            String delQuestion = "DELETE FROM question WHERE id = ?";
+            try (PreparedStatement st = connection.prepareStatement(delQuestion)) {
+                st.setInt(1, question.getId());
+                return st.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             System.err.println("Erreur suppression question : " + e.getMessage());
             return false;

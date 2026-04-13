@@ -1,43 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ============================================================
+    loading.fxml — Écran de chargement animé du quiz
+    ============================================================
+
+    Rôle :
+      Affiche une animation de transition de 2 secondes entre
+      l'écran d'introduction et l'écran de questions.
+      Donne un retour visuel à l'étudiant pendant le chargement
+      des données du quiz.
+
+    Contrôleur associé : FrontQuizController
+      - startLoading(titre, onFinished) : lance toutes les animations
+        et programme la transition vers l'écran de questions.
+
+    Animations déclenchées par startLoading() :
+      1. Rotation continue du logoContainer (360° / 1,5 s, infinie)
+      2. Pulsation de chaque carré (scale 1.0 → 1.15, délais décalés)
+         - squareBlue   : délai 0,0 s
+         - squareGreen  : délai 0,2 s
+         - squareRed    : délai 0,4 s
+         - squareOrange : délai 0,6 s
+      3. Clignotement du label "Chargement du Quiz..." (fade 1.0 → 0.4)
+      4. Pause de 2 secondes, puis fondu sortant (fade 1.0 → 0.0 en 400 ms)
+         → exécute le callback onFinished (naviguerVersQuestion)
+
+    Structure de la vue :
+      StackPane (rootPane — fond dégradé bleu-violet)
+      └── VBox (centré)
+          ├── StackPane (logoContainer — 4 carrés colorés)
+          │   ├── Rectangle bleu   (squareBlue,   haut-gauche)
+          │   ├── Rectangle vert   (squareGreen,  haut-droit)
+          │   ├── Rectangle rouge  (squareRed,    bas-gauche)
+          │   └── Rectangle orange (squareOrange, bas-droit)
+          ├── Label "Chargement du Quiz..." (loadingLabel)
+          └── Label nom du quiz (quizNameLabel)
+-->
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 
+<!--
+    rootPane : conteneur racine de l'écran de chargement.
+    fx:id utilisé par startLoading() pour appliquer le fondu sortant final.
+    prefWidth/prefHeight définissent la taille initiale de la vue.
+-->
 <StackPane fx:id="rootPane"
            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="tn.esprit.controllers.FrontQuizLoadingController"
+           fx:controller="tn.esprit.controllers.FrontQuizController"
            style="-fx-background-color:linear-gradient(to bottom right,#667eea,#764ba2);"
            prefWidth="1000" prefHeight="700">
 
+    <!-- Contenu centré verticalement et horizontalement -->
     <VBox alignment="CENTER" spacing="24">
 
+        <!--
+            logoContainer : conteneur des 4 carrés colorés.
+            La rotation continue est appliquée sur ce StackPane entier
+            (pas sur les carrés individuellement) pour un effet de logo tournant.
+            Les 4 carrés sont positionnés aux 4 coins via translateX/translateY.
+        -->
         <!-- Logo 4 carrés -->
         <StackPane fx:id="logoContainer" prefWidth="120" prefHeight="120">
 
+            <!-- Carré bleu : coin supérieur gauche (translateX=-28, translateY=-28) -->
             <Rectangle fx:id="squareBlue"
                        width="55" height="55" arcWidth="12" arcHeight="12"
                        fill="#3498db" translateX="-28" translateY="-28"/>
 
+            <!-- Carré vert : coin supérieur droit (translateX=+28, translateY=-28) -->
             <Rectangle fx:id="squareGreen"
                        width="55" height="55" arcWidth="12" arcHeight="12"
                        fill="#2ecc71" translateX="28" translateY="-28"/>
 
+            <!-- Carré rouge : coin inférieur gauche (translateX=-28, translateY=+28) -->
             <Rectangle fx:id="squareRed"
                        width="55" height="55" arcWidth="12" arcHeight="12"
                        fill="#e74c3c" translateX="-28" translateY="28"/>
 
+            <!-- Carré orange : coin inférieur droit (translateX=+28, translateY=+28) -->
             <Rectangle fx:id="squareOrange"
                        width="55" height="55" arcWidth="12" arcHeight="12"
                        fill="#f39c12" translateX="28" translateY="28"/>
 
         </StackPane>
 
+        <!--
+            loadingLabel : texte principal de l'écran de chargement.
+            Animé par un FadeTransition (clignotement) dans startLoading().
+            Taille 28px, gras, blanc.
+        -->
         <!-- Texte principal -->
         <Label fx:id="loadingLabel" text="Chargement du Quiz..."
                style="-fx-text-fill:white; -fx-font-size:28; -fx-font-weight:bold;"/>
 
+        <!--
+            quizNameLabel : affiche le nom du quiz en cours de chargement.
+            Rempli par startLoading(titre, ...) avec "Quiz - [titre]".
+            Blanc semi-transparent (80 % d'opacité), taille 16px.
+        -->
         <!-- Nom du quiz -->
         <Label fx:id="quizNameLabel" text=""
                style="-fx-text-fill:rgba(255,255,255,0.8); -fx-font-size:16;"/>

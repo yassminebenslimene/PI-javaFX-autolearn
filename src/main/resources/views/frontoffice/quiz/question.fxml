@@ -1,4 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ============================================================
+    question.fxml — Écran de question du quiz (front-office)
+    ============================================================
+
+    Rôle :
+      Affiche les questions du quiz une par une.
+      L'étudiant sélectionne une option → la réponse est enregistrée
+      → passage automatique à la question suivante après 400 ms.
+      Un timer décompte le temps restant si le quiz a une durée maximale.
+      L'étudiant peut soumettre le quiz à tout moment via le bouton dédié.
+
+    Contrôleur associé : FrontQuizController
+      - afficherQuestion()  : remplit les labels et génère les boutons d'options
+      - onSoumettre()       : arrête le timer et navigue vers resultat.fxml
+
+    Structure de la vue :
+      VBox (fond dégradé violet)
+      ├── HBox (en-tête)
+      │   ├── labelTitreHeader  — titre du quiz
+      │   └── labelTimer        — timer décompte (fond orange)
+      ├── HBox (progression)
+      │   └── labelProgress     — "Question X / N"
+      ├── VBox (carte de question)
+      │   ├── labelQuestion     — texte de la question
+      │   └── labelPoints       — points de la question
+      ├── VBox (optionsContainer) — boutons d'options générés dynamiquement
+      └── HBox (pied de page)
+          ├── labelRepondues    — "X / N questions répondues"
+          └── btnSoumettre      — bouton de soumission du quiz
+-->
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -6,23 +37,40 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
+<!-- Conteneur racine : fond dégradé violet (du haut-gauche vers le bas-droit) -->
 <VBox spacing="0"
       style="-fx-background-color:linear-gradient(to bottom right,#4c1d95,#7c3aed,#6d28d9);"
       xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="tn.esprit.controllers.FrontQuizController">
 
+    <!--
+        EN-TÊTE : bande semi-transparente en haut de l'écran.
+        Contient le titre du quiz à gauche et le timer à droite.
+    -->
     <!-- Header -->
     <HBox alignment="CENTER_LEFT" spacing="12"
           style="-fx-padding:16 24 16 24; -fx-background-color:rgba(0,0,0,0.2);">
+        <!-- Titre du quiz : rempli par afficherQuestion() avec "Quiz - [titre]" -->
         <Label fx:id="labelTitreHeader" text="Quiz"
                style="-fx-text-fill:white; -fx-font-size:15; -fx-font-weight:700;"/>
+        <!-- Espaceur flexible : pousse le timer vers la droite -->
         <Region HBox.hgrow="ALWAYS"/>
+        <!--
+            Timer : affiche le temps restant au format "⏱  M:SS".
+            Fond dégradé orange. Mis à jour chaque seconde par demarrerTimer().
+            Affiche "⏱  ∞" si le quiz n'a pas de durée maximale.
+        -->
         <Label fx:id="labelTimer" text="⏱  —"
                style="-fx-background-color:linear-gradient(to right,#f59e0b,#d97706);
                       -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;
                       -fx-padding:6 16 6 16; -fx-background-radius:20;"/>
     </HBox>
 
+    <!--
+        PROGRESSION : badge centré indiquant la question courante.
+        Format : "Question X / N" (ex : "Question 3 / 10").
+        Fond blanc semi-transparent, coins arrondis.
+    -->
     <!-- Progress -->
     <HBox alignment="CENTER" style="-fx-padding:20 0 8 0;">
         <Label fx:id="labelProgress" text="Question 1 / 1"
@@ -31,30 +79,63 @@
                       -fx-background-radius:20;"/>
     </HBox>
 
+    <!--
+        CARTE DE QUESTION : fond blanc avec ombre portée.
+        Contient le texte de la question et les points associés.
+    -->
     <!-- Question card -->
     <VBox alignment="CENTER" style="-fx-padding:0 32 16 32;">
         <VBox alignment="CENTER" spacing="8"
               style="-fx-background-color:white; -fx-background-radius:18;
                      -fx-padding:28 24 28 24;
                      -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),16,0,0,4);">
+            <!--
+                Texte de la question : rempli par afficherQuestion() avec q.getTexteQuestion().
+                wrapText=true pour les questions longues. maxWidth=600 pour la lisibilité.
+            -->
             <Label fx:id="labelQuestion" text=""
                    style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:#0f172a;
                           -fx-text-alignment:CENTER;"
                    wrapText="true" maxWidth="600"/>
+            <!--
+                Points de la question : format "⭐ X points".
+                Rempli par afficherQuestion() avec q.getPoint().
+            -->
             <Label fx:id="labelPoints" text="⭐ 10 points"
                    style="-fx-font-size:12; -fx-text-fill:#f59e0b; -fx-font-weight:700;"/>
         </VBox>
     </VBox>
 
+    <!--
+        CONTENEUR D'OPTIONS : VBox vide dans le FXML.
+        Les boutons d'options sont générés dynamiquement par afficherOptions()
+        dans le contrôleur. Chaque bouton représente une option de réponse.
+        Style sélectionné : fond violet dégradé.
+        Style non sélectionné : fond blanc semi-transparent avec bordure.
+        Au clic : réponse enregistrée + passage automatique à la question suivante.
+    -->
     <!-- Options -->
     <VBox fx:id="optionsContainer" spacing="10"
           style="-fx-padding:0 32 20 32;"/>
 
+    <!--
+        PIED DE PAGE : compteur de réponses à gauche, bouton de soumission à droite.
+    -->
     <!-- Footer -->
     <HBox alignment="CENTER_RIGHT" style="-fx-padding:8 32 24 32;">
+        <!--
+            Compteur de questions répondues : format "X / N questions répondues".
+            Mis à jour par mettreAJourRepondues() à chaque sélection d'option.
+        -->
         <Label fx:id="labelRepondues" text="0 / 0 questions répondues"
                style="-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:12;"/>
+        <!-- Espaceur flexible -->
         <Region HBox.hgrow="ALWAYS"/>
+        <!--
+            Bouton de soumission : déclenche onSoumettre().
+            Arrête le timer et navigue vers l'écran de résultats.
+            Visible à tout moment, même si toutes les questions ne sont pas répondues.
+        -->
         <Button fx:id="btnSoumettre" text="✔   Soumettre le Quiz" onAction="#onSoumettre"
                 style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
                        -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 22 10 22;

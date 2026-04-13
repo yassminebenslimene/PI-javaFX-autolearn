@@ -41,13 +41,27 @@ public class ServiceQuiz {
         }
     }
 
-    // ── DELETE : Supprimer un quiz par son id ─────────────────────────────────
+    // ── DELETE : Supprimer un quiz et toutes ses questions/options en cascade ──
     public boolean supprimer(Quiz quiz) {
-        String req = "DELETE FROM quiz WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(req)) {
-            statement.setInt(1, quiz.getId());
-            int rows = statement.executeUpdate();
-            return rows > 0; // true = suppression réussie
+        try {
+            // Étape 1 : supprimer toutes les options des questions de ce quiz
+            String delOptions = "DELETE FROM `option` WHERE question_id IN (SELECT id FROM question WHERE quiz_id = ?)";
+            try (PreparedStatement st = connection.prepareStatement(delOptions)) {
+                st.setInt(1, quiz.getId());
+                st.executeUpdate();
+            }
+            // Étape 2 : supprimer toutes les questions du quiz
+            String delQuestions = "DELETE FROM question WHERE quiz_id = ?";
+            try (PreparedStatement st = connection.prepareStatement(delQuestions)) {
+                st.setInt(1, quiz.getId());
+                st.executeUpdate();
+            }
+            // Étape 3 : supprimer le quiz lui-même
+            String delQuiz = "DELETE FROM quiz WHERE id = ?";
+            try (PreparedStatement st = connection.prepareStatement(delQuiz)) {
+                st.setInt(1, quiz.getId());
+                return st.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             System.err.println("Erreur suppression quiz : " + e.getMessage());
             return false;
