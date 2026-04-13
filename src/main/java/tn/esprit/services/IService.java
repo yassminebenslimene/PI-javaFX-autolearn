@@ -5,11 +5,8 @@ import java.util.List;
 /**
  * Interface générique CRUD partagée par tous les services.
  *
- * Conventions :
- *   - ServiceCours / ServiceChapitre → implémentent consulter() et consulterParId()
- *     (getAll/getById délèguent vers eux via default)
- *   - EvenementService / EquipeService / ParticipationService → implémentent getAll() et getById()
- *     (consulter/consulterParId délèguent vers eux via default)
+ * ServiceCours / ServiceChapitre → implémentent consulter() et consulterParId()
+ * EvenementService / EquipeService / ParticipationService → implémentent getAll() et getById()
  */
 public interface IService<T> {
 
@@ -17,11 +14,13 @@ public interface IService<T> {
     void modifier(T t);
     void supprimer(int id);
 
-    // Implémentée par ServiceCours / ServiceChapitre
-    default List<T> consulter()        { throw new UnsupportedOperationException("Implémenter consulter() ou getAll()"); }
-    default T consulterParId(int id)   { throw new UnsupportedOperationException("Implémenter consulterParId() ou getById()"); }
+    // ── Méthodes READ ─────────────────────────────────────────────────────────
+    // Chaque service implémente l'une OU l'autre paire.
+    // Les default assurent la compatibilité croisée sans récursion.
 
-    // Implémentée par EvenementService / EquipeService / ParticipationService
-    default List<T> getAll()           { return consulter(); }
-    default T getById(int id)          { return consulterParId(id); }
+    default List<T> consulter()      { return getAll(); }
+    default T consulterParId(int id) { return getById(id); }
+
+    default List<T> getAll()         { return consulter(); }
+    default T getById(int id)        { return consulterParId(id); }
 }
