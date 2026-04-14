@@ -10,8 +10,6 @@ import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.session.SessionManager;
 
-import java.io.IOException;
-
 public class FrontofficeController {
 
     @FXML private Label welcomeLabel;
@@ -77,6 +75,10 @@ public class FrontofficeController {
                             Parent detailView = detailLoader.load();
                             FrontChapitreDetailController detailCtrl = detailLoader.getController();
                             detailCtrl.setChapitre(c, chapitre, () -> setCenter(chapView));
+                            detailCtrl.setOnQuizCallback(() -> {
+                                if (chapCtrl.getOnPasserQuiz() != null)
+                                    chapCtrl.getOnPasserQuiz().accept(chapitre);
+                            });
                             setCenter(detailView);
                         } catch (Exception ex) { ex.printStackTrace(); }
                     });
@@ -114,7 +116,7 @@ public class FrontofficeController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
             MainApp.getPrimaryStage().getScene().setRoot(loader.load());
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
