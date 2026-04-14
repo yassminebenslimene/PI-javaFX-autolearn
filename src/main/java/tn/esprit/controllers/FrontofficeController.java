@@ -247,11 +247,17 @@ public class FrontofficeController {
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
         BorderPane root = (BorderPane) scene.getRoot();
-        ScrollPane sp = new ScrollPane(view);
-        sp.setFitToWidth(true);
-        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
-        root.setCenter(sp);
+        // Si la vue est déjà un ScrollPane, la mettre directement
+        if (view instanceof ScrollPane) {
+            ((ScrollPane) view).setFitToWidth(true);
+            root.setCenter(view);
+        } else {
+            ScrollPane sp = new ScrollPane(view);
+            sp.setFitToWidth(true);
+            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
+            root.setCenter(sp);
+        }
     }
 
     private void setCenterDirect(Parent view) {
