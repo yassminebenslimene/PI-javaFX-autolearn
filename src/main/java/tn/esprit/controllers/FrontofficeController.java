@@ -39,6 +39,8 @@ public class FrontofficeController {
     // Zone centrale du BorderPane
     @FXML private ScrollPane mainScrollPane;
 
+    private javafx.scene.Node homeCenter;
+
     private final ServiceCours serviceCours = new ServiceCours();
     private final ChallengeService challengeService = new ChallengeService();
     private final UserService userService = new UserService();
@@ -48,7 +50,6 @@ public class FrontofficeController {
         var u = SessionManager.getCurrentUser();
         if (u == null) return;
 
-        // Infos utilisateur dans la navbar
         String name = u.getPrenom() + " " + u.getNom();
         String initials = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
         if (labelCurrentUser != null) labelCurrentUser.setText(name);
@@ -58,8 +59,12 @@ public class FrontofficeController {
         if (u instanceof Etudiant e && e.getNiveau() != null)
             if (labelNiveauUser != null) labelNiveauUser.setText("Niveau : " + e.getNiveau());
 
-        // Stats réelles depuis la DB
         javafx.application.Platform.runLater(() -> {
+            // Sauvegarder le center accueil
+            if (mainScrollPane != null) homeCenter = mainScrollPane;
+            else if (labelCurrentUser != null && labelCurrentUser.getScene() != null)
+                homeCenter = ((BorderPane) labelCurrentUser.getScene().getRoot()).getCenter();
+
             try {
                 int nbCours = serviceCours.consulter().size();
                 int nbChallenges = challengeService.getAll().size();
@@ -142,11 +147,12 @@ public class FrontofficeController {
     // ── Navigation — seul le center change, la navbar reste fixe ──────────────
 
     @FXML public void onHome() {
-        // Revenir au contenu d'accueil = remettre le ScrollPane original
-        if (mainScrollPane == null) return;
-        var scene = mainScrollPane.getScene();
+        if (labelCurrentUser == null) return;
+        var scene = labelCurrentUser.getScene();
         if (scene == null) return;
-        ((BorderPane) scene.getRoot()).setCenter(mainScrollPane);
+        BorderPane root = (BorderPane) scene.getRoot();
+        if (homeCenter != null) root.setCenter(homeCenter);
+        else if (mainScrollPane != null) root.setCenter(mainScrollPane);
     }
 
     @FXML public void onCours() { naviguerVersCours(); }
