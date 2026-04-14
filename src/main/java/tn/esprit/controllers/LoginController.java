@@ -22,9 +22,11 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        String saved = prefs.get("remembered_email", "");
-        if (!saved.isEmpty()) {
-            fieldEmail.setText(saved);
+        String savedEmail = prefs.get("remembered_email", "");
+        String savedPass  = prefs.get("remembered_pass", "");
+        if (!savedEmail.isEmpty()) {
+            fieldEmail.setText(savedEmail);
+            fieldPassword.setText(savedPass);
             checkRememberMe.setSelected(true);
         }
     }
@@ -60,8 +62,13 @@ public class LoginController {
             return;
         }
 
-        if (checkRememberMe.isSelected()) prefs.put("remembered_email", email);
-        else prefs.remove("remembered_email");
+        if (checkRememberMe.isSelected()) {
+            prefs.put("remembered_email", email);
+            prefs.put("remembered_pass", password);
+        } else {
+            prefs.remove("remembered_email");
+            prefs.remove("remembered_pass");
+        }
 
         SessionManager.login(found);
 
