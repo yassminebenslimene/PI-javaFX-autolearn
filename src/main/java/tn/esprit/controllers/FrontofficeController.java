@@ -193,17 +193,30 @@ public class FrontofficeController {
     }
 
     @FXML public void onEvenements() {
-        try { MainApp.showEvenementsFront(); } catch (Exception e) { e.printStackTrace(); }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/evenements.fxml"));
+            BorderPane bp = loader.load();
+            setCenter((Parent) bp.getCenter());
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML public void onCommunaute() {
-        try { MainApp.showCommunauteFront(); } catch (Exception e) { e.printStackTrace(); }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/communaute/index.fxml"));
+            javafx.scene.Node root = loader.load();
+            if (root instanceof BorderPane bp && bp.getCenter() != null)
+                setCenter((Parent) bp.getCenter());
+            else
+                setCenter((Parent) root);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML public void onChallenges() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
-            setCenter(loader.load());
+            BorderPane bp = loader.load();
+            // Extraire seulement le center pour éviter la double navbar
+            setCenter((Parent) bp.getCenter());
         } catch (Exception e) { e.printStackTrace(); }
     }
 
