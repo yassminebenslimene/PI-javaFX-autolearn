@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
+import javafx.scene.control.MenuButton;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Cours;
 import tn.esprit.entities.Etudiant;
@@ -27,6 +28,7 @@ public class FrontofficeController {
     @FXML private Label labelAvatarNav;
     @FXML private Label labelCurrentUser;
     @FXML private Label labelNiveauUser;
+    @FXML private MenuButton menuUser;
     @FXML private Label labelCoursCount;
     @FXML private Label labelChallengesCount;
     @FXML private Label labelEtudiantsCount;
@@ -51,6 +53,7 @@ public class FrontofficeController {
         String initials = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
         if (labelCurrentUser != null) labelCurrentUser.setText(name);
         if (labelAvatarNav   != null) labelAvatarNav.setText(initials);
+        if (menuUser         != null) menuUser.setText(initials + " ▾");
         if (welcomeLabel     != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Prêt à apprendre aujourd'hui ?");
         if (u instanceof Etudiant e && e.getNiveau() != null)
             if (labelNiveauUser != null) labelNiveauUser.setText("Niveau : " + e.getNiveau());
@@ -222,6 +225,14 @@ public class FrontofficeController {
 
     @FXML public void onProfile() {
         try { MainApp.showProfile(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML public void onMesParticipations() {
+        try { MainApp.showMesParticipations(null); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML public void onMesEquipes() {
+        try { MainApp.showMesEquipes(null); } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML public void onLogout() {
