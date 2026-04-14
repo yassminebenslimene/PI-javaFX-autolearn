@@ -60,12 +60,12 @@
         <VBox spacing="6">
             <Label text="Email Address"
                    style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:rgba(245,245,244,0.7);"/>
-            <TextField fx:id="fieldEmail" promptText="Enter your email"
-                       style="-fx-background-color:rgba(255,255,255,0.08);
-                              -fx-border-color:rgba(255,255,255,0.15); -fx-border-radius:10;
-                              -fx-background-radius:10; -fx-padding:12 16 12 16;
-                              -fx-font-size:13; -fx-text-fill:white;
-                              -fx-prompt-text-fill:rgba(245,245,244,0.35);"/>
+            <ComboBox fx:id="fieldEmail" promptText="Enter your email" editable="true"
+                      maxWidth="Infinity"
+                      style="-fx-background-color:rgba(255,255,255,0.08);
+                             -fx-border-color:rgba(255,255,255,0.15); -fx-border-radius:10;
+                             -fx-background-radius:10;
+                             -fx-font-size:13; -fx-text-fill:white;"/>
 
             <Region prefHeight="8"/>
 
