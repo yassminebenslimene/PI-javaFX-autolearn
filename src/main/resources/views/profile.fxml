@@ -32,14 +32,16 @@
                 <HBox alignment="CENTER_LEFT" spacing="28"
                       style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
                              -fx-padding:32 80 32 80;">
-                    <StackPane minWidth="80" minHeight="80" prefWidth="80" prefHeight="80">
-                        <Circle radius="40" style="-fx-fill:rgba(255,255,255,0.2);"/>
+                    <StackPane minWidth="90" minHeight="90" prefWidth="90" prefHeight="90">
+                        <Circle radius="45"
+                                style="-fx-fill:rgba(255,255,255,0.2);
+                                       -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,0);"/>
                         <Label fx:id="labelInitials" text=""
-                               style="-fx-text-fill:white; -fx-font-size:26; -fx-font-weight:800;"/>
+                               style="-fx-text-fill:white; -fx-font-size:28; -fx-font-weight:800;"/>
                     </StackPane>
-                    <VBox spacing="4">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
                         <Label fx:id="labelFullName" text=""
-                               style="-fx-font-size:24; -fx-font-weight:800; -fx-text-fill:white;"/>
+                               style="-fx-font-size:26; -fx-font-weight:800; -fx-text-fill:white;"/>
                         <Label fx:id="labelEmailHeader" text=""
                                style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.75);"/>
                         <HBox spacing="8">

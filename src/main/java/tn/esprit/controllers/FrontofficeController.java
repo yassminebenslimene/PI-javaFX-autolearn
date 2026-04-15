@@ -152,7 +152,8 @@ public class FrontofficeController {
         // Image du cours depuis les resources
         javafx.scene.image.ImageView imgView = null;
         try {
-            String[] imgs = {"/images/course1.jpg", "/images/course2.jpg", "/images/course3.jpg"};
+            String[] imgs = {"/images/course1.jpg", "/images/course2.jpg", "/images/course3.jpg",
+                             "/images/course4.jpg", "/images/course5.jpg", "/images/course6.jpg"};
             int idx = Math.abs(c.getTitre().hashCode()) % imgs.length;
             var url = getClass().getResource(imgs[idx]);
             if (url != null) {
@@ -318,14 +319,36 @@ public class FrontofficeController {
 
     // ── Slider automatique ────────────────────────────────────────────────────
 
+    @FXML private StackPane heroSlider;
+
     private void startSlider() {
         if (slide1 == null) return;
-        sliderTimeline = new Timeline(new KeyFrame(Duration.seconds(4), e -> {
+        // Appliquer l'image de fond initiale
+        applySliderBackground(0);
+        sliderTimeline = new Timeline(new KeyFrame(Duration.seconds(5), e -> {
             currentSlide = (currentSlide + 1) % 3;
             showSlide(currentSlide);
+            applySliderBackground(currentSlide);
         }));
         sliderTimeline.setCycleCount(Timeline.INDEFINITE);
         sliderTimeline.play();
+    }
+
+    private void applySliderBackground(int index) {
+        if (heroSlider == null) return;
+        String[] bgImages = {"/images/banner1.jpg", "/images/banner2.jpg", "/images/banner3.jpg"};
+        try {
+            var url = getClass().getResource(bgImages[index]);
+            if (url != null) {
+                heroSlider.setStyle(
+                    "-fx-background-image: url('" + url.toExternalForm() + "');" +
+                    "-fx-background-size: cover; -fx-background-position: center;" +
+                    "-fx-background-color: rgba(78,59,156,0.7);"
+                );
+            }
+        } catch (Exception ignored) {
+            heroSlider.setStyle("-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c);");
+        }
     }
 
     private void showSlide(int index) {

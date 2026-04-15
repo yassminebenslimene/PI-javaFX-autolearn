@@ -300,7 +300,7 @@
                         <Label text="Contactez-nous" style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
                         <Label text="Une question ? Nous sommes la pour vous aider."
                                wrapText="true" style="-fx-font-size:13; -fx-text-fill:#666;"/>
-                        <Label text="contact@autolearn.tn" style="-fx-font-size:13; -fx-text-fill:#7a6ad8;"/>
+                        <Label text="autolearn66@gmail.com" style="-fx-font-size:13; -fx-text-fill:#7a6ad8;"/>
                         <Label text="+216 XX XXX XXX" style="-fx-font-size:13; -fx-text-fill:#555;"/>
                         <Label text="ESPRIT, Ariana, Tunisie" style="-fx-font-size:13; -fx-text-fill:#555;"/>
                     </VBox>
