@@ -175,7 +175,7 @@ public class FrontofficeController {
         };
         Label niveauBadge = new Label(c.getNiveau() != null ? c.getNiveau() : "Debutant");
         niveauBadge.setStyle("-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:" + niveauColor +
-                             "; -fx-background-color:" + niveauColor.replace(")", ",0.1)").replace("#", "rgba(") +
+                             "; -fx-background-color:" + niveauColor + "22" +
                              "; -fx-background-radius:10; -fx-padding:2 8 2 8;");
 
         Label matiereLabel = new Label(c.getMatiere() != null ? c.getMatiere() : "");
