@@ -40,7 +40,7 @@ public class FrontofficeController {
     @FXML private Label slide1Icon, slide2Icon, slide3Icon;
     @FXML private Label aboutIcon1, aboutIcon2, aboutIcon3, aboutIcon4;
     // Slider
-    @FXML private VBox slide1, slide2, slide3;
+    @FXML private HBox slide1, slide2, slide3;
     @FXML private Label dot1, dot2, dot3;
     @FXML private Label labelCoursIllus;
 
