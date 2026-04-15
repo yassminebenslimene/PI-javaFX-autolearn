@@ -32,18 +32,28 @@ public class FrontofficeController {
     @FXML private Label labelCurrentUser;
     @FXML private Label labelNiveauUser;
     @FXML private MenuButton menuUser;
-    @FXML private VBox heroSection;
     @FXML private Label labelCoursCount;
     @FXML private Label labelChallengesCount;
     @FXML private Label labelEtudiantsCount;
 
+    // Slider
+    @FXML private VBox slide1, slide2, slide3;
+    @FXML private Label dot1, dot2, dot3;
+
+    // Contact
+    @FXML private javafx.scene.control.TextField contactNom;
+    @FXML private javafx.scene.control.TextField contactEmail;
+    @FXML private javafx.scene.control.TextField contactSujet;
+    @FXML private javafx.scene.control.TextArea   contactMessage;
+    @FXML private Label contactStatus;
+
     // Container dynamique pour les cartes de cours
     @FXML private HBox coursCardsContainer;
-
-    // Zone centrale du BorderPane
     @FXML private ScrollPane mainScrollPane;
 
     private javafx.scene.Node homeCenter;
+    private int currentSlide = 0;
+    private Timeline sliderTimeline;
 
     private final ServiceCours serviceCours = new ServiceCours();
     private final ChallengeService challengeService = new ChallengeService();
@@ -84,31 +94,19 @@ public class FrontofficeController {
                 // Charger les vraies cartes de cours
                 if (coursCardsContainer != null) loadCoursCards();
 
-                // Animation fade-in + slide-up sur le hero
-                if (heroSection != null) {
-                    heroSection.setOpacity(0);
-                    heroSection.setTranslateY(30);
-                    FadeTransition fade = new FadeTransition(Duration.millis(700), heroSection);
-                    fade.setFromValue(0); fade.setToValue(1);
-                    TranslateTransition slide = new TranslateTransition(Duration.millis(700), heroSection);
-                    slide.setFromY(30); slide.setToY(0);
-                    new ParallelTransition(fade, slide).play();
-                }
+                // Démarrer le slider automatique
+                startSlider();
 
-                // Animation séquentielle sur les cartes de cours
+                // Animation fade-in sur les cartes
                 if (coursCardsContainer != null) {
                     javafx.application.Platform.runLater(() -> {
                         int i = 0;
                         for (javafx.scene.Node card : coursCardsContainer.getChildren()) {
                             card.setOpacity(0);
-                            card.setTranslateY(20);
                             FadeTransition f = new FadeTransition(Duration.millis(500), card);
                             f.setFromValue(0); f.setToValue(1);
-                            f.setDelay(Duration.millis(200 + i * 120));
-                            TranslateTransition t = new TranslateTransition(Duration.millis(500), card);
-                            t.setFromY(20); t.setToY(0);
-                            t.setDelay(Duration.millis(200 + i * 120));
-                            new ParallelTransition(f, t).play();
+                            f.setDelay(Duration.millis(300 + i * 150));
+                            f.play();
                             i++;
                         }
                     });
@@ -282,6 +280,60 @@ public class FrontofficeController {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    // ── Slider automatique ────────────────────────────────────────────────────
+
+    private void startSlider() {
+        if (slide1 == null) return;
+        sliderTimeline = new Timeline(new KeyFrame(Duration.seconds(4), e -> {
+            currentSlide = (currentSlide + 1) % 3;
+            showSlide(currentSlide);
+        }));
+        sliderTimeline.setCycleCount(Timeline.INDEFINITE);
+        sliderTimeline.play();
+    }
+
+    private void showSlide(int index) {
+        VBox[] slides = {slide1, slide2, slide3};
+        Label[] dots  = {dot1, dot2, dot3};
+        for (int i = 0; i < slides.length; i++) {
+            if (slides[i] == null) continue;
+            boolean active = (i == index);
+            if (active) {
+                slides[i].setVisible(true);
+                slides[i].setManaged(true);
+                FadeTransition ft = new FadeTransition(Duration.millis(600), slides[i]);
+                ft.setFromValue(0); ft.setToValue(1); ft.play();
+            } else {
+                slides[i].setVisible(false);
+                slides[i].setManaged(false);
+            }
+            if (dots[i] != null)
+                dots[i].setStyle("-fx-font-size:10; -fx-text-fill:" + (active ? "white" : "rgba(255,255,255,0.4)") + ";");
+        }
+    }
+
+    // ── Contact ───────────────────────────────────────────────────────────────
+
+    @FXML public void onContactSend() {
+        if (contactNom == null) return;
+        String nom  = contactNom.getText().trim();
+        String mail = contactEmail.getText().trim();
+        String msg  = contactMessage.getText().trim();
+        if (nom.isEmpty() || mail.isEmpty() || msg.isEmpty()) {
+            contactStatus.setText("Veuillez remplir tous les champs obligatoires.");
+            contactStatus.setStyle("-fx-text-fill:#e74c3c; -fx-font-size:12;");
+            contactStatus.setVisible(true); contactStatus.setManaged(true);
+            return;
+        }
+        // Simuler l'envoi
+        contactNom.clear(); contactEmail.clear();
+        if (contactSujet != null) contactSujet.clear();
+        contactMessage.clear();
+        contactStatus.setText("Message envoyé avec succès ! Nous vous répondrons sous 24h.");
+        contactStatus.setStyle("-fx-text-fill:#059669; -fx-font-size:12;");
+        contactStatus.setVisible(true); contactStatus.setManaged(true);
+    }
 
     private void setCenter(Parent view) {
         if (labelCurrentUser == null) return;
