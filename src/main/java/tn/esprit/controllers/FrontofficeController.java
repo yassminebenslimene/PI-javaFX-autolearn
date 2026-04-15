@@ -149,12 +149,21 @@ public class FrontofficeController {
     }
 
     private VBox buildCoursCard(Cours c, String icon, String iconBg) {
-        Label iconLabel = new Label(icon);
-        iconLabel.setStyle("-fx-font-size:28; -fx-background-color:" + iconBg +
-                           "; -fx-background-radius:12; -fx-padding:10 12 10 12;");
+        // Image du cours depuis les resources
+        javafx.scene.image.ImageView imgView = null;
+        try {
+            String[] imgs = {"/images/course1.jpg", "/images/course2.jpg", "/images/course3.jpg"};
+            int idx = Math.abs(c.getTitre().hashCode()) % imgs.length;
+            var url = getClass().getResource(imgs[idx]);
+            if (url != null) {
+                imgView = new javafx.scene.image.ImageView(new javafx.scene.image.Image(url.toExternalForm()));
+                imgView.setFitWidth(300); imgView.setFitHeight(140);
+                imgView.setPreserveRatio(false);
+            }
+        } catch (Exception ignored) {}
 
         Label titre = new Label(c.getTitre());
-        titre.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:white;");
+        titre.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
         titre.setWrapText(true);
 
         String niveauColor = switch (c.getNiveau() == null ? "" : c.getNiveau().toLowerCase()) {
@@ -162,32 +171,44 @@ public class FrontofficeController {
             case "intermédiaire", "intermediaire" -> "#f59e0b";
             default -> "#059669";
         };
-        Label niveauBadge = new Label(c.getNiveau() != null ? c.getNiveau() : "Débutant");
+        Label niveauBadge = new Label(c.getNiveau() != null ? c.getNiveau() : "Debutant");
         niveauBadge.setStyle("-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:" + niveauColor +
-                             "; -fx-background-color:" + niveauColor.replace(")", ",0.1)").replace("#", "rgba(") + ";" +
-                             " -fx-background-radius:10; -fx-padding:2 8 2 8;");
+                             "; -fx-background-color:" + niveauColor.replace(")", ",0.1)").replace("#", "rgba(") +
+                             "; -fx-background-radius:10; -fx-padding:2 8 2 8;");
 
-        HBox header = new HBox(14, iconLabel, new VBox(3, titre, niveauBadge));
-        header.setAlignment(Pos.CENTER_LEFT);
+        Label matiereLabel = new Label(c.getMatiere() != null ? c.getMatiere() : "");
+        matiereLabel.setStyle("-fx-font-size:11; -fx-text-fill:#999;");
 
         String desc = c.getDescription() != null ? c.getDescription() : "Cours de " + c.getMatiere();
-        if (desc.length() > 100) desc = desc.substring(0, 100) + "...";
+        if (desc.length() > 90) desc = desc.substring(0, 90) + "...";
         Label descLabel = new Label(desc);
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.55); -fx-line-spacing:3;");
+        descLabel.setStyle("-fx-font-size:12; -fx-text-fill:#666; -fx-line-spacing:3;");
 
         Button btn = new Button("Voir le cours  →");
+        btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle("-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);" +
                      "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;" +
-                     "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+                     "-fx-padding:10 20 10 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
         btn.setOnAction(e -> naviguerVersCours());
 
-        VBox card = new VBox(14, header, descLabel, btn);
+        VBox content = new VBox(10, titre, niveauBadge, matiereLabel, descLabel, btn);
+        content.setPadding(new Insets(16));
+
+        VBox card = imgView != null
+            ? new VBox(0, imgView, content)
+            : new VBox(0, content);
         card.setPrefWidth(300);
-        card.setStyle("-fx-background-color:rgba(255,255,255,0.06);" +
-                      "-fx-background-radius:16;" +
-                      "-fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:16; -fx-border-width:1;" +
-                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),16,0,0,4); -fx-padding:24;");
+        card.setMaxWidth(300);
+        card.setStyle("-fx-background-color:white; -fx-background-radius:16;" +
+                      "-fx-border-color:#eeeeee; -fx-border-radius:16;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);");
+        if (imgView != null) {
+            // Clip image corners
+            javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(300, 140);
+            clip.setArcWidth(16); clip.setArcHeight(16);
+            imgView.setClip(clip);
+        }
         return card;
     }
 
