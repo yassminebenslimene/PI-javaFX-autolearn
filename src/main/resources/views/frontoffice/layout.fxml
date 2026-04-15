@@ -82,10 +82,10 @@
                                                -fx-border-width:2; -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:30;"/>
                             </HBox>
                         </VBox>
-                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER">
-                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);"/>
-                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);"/>
-                            <VBox alignment="CENTER" spacing="12">
+                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER" mouseTransparent="true">
+                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);" mouseTransparent="true"/>
+                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);" mouseTransparent="true"/>
+                            <VBox alignment="CENTER" spacing="12" mouseTransparent="true">
                                 <Label fx:id="slide1Icon" text="" style="-fx-font-size:80;"/>
                                 <Label fx:id="labelCoursIllus" text=""
                                        style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:white;
@@ -114,10 +114,10 @@
                                                -fx-border-width:2; -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:30;"/>
                             </HBox>
                         </VBox>
-                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER">
-                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);"/>
-                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);"/>
-                            <Label fx:id="slide2Icon" text="" style="-fx-font-size:80;"/>
+                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER" mouseTransparent="true">
+                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);" mouseTransparent="true"/>
+                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);" mouseTransparent="true"/>
+                            <Label fx:id="slide2Icon" text="" style="-fx-font-size:80;" mouseTransparent="true"/>
                         </StackPane>
                     </HBox>
                     <HBox fx:id="slide3" alignment="CENTER" spacing="0" style="-fx-padding:0 80 0 80;" visible="false" managed="false">
@@ -141,13 +141,13 @@
                                                -fx-border-width:2; -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:30;"/>
                             </HBox>
                         </VBox>
-                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER">
-                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);"/>
-                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);"/>
-                            <Label fx:id="slide3Icon" text="" style="-fx-font-size:80;"/>
+                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER" mouseTransparent="true">
+                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);" mouseTransparent="true"/>
+                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);" mouseTransparent="true"/>
+                            <Label fx:id="slide3Icon" text="" style="-fx-font-size:80;" mouseTransparent="true"/>
                         </StackPane>
                     </HBox>
-                    <HBox fx:id="sliderDots" alignment="BOTTOM_CENTER" style="-fx-padding:0 0 16 0;" spacing="8">
+                    <HBox fx:id="sliderDots" alignment="BOTTOM_CENTER" style="-fx-padding:0 0 16 0;" spacing="8" mouseTransparent="true">
                         <Label fx:id="dot1" text="&#9679;" style="-fx-text-fill:white; -fx-font-size:12;"/>
                         <Label fx:id="dot2" text="&#9679;" style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:12;"/>
                         <Label fx:id="dot3" text="&#9679;" style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:12;"/>
