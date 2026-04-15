@@ -274,33 +274,53 @@ public class FrontofficeController {
     @FXML public void onEvenements() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/evenements.fxml"));
-            BorderPane bp = loader.load();
-            setCenter((Parent) bp.getCenter());
-        } catch (Exception e) { e.printStackTrace(); }
+            Parent root = loader.load();
+            if (root instanceof BorderPane bp && bp.getCenter() != null)
+                setCenter((Parent) bp.getCenter());
+            else
+                setCenter(root);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Fallback via MainApp
+            try { MainApp.showEvenementsFront(); } catch (Exception ex) { ex.printStackTrace(); }
+        }
     }
 
     @FXML public void onCommunaute() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/communaute/index.fxml"));
-            javafx.scene.Node root = loader.load();
+            Parent root = loader.load();
             if (root instanceof BorderPane bp && bp.getCenter() != null)
                 setCenter((Parent) bp.getCenter());
             else
-                setCenter((Parent) root);
-        } catch (Exception e) { e.printStackTrace(); }
+                setCenter(root);
+        } catch (Exception e) {
+            e.printStackTrace();
+            try { MainApp.showCommunauteFront(); } catch (Exception ex) { ex.printStackTrace(); }
+        }
     }
 
     @FXML public void onChallenges() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
-            BorderPane bp = loader.load();
-            // Extraire seulement le center pour éviter la double navbar
-            setCenter((Parent) bp.getCenter());
-        } catch (Exception e) { e.printStackTrace(); }
+            Parent root = loader.load();
+            if (root instanceof BorderPane bp && bp.getCenter() != null)
+                setCenter((Parent) bp.getCenter());
+            else
+                setCenter(root);
+        } catch (Exception e) {
+            e.printStackTrace();
+            try { MainApp.showChallengesFront(); } catch (Exception ex) { ex.printStackTrace(); }
+        }
     }
 
     @FXML public void onProfile() {
-        try { MainApp.showProfile(); } catch (Exception e) { e.printStackTrace(); }
+        try {
+            MainApp.showProfile();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Erreur chargement profil: " + e.getMessage());
+        }
     }
 
     @FXML public void onMesParticipations() {
