@@ -9,7 +9,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
+import javafx.animation.*;
 import javafx.scene.control.MenuButton;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Cours;
 import tn.esprit.entities.Etudiant;
@@ -29,6 +32,7 @@ public class FrontofficeController {
     @FXML private Label labelCurrentUser;
     @FXML private Label labelNiveauUser;
     @FXML private MenuButton menuUser;
+    @FXML private VBox heroSection;
     @FXML private Label labelCoursCount;
     @FXML private Label labelChallengesCount;
     @FXML private Label labelEtudiantsCount;
@@ -79,6 +83,36 @@ public class FrontofficeController {
 
                 // Charger les vraies cartes de cours
                 if (coursCardsContainer != null) loadCoursCards();
+
+                // Animation fade-in + slide-up sur le hero
+                if (heroSection != null) {
+                    heroSection.setOpacity(0);
+                    heroSection.setTranslateY(30);
+                    FadeTransition fade = new FadeTransition(Duration.millis(700), heroSection);
+                    fade.setFromValue(0); fade.setToValue(1);
+                    TranslateTransition slide = new TranslateTransition(Duration.millis(700), heroSection);
+                    slide.setFromY(30); slide.setToY(0);
+                    new ParallelTransition(fade, slide).play();
+                }
+
+                // Animation séquentielle sur les cartes de cours
+                if (coursCardsContainer != null) {
+                    javafx.application.Platform.runLater(() -> {
+                        int i = 0;
+                        for (javafx.scene.Node card : coursCardsContainer.getChildren()) {
+                            card.setOpacity(0);
+                            card.setTranslateY(20);
+                            FadeTransition f = new FadeTransition(Duration.millis(500), card);
+                            f.setFromValue(0); f.setToValue(1);
+                            f.setDelay(Duration.millis(200 + i * 120));
+                            TranslateTransition t = new TranslateTransition(Duration.millis(500), card);
+                            t.setFromY(20); t.setToY(0);
+                            t.setDelay(Duration.millis(200 + i * 120));
+                            new ParallelTransition(f, t).play();
+                            i++;
+                        }
+                    });
+                }
             } catch (Exception e) { e.printStackTrace(); }
         });
     }
@@ -108,7 +142,7 @@ public class FrontofficeController {
                            "; -fx-background-radius:12; -fx-padding:10 12 10 12;");
 
         Label titre = new Label(c.getTitre());
-        titre.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        titre.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:white;");
         titre.setWrapText(true);
 
         String niveauColor = switch (c.getNiveau() == null ? "" : c.getNiveau().toLowerCase()) {
@@ -128,7 +162,7 @@ public class FrontofficeController {
         if (desc.length() > 100) desc = desc.substring(0, 100) + "...";
         Label descLabel = new Label(desc);
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-font-size:12; -fx-text-fill:#666; -fx-line-spacing:3;");
+        descLabel.setStyle("-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.55); -fx-line-spacing:3;");
 
         Button btn = new Button("Voir le cours  →");
         btn.setStyle("-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);" +
@@ -136,11 +170,12 @@ public class FrontofficeController {
                      "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
         btn.setOnAction(e -> naviguerVersCours());
 
-        VBox card = new VBox(16, header, descLabel, btn);
-        card.setPrefWidth(320);
-        card.setStyle("-fx-background-color:white; -fx-background-radius:16;" +
-                      "-fx-border-color:#eeeeee; -fx-border-radius:16;" +
-                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4); -fx-padding:28;");
+        VBox card = new VBox(14, header, descLabel, btn);
+        card.setPrefWidth(300);
+        card.setStyle("-fx-background-color:rgba(255,255,255,0.06);" +
+                      "-fx-background-radius:16;" +
+                      "-fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:16; -fx-border-width:1;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),16,0,0,4); -fx-padding:24;");
         return card;
     }
 
