@@ -36,6 +36,9 @@ public class FrontofficeController {
     @FXML private Label labelChallengesCount;
     @FXML private Label labelEtudiantsCount;
 
+    // Slider icons (set in Java to avoid encoding issues)
+    @FXML private Label slide1Icon, slide2Icon, slide3Icon;
+    @FXML private Label aboutIcon1, aboutIcon2, aboutIcon3, aboutIcon4;
     // Slider
     @FXML private VBox slide1, slide2, slide3;
     @FXML private Label dot1, dot2, dot3;
@@ -69,10 +72,19 @@ public class FrontofficeController {
         String initials = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
         if (labelCurrentUser != null) labelCurrentUser.setText(name);
         if (labelAvatarNav   != null) labelAvatarNav.setText(initials);
-        if (menuUser         != null) menuUser.setText(initials + " ▾");
-        if (welcomeLabel     != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Prêt à apprendre aujourd'hui ?");
+        if (menuUser         != null) menuUser.setText(initials + " \u25be");
+        if (welcomeLabel     != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Pret a apprendre aujourd'hui !");
         if (u instanceof Etudiant e && e.getNiveau() != null)
             if (labelNiveauUser != null) labelNiveauUser.setText("Niveau : " + e.getNiveau());
+
+        // Emojis dans les slides
+        if (slide1Icon != null) slide1Icon.setText("\uD83D\uDCDA");
+        if (slide2Icon != null) slide2Icon.setText("\uD83C\uDFC6");
+        if (slide3Icon != null) slide3Icon.setText("\uD83D\uDC65");
+        if (aboutIcon1 != null) aboutIcon1.setText("\uD83E\uDD16");
+        if (aboutIcon2 != null) aboutIcon2.setText("\uD83D\uDCCA");
+        if (aboutIcon3 != null) aboutIcon3.setText("\uD83C\uDFC6");
+        if (aboutIcon4 != null) aboutIcon4.setText("\uD83D\uDC65");
 
         javafx.application.Platform.runLater(() -> {
             // Sauvegarder le center accueil
