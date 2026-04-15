@@ -36,6 +36,23 @@ public class FrontofficeController {
     @FXML private Label labelChallengesCount;
     @FXML private Label labelEtudiantsCount;
     @FXML private Button btnHome;
+    @FXML private Button btnNavCours;
+    @FXML private Button btnNavChallenges;
+    @FXML private Button btnNavEvenements;
+    @FXML private Button btnNavCommunaute;
+
+    private static final String NAV_ACTIVE =
+        "-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;" +
+        "-fx-font-weight:700; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0; -fx-background-radius:8;";
+    private static final String NAV_INACTIVE =
+        "-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;" +
+        "-fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
+
+    private void setActiveNav(Button active) {
+        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavEvenements, btnNavCommunaute}) {
+            if (b != null) b.setStyle(b == active ? NAV_ACTIVE : NAV_INACTIVE);
+        }
+    }
 
     // Slider icons (set in Java to avoid encoding issues)
     @FXML private Label slide1Icon, slide2Icon, slide3Icon;
@@ -217,6 +234,7 @@ public class FrontofficeController {
     // ── Navigation — seul le center change, la navbar reste fixe ──────────────
 
     @FXML public void onHome() {
+        setActiveNav(btnHome);
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
@@ -225,7 +243,7 @@ public class FrontofficeController {
         else if (mainScrollPane != null) root.setCenter(mainScrollPane);
     }
 
-    @FXML public void onCours() { naviguerVersCours(); }
+    @FXML public void onCours() { setActiveNav(btnNavCours); naviguerVersCours(); }
 
     @FXML public void onViewCourses() { naviguerVersCours(); }
 
@@ -272,6 +290,7 @@ public class FrontofficeController {
     }
 
     @FXML public void onEvenements() {
+        setActiveNav(btnNavEvenements);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/evenements.fxml"));
             Parent root = loader.load();
@@ -287,6 +306,7 @@ public class FrontofficeController {
     }
 
     @FXML public void onCommunaute() {
+        setActiveNav(btnNavCommunaute);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/communaute/index.fxml"));
             Parent root = loader.load();
@@ -301,6 +321,7 @@ public class FrontofficeController {
     }
 
     @FXML public void onChallenges() {
+        setActiveNav(btnNavChallenges);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
             Parent root = loader.load();
