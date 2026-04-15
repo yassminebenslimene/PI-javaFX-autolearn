@@ -308,7 +308,7 @@ public class FrontofficeController {
     }
 
     private void showSlide(int index) {
-        VBox[] slides = {slide1, slide2, slide3};
+        HBox[] slides = {slide1, slide2, slide3};
         Label[] dots  = {dot1, dot2, dot3};
         for (int i = 0; i < slides.length; i++) {
             if (slides[i] == null) continue;
