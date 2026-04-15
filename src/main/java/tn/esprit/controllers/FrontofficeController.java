@@ -39,6 +39,7 @@ public class FrontofficeController {
     // Slider
     @FXML private VBox slide1, slide2, slide3;
     @FXML private Label dot1, dot2, dot3;
+    @FXML private Label labelCoursIllus;
 
     // Contact
     @FXML private javafx.scene.control.TextField contactNom;
@@ -88,6 +89,7 @@ public class FrontofficeController {
 
                 if (labelNiveauStat      != null) labelNiveauStat.setText(niveau);
                 if (labelCoursCount      != null) labelCoursCount.setText(String.valueOf(nbCours));
+                if (labelCoursIllus     != null) labelCoursIllus.setText(nbCours + " cours disponibles");
                 if (labelChallengesCount != null) labelChallengesCount.setText(String.valueOf(nbChallenges));
                 if (labelEtudiantsCount  != null) labelEtudiantsCount.setText(nbEtudiants + "+");
 
