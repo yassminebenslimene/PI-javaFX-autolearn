@@ -145,7 +145,7 @@
                                           -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20; -fx-padding:4 14 4 14;"/>
                             <Label text="Apprenez a Votre Rythme" wrapText="true"
                                    style="-fx-font-size:36; -fx-font-weight:900; -fx-text-fill:white; -fx-max-width:460;"/>
-                            <Label text="Rejoignez une communaute d'apprenants passionnes. Partagez et progressez ensemble." wrapText="true"
+                            <Label text="Rejoignez une communaute d&apos;apprenants passionnes. Partagez et progressez ensemble." wrapText="true"
                                    style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.75); -fx-max-width:420;"/>
                             <HBox spacing="14">
                                 <Button text="Rejoindre la communaute" onAction="#onCommunaute"
@@ -229,9 +229,9 @@
                         <Label text="Notre Mission"
                                style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
                                       -fx-background-color:rgba(122,106,216,0.1); -fx-background-radius:20; -fx-padding:3 12 3 12;"/>
-                        <Label text="Revolutionner l'apprentissage en ligne"
+                        <Label text="Revolutionner l&apos;apprentissage en ligne"
                                style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#1e1e1e;" wrapText="true"/>
-                        <Label text="AutoLearn combine l'intelligence artificielle et la pedagogie moderne pour offrir une experience d'apprentissage personnalisee. Accessible a tous, partout, a tout moment."
+                        <Label text="AutoLearn combine l&apos;intelligence artificielle et la pedagogie moderne pour offrir une experience d&apos;apprentissage personnalisee. Accessible a tous, partout, a tout moment."
                                wrapText="true" style="-fx-font-size:13; -fx-text-fill:#666; -fx-line-spacing:3;"/>
                         <HBox spacing="28">
                             <VBox spacing="2" alignment="CENTER">
