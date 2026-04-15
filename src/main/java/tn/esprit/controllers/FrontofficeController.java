@@ -35,6 +35,7 @@ public class FrontofficeController {
     @FXML private Label labelCoursCount;
     @FXML private Label labelChallengesCount;
     @FXML private Label labelEtudiantsCount;
+    @FXML private Button btnHome;
 
     // Slider icons (set in Java to avoid encoding issues)
     @FXML private Label slide1Icon, slide2Icon, slide3Icon;
