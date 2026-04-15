@@ -1,5 +1,4 @@
-
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.shape.Circle?>
@@ -14,10 +13,10 @@
               style="-fx-background-color:rgba(122,106,216,0.96); -fx-min-height:64; -fx-max-height:64;
                      -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
             <padding><Insets left="36" right="36"/></padding>
-            <Label text="🎓" style="-fx-font-size:22;"/>
+            <Label text="ðŸŽ“" style="-fx-font-size:22;"/>
             <Label text="  AutoLearn" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="← Retour" onAction="#onBack"
+            <Button text="â† Retour" onAction="#onBack"
                     style="-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;
                            -fx-font-size:12; -fx-font-weight:600; -fx-cursor:hand;
                            -fx-border-width:0; -fx-padding:8 20 8 20; -fx-background-radius:20;"/>
@@ -100,8 +99,8 @@
                             <VBox spacing="14" style="-fx-padding:18 22 22 22;">
                                 <HBox spacing="16">
                                     <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                        <Label text="Prénom" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                        <TextField fx:id="fieldPrenom" promptText="Votre prénom"
+                                        <Label text="PrÃ©nom" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
+                                        <TextField fx:id="fieldPrenom" promptText="Votre prÃ©nom"
                                                    style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
                                                           -fx-border-radius:8; -fx-background-radius:8;
                                                           -fx-padding:10 14 10 14; -fx-font-size:13;"/>
@@ -136,7 +135,7 @@
                             </VBox>
                         </VBox>
 
-                        <!-- Sécurité -->
+                        <!-- SÃ©curitÃ© -->
                         <VBox spacing="0"
                               style="-fx-background-color:white; -fx-background-radius:14;
                                      -fx-border-color:#e8e8e8; -fx-border-radius:14;
@@ -151,7 +150,7 @@
                             <HBox spacing="16" style="-fx-padding:18 22 22 22;">
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                                     <Label text="Nouveau mot de passe" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                    <PasswordField fx:id="fieldPassword" promptText="••••••••"
+                                    <PasswordField fx:id="fieldPassword" promptText="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                                    style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
                                                           -fx-border-radius:8; -fx-background-radius:8;
                                                           -fx-padding:10 14 10 14; -fx-font-size:13;"/>
@@ -161,7 +160,7 @@
                                 </VBox>
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                                     <Label text="Confirmer" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                    <PasswordField fx:id="fieldConfirmPassword" promptText="••••••••"
+                                    <PasswordField fx:id="fieldConfirmPassword" promptText="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                                    style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
                                                           -fx-border-radius:8; -fx-background-radius:8;
                                                           -fx-padding:10 14 10 14; -fx-font-size:13;"/>
