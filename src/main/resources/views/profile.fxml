@@ -3,7 +3,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.geometry.Insets?>
-
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.ProfileController"
             maxWidth="Infinity" maxHeight="Infinity"
@@ -13,10 +12,9 @@
               style="-fx-background-color:rgba(122,106,216,0.96); -fx-min-height:64; -fx-max-height:64;
                      -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
             <padding><Insets left="36" right="36"/></padding>
-            <Label text="ðŸŽ“" style="-fx-font-size:22;"/>
-            <Label text="  AutoLearn" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;"/>
+            <Label text="AutoLearn" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="â† Retour" onAction="#onBack"
+            <Button text="Retour" onAction="#onBack"
                     style="-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;
                            -fx-font-size:12; -fx-font-weight:600; -fx-cursor:hand;
                            -fx-border-width:0; -fx-padding:8 20 8 20; -fx-background-radius:20;"/>
@@ -26,22 +24,17 @@
         <ScrollPane fitToWidth="true"
                     style="-fx-background-color:#f8f9fa; -fx-background:transparent; -fx-border-width:0;">
             <VBox alignment="TOP_CENTER" spacing="0" style="-fx-background-color:#f8f9fa;">
-
-                <!-- Hero compact -->
+                <!-- Hero -->
                 <HBox alignment="CENTER_LEFT" spacing="28"
                       style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
-                             -fx-padding:36 80 36 80;
-                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,4);">
-                    <!-- Avatar cercle avec initiales -->
+                             -fx-padding:36 80 36 80;">
                     <StackPane minWidth="100" minHeight="100" prefWidth="100" prefHeight="100">
                         <Circle radius="50"
                                 style="-fx-fill:rgba(255,255,255,0.18);
-                                       -fx-stroke:rgba(255,255,255,0.4); -fx-stroke-width:2;
-                                       -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.25),12,0,0,0);"/>
+                                       -fx-stroke:rgba(255,255,255,0.4); -fx-stroke-width:2;"/>
                         <Label fx:id="labelInitials" text=""
                                style="-fx-text-fill:white; -fx-font-size:32; -fx-font-weight:900;"/>
                     </StackPane>
-                    <!-- Infos utilisateur -->
                     <VBox spacing="8" HBox.hgrow="ALWAYS">
                         <Label fx:id="labelFullName" text=""
                                style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:white;"/>
@@ -59,7 +52,6 @@
                                    visible="false" managed="false"/>
                         </HBox>
                     </VBox>
-                    <!-- Stats rapides -->
                     <HBox spacing="32" alignment="CENTER_RIGHT">
                         <VBox alignment="CENTER" spacing="2">
                             <Label text="Membre" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;"/>
@@ -71,19 +63,15 @@
                         </VBox>
                     </HBox>
                 </HBox>
-
                 <!-- Form -->
                 <VBox alignment="TOP_CENTER" spacing="16" style="-fx-padding:24 80 36 80;">
                     <VBox spacing="16" prefWidth="800" maxWidth="800">
-
-                        <!-- Success -->
                         <Label fx:id="successLabel" text="" wrapText="true"
                                style="-fx-background-color:#d1fae5; -fx-border-color:#059669;
                                       -fx-border-width:0 0 0 4; -fx-border-radius:6; -fx-background-radius:6;
                                       -fx-text-fill:#065f46; -fx-font-size:13; -fx-font-weight:700;
                                       -fx-padding:12 18 12 18;"
                                visible="false" managed="false"/>
-
                         <!-- Infos Personnelles -->
                         <VBox spacing="0"
                               style="-fx-background-color:white; -fx-background-radius:14;
@@ -99,8 +87,8 @@
                             <VBox spacing="14" style="-fx-padding:18 22 22 22;">
                                 <HBox spacing="16">
                                     <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                        <Label text="PrÃ©nom" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                        <TextField fx:id="fieldPrenom" promptText="Votre prÃ©nom"
+                                        <Label text="Prenom" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
+                                        <TextField fx:id="fieldPrenom" promptText="Votre prenom"
                                                    style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
                                                           -fx-border-radius:8; -fx-background-radius:8;
                                                           -fx-padding:10 14 10 14; -fx-font-size:13;"/>
@@ -134,8 +122,7 @@
                                 </HBox>
                             </VBox>
                         </VBox>
-
-                        <!-- SÃ©curitÃ© -->
+                        <!-- Securite -->
                         <VBox spacing="0"
                               style="-fx-background-color:white; -fx-background-radius:14;
                                      -fx-border-color:#e8e8e8; -fx-border-radius:14;
@@ -150,7 +137,7 @@
                             <HBox spacing="16" style="-fx-padding:18 22 22 22;">
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                                     <Label text="Nouveau mot de passe" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                    <PasswordField fx:id="fieldPassword" promptText="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                                    <PasswordField fx:id="fieldPassword" promptText="Nouveau mot de passe"
                                                    style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
                                                           -fx-border-radius:8; -fx-background-radius:8;
                                                           -fx-padding:10 14 10 14; -fx-font-size:13;"/>
@@ -160,7 +147,7 @@
                                 </VBox>
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                                     <Label text="Confirmer" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                    <PasswordField fx:id="fieldConfirmPassword" promptText="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                                    <PasswordField fx:id="fieldConfirmPassword" promptText="Confirmer le mot de passe"
                                                    style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
                                                           -fx-border-radius:8; -fx-background-radius:8;
                                                           -fx-padding:10 14 10 14; -fx-font-size:13;"/>
@@ -168,15 +155,13 @@
                                 </VBox>
                             </HBox>
                         </VBox>
-
                         <!-- Save -->
                         <HBox alignment="CENTER_RIGHT">
-                            <Button text="Sauvegarder les modifications" onAction="#onSave"
+                            <Button text="Sauvegarder" onAction="#onSave"
                                     style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
                                            -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;
                                            -fx-padding:12 36 12 36; -fx-background-radius:12;
-                                           -fx-cursor:hand; -fx-border-width:0;
-                                           -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.35),10,0,0,3);"/>
+                                           -fx-cursor:hand; -fx-border-width:0;"/>
                         </HBox>
                     </VBox>
                 </VBox>
@@ -184,4 +169,3 @@
         </ScrollPane>
     </center>
 </BorderPane>
-
