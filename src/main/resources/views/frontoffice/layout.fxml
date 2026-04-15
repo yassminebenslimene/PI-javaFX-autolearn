@@ -9,12 +9,10 @@
             style="-fx-background-color:#f8f9fa;">
     <top>
         <HBox alignment="CENTER_LEFT" spacing="0"
-              style="-fx-background-color:rgba(122,106,216,0.96); -fx-min-height:64; -fx-max-height:64;
-                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
+              style="-fx-background-color:rgba(122,106,216,0.97); -fx-min-height:64; -fx-max-height:64;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,3);">
             <padding><Insets left="36" right="36"/></padding>
-            <HBox spacing="8" alignment="CENTER_LEFT">
-                <Label text="AutoLearn" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;"/>
-            </HBox>
+            <Label text="AutoLearn" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;"/>
             <HBox spacing="0" alignment="CENTER" style="-fx-padding:0 0 0 32;">
                 <Button fx:id="btnHome" text="Accueil" onAction="#onHome"
                         style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;
@@ -58,289 +56,224 @@
     <center>
         <ScrollPane fx:id="mainScrollPane" fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
                     style="-fx-background-color:#f8f9fa; -fx-background:transparent; -fx-border-width:0;">
-            <VBox spacing="0" style="-fx-background-color:#f8f9fa;">
+            <VBox fx:id="homeContent" spacing="0" style="-fx-background-color:#f8f9fa;">
 
                 <!-- HERO SLIDER -->
-                <StackPane fx:id="heroSlider" prefHeight="380"
+                <StackPane fx:id="heroSlider" prefHeight="420"
                            style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c);">
-                    <!-- Slide 1 -->
                     <HBox fx:id="slide1" alignment="CENTER" spacing="0" style="-fx-padding:0 80 0 80;">
-                        <VBox spacing="18" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                            <Label text="Nos Cours"
-                                   style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.85);
-                                          -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20; -fx-padding:4 14 4 14;"/>
+                        <VBox spacing="20" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                            <Label fx:id="slide1Badge" text="Nos Cours"
+                                   style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.9);
+                                          -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20; -fx-padding:5 16 5 16;"/>
                             <Label text="Apprenez la Programmation" wrapText="true"
-                                   style="-fx-font-size:36; -fx-font-weight:900; -fx-text-fill:white; -fx-max-width:460;"/>
+                                   style="-fx-font-size:40; -fx-font-weight:900; -fx-text-fill:white; -fx-max-width:500;"/>
                             <Label fx:id="welcomeLabel" text="" wrapText="true"
-                                   style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.75); -fx-max-width:420;"/>
+                                   style="-fx-font-size:15; -fx-text-fill:rgba(255,255,255,0.8); -fx-max-width:460;"/>
                             <HBox spacing="14">
                                 <Button text="Voir les cours" onAction="#onCours"
-                                        style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:13;
-                                               -fx-font-weight:700; -fx-padding:12 28 12 28; -fx-background-radius:30;
+                                        style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:14;
+                                               -fx-font-weight:700; -fx-padding:13 32 13 32; -fx-background-radius:30;
                                                -fx-cursor:hand; -fx-border-width:0;
-                                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,3);"/>
+                                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,3);"/>
                                 <Button text="Commencer" onAction="#onCours"
-                                        style="-fx-background-color:rgba(255,255,255,0.12); -fx-text-fill:white;
-                                               -fx-font-size:13; -fx-padding:12 24 12 24; -fx-background-radius:30;
-                                               -fx-cursor:hand; -fx-border-width:1;
-                                               -fx-border-color:rgba(255,255,255,0.35); -fx-border-radius:30;"/>
+                                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:14;
+                                               -fx-padding:13 32 13 32; -fx-background-radius:30; -fx-cursor:hand;
+                                               -fx-border-width:2; -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:30;"/>
                             </HBox>
                         </VBox>
-                        <StackPane prefWidth="320" prefHeight="300" HBox.hgrow="NEVER">
-                            <Circle radius="120" style="-fx-fill:rgba(255,255,255,0.07);"/>
-                            <Circle radius="80" style="-fx-fill:rgba(255,255,255,0.1);"/>
-                            <VBox alignment="CENTER" spacing="10">
-                                <Label fx:id="slide1Icon" text=""
-                                       style="-fx-font-size:64; -fx-text-fill:white;"/>
+                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER">
+                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);"/>
+                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);"/>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label fx:id="slide1Icon" text="" style="-fx-font-size:80;"/>
                                 <Label fx:id="labelCoursIllus" text=""
                                        style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:white;
-                                              -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20;
-                                              -fx-padding:5 16 5 16;"/>
+                                              -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20; -fx-padding:6 18 6 18;"/>
                             </VBox>
                         </StackPane>
                     </HBox>
-                    <!-- Slide 2 -->
-                    <HBox fx:id="slide2" alignment="CENTER" spacing="0" style="-fx-padding:0 80 0 80;"
-                          visible="false" managed="false">
-                        <VBox spacing="18" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                    <HBox fx:id="slide2" alignment="CENTER" spacing="0" style="-fx-padding:0 80 0 80;" visible="false" managed="false">
+                        <VBox spacing="20" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                             <Label text="Challenges"
-                                   style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.85);
-                                          -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20; -fx-padding:4 14 4 14;"/>
+                                   style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.9);
+                                          -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20; -fx-padding:5 16 5 16;"/>
                             <Label text="Developpez Vos Competences" wrapText="true"
-                                   style="-fx-font-size:36; -fx-font-weight:900; -fx-text-fill:white; -fx-max-width:460;"/>
+                                   style="-fx-font-size:40; -fx-font-weight:900; -fx-text-fill:white; -fx-max-width:500;"/>
                             <Label text="Relevez des defis stimulants avec feedback IA et suivez votre progression." wrapText="true"
-                                   style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.75); -fx-max-width:420;"/>
+                                   style="-fx-font-size:15; -fx-text-fill:rgba(255,255,255,0.8); -fx-max-width:460;"/>
                             <HBox spacing="14">
                                 <Button text="Relever un challenge" onAction="#onChallenges"
-                                        style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:13;
-                                               -fx-font-weight:700; -fx-padding:12 28 12 28; -fx-background-radius:30;
+                                        style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:14;
+                                               -fx-font-weight:700; -fx-padding:13 32 13 32; -fx-background-radius:30;
                                                -fx-cursor:hand; -fx-border-width:0;
-                                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,3);"/>
+                                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,3);"/>
                                 <Button text="Explorer les cours" onAction="#onCours"
-                                        style="-fx-background-color:rgba(255,255,255,0.12); -fx-text-fill:white;
-                                               -fx-font-size:13; -fx-padding:12 24 12 24; -fx-background-radius:30;
-                                               -fx-cursor:hand; -fx-border-width:1;
-                                               -fx-border-color:rgba(255,255,255,0.35); -fx-border-radius:30;"/>
+                                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:14;
+                                               -fx-padding:13 32 13 32; -fx-background-radius:30; -fx-cursor:hand;
+                                               -fx-border-width:2; -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:30;"/>
                             </HBox>
                         </VBox>
-                        <StackPane prefWidth="320" prefHeight="300" HBox.hgrow="NEVER">
-                            <Circle radius="120" style="-fx-fill:rgba(255,255,255,0.07);"/>
-                            <Circle radius="80" style="-fx-fill:rgba(255,255,255,0.1);"/>
-                            <VBox alignment="CENTER" spacing="10">
-                                <Label fx:id="slide2Icon" text=""
-                                       style="-fx-font-size:64; -fx-text-fill:white;"/>
-                                <Label text="Challenges interactifs"
-                                       style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:white;
-                                              -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20;
-                                              -fx-padding:5 16 5 16;"/>
-                            </VBox>
+                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER">
+                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);"/>
+                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);"/>
+                            <Label fx:id="slide2Icon" text="" style="-fx-font-size:80;"/>
                         </StackPane>
                     </HBox>
-                    <!-- Slide 3 -->
-                    <HBox fx:id="slide3" alignment="CENTER" spacing="0" style="-fx-padding:0 80 0 80;"
-                          visible="false" managed="false">
-                        <VBox spacing="18" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                    <HBox fx:id="slide3" alignment="CENTER" spacing="0" style="-fx-padding:0 80 0 80;" visible="false" managed="false">
+                        <VBox spacing="20" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                             <Label text="Communaute"
-                                   style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.85);
-                                          -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20; -fx-padding:4 14 4 14;"/>
+                                   style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.9);
+                                          -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20; -fx-padding:5 16 5 16;"/>
                             <Label text="Apprenez a Votre Rythme" wrapText="true"
-                                   style="-fx-font-size:36; -fx-font-weight:900; -fx-text-fill:white; -fx-max-width:460;"/>
-                            <Label text="Rejoignez une communaute d&apos;apprenants passionnes. Partagez et progressez ensemble." wrapText="true"
-                                   style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.75); -fx-max-width:420;"/>
+                                   style="-fx-font-size:40; -fx-font-weight:900; -fx-text-fill:white; -fx-max-width:500;"/>
+                            <Label text="Rejoignez une communaute active. Partagez et progressez ensemble." wrapText="true"
+                                   style="-fx-font-size:15; -fx-text-fill:rgba(255,255,255,0.8); -fx-max-width:460;"/>
                             <HBox spacing="14">
-                                <Button text="Rejoindre la communaute" onAction="#onCommunaute"
-                                        style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:13;
-                                               -fx-font-weight:700; -fx-padding:12 28 12 28; -fx-background-radius:30;
+                                <Button text="Rejoindre" onAction="#onCommunaute"
+                                        style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:14;
+                                               -fx-font-weight:700; -fx-padding:13 32 13 32; -fx-background-radius:30;
                                                -fx-cursor:hand; -fx-border-width:0;
-                                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,3);"/>
+                                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,3);"/>
                                 <Button text="Voir les evenements" onAction="#onEvenements"
-                                        style="-fx-background-color:rgba(255,255,255,0.12); -fx-text-fill:white;
-                                               -fx-font-size:13; -fx-padding:12 24 12 24; -fx-background-radius:30;
-                                               -fx-cursor:hand; -fx-border-width:1;
-                                               -fx-border-color:rgba(255,255,255,0.35); -fx-border-radius:30;"/>
+                                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:14;
+                                               -fx-padding:13 32 13 32; -fx-background-radius:30; -fx-cursor:hand;
+                                               -fx-border-width:2; -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:30;"/>
                             </HBox>
                         </VBox>
-                        <StackPane prefWidth="320" prefHeight="300" HBox.hgrow="NEVER">
-                            <Circle radius="120" style="-fx-fill:rgba(255,255,255,0.07);"/>
-                            <Circle radius="80" style="-fx-fill:rgba(255,255,255,0.1);"/>
-                            <VBox alignment="CENTER" spacing="10">
-                                <Label fx:id="slide3Icon" text=""
-                                       style="-fx-font-size:64; -fx-text-fill:white;"/>
-                                <Label text="Communaute active"
-                                       style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:white;
-                                              -fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:20;
-                                              -fx-padding:5 16 5 16;"/>
-                            </VBox>
+                        <StackPane prefWidth="340" prefHeight="340" HBox.hgrow="NEVER">
+                            <Circle radius="140" style="-fx-fill:rgba(255,255,255,0.06);"/>
+                            <Circle radius="100" style="-fx-fill:rgba(255,255,255,0.09);"/>
+                            <Label fx:id="slide3Icon" text="" style="-fx-font-size:80;"/>
                         </StackPane>
                     </HBox>
-                    <!-- Dots -->
-                    <HBox fx:id="sliderDots" alignment="BOTTOM_CENTER" style="-fx-padding:0 0 14 0;" spacing="6">
-                        <Label fx:id="dot1" text="&#9679;" style="-fx-text-fill:white; -fx-font-size:10;"/>
-                        <Label fx:id="dot2" text="&#9679;" style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:10;"/>
-                        <Label fx:id="dot3" text="&#9679;" style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:10;"/>
+                    <HBox fx:id="sliderDots" alignment="BOTTOM_CENTER" style="-fx-padding:0 0 16 0;" spacing="8">
+                        <Label fx:id="dot1" text="&#9679;" style="-fx-text-fill:white; -fx-font-size:12;"/>
+                        <Label fx:id="dot2" text="&#9679;" style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:12;"/>
+                        <Label fx:id="dot3" text="&#9679;" style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:12;"/>
                     </HBox>
                 </StackPane>
 
                 <!-- STATS BAR -->
                 <HBox alignment="CENTER" spacing="0"
                       style="-fx-background-color:white; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),8,0,0,2);">
-                    <VBox alignment="CENTER" spacing="2" prefWidth="220" prefHeight="68"
+                    <VBox alignment="CENTER" spacing="2" prefWidth="220" prefHeight="72"
                           style="-fx-border-color:transparent rgba(0,0,0,0.06) transparent transparent; -fx-border-width:0 1 0 0;">
-                        <Label fx:id="labelNiveauStat" text="---" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
+                        <Label fx:id="labelNiveauStat" text="---" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
                         <Label text="Votre niveau" style="-fx-font-size:11; -fx-text-fill:#aaa;"/>
                     </VBox>
-                    <VBox alignment="CENTER" spacing="2" prefWidth="220" prefHeight="68"
+                    <VBox alignment="CENTER" spacing="2" prefWidth="220" prefHeight="72"
                           style="-fx-border-color:transparent rgba(0,0,0,0.06) transparent transparent; -fx-border-width:0 1 0 0;">
-                        <Label fx:id="labelCoursCount" text="---" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
+                        <Label fx:id="labelCoursCount" text="---" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
                         <Label text="Cours disponibles" style="-fx-font-size:11; -fx-text-fill:#aaa;"/>
                     </VBox>
-                    <VBox alignment="CENTER" spacing="2" prefWidth="220" prefHeight="68"
+                    <VBox alignment="CENTER" spacing="2" prefWidth="220" prefHeight="72"
                           style="-fx-border-color:transparent rgba(0,0,0,0.06) transparent transparent; -fx-border-width:0 1 0 0;">
-                        <Label fx:id="labelChallengesCount" text="---" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
+                        <Label fx:id="labelChallengesCount" text="---" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
                         <Label text="Challenges actifs" style="-fx-font-size:11; -fx-text-fill:#aaa;"/>
                     </VBox>
-                    <VBox alignment="CENTER" spacing="2" prefWidth="220" prefHeight="68">
-                        <Label fx:id="labelEtudiantsCount" text="---" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
+                    <VBox alignment="CENTER" spacing="2" prefWidth="220" prefHeight="72">
+                        <Label fx:id="labelEtudiantsCount" text="---" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
                         <Label text="Etudiants actifs" style="-fx-font-size:11; -fx-text-fill:#aaa;"/>
                     </VBox>
                 </HBox>
 
                 <!-- NOS COURS -->
-                <VBox spacing="20" style="-fx-padding:40 80 40 80; -fx-background-color:#f8f9fa;">
+                <VBox fx:id="sectionCours" spacing="24" style="-fx-padding:48 80 48 80; -fx-background-color:#f8f9fa;">
                     <HBox alignment="CENTER_LEFT">
                         <VBox spacing="4" HBox.hgrow="ALWAYS">
                             <Label text="Nos Cours"
                                    style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
                                           -fx-background-color:rgba(122,106,216,0.1); -fx-background-radius:20; -fx-padding:3 12 3 12;"/>
-                            <Label text="Decouvrez nos formations"
-                                   style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                            <Label text="Decouvrez nos formations" style="-fx-font-size:24; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                            <Label text="Des cours structures par des experts pour progresser a votre rythme"
+                                   style="-fx-font-size:13; -fx-text-fill:#888;"/>
                         </VBox>
                         <Button text="Voir tous les cours" onAction="#onCours"
-                                style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8; -fx-font-size:13;
-                                       -fx-font-weight:600; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0;"/>
+                                style="-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:13;
+                                       -fx-font-weight:600; -fx-cursor:hand; -fx-border-width:0;
+                                       -fx-padding:10 24 10 24; -fx-background-radius:20;"/>
                     </HBox>
                     <HBox fx:id="coursCardsContainer" spacing="20" alignment="CENTER_LEFT"/>
                 </VBox>
 
-                <!-- A PROPOS -->
-                <HBox spacing="60" alignment="CENTER"
-                      style="-fx-padding:40 80 40 80; -fx-background-color:white;">
-                    <VBox spacing="16" prefWidth="460" HBox.hgrow="ALWAYS">
-                        <Label text="Notre Mission"
+                <!-- POURQUOI AUTOLEARN -->
+                <VBox fx:id="sectionFeatures" spacing="32" style="-fx-padding:48 80 48 80; -fx-background-color:white;">
+                    <VBox alignment="CENTER" spacing="8">
+                        <Label text="Pourquoi AutoLearn ?"
                                style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
                                       -fx-background-color:rgba(122,106,216,0.1); -fx-background-radius:20; -fx-padding:3 12 3 12;"/>
-                        <Label text="Revolutionner l&apos;apprentissage en ligne"
-                               style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#1e1e1e;" wrapText="true"/>
-                        <Label text="AutoLearn combine l&apos;intelligence artificielle et la pedagogie moderne pour offrir une experience d&apos;apprentissage personnalisee. Accessible a tous, partout, a tout moment."
-                               wrapText="true" style="-fx-font-size:13; -fx-text-fill:#666; -fx-line-spacing:3;"/>
-                        <HBox spacing="28">
-                            <VBox spacing="2" alignment="CENTER">
-                                <Label text="1000+" style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
-                                <Label text="Etudiants" style="-fx-font-size:11; -fx-text-fill:#999;"/>
-                            </VBox>
-                            <VBox spacing="2" alignment="CENTER">
-                                <Label text="50+" style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
-                                <Label text="Cours" style="-fx-font-size:11; -fx-text-fill:#999;"/>
-                            </VBox>
-                            <VBox spacing="2" alignment="CENTER">
-                                <Label text="500+" style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
-                                <Label text="Exercices IA" style="-fx-font-size:11; -fx-text-fill:#999;"/>
-                            </VBox>
-                            <VBox spacing="2" alignment="CENTER">
-                                <Label text="24/7" style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
-                                <Label text="Disponible" style="-fx-font-size:11; -fx-text-fill:#999;"/>
-                            </VBox>
-                        </HBox>
-                        <Button text="Decouvrir nos cours" onAction="#onCours"
-                                style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
-                                       -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;
-                                       -fx-padding:11 28 11 28; -fx-background-radius:30;
-                                       -fx-cursor:hand; -fx-border-width:0;"/>
+                        <Label text="Une plateforme pensee pour votre reussite"
+                               style="-fx-font-size:24; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                        <Label text="Tout ce dont vous avez besoin pour apprendre efficacement"
+                               style="-fx-font-size:13; -fx-text-fill:#888;"/>
                     </VBox>
-                    <!-- Illustration -->
-                    <VBox spacing="14" prefWidth="360" HBox.hgrow="NEVER" alignment="CENTER">
-                        <HBox spacing="14" alignment="CENTER">
-                            <VBox alignment="CENTER" spacing="8" prefWidth="160" prefHeight="100"
-                                  style="-fx-background-color:#f9f9ff; -fx-background-radius:14;
-                                         -fx-border-color:#eeeeee; -fx-border-radius:14; -fx-padding:20;">
-                                <Label fx:id="aboutIcon1" text="" style="-fx-font-size:32;"/>
-                                <Label text="IA Integree" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
-                            </VBox>
-                            <VBox alignment="CENTER" spacing="8" prefWidth="160" prefHeight="100"
-                                  style="-fx-background-color:#f9f9ff; -fx-background-radius:14;
-                                         -fx-border-color:#eeeeee; -fx-border-radius:14; -fx-padding:20;">
-                                <Label fx:id="aboutIcon2" text="" style="-fx-font-size:32;"/>
-                                <Label text="Progression" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
-                            </VBox>
-                        </HBox>
-                        <HBox spacing="14" alignment="CENTER">
-                            <VBox alignment="CENTER" spacing="8" prefWidth="160" prefHeight="100"
-                                  style="-fx-background-color:#f9f9ff; -fx-background-radius:14;
-                                         -fx-border-color:#eeeeee; -fx-border-radius:14; -fx-padding:20;">
-                                <Label fx:id="aboutIcon3" text="" style="-fx-font-size:32;"/>
-                                <Label text="Challenges" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
-                            </VBox>
-                            <VBox alignment="CENTER" spacing="8" prefWidth="160" prefHeight="100"
-                                  style="-fx-background-color:#f9f9ff; -fx-background-radius:14;
-                                         -fx-border-color:#eeeeee; -fx-border-radius:14; -fx-padding:20;">
-                                <Label fx:id="aboutIcon4" text="" style="-fx-font-size:32;"/>
-                                <Label text="Communaute" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
-                            </VBox>
-                        </HBox>
+                    <HBox fx:id="featuresContainer" spacing="20" alignment="CENTER"/>
+                </VBox>
+
+                <!-- TEMOIGNAGES / EQUIPE -->
+                <VBox fx:id="sectionTeam" spacing="32" style="-fx-padding:48 80 48 80; -fx-background-color:#f8f9fa;">
+                    <VBox alignment="CENTER" spacing="8">
+                        <Label text="Notre Equipe"
+                               style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
+                                      -fx-background-color:rgba(122,106,216,0.1); -fx-background-radius:20; -fx-padding:3 12 3 12;"/>
+                        <Label text="Des experts passionnes par l&apos;education"
+                               style="-fx-font-size:24; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
                     </VBox>
-                </HBox>
+                    <HBox fx:id="teamContainer" spacing="20" alignment="CENTER"/>
+                </VBox>
 
                 <!-- CONTACT -->
-                <HBox spacing="40" alignment="TOP_CENTER"
-                      style="-fx-padding:40 80 40 80; -fx-background-color:#f8f9fa;">
-                    <VBox spacing="14" prefWidth="280">
+                <HBox spacing="48" alignment="TOP_CENTER"
+                      style="-fx-padding:48 80 48 80; -fx-background-color:white;">
+                    <VBox spacing="16" prefWidth="300">
                         <Label text="Contact"
                                style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
                                       -fx-background-color:rgba(122,106,216,0.1); -fx-background-radius:20; -fx-padding:3 12 3 12;"/>
-                        <Label text="Contactez-nous" style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                        <Label text="Contactez-nous" style="-fx-font-size:24; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
                         <Label text="Une question ? Nous sommes la pour vous aider."
                                wrapText="true" style="-fx-font-size:13; -fx-text-fill:#666;"/>
-                        <Label text="autolearn66@gmail.com" style="-fx-font-size:13; -fx-text-fill:#7a6ad8;"/>
-                        <Label text="+216 XX XXX XXX" style="-fx-font-size:13; -fx-text-fill:#555;"/>
-                        <Label text="ESPRIT, Ariana, Tunisie" style="-fx-font-size:13; -fx-text-fill:#555;"/>
+                        <Label text="autolearn66@gmail.com" style="-fx-font-size:13; -fx-text-fill:#7a6ad8; -fx-font-weight:600;"/>
+                        <Label text="Tunisie" style="-fx-font-size:13; -fx-text-fill:#555;"/>
                     </VBox>
-                    <VBox spacing="12" prefWidth="520"
-                          style="-fx-background-color:white; -fx-background-radius:16;
+                    <VBox spacing="14" prefWidth="540"
+                          style="-fx-background-color:#f8f9fa; -fx-background-radius:16;
                                  -fx-border-color:#eeeeee; -fx-border-radius:16;
-                                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),12,0,0,4); -fx-padding:24;">
+                                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),12,0,0,4); -fx-padding:28;">
                         <HBox spacing="12">
                             <TextField fx:id="contactNom" promptText="Votre nom" HBox.hgrow="ALWAYS"
-                                       style="-fx-background-color:#f9f9f9; -fx-border-color:#e8e8e8;
+                                       style="-fx-background-color:white; -fx-border-color:#e0e0e0;
                                               -fx-border-radius:8; -fx-background-radius:8;
-                                              -fx-padding:10 14 10 14; -fx-font-size:13;"/>
+                                              -fx-padding:11 14 11 14; -fx-font-size:13;"/>
                             <TextField fx:id="contactEmail" promptText="Votre email" HBox.hgrow="ALWAYS"
-                                       style="-fx-background-color:#f9f9f9; -fx-border-color:#e8e8e8;
+                                       style="-fx-background-color:white; -fx-border-color:#e0e0e0;
                                               -fx-border-radius:8; -fx-background-radius:8;
-                                              -fx-padding:10 14 10 14; -fx-font-size:13;"/>
+                                              -fx-padding:11 14 11 14; -fx-font-size:13;"/>
                         </HBox>
                         <TextField fx:id="contactSujet" promptText="Sujet"
-                                   style="-fx-background-color:#f9f9f9; -fx-border-color:#e8e8e8;
+                                   style="-fx-background-color:white; -fx-border-color:#e0e0e0;
                                           -fx-border-radius:8; -fx-background-radius:8;
-                                          -fx-padding:10 14 10 14; -fx-font-size:13;"/>
+                                          -fx-padding:11 14 11 14; -fx-font-size:13;"/>
                         <TextArea fx:id="contactMessage" promptText="Votre message..." prefRowCount="3"
-                                  style="-fx-background-color:#f9f9f9; -fx-border-color:#e8e8e8;
+                                  style="-fx-background-color:white; -fx-border-color:#e0e0e0;
                                          -fx-border-radius:8; -fx-background-radius:8;
-                                         -fx-padding:10 14 10 14; -fx-font-size:13;"/>
+                                         -fx-padding:11 14 11 14; -fx-font-size:13;"/>
                         <Label fx:id="contactStatus" text="" wrapText="true"
                                style="-fx-font-size:12;" visible="false" managed="false"/>
                         <Button text="Envoyer le message" onAction="#onContactSend" maxWidth="Infinity"
                                 style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
                                        -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;
-                                       -fx-padding:11 0 11 0; -fx-background-radius:10;
+                                       -fx-padding:12 0 12 0; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-width:0;"/>
                     </VBox>
                 </HBox>
 
                 <!-- FOOTER -->
-                <HBox alignment="CENTER" prefHeight="48" style="-fx-background-color:#1e1e1e;">
-                    <Label text="&#169; 2026 AutoLearn - Tous droits reserves"
+                <VBox alignment="CENTER" spacing="8" prefHeight="60"
+                      style="-fx-background-color:#1e1e1e; -fx-padding:16 80 16 80;">
+                    <Label text="&#169; 2026 AutoLearn - Tous droits reserves - Tunisie"
                            style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:12;"/>
-                </HBox>
+                </VBox>
             </VBox>
         </ScrollPane>
     </center>

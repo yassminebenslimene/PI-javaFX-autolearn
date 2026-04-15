@@ -41,6 +41,13 @@ public class FrontofficeController {
     @FXML private Button btnNavEvenements;
     @FXML private Button btnNavCommunaute;
 
+    // Sections
+    @FXML private VBox sectionCours;
+    @FXML private VBox sectionFeatures;
+    @FXML private VBox sectionTeam;
+    @FXML private HBox featuresContainer;
+    @FXML private HBox teamContainer;
+
     private static final String NAV_ACTIVE =
         "-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;" +
         "-fx-font-weight:700; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0; -fx-background-radius:8;";
@@ -125,6 +132,10 @@ public class FrontofficeController {
 
                 // Charger les vraies cartes de cours
                 if (coursCardsContainer != null) loadCoursCards();
+
+                // Construire les sections features et team
+                buildFeaturesSection();
+                buildTeamSection();
 
                 // Démarrer le slider automatique
                 startSlider();
@@ -433,6 +444,109 @@ public class FrontofficeController {
         contactStatus.setText("Message envoyé avec succès ! Nous vous répondrons sous 24h.");
         contactStatus.setStyle("-fx-text-fill:#059669; -fx-font-size:12;");
         contactStatus.setVisible(true); contactStatus.setManaged(true);
+    }
+
+    // ── Features Section ─────────────────────────────────────────────────────
+
+    private void buildFeaturesSection() {
+        if (featuresContainer == null) return;
+        String[][] features = {
+            {"\uD83E\uDD16", "IA Integree", "Correction automatique et exercices adaptes a votre niveau grace a l'IA."},
+            {"\uD83D\uDCCA", "Suivi de Progression", "Visualisez votre avancement en temps reel sur chaque cours."},
+            {"\uD83C\uDFC6", "Challenges", "Defis stimulants avec feedback detaille et classement en temps reel."},
+            {"\uD83D\uDCC5", "Evenements Live", "Webinaires et sessions de formation en direct avec des experts."},
+            {"\uD83D\uDC65", "Communaute", "Partagez, posez des questions et collaborez avec d'autres apprenants."},
+            {"\uD83C\uDF93", "Certifications", "Obtenez des badges et certifications pour valoriser vos competences."}
+        };
+        String[] colors = {"#7a6ad8", "#059669", "#f59e0b", "#3b82f6", "#ec4899", "#8b5cf6"};
+        String[] bgColors = {"rgba(122,106,216,0.08)", "rgba(5,150,105,0.08)", "rgba(245,158,11,0.08)",
+                             "rgba(59,130,246,0.08)", "rgba(236,72,153,0.08)", "rgba(139,92,246,0.08)"};
+
+        for (int i = 0; i < features.length; i++) {
+            VBox card = buildFeatureCard(features[i][0], features[i][1], features[i][2], colors[i], bgColors[i]);
+            card.setOpacity(0);
+            featuresContainer.getChildren().add(card);
+            final int idx = i;
+            FadeTransition ft = new FadeTransition(Duration.millis(500), card);
+            ft.setFromValue(0); ft.setToValue(1);
+            ft.setDelay(Duration.millis(100 + idx * 100));
+            ft.play();
+        }
+    }
+
+    private VBox buildFeatureCard(String icon, String title, String desc, String color, String bg) {
+        Label iconLabel = new Label(icon);
+        iconLabel.setStyle("-fx-font-size:36; -fx-background-color:" + bg +
+                           "; -fx-background-radius:16; -fx-padding:14 16 14 16;");
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+
+        Label descLabel = new Label(desc);
+        descLabel.setWrapText(true);
+        descLabel.setStyle("-fx-font-size:12; -fx-text-fill:#777; -fx-line-spacing:2;");
+
+        VBox card = new VBox(12, iconLabel, titleLabel, descLabel);
+        card.setPrefWidth(170);
+        card.setMaxWidth(170);
+        card.setPadding(new Insets(20));
+        card.setStyle("-fx-background-color:white; -fx-background-radius:16;" +
+                      "-fx-border-color:#f0f0f0; -fx-border-radius:16;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),10,0,0,3);");
+        return card;
+    }
+
+    // ── Team Section ──────────────────────────────────────────────────────────
+
+    private void buildTeamSection() {
+        if (teamContainer == null) return;
+        String[][] members = {
+            {"/images/member1.jpg", "Yassmine B.", "Gestion Evenements"},
+            {"/images/member2.jpg", "Ahmed B.", "Gestion Utilisateurs"},
+            {"/images/member3.jpg", "Amira N.", "Gestion Cours"},
+            {"/images/member4.jpg", "Ilef Y.", "Gestion Challenges"}
+        };
+        for (String[] m : members) {
+            teamContainer.getChildren().add(buildMemberCard(m[0], m[1], m[2]));
+        }
+    }
+
+    private VBox buildMemberCard(String imgPath, String name, String role) {
+        StackPane avatar = new StackPane();
+        avatar.setPrefSize(80, 80);
+        javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(40);
+        try {
+            var url = getClass().getResource(imgPath);
+            if (url != null) {
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
+                    new javafx.scene.image.Image(url.toExternalForm()));
+                iv.setFitWidth(80); iv.setFitHeight(80); iv.setPreserveRatio(false);
+                iv.setClip(clip);
+                avatar.getChildren().add(iv);
+            }
+        } catch (Exception ignored) {}
+        if (avatar.getChildren().isEmpty()) {
+            javafx.scene.shape.Circle bg = new javafx.scene.shape.Circle(40);
+            bg.setStyle("-fx-fill:#7a6ad8;");
+            Label init = new Label(name.substring(0, 1));
+            init.setStyle("-fx-text-fill:white; -fx-font-size:24; -fx-font-weight:700;");
+            avatar.getChildren().addAll(bg, init);
+        }
+
+        Label nameLabel = new Label(name);
+        nameLabel.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+
+        Label roleLabel = new Label(role);
+        roleLabel.setStyle("-fx-font-size:12; -fx-text-fill:#7a6ad8; -fx-font-weight:600;");
+
+        VBox card = new VBox(10, avatar, nameLabel, roleLabel);
+        card.setAlignment(Pos.CENTER);
+        card.setPrefWidth(200);
+        card.setPadding(new Insets(24));
+        card.setStyle("-fx-background-color:white; -fx-background-radius:16;" +
+                      "-fx-border-color:#f0f0f0; -fx-border-radius:16;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),10,0,0,3);");
+        return card;
     }
 
     private void setCenter(Parent view) {
