@@ -99,10 +99,12 @@ public class ActivitesController {
                 all = apiResult;
             }
 
+            // Students tab: actions starting with "user." (student navigation/login)
             List<ActivityApiClient.ActivityEntry> students = all.stream()
-                .filter(e -> !"ADMIN".equalsIgnoreCase(e.userRole()))
+                .filter(e -> e.action().startsWith("user."))
                 .collect(Collectors.toList());
 
+            // Admin tab: ALL actions by the current admin (login + admin.* actions)
             List<ActivityApiClient.ActivityEntry> adminHistory = all.stream()
                 .filter(e -> e.userId() == currentAdminId)
                 .collect(Collectors.toList());

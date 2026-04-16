@@ -6,6 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import tn.esprit.MainApp;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.session.SessionManager;
 
 public class BackofficeController {
@@ -60,15 +61,24 @@ public class BackofficeController {
         }
     }
 
+    /** Log admin navigation action */
+    private void logNav(String section) {
+        var admin = SessionManager.getCurrentUser();
+        if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.view_" + section,
+            java.util.Map.of("section", section));
+    }
+
     @FXML public void navigateToDashboard() {
         setActive(btnDashboard);
         if (labelPageTitle != null) labelPageTitle.setText("Dashboard");
+        logNav("dashboard");
         loadView("/views/backoffice/user/index.fxml");
     }
 
     @FXML public void navigateToUsers() {
         setActive(btnUsers);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Utilisateurs");
+        logNav("users");
         loadView("/views/backoffice/user/index.fxml");
     }
 
@@ -81,41 +91,48 @@ public class BackofficeController {
     @FXML public void navigateToQuiz() {
         setActive(btnQuiz);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Quiz");
+        logNav("quiz");
         loadView("/views/backoffice/quiz/index.fxml");
     }
 
     @FXML public void navigateToCours() {
         setActive(btnCours);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Cours");
+        logNav("cours");
         loadView("/views/backoffice/cours/index.fxml");
     }
 
     @FXML public void navigateToEvenements() {
         setActive(btnEvenements);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Événements");
+        logNav("evenements");
         loadView("/views/backoffice/evenement/index.fxml");
     }
 
     @FXML public void navigateToChapitres() {
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Chapitres");
+        logNav("chapitres");
         loadView("/views/backoffice/chapitre/index.fxml");
     }
 
     @FXML public void navigateToExercices() {
         setActive(btnExercices);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Exercices");
+        logNav("exercices");
         loadView("/views/backoffice/exercice/exercices.fxml");
     }
 
     @FXML public void navigateToChallenges() {
         setActive(btnChallenges);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Challenges");
+        logNav("challenges");
         loadView("/views/backoffice/challenge/challenges.fxml");
     }
 
     @FXML public void navigateToCommunaute() {
         setActive(btnCommunaute);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion de la Communauté");
+        logNav("communaute");
         loadView("/views/backoffice/communaute/index.fxml");
     }
 

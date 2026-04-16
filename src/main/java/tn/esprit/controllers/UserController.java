@@ -404,15 +404,15 @@ public class UserController {
         String niveau   = comboNiveau.getValue();
 
         if (!isEditMode) {
-            // Admin always creates students
-            String plainPassword = password; // keep plain copy before hashing for email
+            String plainPassword = password;
             User newUser = new Etudiant(nom, prenom, email, tn.esprit.tools.PasswordUtil.hash(password), comboNiveau.getValue());
             service.ajouter(newUser);
-            // Notify the new student by email
             EmailService.sendAdminCreatedAccount(email, prenom, nom, plainPassword);
-            // Log to Symfony ActivityAPI
-            ActivityApiClient.logAsync(newUser.getId(), "user.created",
-                java.util.Map.of("email", email, "niveau", niveau != null ? niveau : ""));
+            // Log under ADMIN's ID
+            var admin = tn.esprit.session.SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_student",
+                java.util.Map.of("student_email", email, "student_name", prenom + " " + nom,
+                                 "niveau", niveau != null ? niveau : ""));
             showAlert(Alert.AlertType.INFORMATION, "Succès", "Étudiant créé avec succès. Un email lui a été envoyé.");
         } else {
             editingUser.setNom(nom);
@@ -421,9 +421,10 @@ public class UserController {
             if (!password.isEmpty()) editingUser.setPassword(tn.esprit.tools.PasswordUtil.hash(password));
             if (editingUser instanceof Etudiant e && niveau != null) e.setNiveau(niveau);
             service.modifier(editingUser);
-            // Log to Symfony ActivityAPI
-            ActivityApiClient.logAsync(editingUser.getId(), "user.updated",
-                java.util.Map.of("email", email));
+            // Log under ADMIN's ID
+            var admin = tn.esprit.session.SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_student",
+                java.util.Map.of("student_email", email, "student_id", String.valueOf(editingUser.getId())));
             showAlert(Alert.AlertType.INFORMATION, "Succès", "Utilisateur modifié avec succès.");
         }
         ((Stage) fieldNom.getScene().getWindow()).close();
