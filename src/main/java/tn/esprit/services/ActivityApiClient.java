@@ -292,21 +292,32 @@ public class ActivityApiClient {
             for (var el : arr) {
                 JsonObject o = el.getAsJsonObject();
                 result.add(new ActivityEntry(
-                    o.has("id")        ? o.get("id").getAsInt()           : 0,
-                    o.has("userId")    ? o.get("userId").getAsInt()        : 0,
-                    o.has("userName")  ? o.get("userName").getAsString()   : "—",
-                    o.has("userEmail") ? o.get("userEmail").getAsString()  : "—",
-                    o.has("userRole")  ? o.get("userRole").getAsString()   : "—",
-                    o.has("action")    ? o.get("action").getAsString()     : "—",
-                    o.has("success")   ? o.get("success").getAsBoolean()   : true,
-                    o.has("ipAddress") ? o.get("ipAddress").getAsString()  : "—",
-                    o.has("location")  ? o.get("location").getAsString()   : "—",
-                    o.has("createdAt") ? o.get("createdAt").getAsString()  : "—",
+                    o.has("id") && !o.get("id").isJsonNull()
+                        ? o.get("id").getAsInt() : 0,
+                    o.has("userId") && !o.get("userId").isJsonNull()
+                        ? o.get("userId").getAsInt() : 0,
+                    o.has("userName") && !o.get("userName").isJsonNull()
+                        ? o.get("userName").getAsString() : "—",
+                    o.has("userEmail") && !o.get("userEmail").isJsonNull()
+                        ? o.get("userEmail").getAsString() : "—",
+                    o.has("userRole") && !o.get("userRole").isJsonNull()
+                        ? o.get("userRole").getAsString() : "—",
+                    o.has("action") && !o.get("action").isJsonNull()
+                        ? o.get("action").getAsString() : "—",
+                    o.has("success") && !o.get("success").isJsonNull()
+                        ? o.get("success").getAsBoolean() : true,
+                    o.has("ipAddress") && !o.get("ipAddress").isJsonNull()
+                        ? o.get("ipAddress").getAsString() : "—",
+                    o.has("location") && !o.get("location").isJsonNull()
+                        ? o.get("location").getAsString() : "—",
+                    o.has("createdAt") && !o.get("createdAt").isJsonNull()
+                        ? o.get("createdAt").getAsString() : "—",
                     null
                 ));
             }
         } catch (Exception e) {
-            System.err.println("[ActivityAPI] Parse error: " + e.getMessage());
+            System.err.println("[ActivityAPI] Parse error: " + e.getClass().getSimpleName()
+                + " — " + e.getMessage());
         }
         return result;
     }
