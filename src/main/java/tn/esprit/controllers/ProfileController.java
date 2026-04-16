@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ApiService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
@@ -147,6 +148,10 @@ public class ProfileController {
 
         service.modifier(u);
         SessionManager.login(u);
+
+        // Track profile update
+        ActivityApiClient.logAsync(u.getId(), "user.update_profile",
+            java.util.Map.of("email", u.getEmail(), "role", u.getRole()));
 
         // Refresh header
         populateView(u);

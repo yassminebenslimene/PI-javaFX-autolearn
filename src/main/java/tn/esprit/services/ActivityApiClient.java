@@ -74,6 +74,10 @@ public class ActivityApiClient {
                 case "admin.updated_student"     -> "Etudiant modifie";
                 case "admin.suspended_student"   -> "Etudiant suspendu";
                 case "admin.reactivated_student" -> "Etudiant reactive";
+                case "admin.created_cours"       -> "Cours cree";
+                case "admin.updated_cours"       -> "Cours modifie";
+                case "admin.deleted_cours"       -> "Cours supprime";
+                case "user.update_profile"       -> "Profil mis a jour";
                 case "admin.view_dashboard"      -> "Dashboard consulte";
                 case "admin.view_users"          -> "Utilisateurs consultes";
                 case "admin.view_cours"          -> "Cours consultes";
@@ -105,6 +109,10 @@ public class ActivityApiClient {
                 case "admin.updated_student"     -> "✏️";
                 case "admin.suspended_student"   -> "⛔";
                 case "admin.reactivated_student" -> "✔️";
+                case "admin.created_cours"       -> "✅";
+                case "admin.updated_cours"       -> "✏️";
+                case "admin.deleted_cours"       -> "🗑️";
+                case "user.update_profile"       -> "✏️";
                 case "admin.view_dashboard"      -> "⊞";
                 case "admin.view_users"          -> "👥";
                 case "admin.view_cours"          -> "📚";
