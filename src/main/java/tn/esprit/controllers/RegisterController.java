@@ -79,6 +79,11 @@ public class RegisterController {
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
 
+    @FXML
+    private void onBackToLanding() {
+        try { MainApp.showLanding(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
     private boolean validate() {
         clearErrors();
         boolean valid = true;

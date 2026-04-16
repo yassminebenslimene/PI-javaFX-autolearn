@@ -191,6 +191,10 @@ public class LoginController {
         try { MainApp.showRegister(); } catch (Exception e) { e.printStackTrace(); }
     }
 
+    @FXML private void onBackToLanding() {
+        try { MainApp.showLanding(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
     @FXML private void onForgotPassword() {
         try { MainApp.showResetPassword(); } catch (Exception e) { e.printStackTrace(); }
     }
