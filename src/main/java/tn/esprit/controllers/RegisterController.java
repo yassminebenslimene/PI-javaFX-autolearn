@@ -7,6 +7,7 @@ import tn.esprit.MainApp;
 import tn.esprit.entities.Admin;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
+import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.tools.PasswordUtil;
 
@@ -64,6 +65,9 @@ public class RegisterController {
                 : new Etudiant(nom, prenom, email, password, niveau);
 
         service.ajouter(newUser);
+
+        // Send confirmation email (async — non-blocking)
+        EmailService.sendRegistrationConfirmation(email, prenom, nom);
 
         try {
             if ("ADMIN".equals(role)) MainApp.showBackoffice();
