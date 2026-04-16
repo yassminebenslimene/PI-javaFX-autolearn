@@ -58,27 +58,37 @@ public class ActivityApiClient {
         /** Human-readable action label */
         public String actionLabel() {
             return switch (action) {
-                case "user.login"       -> "Connexion";
-                case "user.logout"      -> "Deconnexion";
-                case "user.created"     -> "Compte cree";
-                case "user.updated"     -> "Profil modifie";
-                case "user.suspended"   -> "Suspendu";
-                case "user.reactivated" -> "Reactive";
-                case "user.viewed"      -> "Profil consulte";
-                default -> action.replace("user.", "").replace(".", " ");
+                case "user.login"            -> "Connexion";
+                case "user.logout"           -> "Deconnexion";
+                case "user.created"          -> "Compte cree";
+                case "user.updated"          -> "Profil modifie";
+                case "user.suspended"        -> "Suspendu";
+                case "user.reactivated"      -> "Reactive";
+                case "user.viewed"           -> "Profil consulte";
+                case "user.view_cours"       -> "Cours consultes";
+                case "user.view_challenges"  -> "Challenges consultes";
+                case "user.view_evenements"  -> "Evenements consultes";
+                case "user.view_communaute"  -> "Communaute consultee";
+                case "user.view_profile"     -> "Profil consulte";
+                default -> action.replace("user.", "").replace("_", " ");
             };
         }
 
         /** Emoji icon per action */
         public String actionIcon() {
             return switch (action) {
-                case "user.login"       -> "🔑";
-                case "user.logout"      -> "🚪";
-                case "user.created"     -> "✅";
-                case "user.updated"     -> "✏️";
-                case "user.suspended"   -> "⛔";
-                case "user.reactivated" -> "✔️";
-                case "user.viewed"      -> "👁";
+                case "user.login"            -> "🔑";
+                case "user.logout"           -> "🚪";
+                case "user.created"          -> "✅";
+                case "user.updated"          -> "✏️";
+                case "user.suspended"        -> "⛔";
+                case "user.reactivated"      -> "✔️";
+                case "user.viewed"           -> "👁";
+                case "user.view_cours"       -> "📚";
+                case "user.view_challenges"  -> "🏆";
+                case "user.view_evenements"  -> "📅";
+                case "user.view_communaute"  -> "👥";
+                case "user.view_profile"     -> "👤";
                 default -> "•";
             };
         }

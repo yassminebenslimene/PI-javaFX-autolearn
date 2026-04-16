@@ -3,12 +3,13 @@ package tn.esprit.controllers;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ApiService;
-import tn.esprit.services.AuditService;
+import tn.esprit.session.SessionManager;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -16,32 +17,60 @@ import java.util.stream.Collectors;
 
 public class ActivitesController {
 
+    // Tabs
+    @FXML private Button btnTabStudents;
+    @FXML private Button btnTabAdmin;
+
     // Stats
     @FXML private Label statTotal;
-    @FXML private Label statCreations;
-    @FXML private Label statModifs;
-    @FXML private Label statSupprs;
+    @FXML private Label statLogins;
+    @FXML private Label statViews;
+    @FXML private Label statSuspensions;
 
     // Filters
-    @FXML private ComboBox<String> filterType;
     @FXML private ComboBox<String> filterAction;
     @FXML private ComboBox<String> filterUser;
 
-    // Geo bar
+    // Geo
     @FXML private Label labelGeoInfo;
     @FXML private Label labelGeoIp;
 
     // List
-    @FXML private VBox auditListContainer;
+    @FXML private VBox activityListContainer;
 
-    private final AuditService auditService = new AuditService();
-    private List<AuditService.AuditEntry> allEntries;
-    private List<ActivityApiClient.ActivityEntry> allApiEntries;
+    // State
+    private enum Tab { STUDENTS, ADMIN }
+    private Tab currentTab = Tab.STUDENTS;
+
+    // All data loaded from API
+    private List<ActivityApiClient.ActivityEntry> allStudentEntries = List.of();
+    private List<ActivityApiClient.ActivityEntry> allAdminEntries   = List.of();
+
+    // Current admin info
+    private int    currentAdminId   = 0;
+    private String currentAdminName = "";
+
+    private static final String TAB_ACTIVE =
+        "-fx-background-color:rgba(122,106,216,0.2); -fx-text-fill:#a5b4fc;" +
+        "-fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand; -fx-border-width:0;" +
+        "-fx-padding:12 20 12 20; -fx-background-radius:0;" +
+        "-fx-border-color:transparent transparent #7a6ad8 transparent; -fx-border-width:0 0 2 0;";
+    private static final String TAB_INACTIVE =
+        "-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.5);" +
+        "-fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;" +
+        "-fx-padding:12 20 12 20; -fx-background-radius:0;";
 
     @FXML
     public void initialize() {
-        // Load geo info for current admin (async)
-        CompletableFuture.supplyAsync(ApiService::getMyGeoInfo).thenAccept(geo -> {
+        // Get current admin info
+        var admin = SessionManager.getCurrentUser();
+        if (admin != null) {
+            currentAdminId   = admin.getId();
+            currentAdminName = admin.getPrenom() + " " + admin.getNom();
+        }
+
+        // Load geo info
+        CompletableFuture.supplyAsync(ApiService::getMyGeoInfo).thenAccept(geo ->
             Platform.runLater(() -> {
                 if (geo != null) {
                     labelGeoInfo.setText(geo.city() + ", " + geo.country() + "  |  " + geo.isp());
@@ -49,308 +78,251 @@ public class ActivitesController {
                 } else {
                     labelGeoInfo.setText("Localisation indisponible");
                 }
+            })
+        );
+
+        // Load data
+        loadData();
+    }
+
+    private void loadData() {
+        showLoading();
+
+        // Fetch all activities from Symfony API
+        ActivityApiClient.fetchRecentActivities(500).thenAccept(all -> {
+            // Split: students vs admin (current admin)
+            List<ActivityApiClient.ActivityEntry> students = all.stream()
+                .filter(e -> !"ADMIN".equalsIgnoreCase(e.userRole()))
+                .collect(Collectors.toList());
+
+            List<ActivityApiClient.ActivityEntry> adminHistory = all.stream()
+                .filter(e -> e.userId() == currentAdminId)
+                .collect(Collectors.toList());
+
+            Platform.runLater(() -> {
+                allStudentEntries = students;
+                allAdminEntries   = adminHistory;
+                populateFilters();
+                renderCurrentTab();
             });
         });
-
-        // Load from Symfony ActivityAPI (JavaFX-side actions: login, suspend, etc.)
-        ActivityApiClient.fetchRecentActivities(200).thenAccept(apiEntries -> {
-            // Also load Doctrine audit entries (Symfony-side content changes)
-            CompletableFuture.supplyAsync(() -> auditService.getAllAuditEntries(300))
-                .thenAccept(auditEntries -> Platform.runLater(() -> {
-                    allApiEntries = apiEntries;
-                    allEntries    = auditEntries;
-                    populateFilters(apiEntries, auditEntries);
-                    updateStats(apiEntries, auditEntries);
-                    renderRows(apiEntries, auditEntries);
-                }));
-        });
     }
+
+    // ── Tab switching ─────────────────────────────────────────────────────────
+
+    @FXML private void onTabStudents() {
+        currentTab = Tab.STUDENTS;
+        btnTabStudents.setStyle(TAB_ACTIVE);
+        btnTabAdmin.setStyle(TAB_INACTIVE);
+        populateFilters();
+        renderCurrentTab();
+    }
+
+    @FXML private void onTabAdmin() {
+        currentTab = Tab.ADMIN;
+        btnTabAdmin.setStyle(TAB_ACTIVE);
+        btnTabStudents.setStyle(TAB_INACTIVE);
+        populateFilters();
+        renderCurrentTab();
+    }
+
+    @FXML private void onRefresh() { loadData(); }
 
     // ── Filters ───────────────────────────────────────────────────────────────
 
-    private void populateFilters(List<ActivityApiClient.ActivityEntry> apiEntries,
-                                  List<AuditService.AuditEntry> auditEntries) {
-        // Collect all action types
-        List<String> types = new java.util.ArrayList<>();
-        types.add("Toutes les activites");
-        types.add("--- Actions JavaFX ---");
-        apiEntries.stream().map(ActivityApiClient.ActivityEntry::action)
-            .distinct().sorted().forEach(types::add);
-        types.add("--- Contenu Symfony ---");
-        auditEntries.stream().map(AuditService.AuditEntry::entityType)
-            .distinct().sorted().forEach(types::add);
-        filterType.setItems(FXCollections.observableArrayList(types));
-        filterType.setValue("Toutes les activites");
-        filterType.setOnAction(e -> applyFilters());
+    private void populateFilters() {
+        List<ActivityApiClient.ActivityEntry> source = currentTab == Tab.STUDENTS
+            ? allStudentEntries : allAdminEntries;
 
-        filterAction.setItems(FXCollections.observableArrayList(
-            "Toutes les actions", "Connexion", "Suspension", "Creation", "Modification", "Suppression"));
+        // Action filter
+        List<String> actions = new java.util.ArrayList<>();
+        actions.add("Toutes les actions");
+        source.stream().map(ActivityApiClient.ActivityEntry::action)
+            .distinct().sorted()
+            .map(a -> a.replace("user.", "").replace(".", " "))
+            .forEach(actions::add);
+        filterAction.setItems(FXCollections.observableArrayList(actions));
+        if (filterAction.getValue() == null) filterAction.setValue("Toutes les actions");
+        filterAction.setOnAction(e -> renderCurrentTab());
+
+        // User filter (only for students tab)
+        if (currentTab == Tab.STUDENTS) {
+            List<String> users = new java.util.ArrayList<>();
+            users.add("Tous les etudiants");
+            source.stream().map(ActivityApiClient.ActivityEntry::userName)
+                .distinct().sorted().forEach(users::add);
+            filterUser.setItems(FXCollections.observableArrayList(users));
+            if (filterUser.getValue() == null) filterUser.setValue("Tous les etudiants");
+            filterUser.setDisable(false);
+        } else {
+            filterUser.setItems(FXCollections.observableArrayList("Moi (" + currentAdminName + ")"));
+            filterUser.setValue("Moi (" + currentAdminName + ")");
+            filterUser.setDisable(true);
+        }
+        filterUser.setOnAction(e -> renderCurrentTab());
+    }
+
+    @FXML private void onReset() {
         filterAction.setValue("Toutes les actions");
-        filterAction.setOnAction(e -> applyFilters());
-
-        // Users from API entries
-        List<String> users = new java.util.ArrayList<>();
-        users.add("Tous les utilisateurs");
-        apiEntries.stream().map(ActivityApiClient.ActivityEntry::userName)
-            .distinct().sorted().forEach(users::add);
-        filterUser.setItems(FXCollections.observableArrayList(users));
-        filterUser.setValue("Tous les utilisateurs");
-        filterUser.setOnAction(e -> applyFilters());
+        filterUser.setValue(currentTab == Tab.STUDENTS ? "Tous les etudiants" : "Moi (" + currentAdminName + ")");
+        renderCurrentTab();
     }
 
-    private void applyFilters() {
-        if (allApiEntries == null) return;
-        applyFiltersInternal(allApiEntries, allEntries);
-    }
+    // ── Render ────────────────────────────────────────────────────────────────
 
-    private void applyFiltersInternal(List<ActivityApiClient.ActivityEntry> apiEntries,
-                                       List<AuditService.AuditEntry> auditEntries) {
-        String typeFilter   = filterType.getValue();
+    private void renderCurrentTab() {
+        List<ActivityApiClient.ActivityEntry> source = currentTab == Tab.STUDENTS
+            ? allStudentEntries : allAdminEntries;
+
+        // Apply filters
         String actionFilter = filterAction.getValue();
         String userFilter   = filterUser.getValue();
 
-        List<ActivityApiClient.ActivityEntry> filteredApi = apiEntries.stream()
+        List<ActivityApiClient.ActivityEntry> filtered = source.stream()
             .filter(e -> {
-                if (typeFilter != null && !typeFilter.startsWith("Toutes") && !typeFilter.startsWith("---")) {
-                    if (!e.action().equals(typeFilter)) return false;
-                }
                 if (actionFilter != null && !actionFilter.startsWith("Toutes")) {
-                    boolean match = switch (actionFilter) {
-                        case "Connexion"    -> e.action().contains("login");
-                        case "Suspension"   -> e.action().contains("suspend");
-                        case "Creation"     -> e.action().contains("creat");
-                        case "Modification" -> e.action().contains("updat");
-                        default -> true;
-                    };
-                    if (!match) return false;
+                    String label = e.action().replace("user.", "").replace(".", " ");
+                    if (!label.equalsIgnoreCase(actionFilter)) return false;
                 }
-                if (userFilter != null && !userFilter.startsWith("Tous")) {
+                if (currentTab == Tab.STUDENTS && userFilter != null && !userFilter.startsWith("Tous")) {
                     if (!e.userName().equals(userFilter)) return false;
                 }
                 return true;
-            }).collect(java.util.stream.Collectors.toList());
+            })
+            .collect(Collectors.toList());
 
-        List<AuditService.AuditEntry> filteredAudit = auditEntries.stream()
-            .filter(e -> {
-                if (typeFilter != null && !typeFilter.startsWith("Toutes") && !typeFilter.startsWith("---")) {
-                    if (!e.entityType().equals(typeFilter)) return false;
-                }
-                if (actionFilter != null && !actionFilter.startsWith("Toutes")) {
-                    boolean match = switch (actionFilter) {
-                        case "Creation"     -> "INS".equals(e.revType());
-                        case "Modification" -> "UPD".equals(e.revType());
-                        case "Suppression"  -> "DEL".equals(e.revType());
-                        default -> true;
-                    };
-                    if (!match) return false;
-                }
-                return true;
-            }).collect(java.util.stream.Collectors.toList());
-
-        updateStats(filteredApi, filteredAudit);
-        renderRows(filteredApi, filteredAudit);
+        updateStats(filtered);
+        renderRows(filtered);
     }
 
-    @FXML
-    private void onReset() {
-        filterType.setValue("Toutes les activites");
-        filterAction.setValue("Toutes les actions");
-        filterUser.setValue("Tous les utilisateurs");
-        if (allApiEntries != null) applyFiltersInternal(allApiEntries, allEntries);
+    private void updateStats(List<ActivityApiClient.ActivityEntry> entries) {
+        statTotal.setText(String.valueOf(entries.size()));
+        statLogins.setText(String.valueOf(
+            entries.stream().filter(e -> e.action().contains("login")).count()));
+        statViews.setText(String.valueOf(
+            entries.stream().filter(e -> e.action().contains("view") || e.action().contains("cours")
+                || e.action().contains("challenge") || e.action().contains("event")).count()));
+        statSuspensions.setText(String.valueOf(
+            entries.stream().filter(e -> e.action().contains("suspend")).count()));
     }
 
-    // ── Stats ─────────────────────────────────────────────────────────────────
+    private void renderRows(List<ActivityApiClient.ActivityEntry> entries) {
+        activityListContainer.getChildren().clear();
 
-    private void updateStats(List<ActivityApiClient.ActivityEntry> apiEntries,
-                              List<AuditService.AuditEntry> auditEntries) {
-        int total = apiEntries.size() + auditEntries.size();
-        statTotal.setText(String.valueOf(total));
-        long creations = apiEntries.stream().filter(e -> e.action().contains("creat")).count()
-                       + auditEntries.stream().filter(e -> "INS".equals(e.revType())).count();
-        long modifs    = apiEntries.stream().filter(e -> e.action().contains("updat") || e.action().contains("login")).count()
-                       + auditEntries.stream().filter(e -> "UPD".equals(e.revType())).count();
-        long supprs    = apiEntries.stream().filter(e -> e.action().contains("suspend") || e.action().contains("delet")).count()
-                       + auditEntries.stream().filter(e -> "DEL".equals(e.revType())).count();
-        statCreations.setText(String.valueOf(creations));
-        statModifs.setText(String.valueOf(modifs));
-        statSupprs.setText(String.valueOf(supprs));
-    }
-
-    // ── Render rows ───────────────────────────────────────────────────────────
-
-    private void renderRows(List<ActivityApiClient.ActivityEntry> apiEntries,
-                             List<AuditService.AuditEntry> auditEntries) {
-        auditListContainer.getChildren().clear();
-
-        if (apiEntries.isEmpty() && auditEntries.isEmpty()) {
-            Label empty = new Label("Aucune activite trouvee.");
-            empty.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:14; -fx-padding:40 0 0 0;");
-            auditListContainer.getChildren().add(empty);
+        if (entries.isEmpty()) {
+            Label empty = new Label(currentTab == Tab.STUDENTS
+                ? "Aucune activite etudiant enregistree."
+                : "Aucune activite dans votre historique.");
+            empty.setStyle("-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:14; -fx-padding:40 0 0 0;");
+            activityListContainer.getChildren().add(empty);
             return;
         }
 
-        auditListContainer.getChildren().add(buildHeaderRow());
+        // Header
+        activityListContainer.getChildren().add(buildHeader());
 
-        // API entries first (most recent JavaFX actions)
-        if (!apiEntries.isEmpty()) {
-            Label section = new Label("  Actions depuis l'application JavaFX");
-            section.setStyle("-fx-text-fill:rgba(165,180,252,0.7); -fx-font-size:11; -fx-font-weight:700;" +
-                             "-fx-padding:12 0 4 0;");
-            auditListContainer.getChildren().add(section);
-            for (int i = 0; i < apiEntries.size(); i++) {
-                auditListContainer.getChildren().add(buildApiRow(apiEntries.get(i), i % 2 == 0));
-            }
-        }
-
-        // Audit entries (Symfony content changes)
-        if (!auditEntries.isEmpty()) {
-            Label section = new Label("  Modifications de contenu (Symfony)");
-            section.setStyle("-fx-text-fill:rgba(52,211,153,0.7); -fx-font-size:11; -fx-font-weight:700;" +
-                             "-fx-padding:16 0 4 0;");
-            auditListContainer.getChildren().add(section);
-            for (int i = 0; i < auditEntries.size(); i++) {
-                auditListContainer.getChildren().add(buildRow(auditEntries.get(i), i % 2 == 0));
-            }
+        // Rows
+        for (int i = 0; i < entries.size(); i++) {
+            activityListContainer.getChildren().add(buildRow(entries.get(i), i % 2 == 0));
         }
     }
 
-    private HBox buildApiRow(ActivityApiClient.ActivityEntry e, boolean even) {
-        String bg = even ? "-fx-background-color:rgba(255,255,255,0.02);" : "-fx-background-color:transparent;";
-        HBox row = new HBox(0);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setStyle(bg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" +
-                     "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;" +
-                     "-fx-border-width:0 0 1 0;");
-
-        Label revLbl = new Label("#" + e.id());
-        revLbl.setPrefWidth(60);
-        revLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:0 8 0 8;");
-
-        Label dateLbl = new Label(e.createdAt());
-        dateLbl.setPrefWidth(130);
-        dateLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.6); -fx-font-size:12; -fx-padding:0 8 0 8;");
-
-        Label userLbl = new Label(e.userName());
-        userLbl.setPrefWidth(160);
-        userLbl.setStyle("-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:600; -fx-padding:0 8 0 8;");
-
-        Label typeLbl = new Label("👤 " + e.userRole());
-        typeLbl.setPrefWidth(110);
-        typeLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.75); -fx-font-size:12; -fx-padding:0 8 0 8;");
-
-        String loc = e.location() != null && !e.location().equals("—") ? e.location() : e.ipAddress();
-        Label locLbl = new Label(loc != null ? loc : "—");
-        locLbl.setPrefWidth(220);
-        locLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.45); -fx-font-size:11; -fx-padding:0 8 0 8;");
-
-        String badgeColor = e.action().contains("login")     ? "-fx-background-color:rgba(99,102,241,0.25); -fx-text-fill:#a5b4fc;" :
-                            e.action().contains("suspend")   ? "-fx-background-color:rgba(239,68,68,0.25); -fx-text-fill:#f87171;" :
-                            e.action().contains("reactivat") ? "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;" :
-                            e.action().contains("creat")     ? "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;" :
-                                                               "-fx-background-color:rgba(251,191,36,0.25); -fx-text-fill:#fbbf24;";
-        Label actionLbl = new Label(e.actionIcon() + " " + e.actionLabel());
-        actionLbl.setStyle(badgeColor + "-fx-font-size:11; -fx-font-weight:700; -fx-background-radius:6; -fx-padding:3 10 3 10;");
-        HBox actionBox = new HBox(actionLbl);
-        actionBox.setPrefWidth(110);
-        actionBox.setPadding(new javafx.geometry.Insets(0, 8, 0, 8));
-        actionBox.setAlignment(Pos.CENTER_LEFT);
-
-        row.getChildren().addAll(revLbl, dateLbl, userLbl, typeLbl, locLbl, actionBox);
-
-        row.setOnMouseEntered(ev -> row.setStyle(
-            "-fx-background-color:rgba(99,102,241,0.1); -fx-padding:10 0 10 0; -fx-cursor:hand;" +
-            "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent; -fx-border-width:0 0 1 0;"));
-        row.setOnMouseExited(ev -> row.setStyle(
-            bg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" +
-            "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent; -fx-border-width:0 0 1 0;"));
-        return row;
-    }
-
-    private HBox buildHeaderRow() {
-        HBox row = new HBox(0);
-        row.setStyle("-fx-padding:8 0 8 0; -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;");
-        row.getChildren().addAll(
-            headerCell("Rev #",       60),
-            headerCell("Date",        130),
-            headerCell("Utilisateur", 160),
-            headerCell("Entite",      110),
-            headerCell("Libelle",     220),
-            headerCell("Action",      110)
+    private HBox buildHeader() {
+        HBox h = new HBox(0);
+        h.setStyle("-fx-padding:8 0 8 0; -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;");
+        h.getChildren().addAll(
+            hCell("#",            50),
+            hCell("Date",         140),
+            hCell("Utilisateur",  170),
+            hCell("Role",          90),
+            hCell("Localisation", 200),
+            hCell("Action",       140)
         );
-        return row;
+        return h;
     }
 
-    private Label headerCell(String text, double width) {
+    private Label hCell(String text, double w) {
         Label l = new Label(text);
-        l.setPrefWidth(width);
-        l.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:11; -fx-font-weight:700; -fx-padding:0 8 0 8;");
+        l.setPrefWidth(w);
+        l.setStyle("-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-font-weight:700; -fx-padding:0 8 0 8;");
         return l;
     }
 
-    private HBox buildRow(AuditService.AuditEntry e, boolean even) {
-        String bg = even
-            ? "-fx-background-color:rgba(255,255,255,0.02);"
-            : "-fx-background-color:transparent;";
+    private HBox buildRow(ActivityApiClient.ActivityEntry e, boolean even) {
+        String bg = even ? "-fx-background-color:rgba(255,255,255,0.025);" : "-fx-background-color:transparent;";
+        String border = "-fx-border-color:transparent transparent rgba(255,255,255,0.04) transparent; -fx-border-width:0 0 1 0;";
 
         HBox row = new HBox(0);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setStyle(bg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" +
-                     "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;" +
-                     "-fx-border-width:0 0 1 0;");
+        row.setStyle(bg + "-fx-padding:11 0 11 0; -fx-cursor:hand;" + border);
 
-        // Rev #
-        Label revLbl = new Label("#" + e.revId());
-        revLbl.setPrefWidth(60);
-        revLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:0 8 0 8;");
+        // ID
+        Label idLbl = new Label("#" + e.id());
+        idLbl.setPrefWidth(50);
+        idLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.25); -fx-font-size:10; -fx-padding:0 8 0 8;");
 
         // Date
-        Label dateLbl = new Label(e.timestamp());
-        dateLbl.setPrefWidth(130);
-        dateLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.6); -fx-font-size:12; -fx-padding:0 8 0 8;");
+        Label dateLbl = new Label(e.createdAt());
+        dateLbl.setPrefWidth(140);
+        dateLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:12; -fx-padding:0 8 0 8;");
 
-        // Username
-        Label userLbl = new Label(e.username());
-        userLbl.setPrefWidth(160);
+        // User
+        Label userLbl = new Label(e.userName());
+        userLbl.setPrefWidth(170);
         userLbl.setStyle("-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:600; -fx-padding:0 8 0 8;");
 
-        // Entity type with icon
-        Label typeLbl = new Label(e.entityIcon() + " " + e.entityType());
-        typeLbl.setPrefWidth(110);
-        typeLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.75); -fx-font-size:12; -fx-padding:0 8 0 8;");
+        // Role badge
+        String roleColor = "ADMIN".equalsIgnoreCase(e.userRole())
+            ? "-fx-background-color:rgba(239,68,68,0.2); -fx-text-fill:#f87171;"
+            : "-fx-background-color:rgba(99,102,241,0.2); -fx-text-fill:#a5b4fc;";
+        Label roleLbl = new Label(e.userRole() != null ? e.userRole() : "—");
+        roleLbl.setStyle(roleColor + "-fx-font-size:10; -fx-font-weight:700; -fx-background-radius:5; -fx-padding:2 7 2 7;");
+        HBox roleBox = new HBox(roleLbl);
+        roleBox.setPrefWidth(90);
+        roleBox.setPadding(new Insets(0, 8, 0, 8));
+        roleBox.setAlignment(Pos.CENTER_LEFT);
 
-        // Label/title
-        Label labelLbl = new Label(e.entityLabel());
-        labelLbl.setPrefWidth(220);
-        labelLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:11; -fx-padding:0 8 0 8;");
+        // Location
+        String loc = (e.location() != null && !e.location().equals("—") && !e.location().isBlank())
+            ? e.location() : (e.ipAddress() != null ? e.ipAddress() : "—");
+        Label locLbl = new Label("📍 " + loc);
+        locLbl.setPrefWidth(200);
+        locLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:11; -fx-padding:0 8 0 8;");
 
         // Action badge
-        String badgeColor = switch (e.revType()) {
-            case "INS" -> "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;";
-            case "UPD" -> "-fx-background-color:rgba(251,191,36,0.25); -fx-text-fill:#fbbf24;";
-            case "DEL" -> "-fx-background-color:rgba(239,68,68,0.25); -fx-text-fill:#f87171;";
-            default    -> "-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:white;";
-        };
-        Label actionLbl = new Label(e.actionIcon() + " " + e.actionLabel());
-        actionLbl.setStyle(badgeColor +
-            "-fx-font-size:11; -fx-font-weight:700; -fx-background-radius:6;" +
-            "-fx-padding:3 10 3 10;");
+        String action = e.action();
+        String badgeStyle = action.contains("login")      ? "-fx-background-color:rgba(99,102,241,0.25); -fx-text-fill:#a5b4fc;" :
+                            action.contains("logout")     ? "-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:rgba(245,245,244,0.6);" :
+                            action.contains("suspend")    ? "-fx-background-color:rgba(239,68,68,0.25); -fx-text-fill:#f87171;" :
+                            action.contains("reactivat")  ? "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;" :
+                            action.contains("creat")      ? "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;" :
+                            action.contains("view")       ? "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;" :
+                            action.contains("cours")      ? "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;" :
+                            action.contains("challenge")  ? "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;" :
+                                                            "-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:rgba(245,245,244,0.6);";
+        Label actionLbl = new Label(e.actionIcon() + "  " + e.actionLabel());
+        actionLbl.setStyle(badgeStyle + "-fx-font-size:11; -fx-font-weight:700; -fx-background-radius:6; -fx-padding:3 10 3 10;");
         HBox actionBox = new HBox(actionLbl);
-        actionBox.setPrefWidth(110);
-        actionBox.setPadding(new javafx.geometry.Insets(0, 8, 0, 8));
+        actionBox.setPrefWidth(140);
+        actionBox.setPadding(new Insets(0, 8, 0, 8));
         actionBox.setAlignment(Pos.CENTER_LEFT);
 
-        row.getChildren().addAll(revLbl, dateLbl, userLbl, typeLbl, labelLbl, actionBox);
+        row.getChildren().addAll(idLbl, dateLbl, userLbl, roleBox, locLbl, actionBox);
 
-        // Hover effect
-        row.setOnMouseEntered(ev -> row.setStyle(
-            "-fx-background-color:rgba(122,106,216,0.1); -fx-padding:10 0 10 0; -fx-cursor:hand;" +
-            "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;" +
-            "-fx-border-width:0 0 1 0;"));
-        row.setOnMouseExited(ev -> row.setStyle(
-            bg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" +
-            "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;" +
-            "-fx-border-width:0 0 1 0;"));
+        // Hover
+        String hoverBg = currentTab == Tab.STUDENTS
+            ? "-fx-background-color:rgba(99,102,241,0.08);"
+            : "-fx-background-color:rgba(122,106,216,0.08);";
+        row.setOnMouseEntered(ev -> row.setStyle(hoverBg + "-fx-padding:11 0 11 0; -fx-cursor:hand;" + border));
+        row.setOnMouseExited(ev  -> row.setStyle(bg + "-fx-padding:11 0 11 0; -fx-cursor:hand;" + border));
 
         return row;
+    }
+
+    private void showLoading() {
+        activityListContainer.getChildren().clear();
+        Label loading = new Label("Chargement des activites...");
+        loading.setStyle("-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:13; -fx-padding:40 0 0 0;");
+        activityListContainer.getChildren().add(loading);
     }
 }
