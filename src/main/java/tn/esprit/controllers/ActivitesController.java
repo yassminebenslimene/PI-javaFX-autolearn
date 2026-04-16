@@ -99,9 +99,9 @@ public class ActivitesController {
                 all = apiResult;
             }
 
-            // Students tab: actions starting with "user." (student navigation/login)
+            // Students tab: user.* actions by non-admin users
             List<ActivityApiClient.ActivityEntry> students = all.stream()
-                .filter(e -> e.action().startsWith("user."))
+                .filter(e -> e.action().startsWith("user.") && !"ADMIN".equalsIgnoreCase(e.userRole()))
                 .collect(Collectors.toList());
 
             // Admin tab: ALL actions by the current admin (login + admin.* actions)

@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.entities.Cours;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
 import tn.esprit.session.SessionManager;
@@ -292,7 +293,10 @@ public class CoursController {
         confirm.setContentText("Voulez-vous supprimer le cours '" + cours.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                serviceCours.supprimer(cours.getId()); // supprime aussi les chapitres (cascade)
+                var admin = SessionManager.getCurrentUser();
+                if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_cours",
+                    java.util.Map.of("titre", cours.getTitre(), "id", String.valueOf(cours.getId())));
+                serviceCours.supprimer(cours.getId());
                 loadTable();
             }
         });
@@ -377,17 +381,21 @@ public class CoursController {
         int    duree       = Integer.parseInt(fieldDuree.getText().trim());
 
         if (!editMode) {
-            // Création : construire un nouvel objet Cours et l'insérer en BDD
             Cours cours = new Cours(titre, description, matiere, niveau, duree, LocalDateTime.now());
             serviceCours.ajouter(cours);
+            var admin = SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_cours",
+                java.util.Map.of("titre", titre, "matiere", matiere));
         } else {
-            // Modification : mettre à jour les champs de l'objet existant
             editingCours.setTitre(titre);
             editingCours.setMatiere(matiere);
             editingCours.setDescription(description);
             editingCours.setNiveau(niveau);
             editingCours.setDuree(duree);
             serviceCours.modifier(editingCours);
+            var admin = SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_cours",
+                java.util.Map.of("titre", titre, "id", String.valueOf(editingCours.getId())));
         }
 
         // Fermer la fenêtre modale après sauvegarde
