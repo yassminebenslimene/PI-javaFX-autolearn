@@ -158,7 +158,7 @@ public class ApiService {
      * Set WEBHOOK_URL to your Slack/Discord incoming webhook URL.
      * Leave empty to disable.
      */
-    private static final String WEBHOOK_URL = ""; // e.g. https://hooks.slack.com/services/xxx
+    private static final String WEBHOOK_URL = "https://discord.com/api/webhooks/1494164239911227482/J3-_l1VfRK42kVtgWlMi_e1x6lfZP99V1fpYrqoYeJpwrNN85uE8gv9Eclhxt03jcSo2"; 
 
     public static void sendAdminAlert(String title, String message) {
         if (WEBHOOK_URL == null || WEBHOOK_URL.isBlank()) return;
