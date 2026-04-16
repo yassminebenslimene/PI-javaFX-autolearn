@@ -88,9 +88,17 @@ public class ActivitesController {
     private void loadData() {
         showLoading();
 
-        // Fetch all activities from Symfony API
-        ActivityApiClient.fetchRecentActivities(500).thenAccept(all -> {
-            // Split: students vs admin (current admin)
+        // Try Symfony API first, fall back to direct DB read if API unavailable
+        ActivityApiClient.fetchRecentActivities(500).thenAccept(apiResult -> {
+            List<ActivityApiClient.ActivityEntry> all;
+
+            if (apiResult.isEmpty()) {
+                System.out.println("[Activites] API returned 0 — falling back to direct DB");
+                all = ActivityApiClient.fetchFromDbDirect(500);
+            } else {
+                all = apiResult;
+            }
+
             List<ActivityApiClient.ActivityEntry> students = all.stream()
                 .filter(e -> !"ADMIN".equalsIgnoreCase(e.userRole()))
                 .collect(Collectors.toList());
@@ -98,6 +106,9 @@ public class ActivitesController {
             List<ActivityApiClient.ActivityEntry> adminHistory = all.stream()
                 .filter(e -> e.userId() == currentAdminId)
                 .collect(Collectors.toList());
+
+            System.out.println("[Activites] Total=" + all.size()
+                + " Students=" + students.size() + " Admin=" + adminHistory.size());
 
             Platform.runLater(() -> {
                 allStudentEntries = students;
