@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
+import tn.esprit.services.ApiService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
 import javafx.scene.layout.VBox;
@@ -17,6 +18,7 @@ public class ProfileController {
 
     // Header
     @FXML private Label labelInitials;
+    @FXML private javafx.scene.image.ImageView avatarImageView;
     @FXML private Label labelFullName;
     @FXML private Label labelFullName2;   // inside the white card
     @FXML private Label labelEmailHeader;
@@ -69,6 +71,28 @@ public class ProfileController {
         if (labelFullName2 != null) labelFullName2.setText(u.getPrenom() + " " + u.getNom());
         if (labelEmailHeader != null) labelEmailHeader.setText(u.getEmail());
         if (labelRole != null) labelRole.setText(u.getRole());
+
+        // Load Gravatar avatar asynchronously
+        final String email = u.getEmail();
+        ApiService.fetchGravatarBytes(email, 100).thenAccept(bytes -> {
+            if (bytes != null && bytes.length > 0) {
+                javafx.application.Platform.runLater(() -> {
+                    try {
+                        javafx.scene.image.Image img = new javafx.scene.image.Image(
+                            new java.io.ByteArrayInputStream(bytes));
+                        if (!img.isError() && avatarImageView != null) {
+                            avatarImageView.setImage(img);
+                            avatarImageView.setVisible(true);
+                            avatarImageView.setManaged(true);
+                            if (labelInitials != null) {
+                                labelInitials.setVisible(false);
+                                labelInitials.setManaged(false);
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                });
+            }
+        });
 
         // Pre-fill form with current data
         if (fieldNom != null) fieldNom.setText(u.getNom());

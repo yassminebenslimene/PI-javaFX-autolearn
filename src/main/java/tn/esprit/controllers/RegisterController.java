@@ -7,6 +7,7 @@ import tn.esprit.MainApp;
 import tn.esprit.entities.Admin;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
+import tn.esprit.services.ApiService;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.tools.PasswordUtil;
@@ -65,6 +66,16 @@ public class RegisterController {
                 : new Etudiant(nom, prenom, email, password, niveau);
 
         service.ajouter(newUser);
+
+        // Check if password was in a data breach (async, non-blocking)
+        final String plainPwd = fieldPassword.getText().trim();
+        ApiService.checkPasswordBreachedAsync(plainPwd).thenAccept(count -> {
+            if (count > 0) {
+                javafx.application.Platform.runLater(() ->
+                    EmailService.sendAsync_BreachedPasswordWarning(email, prenom, count));
+                System.out.println("[HIBP] Password found in " + count + " breaches for " + email);
+            }
+        });
 
         // Send confirmation email (async — non-blocking)
         EmailService.sendRegistrationConfirmation(email, prenom, nom);

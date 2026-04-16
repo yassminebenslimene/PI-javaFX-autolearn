@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import tn.esprit.MainApp;
 import tn.esprit.entities.User;
+import tn.esprit.services.ApiService;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
@@ -12,6 +13,7 @@ import tn.esprit.tools.PasswordUtil;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.prefs.Preferences;
 
 public class LoginController {
@@ -167,6 +169,11 @@ public class LoginController {
                 service.modifier(found);
                 EmailService.sendSuspensionNotification(found.getEmail(), found.getPrenom(),
                     "Votre compte n'a pas ete utilise depuis plus de 60 jours.");
+                ApiService.sendAdminAlert(
+                    "Suspension automatique",
+                    found.getPrenom() + " " + found.getNom() + " (" + found.getEmail() +
+                    ") a ete suspendu automatiquement apres " + daysSince + " jours d'inactivite."
+                );
             }
         }
 
@@ -198,6 +205,21 @@ public class LoginController {
         }
 
         SessionManager.login(found);
+
+        // ── Geo-IP audit + webhook alert (async) ──────────────────────────────
+        final User loggedUser = found;
+        CompletableFuture.runAsync(() -> {
+            ApiService.GeoInfo geo = ApiService.getMyGeoInfo();
+            String location = geo != null ? geo.toString() : "Localisation inconnue";
+            System.out.println("[Login] " + loggedUser.getEmail() + " from " + location);
+            // Alert admin via webhook for any login (can be filtered to suspicious only)
+            ApiService.sendAdminAlert(
+                "Connexion detectee",
+                loggedUser.getPrenom() + " " + loggedUser.getNom() +
+                " (" + loggedUser.getEmail() + ") s'est connecte depuis " + location
+            );
+        });
+
         try {
             if ("ADMIN".equals(found.getRole())) MainApp.showBackoffice();
             else                                  MainApp.showFrontoffice();

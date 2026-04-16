@@ -34,6 +34,11 @@
                                        -fx-stroke:rgba(255,255,255,0.4); -fx-stroke-width:2;"/>
                         <Label fx:id="labelInitials" text=""
                                style="-fx-text-fill:white; -fx-font-size:32; -fx-font-weight:900;"/>
+                        <javafx.scene.image.ImageView fx:id="avatarImageView"
+                               fitWidth="100" fitHeight="100" preserveRatio="false"
+                               visible="false" managed="false">
+                            <clip><Circle radius="50" centerX="50" centerY="50"/></clip>
+                        </javafx.scene.image.ImageView>
                     </StackPane>
                     <VBox spacing="8" HBox.hgrow="ALWAYS">
                         <Label fx:id="labelFullName" text=""
@@ -169,3 +174,4 @@
         </ScrollPane>
     </center>
 </BorderPane>
+

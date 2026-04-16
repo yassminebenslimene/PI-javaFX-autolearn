@@ -18,7 +18,7 @@ public class EmailService {
     private static final String FROM_NAME     = "AutoLearn";
     // Generate an App Password at https://myaccount.google.com/apppasswords
     // (2-Step Verification must be enabled on the account)
-    private static final String APP_PASSWORD  = "iqxb xtqb iqxb xtqb";   // ← replace with real app password
+    private static final String APP_PASSWORD  = "nnna xrkp hrsv ynci";   // ← replace with real app password
 
     private static final ExecutorService POOL = Executors.newCachedThreadPool(r -> {
         Thread t = new Thread(r, "email-sender");
@@ -119,6 +119,24 @@ public class EmailService {
         sendAsync(toEmail, subject, body);
     }
 
+    /** 5. Breached password warning (sent after registration if HIBP detects a leak) */
+    public static void sendAsync_BreachedPasswordWarning(String toEmail, String prenom, int breachCount) {
+        String subject = "Securite : votre mot de passe a ete detecte dans des fuites de donnees";
+        String body = htmlTemplate(
+            "Alerte de securite",
+            "Votre mot de passe a ete trouve dans des bases de donnees compromises.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Lors de votre inscription, nous avons verifie votre mot de passe via le service " +
+            "<strong>Have I Been Pwned</strong> (verification anonyme — votre mot de passe n'a jamais quitte votre appareil).</p>" +
+            "<p>Resultat : votre mot de passe a ete trouve dans <strong>" + breachCount +
+            " fuite(s) de donnees</strong> connues.</p>" +
+            "<p style='color:#dc2626;font-weight:bold;'>Nous vous recommandons fortement de changer votre mot de passe immediatement.</p>" +
+            "<p>Choisissez un mot de passe unique que vous n'utilisez nulle part ailleurs.</p>",
+            "Changer mon mot de passe", "https://autolearn.tn/reset-password"
+        );
+        sendAsync(toEmail, subject, body);
+    }
+
     // ── Internal helpers ──────────────────────────────────────────────────────
 
     private static void sendAsync(String to, String subject, String htmlBody) {
@@ -147,7 +165,7 @@ public class EmailService {
         });
 
         Message msg = new MimeMessage(session);
-        msg.setFrom(new InternetAddress(FROM_EMAIL, FROM_NAME));
+        msg.setFrom(new InternetAddress(FROM_EMAIL));
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         msg.setSubject(subject);
         msg.setContent(htmlBody, "text/html; charset=UTF-8");
