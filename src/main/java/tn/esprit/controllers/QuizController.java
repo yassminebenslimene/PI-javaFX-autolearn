@@ -12,9 +12,11 @@ import javafx.stage.Stage;
 import tn.esprit.entities.Option;
 import tn.esprit.entities.Question;
 import tn.esprit.entities.Quiz;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 import tn.esprit.services.ServiceQuiz;
+import tn.esprit.session.SessionManager;
 
 import java.util.List;
 
@@ -481,6 +483,11 @@ public class QuizController {
         confirm.showAndWait().ifPresent(r -> {
             if (r == ButtonType.YES) {
                 boolean ok = serviceQuiz.supprimer(quiz);
+                if (ok) {
+                    var admin = SessionManager.getCurrentUser();
+                    if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_quiz",
+                        java.util.Map.of("titre", quiz.getTitre() != null ? quiz.getTitre() : ""));
+                }
                 showAlert(ok, "Quiz supprimé avec succès !", "Échec de la suppression du quiz.");
                 if (ok) {
                     if (expandedQuizId != null && expandedQuizId == quiz.getId()) {
