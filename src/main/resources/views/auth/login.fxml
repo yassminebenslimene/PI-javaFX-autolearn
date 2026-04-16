@@ -110,10 +110,23 @@
                                 style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8;
                                        -fx-font-size:12; -fx-cursor:hand; -fx-padding:0; -fx-border-width:0;"/>
                     </HBox>
-                    <PasswordField fx:id="fieldPassword" promptText="Votre mot de passe"
+                    <!-- Password field with show/hide toggle -->
+                    <StackPane>
+                        <PasswordField fx:id="fieldPassword" promptText="Votre mot de passe"
+                                       style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
+                                              -fx-border-radius:8; -fx-background-radius:8;
+                                              -fx-padding:12 44 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                        <TextField fx:id="fieldPasswordVisible" promptText="Votre mot de passe"
+                                   visible="false" managed="false"
                                    style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
                                           -fx-border-radius:8; -fx-background-radius:8;
-                                          -fx-padding:12 14 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                          -fx-padding:12 44 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                        <Button fx:id="btnTogglePassword" text="&#128065;" onAction="#onTogglePassword"
+                                style="-fx-background-color:transparent; -fx-border-width:0;
+                                       -fx-cursor:hand; -fx-font-size:14; -fx-text-fill:#9ca3af;
+                                       -fx-padding:0 12 0 0;"
+                                StackPane.alignment="CENTER_RIGHT"/>
+                    </StackPane>
                 </VBox>
 
                 <HBox alignment="CENTER_LEFT" spacing="8">
@@ -143,3 +156,4 @@
     </VBox>
 
 </HBox>
+
