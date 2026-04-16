@@ -4,10 +4,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import tn.esprit.MainApp;
 import tn.esprit.entities.User;
+import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
 import tn.esprit.tools.PasswordUtil;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.prefs.Preferences;
 
@@ -15,8 +18,12 @@ public class LoginController {
 
     @FXML private TextField     fieldEmail;
     @FXML private PasswordField fieldPassword;
+    @FXML private TextField     fieldPasswordVisible;
+    @FXML private Button        btnTogglePassword;
     @FXML private CheckBox      checkRememberMe;
     @FXML private Label         errorLabel;
+
+    private boolean passwordVisible = false;
 
     private final UserService service = new UserService();
     private static final Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
@@ -94,6 +101,28 @@ public class LoginController {
             javafx.geometry.Side.BOTTOM, 0, 0);
     }
 
+    /** Toggle show/hide password */
+    @FXML
+    private void onTogglePassword() {
+        passwordVisible = !passwordVisible;
+        if (passwordVisible) {
+            fieldPasswordVisible.setText(fieldPassword.getText());
+            fieldPasswordVisible.setVisible(true);  fieldPasswordVisible.setManaged(true);
+            fieldPassword.setVisible(false);         fieldPassword.setManaged(false);
+            btnTogglePassword.setText("\uD83D\uDE48"); // 🙈
+        } else {
+            fieldPassword.setText(fieldPasswordVisible.getText());
+            fieldPassword.setVisible(true);          fieldPassword.setManaged(true);
+            fieldPasswordVisible.setVisible(false);  fieldPasswordVisible.setManaged(false);
+            btnTogglePassword.setText("\uD83D\uDC41"); // 👁
+        }
+    }
+
+    /** Returns the current password regardless of which field is active */
+    private String getPassword() {
+        return passwordVisible ? fieldPasswordVisible.getText() : fieldPassword.getText();
+    }
+
     @FXML
     private void onLogin() {
         errorLabel.setText("");
@@ -101,7 +130,7 @@ public class LoginController {
         errorLabel.setManaged(false);
 
         String email    = fieldEmail.getText().trim();
-        String password = fieldPassword.getText();
+        String password = getPassword();
 
         if (email.isEmpty() || password.isEmpty()) {
             showError("Veuillez remplir tous les champs.");
@@ -110,17 +139,44 @@ public class LoginController {
 
         User found = service.trouverParEmail(email);
         if (found == null) {
-            showError("Aucun compte trouvé avec cet email.");
+            showError("Aucun compte trouve avec cet email.");
             return;
         }
         if (!PasswordUtil.verify(password, found.getPassword())) {
             showError("Mot de passe incorrect.");
             return;
         }
+
+        // ── Inactivity check: auto-suspend after 60 days ──────────────────────
+        if (!found.isIsSuspended()) {
+            LocalDateTime lastActivity = found.getLastLoginAt() != null
+                ? found.getLastLoginAt().toLocalDateTime()
+                : (found.getCreatedAt() != null
+                    ? found.getCreatedAt().toLocalDateTime()
+                    : LocalDateTime.now());
+
+            long daysSince = java.time.temporal.ChronoUnit.DAYS.between(lastActivity, LocalDateTime.now());
+            if (daysSince >= 60) {
+                found.setIsSuspended(true);
+                found.setSuspendedAt(new java.util.Date());
+                found.setSuspensionReason("Inactivite prolongee (plus de 60 jours sans connexion)");
+                service.modifier(found);
+                EmailService.sendSuspensionNotification(found.getEmail(), found.getPrenom(),
+                    "Votre compte n'a pas ete utilise depuis plus de 60 jours.");
+            }
+        }
+
+        // ── Block suspended users ─────────────────────────────────────────────
         if (found.isIsSuspended()) {
-            showError("Compte suspendu" + (found.getSuspensionReason() != null ? " : " + found.getSuspensionReason() : "."));
+            showError("Compte suspendu : " +
+                (found.getSuspensionReason() != null ? found.getSuspensionReason() : "") +
+                "\nContactez autolearn66@gmail.com pour plus d'informations.");
             return;
         }
+
+        // ── Update lastLoginAt ────────────────────────────────────────────────
+        found.setLastLoginAt(Timestamp.valueOf(LocalDateTime.now()));
+        service.modifier(found);
 
         // Sauvegarder dans l'historique
         addToHistory(email);

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.shape.*?>
@@ -180,7 +180,7 @@
                     </VBox>
                 </HBox>
 
-                <!-- SECTION 1: POURQUOI AUTOLEARN â€” 3 illustrated feature cards -->
+                <!-- SECTION 1: POURQUOI AUTOLEARN - 3 illustrated feature cards -->
                 <VBox fx:id="sectionFeatures" spacing="40"
                       style="-fx-padding:64 80 64 80; -fx-background-color:white;">
                     <VBox alignment="CENTER" spacing="8">
@@ -192,7 +192,7 @@
                     <HBox fx:id="featureCardsContainer" spacing="28" alignment="CENTER"/>
                 </VBox>
 
-                <!-- SECTION 2: NOS COURS â€” image cards full width -->
+                <!-- SECTION 2: NOS COURS - image cards full width -->
                 <VBox fx:id="sectionCours" spacing="28"
                       style="-fx-padding:56 80 56 80; -fx-background-color:#f8f7ff;">
                     <HBox alignment="CENTER_LEFT" spacing="0">
@@ -206,7 +206,7 @@
                             <Label text="Des parcours structures par des experts pour progresser a votre rythme"
                                    style="-fx-font-size:13; -fx-text-fill:#888;"/>
                         </VBox>
-                        <Button text="Voir toutes les formations â†’" onAction="#onCours"
+                        <Button text="Voir toutes les formations ->" onAction="#onCours"
                                 style="-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:13;
                                        -fx-font-weight:700; -fx-cursor:hand; -fx-border-width:0;
                                        -fx-padding:12 24 12 24; -fx-background-radius:8;"/>
@@ -214,7 +214,7 @@
                     <HBox fx:id="coursCardsContainer" spacing="20" alignment="CENTER"/>
                 </VBox>
 
-                <!-- SECTION 3: CHALLENGES CTA â€” split violet left + carousel right -->
+                <!-- SECTION 3: CHALLENGES CTA - split violet left + carousel right -->
                 <HBox fx:id="sectionChallenges" spacing="0" minHeight="320">
                     <VBox spacing="20" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT"
                           style="-fx-padding:56 60 56 80; -fx-background-color:#7a6ad8;">
@@ -243,7 +243,7 @@
                     </VBox>
                 </HBox>
 
-                <!-- SECTION 4: EVENEMENTS â€” white bg, colorful image cards -->
+                <!-- SECTION 4: EVENEMENTS - white bg, colorful image cards -->
                 <StackPane fx:id="sectionEvenementsHome">
                     <VBox spacing="32"
                           style="-fx-padding:56 80 56 80; -fx-background-color:white;
@@ -260,7 +260,7 @@
                                 <Label text="Hackathons, workshops et conferences en Tunisie"
                                        style="-fx-font-size:13; -fx-text-fill:#888;"/>
                             </VBox>
-                            <Button text="Tous les evenements â†’" onAction="#onEvenements"
+                            <Button text="Tous les evenements ->" onAction="#onEvenements"
                                     style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8;
                                            -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand;
                                            -fx-border-width:1.5; -fx-border-color:#7a6ad8;
@@ -350,10 +350,11 @@
                 <!-- FOOTER -->
                 <VBox alignment="CENTER" spacing="8" prefHeight="64"
                       style="-fx-background-color:#1a1a2e; -fx-padding:20 80 20 80;">
-                    <Label text="&#169; 2026 AutoLearn â€” Tous droits reserves â€” Tunisie"
+                    <Label text="&#169; 2026 AutoLearn - Tous droits reserves - Tunisie"
                            style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:12;"/>
                 </VBox>
             </VBox>
         </ScrollPane>
     </center>
 </BorderPane>
+
