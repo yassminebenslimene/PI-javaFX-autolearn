@@ -171,11 +171,18 @@ public class ActivityApiClient {
                     .build();
 
                 HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
-                if (resp.statusCode() != 200) return List.of();
-
-                return parseEntries(resp.body());
+                System.out.println("[ActivityAPI] fetchRecent → HTTP " + resp.statusCode()
+                    + " (" + resp.body().length() + " chars)");
+                if (resp.statusCode() != 200) {
+                    System.err.println("[ActivityAPI] Response body: " + resp.body());
+                    return List.of();
+                }
+                List<ActivityEntry> result = parseEntries(resp.body());
+                System.out.println("[ActivityAPI] Parsed " + result.size() + " entries");
+                return result;
             } catch (Exception e) {
-                System.err.println("[ActivityAPI] fetchRecent failed: " + e.getMessage());
+                System.err.println("[ActivityAPI] fetchRecent failed: " + e.getMessage()
+                    + " — Is Symfony running on " + BASE_URL + " ?");
                 return List.of();
             }
         }, POOL);
@@ -203,6 +210,51 @@ public class ActivityApiClient {
                 return List.of();
             }
         }, POOL);
+    }
+
+    // ── Direct DB fallback (when Symfony is offline) ──────────────────────────
+
+    /**
+     * Reads user_activity directly from MySQL — used when Symfony is not running.
+     * Returns the same ActivityEntry format.
+     */
+    public static List<ActivityEntry> fetchFromDbDirect(int limit) {
+        List<ActivityEntry> result = new java.util.ArrayList<>();
+        var cnx = tn.esprit.tools.MyConnection.getInstance().getConnection();
+        if (cnx == null) return result;
+
+        String sql = "SELECT ua.id, ua.user_id, ua.action, ua.ip_address, ua.location, " +
+                     "       DATE_FORMAT(ua.created_at, '%d/%m/%Y %H:%i') AS created_at, " +
+                     "       ua.success, " +
+                     "       CONCAT(u.prenom, ' ', u.nom) AS user_name, " +
+                     "       u.email AS user_email, u.role AS user_role " +
+                     "FROM user_activity ua " +
+                     "JOIN user u ON ua.user_id = u.userId " +
+                     "ORDER BY ua.created_at DESC " +
+                     "LIMIT ?";
+        try (var ps = cnx.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            var rs = ps.executeQuery();
+            while (rs.next()) {
+                result.add(new ActivityEntry(
+                    rs.getInt("id"),
+                    rs.getInt("user_id"),
+                    rs.getString("user_name"),
+                    rs.getString("user_email"),
+                    rs.getString("user_role"),
+                    rs.getString("action"),
+                    rs.getBoolean("success"),
+                    rs.getString("ip_address"),
+                    rs.getString("location"),
+                    rs.getString("created_at"),
+                    null
+                ));
+            }
+            System.out.println("[ActivityAPI-DB] Loaded " + result.size() + " entries from user_activity table");
+        } catch (Exception e) {
+            System.err.println("[ActivityAPI-DB] " + e.getMessage());
+        }
+        return result;
     }
 
     // ── Parser ────────────────────────────────────────────────────────────────
