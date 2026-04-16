@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import tn.esprit.entities.Admin;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
@@ -409,6 +410,9 @@ public class UserController {
             service.ajouter(newUser);
             // Notify the new student by email
             EmailService.sendAdminCreatedAccount(email, prenom, nom, plainPassword);
+            // Log to Symfony ActivityAPI
+            ActivityApiClient.logAsync(newUser.getId(), "user.created",
+                java.util.Map.of("email", email, "niveau", niveau != null ? niveau : ""));
             showAlert(Alert.AlertType.INFORMATION, "Succès", "Étudiant créé avec succès. Un email lui a été envoyé.");
         } else {
             editingUser.setNom(nom);
@@ -417,6 +421,9 @@ public class UserController {
             if (!password.isEmpty()) editingUser.setPassword(tn.esprit.tools.PasswordUtil.hash(password));
             if (editingUser instanceof Etudiant e && niveau != null) e.setNiveau(niveau);
             service.modifier(editingUser);
+            // Log to Symfony ActivityAPI
+            ActivityApiClient.logAsync(editingUser.getId(), "user.updated",
+                java.util.Map.of("email", email));
             showAlert(Alert.AlertType.INFORMATION, "Succès", "Utilisateur modifié avec succès.");
         }
         ((Stage) fieldNom.getScene().getWindow()).close();

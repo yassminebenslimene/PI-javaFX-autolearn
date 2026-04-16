@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import tn.esprit.MainApp;
 import tn.esprit.entities.User;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ApiService;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
@@ -205,6 +206,10 @@ public class LoginController {
         }
 
         SessionManager.login(found);
+
+        // ── Log login activity to Symfony API (async) ─────────────────────────
+        ActivityApiClient.logAsync(found.getId(), "user.login",
+            java.util.Map.of("role", found.getRole(), "email", found.getEmail()));
 
         // ── Geo-IP audit + webhook alert (async) ──────────────────────────────
         final User loggedUser = found;

@@ -1,0 +1,226 @@
+package tn.esprit.services;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * HTTP client that calls the Symfony ActivityApiController.
+ *
+ * Base URL: http://localhost:8000  (change to your Symfony server URL)
+ * Auth:     X-App-Token header (shared secret)
+ *
+ * All calls are async — the UI never blocks.
+ */
+public class ActivityApiClient {
+
+    private static final String BASE_URL   = "http://localhost:8000";
+    private static final String APP_TOKEN  = "autolearn-javafx-2026";
+
+    private static final HttpClient HTTP = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(4))
+        .build();
+    private static final Gson GSON = new Gson();
+
+    private static final ExecutorService POOL = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "activity-api");
+        t.setDaemon(true);
+        return t;
+    });
+
+    // ── Activity record (returned by GET endpoints) ───────────────────────────
+
+    public record ActivityEntry(
+        int    id,
+        int    userId,
+        String userName,
+        String userEmail,
+        String userRole,
+        String action,
+        boolean success,
+        String ipAddress,
+        String location,
+        String createdAt,
+        Map<String, Object> metadata
+    ) {
+        /** Human-readable action label */
+        public String actionLabel() {
+            return switch (action) {
+                case "user.login"       -> "Connexion";
+                case "user.logout"      -> "Deconnexion";
+                case "user.created"     -> "Compte cree";
+                case "user.updated"     -> "Profil modifie";
+                case "user.suspended"   -> "Suspendu";
+                case "user.reactivated" -> "Reactive";
+                case "user.viewed"      -> "Profil consulte";
+                default -> action.replace("user.", "").replace(".", " ");
+            };
+        }
+
+        /** Emoji icon per action */
+        public String actionIcon() {
+            return switch (action) {
+                case "user.login"       -> "🔑";
+                case "user.logout"      -> "🚪";
+                case "user.created"     -> "✅";
+                case "user.updated"     -> "✏️";
+                case "user.suspended"   -> "⛔";
+                case "user.reactivated" -> "✔️";
+                case "user.viewed"      -> "👁";
+                default -> "•";
+            };
+        }
+    }
+
+    // ── POST: log an activity ─────────────────────────────────────────────────
+
+    /**
+     * Logs an activity event to the Symfony backend asynchronously.
+     * Enriches the payload with geo info from ip-api.com.
+     *
+     * @param userId   the user this activity belongs to
+     * @param action   action key e.g. "user.login", "user.suspended"
+     * @param metadata optional extra data (reason, changes, etc.)
+     */
+    public static void logAsync(int userId, String action, Map<String, Object> metadata) {
+        POOL.submit(() -> {
+            try {
+                // Fetch geo info (may be null if offline)
+                ApiService.GeoInfo geo = ApiService.getMyGeoInfo();
+
+                JsonObject body = new JsonObject();
+                body.addProperty("userId",  userId);
+                body.addProperty("action",  action);
+                body.addProperty("success", true);
+                if (geo != null) {
+                    body.addProperty("ipAddress", geo.ip());
+                    body.addProperty("location",  geo.city() + ", " + geo.country());
+                }
+
+                // Merge metadata
+                JsonObject meta = new JsonObject();
+                meta.addProperty("source", "JavaFX Desktop App");
+                if (geo != null) {
+                    meta.addProperty("country", geo.country());
+                    meta.addProperty("city",    geo.city());
+                    meta.addProperty("isp",     geo.isp());
+                }
+                if (metadata != null) {
+                    metadata.forEach((k, v) -> meta.addProperty(k, v != null ? v.toString() : ""));
+                }
+                body.add("metadata", meta);
+
+                HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/api/activity/log"))
+                    .header("Content-Type", "application/json")
+                    .header("X-App-Token", APP_TOKEN)
+                    .timeout(Duration.ofSeconds(5))
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+
+                HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+                System.out.println("[ActivityAPI] " + action + " → " + resp.statusCode());
+
+            } catch (Exception e) {
+                System.err.println("[ActivityAPI] Failed to log " + action + ": " + e.getMessage());
+            }
+        });
+    }
+
+    /** Convenience overload without metadata */
+    public static void logAsync(int userId, String action) {
+        logAsync(userId, action, null);
+    }
+
+    // ── GET: fetch activities for display ─────────────────────────────────────
+
+    /**
+     * Fetches recent activities for all users (admin dashboard).
+     * Returns empty list on error.
+     */
+    public static CompletableFuture<List<ActivityEntry>> fetchRecentActivities(int limit) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/api/activity/recent?limit=" + limit))
+                    .header("X-App-Token", APP_TOKEN)
+                    .timeout(Duration.ofSeconds(6))
+                    .GET()
+                    .build();
+
+                HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+                if (resp.statusCode() != 200) return List.of();
+
+                return parseEntries(resp.body());
+            } catch (Exception e) {
+                System.err.println("[ActivityAPI] fetchRecent failed: " + e.getMessage());
+                return List.of();
+            }
+        }, POOL);
+    }
+
+    /**
+     * Fetches activities for a specific user.
+     */
+    public static CompletableFuture<List<ActivityEntry>> fetchUserActivities(int userId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/api/activity/user/" + userId))
+                    .header("X-App-Token", APP_TOKEN)
+                    .timeout(Duration.ofSeconds(6))
+                    .GET()
+                    .build();
+
+                HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+                if (resp.statusCode() != 200) return List.of();
+
+                return parseEntries(resp.body());
+            } catch (Exception e) {
+                System.err.println("[ActivityAPI] fetchUser failed: " + e.getMessage());
+                return List.of();
+            }
+        }, POOL);
+    }
+
+    // ── Parser ────────────────────────────────────────────────────────────────
+
+    @SuppressWarnings("unchecked")
+    private static List<ActivityEntry> parseEntries(String json) {
+        List<ActivityEntry> result = new ArrayList<>();
+        try {
+            JsonArray arr = GSON.fromJson(json, JsonArray.class);
+            for (var el : arr) {
+                JsonObject o = el.getAsJsonObject();
+                result.add(new ActivityEntry(
+                    o.has("id")        ? o.get("id").getAsInt()           : 0,
+                    o.has("userId")    ? o.get("userId").getAsInt()        : 0,
+                    o.has("userName")  ? o.get("userName").getAsString()   : "—",
+                    o.has("userEmail") ? o.get("userEmail").getAsString()  : "—",
+                    o.has("userRole")  ? o.get("userRole").getAsString()   : "—",
+                    o.has("action")    ? o.get("action").getAsString()     : "—",
+                    o.has("success")   ? o.get("success").getAsBoolean()   : true,
+                    o.has("ipAddress") ? o.get("ipAddress").getAsString()  : "—",
+                    o.has("location")  ? o.get("location").getAsString()   : "—",
+                    o.has("createdAt") ? o.get("createdAt").getAsString()  : "—",
+                    null
+                ));
+            }
+        } catch (Exception e) {
+            System.err.println("[ActivityAPI] Parse error: " + e.getMessage());
+        }
+        return result;
+    }
+}
