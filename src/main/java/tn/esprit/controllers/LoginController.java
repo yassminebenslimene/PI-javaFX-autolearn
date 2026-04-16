@@ -149,11 +149,15 @@ public class LoginController {
 
         // ── Inactivity check: auto-suspend after 60 days ──────────────────────
         if (!found.isIsSuspended()) {
-            LocalDateTime lastActivity = found.getLastLoginAt() != null
-                ? found.getLastLoginAt().toLocalDateTime()
-                : (found.getCreatedAt() != null
-                    ? found.getCreatedAt().toLocalDateTime()
-                    : LocalDateTime.now());
+            java.util.Date lastActivityDate = found.getLastLoginAt() != null
+                ? found.getLastLoginAt()
+                : found.getCreatedAt();
+
+            LocalDateTime lastActivity = lastActivityDate != null
+                ? lastActivityDate.toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime()
+                : LocalDateTime.now();
 
             long daysSince = java.time.temporal.ChronoUnit.DAYS.between(lastActivity, LocalDateTime.now());
             if (daysSince >= 60) {
