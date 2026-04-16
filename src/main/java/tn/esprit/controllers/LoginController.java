@@ -1,7 +1,12 @@
 package tn.esprit.controllers;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.util.Duration;
 import tn.esprit.MainApp;
 import tn.esprit.entities.User;
 import tn.esprit.services.ActivityApiClient;
@@ -26,23 +31,25 @@ public class LoginController {
     @FXML private CheckBox      checkRememberMe;
     @FXML private Label         errorLabel;
 
+    // Right panel animated elements
+    @FXML private ImageView bgImage;
+    @FXML private javafx.scene.layout.VBox quoteCard;
+    @FXML private javafx.scene.layout.HBox statsRow;
+    @FXML private javafx.scene.layout.VBox featuresList;
+
     private boolean passwordVisible = false;
 
     private final UserService service = new UserService();
     private static final Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
 
-    // email -> mot de passe (seulement ceux avec Remember Me)
     private final Map<String, String> savedCredentials = new LinkedHashMap<>();
-    // tous les emails utilisés (historique)
     private final List<String> emailHistory = new ArrayList<>();
-
     private final ContextMenu suggestionMenu = new ContextMenu();
 
     @FXML
     public void initialize() {
         loadHistory();
 
-        // Pré-remplir si Remember Me était coché
         String savedEmail = prefs.get("remembered_email", "");
         String savedPass  = prefs.get("remembered_pass", "");
         if (!savedEmail.isEmpty()) {
@@ -51,7 +58,6 @@ public class LoginController {
             checkRememberMe.setSelected(true);
         }
 
-        // Autocomplete en temps réel
         fieldEmail.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal == null || newVal.isBlank()) {
                 suggestionMenu.hide();
@@ -60,10 +66,53 @@ public class LoginController {
             showSuggestions(newVal.trim());
         });
 
-        // Quand on sélectionne via clavier dans le menu, fermer proprement
         fieldEmail.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (!isFocused) suggestionMenu.hide();
         });
+
+        // Animate right panel on load
+        javafx.application.Platform.runLater(this::animateRightPanel);
+    }
+
+    private void animateRightPanel() {
+        if (bgImage != null) {
+            // Load random course image
+            String[] imgs = {"/images/course1.jpg", "/images/course2.jpg", "/images/course3.jpg"};
+            try {
+                var url = getClass().getResource(imgs[new Random().nextInt(imgs.length)]);
+                if (url != null) bgImage.setImage(new Image(url.toExternalForm()));
+            } catch (Exception ignored) {}
+        }
+
+        // Slide in quote card
+        if (quoteCard != null) {
+            quoteCard.setOpacity(0);
+            quoteCard.setTranslateY(30);
+            FadeTransition ft = new FadeTransition(Duration.millis(600), quoteCard);
+            ft.setFromValue(0); ft.setToValue(1); ft.setDelay(Duration.millis(200));
+            TranslateTransition tt = new TranslateTransition(Duration.millis(600), quoteCard);
+            tt.setFromY(30); tt.setToY(0); tt.setDelay(Duration.millis(200));
+            ft.play(); tt.play();
+        }
+
+        // Fade in stats
+        if (statsRow != null) {
+            statsRow.setOpacity(0);
+            FadeTransition ft = new FadeTransition(Duration.millis(500), statsRow);
+            ft.setFromValue(0); ft.setToValue(1); ft.setDelay(Duration.millis(400));
+            ft.play();
+        }
+
+        // Slide in features
+        if (featuresList != null) {
+            featuresList.setOpacity(0);
+            featuresList.setTranslateY(20);
+            FadeTransition ft = new FadeTransition(Duration.millis(500), featuresList);
+            ft.setFromValue(0); ft.setToValue(1); ft.setDelay(Duration.millis(600));
+            TranslateTransition tt = new TranslateTransition(Duration.millis(500), featuresList);
+            tt.setFromY(20); tt.setToY(0); tt.setDelay(Duration.millis(600));
+            ft.play(); tt.play();
+        }
     }
 
     private void showSuggestions(String typed) {
@@ -82,12 +131,10 @@ public class LoginController {
             MenuItem item = new MenuItem(email);
             item.setStyle("-fx-font-size:13; -fx-padding:8 14 8 14;");
             item.setOnAction(e -> {
-                // Bloquer le listener le temps de setter le texte
                 fieldEmail.setText(email);
                 fieldEmail.positionCaret(email.length());
                 suggestionMenu.hide();
 
-                // Auto-remplir le mot de passe si sauvegardé
                 String pass = savedCredentials.get(email);
                 if (pass != null && !pass.isEmpty()) {
                     fieldPassword.setText(pass);
@@ -100,11 +147,9 @@ public class LoginController {
             suggestionMenu.getItems().add(item);
         }
 
-        suggestionMenu.show(fieldEmail,
-            javafx.geometry.Side.BOTTOM, 0, 0);
+        suggestionMenu.show(fieldEmail, javafx.geometry.Side.BOTTOM, 0, 0);
     }
 
-    /** Toggle show/hide password */
     @FXML
     private void onTogglePassword() {
         passwordVisible = !passwordVisible;
@@ -112,16 +157,15 @@ public class LoginController {
             fieldPasswordVisible.setText(fieldPassword.getText());
             fieldPasswordVisible.setVisible(true);  fieldPasswordVisible.setManaged(true);
             fieldPassword.setVisible(false);         fieldPassword.setManaged(false);
-            btnTogglePassword.setText("\uD83D\uDE48"); // 🙈
+            btnTogglePassword.setText("\uD83D\uDE48");
         } else {
             fieldPassword.setText(fieldPasswordVisible.getText());
             fieldPassword.setVisible(true);          fieldPassword.setManaged(true);
             fieldPasswordVisible.setVisible(false);  fieldPasswordVisible.setManaged(false);
-            btnTogglePassword.setText("\uD83D\uDC41"); // 👁
+            btnTogglePassword.setText("\uD83D\uDC41");
         }
     }
 
-    /** Returns the current password regardless of which field is active */
     private String getPassword() {
         return passwordVisible ? fieldPasswordVisible.getText() : fieldPassword.getText();
     }
@@ -150,7 +194,6 @@ public class LoginController {
             return;
         }
 
-        // ── Inactivity check: auto-suspend after 60 days ──────────────────────
         if (!found.isIsSuspended()) {
             java.util.Date lastActivityDate = found.getLastLoginAt() != null
                 ? found.getLastLoginAt()
@@ -178,7 +221,6 @@ public class LoginController {
             }
         }
 
-        // ── Block suspended users ─────────────────────────────────────────────
         if (found.isIsSuspended()) {
             showError("Compte suspendu : " +
                 (found.getSuspensionReason() != null ? found.getSuspensionReason() : "") +
@@ -186,11 +228,9 @@ public class LoginController {
             return;
         }
 
-        // ── Update lastLoginAt ────────────────────────────────────────────────
         found.setLastLoginAt(Timestamp.valueOf(LocalDateTime.now()));
         service.modifier(found);
 
-        // Sauvegarder dans l'historique
         addToHistory(email);
 
         if (checkRememberMe.isSelected()) {
@@ -207,17 +247,14 @@ public class LoginController {
 
         SessionManager.login(found);
 
-        // ── Log login activity to Symfony API (async) ─────────────────────────
         ActivityApiClient.logAsync(found.getId(), "user.login",
             java.util.Map.of("role", found.getRole(), "email", found.getEmail()));
 
-        // ── Geo-IP audit + webhook alert (async) ──────────────────────────────
         final User loggedUser = found;
         CompletableFuture.runAsync(() -> {
             ApiService.GeoInfo geo = ApiService.getMyGeoInfo();
             String location = geo != null ? geo.toString() : "Localisation inconnue";
             System.out.println("[Login] " + loggedUser.getEmail() + " from " + location);
-            // Alert admin via webhook for any login (can be filtered to suspicious only)
             ApiService.sendAdminAlert(
                 "Connexion detectee",
                 loggedUser.getPrenom() + " " + loggedUser.getNom() +
@@ -233,15 +270,11 @@ public class LoginController {
         }
     }
 
-    // ── Persistance ───────────────────────────────────────────────────────────
-
     private void loadHistory() {
-        // Historique emails
         String history = prefs.get("email_history", "");
         if (!history.isEmpty())
             emailHistory.addAll(Arrays.asList(history.split("\\|")));
 
-        // Credentials sauvegardés (Remember Me)
         String creds = prefs.get("saved_credentials", "");
         if (!creds.isEmpty()) {
             for (String entry : creds.split("\\|")) {

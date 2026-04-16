@@ -122,87 +122,90 @@
         </VBox>
     </VBox>
 
-    <!-- RIGHT: gradient with centered content -->
-    <StackPane HBox.hgrow="ALWAYS"
-               style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#6355c7,#4e3b9c);">
+    <!-- RIGHT: gradient with image background + centered content -->
+    <StackPane HBox.hgrow="ALWAYS">
 
-        <!-- Floating shapes (decorative) -->
+        <!-- Background image with dark overlay -->
+        <ImageView fx:id="bgImage" fitWidth="800" fitHeight="760" preserveRatio="false"/>
+        <Rectangle width="800" height="760"
+                   style="-fx-fill:linear-gradient(to bottom right,rgba(122,106,216,0.88),rgba(78,59,156,0.92));"
+                   mouseTransparent="true"/>
+
+        <!-- Floating shapes -->
         <Circle radius="140" translateX="-180" translateY="-120"
                 style="-fx-fill:rgba(255,255,255,0.06);" mouseTransparent="true"/>
         <Circle radius="100" translateX="200" translateY="140"
                 style="-fx-fill:rgba(255,255,255,0.04);" mouseTransparent="true"/>
-        <Circle radius="60" translateX="180" translateY="-160"
-                style="-fx-fill:rgba(255,255,255,0.05);" mouseTransparent="true"/>
 
         <!-- Content centered -->
-        <VBox spacing="40" alignment="CENTER" maxWidth="420"
+        <VBox spacing="32" alignment="CENTER" maxWidth="420"
               style="-fx-padding:60 48 60 48;">
 
             <!-- Quote card -->
-            <VBox spacing="16" alignment="CENTER"
-                  style="-fx-background-color:rgba(255,255,255,0.12); -fx-background-radius:16;
-                         -fx-padding:28 24 28 24; -fx-border-color:rgba(255,255,255,0.2);
+            <VBox fx:id="quoteCard" spacing="14" alignment="CENTER"
+                  style="-fx-background-color:rgba(255,255,255,0.14); -fx-background-radius:16;
+                         -fx-padding:24 20 24 20; -fx-border-color:rgba(255,255,255,0.25);
                          -fx-border-radius:16; -fx-border-width:1;">
                 <Label text="&#10077;"
-                       style="-fx-font-size:32; -fx-text-fill:rgba(255,255,255,0.3);"/>
+                       style="-fx-font-size:28; -fx-text-fill:rgba(255,255,255,0.35);"/>
                 <Label text="AutoLearn m'a permis de progresser a mon rythme et de decrocher mon premier poste en developpement."
                        wrapText="true" maxWidth="340"
                        style="-fx-font-size:15; -fx-font-weight:600; -fx-text-fill:white;
                               -fx-line-spacing:4; -fx-text-alignment:center;"/>
                 <VBox spacing="2" alignment="CENTER">
                     <Label text="Islem B."
-                           style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.9);"/>
+                           style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.95);"/>
                     <Label text="Etudiant en Informatique — Tunis"
-                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.55);"/>
+                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.6);"/>
                 </VBox>
             </VBox>
 
             <!-- Stats -->
-            <HBox spacing="0" alignment="CENTER">
-                <VBox alignment="CENTER" spacing="4" prefWidth="120">
+            <HBox fx:id="statsRow" spacing="0" alignment="CENTER">
+                <VBox alignment="CENTER" spacing="3" prefWidth="120">
                     <Label text="500+"
-                           style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:white;"/>
+                           style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:white;"/>
                     <Label text="Etudiants"
-                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.6);"/>
+                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.65);"/>
                 </VBox>
-                <Rectangle width="1" height="50" style="-fx-fill:rgba(255,255,255,0.2);"/>
-                <VBox alignment="CENTER" spacing="4" prefWidth="120">
+                <Rectangle width="1" height="44" style="-fx-fill:rgba(255,255,255,0.25);"/>
+                <VBox alignment="CENTER" spacing="3" prefWidth="120">
                     <Label text="50+"
-                           style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:white;"/>
+                           style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:white;"/>
                     <Label text="Cours"
-                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.6);"/>
+                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.65);"/>
                 </VBox>
-                <Rectangle width="1" height="50" style="-fx-fill:rgba(255,255,255,0.2);"/>
-                <VBox alignment="CENTER" spacing="4" prefWidth="120">
+                <Rectangle width="1" height="44" style="-fx-fill:rgba(255,255,255,0.25);"/>
+                <VBox alignment="CENTER" spacing="3" prefWidth="120">
                     <Label text="100%"
-                           style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:white;"/>
+                           style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:white;"/>
                     <Label text="Gratuit"
-                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.6);"/>
+                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.65);"/>
                 </VBox>
             </HBox>
 
             <!-- Features -->
-            <VBox spacing="12" alignment="CENTER_LEFT">
+            <VBox fx:id="featuresList" spacing="10" alignment="CENTER_LEFT">
                 <HBox spacing="12" alignment="CENTER_LEFT">
                     <Label text="&#128218;"
-                           style="-fx-font-size:20; -fx-background-color:rgba(255,255,255,0.15);
+                           style="-fx-font-size:20; -fx-background-color:rgba(255,255,255,0.18);
                                   -fx-background-radius:10; -fx-padding:8 10 8 10;"/>
                     <Label text="Cours structures par des experts"
-                           style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.9);"/>
+                           style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.95);"/>
                 </HBox>
                 <HBox spacing="12" alignment="CENTER_LEFT">
                     <Label text="&#129302;"
-                           style="-fx-font-size:20; -fx-background-color:rgba(255,255,255,0.15);
+                           style="-fx-font-size:20; -fx-background-color:rgba(255,255,255,0.18);
                                   -fx-background-radius:10; -fx-padding:8 10 8 10;"/>
                     <Label text="Correction par IA instantanee"
-                           style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.9);"/>
+                           style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.95);"/>
                 </HBox>
                 <HBox spacing="12" alignment="CENTER_LEFT">
                     <Label text="&#127942;"
-                           style="-fx-font-size:20; -fx-background-color:rgba(255,255,255,0.15);
+                           style="-fx-font-size:20; -fx-background-color:rgba(255,255,255,0.18);
                                   -fx-background-radius:10; -fx-padding:8 10 8 10;"/>
                     <Label text="Challenges et badges"
-                           style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.9);"/>
+                           style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.95);"/>
                 </HBox>
             </VBox>
 
