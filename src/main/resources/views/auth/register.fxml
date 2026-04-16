@@ -8,80 +8,30 @@
       fx:controller="tn.esprit.controllers.RegisterController"
       maxWidth="Infinity" maxHeight="Infinity">
 
-    <!-- LEFT: violet brand panel -->
-    <VBox spacing="28" alignment="CENTER_LEFT" prefWidth="400" minWidth="340"
-          style="-fx-background-color:#7a6ad8; -fx-padding:56 48 56 56;">
-
-        <VBox spacing="6">
-            <Label text="AutoLearn"
-                   style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:white;"/>
-            <Label text="Votre plateforme d'apprentissage"
-                   style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.7);"/>
-        </VBox>
-
-        <VBox spacing="10">
-            <Label text="Rejoignez la communaute"
-                   style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;" wrapText="true"/>
-            <Label text="Creez votre compte et commencez a apprendre gratuitement des aujourd'hui."
-                   wrapText="true"
-                   style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.75); -fx-line-spacing:4; -fx-max-width:300;"/>
-        </VBox>
-
-        <VBox spacing="10">
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="&#10003;"
-                       style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
-                              -fx-background-color:white; -fx-background-radius:50%; -fx-padding:3 6 3 6;"/>
-                <Label text="Acces a tous les cours"
-                       style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="&#10003;"
-                       style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
-                              -fx-background-color:white; -fx-background-radius:50%; -fx-padding:3 6 3 6;"/>
-                <Label text="Challenges et badges"
-                       style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="&#10003;"
-                       style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
-                              -fx-background-color:white; -fx-background-radius:50%; -fx-padding:3 6 3 6;"/>
-                <Label text="Evenements et hackathons"
-                       style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="&#10003;"
-                       style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
-                              -fx-background-color:white; -fx-background-radius:50%; -fx-padding:3 6 3 6;"/>
-                <Label text="Communaute active"
-                       style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
-            </HBox>
-        </VBox>
-
-        <Region VBox.vgrow="ALWAYS"/>
-
-        <Label text="Deja un compte ?"
-               style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.6);"/>
-        <Button text="Se connecter →" onAction="#onGoToLogin"
-                style="-fx-background-color:white; -fx-text-fill:#7a6ad8;
-                       -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand;
-                       -fx-border-width:0; -fx-padding:12 24 12 24; -fx-background-radius:8;"/>
-    </VBox>
-
-    <!-- RIGHT: white form panel -->
-    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" HBox.hgrow="ALWAYS"
+    <!-- LEFT: clean white form panel -->
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="600" minWidth="500"
                 style="-fx-background-color:white; -fx-background:transparent; -fx-border-width:0;">
         <VBox spacing="0" alignment="CENTER"
-              style="-fx-background-color:white; -fx-padding:48 80 48 64;">
+              style="-fx-background-color:white; -fx-padding:0;">
 
-            <VBox spacing="24" maxWidth="520">
+            <VBox spacing="28" maxWidth="480" alignment="CENTER_LEFT"
+                  style="-fx-padding:48 0 48 0;">
+
+                <!-- Logo -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Auto"
+                           style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#7a6ad8;"/>
+                    <Label text="Learn"
+                           style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#1a1a2e;"/>
+                </HBox>
 
                 <!-- Header -->
                 <VBox spacing="6">
-                    <Label text="Creer un compte"
+                    <Label text="Creer votre compte"
                            style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:#1a1a2e;"/>
-                    <Label text="Remplissez le formulaire pour commencer"
-                           style="-fx-font-size:13; -fx-text-fill:#888;"/>
+                    <Label text="Rejoignez des milliers d'etudiants et commencez a apprendre gratuitement"
+                           wrapText="true" maxWidth="440"
+                           style="-fx-font-size:13; -fx-text-fill:#888; -fx-line-spacing:2;"/>
                 </VBox>
 
                 <!-- Form grid -->
@@ -91,7 +41,7 @@
                         <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
                     </columnConstraints>
 
-                    <!-- Nom -->
+                    <!-- Nom + Prenom -->
                     <Label text="Nom *" GridPane.columnIndex="0" GridPane.rowIndex="0"
                            style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#374151; -fx-padding:0 0 4 0;"/>
                     <Label text="Prenom *" GridPane.columnIndex="1" GridPane.rowIndex="0"
@@ -100,13 +50,13 @@
                     <TextField fx:id="fieldNom" promptText="Votre nom"
                                GridPane.columnIndex="0" GridPane.rowIndex="1" maxWidth="Infinity"
                                style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                      -fx-border-radius:8; -fx-background-radius:8;
-                                      -fx-padding:11 14 11 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                      -fx-border-radius:10; -fx-background-radius:10;
+                                      -fx-padding:12 14 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
                     <TextField fx:id="fieldPrenom" promptText="Votre prenom"
                                GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity"
                                style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                      -fx-border-radius:8; -fx-background-radius:8;
-                                      -fx-padding:11 14 11 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                      -fx-border-radius:10; -fx-background-radius:10;
+                                      -fx-padding:12 14 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
 
                     <Label fx:id="errorNom" GridPane.columnIndex="0" GridPane.rowIndex="2"
                            style="-fx-text-fill:#dc2626; -fx-font-size:11;" minHeight="14"/>
@@ -122,13 +72,13 @@
                     <TextField fx:id="fieldEmail" promptText="exemple@domaine.com"
                                GridPane.columnIndex="0" GridPane.rowIndex="4" maxWidth="Infinity"
                                style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                      -fx-border-radius:8; -fx-background-radius:8;
-                                      -fx-padding:11 14 11 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                      -fx-border-radius:10; -fx-background-radius:10;
+                                      -fx-padding:12 14 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
                     <ComboBox fx:id="comboRole" promptText="Choisir un role" maxWidth="Infinity"
                               GridPane.columnIndex="1" GridPane.rowIndex="4"
                               style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                     -fx-border-radius:8; -fx-background-radius:8;
-                                     -fx-font-size:13; -fx-pref-height:42;"/>
+                                     -fx-border-radius:10; -fx-background-radius:10;
+                                     -fx-font-size:13; -fx-pref-height:44;"/>
 
                     <Label fx:id="errorEmail" GridPane.columnIndex="0" GridPane.rowIndex="5"
                            style="-fx-text-fill:#dc2626; -fx-font-size:11;" minHeight="14"/>
@@ -144,13 +94,13 @@
                     <PasswordField fx:id="fieldPassword" promptText="Minimum 6 caracteres"
                                    GridPane.columnIndex="0" GridPane.rowIndex="7" maxWidth="Infinity"
                                    style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                          -fx-border-radius:8; -fx-background-radius:8;
-                                          -fx-padding:11 14 11 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                          -fx-border-radius:10; -fx-background-radius:10;
+                                          -fx-padding:12 14 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
                     <PasswordField fx:id="fieldConfirmPassword" promptText="Repetez le mot de passe"
                                    GridPane.columnIndex="1" GridPane.rowIndex="7" maxWidth="Infinity"
                                    style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                          -fx-border-radius:8; -fx-background-radius:8;
-                                          -fx-padding:11 14 11 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                          -fx-border-radius:10; -fx-background-radius:10;
+                                          -fx-padding:12 14 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
 
                     <Label fx:id="errorPassword" GridPane.columnIndex="0" GridPane.rowIndex="8"
                            style="-fx-text-fill:#dc2626; -fx-font-size:11;" minHeight="14"/>
@@ -165,8 +115,8 @@
                     <ComboBox fx:id="comboNiveau" promptText="Choisir un niveau" maxWidth="Infinity"
                               GridPane.columnIndex="0" GridPane.rowIndex="10"
                               style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                     -fx-border-radius:8; -fx-background-radius:8;
-                                     -fx-font-size:13; -fx-pref-height:42;"
+                                     -fx-border-radius:10; -fx-background-radius:10;
+                                     -fx-font-size:13; -fx-pref-height:44;"
                               visible="false" managed="false"/>
                     <Label fx:id="errorNiveau" GridPane.columnIndex="0" GridPane.rowIndex="11"
                            style="-fx-text-fill:#dc2626; -fx-font-size:11;"
@@ -176,24 +126,114 @@
                 <Label fx:id="errorGeneral"
                        style="-fx-text-fill:#dc2626; -fx-font-size:12;" minHeight="14"/>
 
+                <!-- Register button -->
                 <Button text="Creer mon compte" onAction="#onRegister" maxWidth="Infinity"
                         style="-fx-background-color:#7a6ad8; -fx-text-fill:white;
-                               -fx-font-size:14; -fx-font-weight:700;
-                               -fx-padding:14 0 14 0; -fx-background-radius:8;
+                               -fx-font-size:15; -fx-font-weight:700;
+                               -fx-padding:14 0 14 0; -fx-background-radius:10;
                                -fx-cursor:hand; -fx-border-width:0;
-                               -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.3),10,0,0,3);"/>
+                               -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.35),10,0,0,3);"/>
 
-                <!-- Back to landing -->
-                <HBox alignment="CENTER" spacing="6">
-                    <Label text="&#8592;"
-                           style="-fx-font-size:12; -fx-text-fill:#aaa;"/>
-                    <Button text="Retour a l'accueil" onAction="#onBackToLanding"
-                            style="-fx-background-color:transparent; -fx-text-fill:#aaa;
-                                   -fx-font-size:12; -fx-cursor:hand; -fx-padding:0; -fx-border-width:0;"/>
-                </HBox>
+                <!-- Footer links -->
+                <VBox spacing="10" alignment="CENTER">
+                    <HBox alignment="CENTER" spacing="6">
+                        <Label text="Deja un compte ?"
+                               style="-fx-font-size:13; -fx-text-fill:#888;"/>
+                        <Button text="Se connecter" onAction="#onGoToLogin"
+                                style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8;
+                                       -fx-font-size:13; -fx-font-weight:700;
+                                       -fx-cursor:hand; -fx-padding:0; -fx-border-width:0;"/>
+                    </HBox>
+                    <HBox alignment="CENTER" spacing="6">
+                        <Label text="&#8592;"
+                               style="-fx-font-size:12; -fx-text-fill:#ccc;"/>
+                        <Button text="Retour a l'accueil" onAction="#onBackToLanding"
+                                style="-fx-background-color:transparent; -fx-text-fill:#ccc;
+                                       -fx-font-size:12; -fx-cursor:hand; -fx-padding:0; -fx-border-width:0;"/>
+                    </HBox>
+                </VBox>
 
             </VBox>
         </VBox>
     </ScrollPane>
+
+    <!-- RIGHT: violet panel with visual -->
+    <VBox HBox.hgrow="ALWAYS" alignment="TOP_LEFT" spacing="0"
+          style="-fx-background-color:#7a6ad8;">
+
+        <!-- Quote -->
+        <VBox spacing="16" style="-fx-padding:56 48 40 48;">
+            <Label text="&#171; Rejoignez une communaute d'etudiants passionnes et progressez ensemble. &#187;"
+                   wrapText="true"
+                   style="-fx-font-size:18; -fx-font-weight:700; -fx-text-fill:white;
+                          -fx-line-spacing:5;"/>
+            <VBox spacing="3">
+                <Label text="Ahmed K. — Developpeur Full Stack"
+                       style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                <Label text="Sfax, Tunisie"
+                       style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.55);"/>
+            </VBox>
+        </VBox>
+
+        <!-- Benefits -->
+        <VBox spacing="20" style="-fx-padding:40 48 40 48;">
+            <Label text="Ce que vous obtenez :"
+                   style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.7);"/>
+            <VBox spacing="14">
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="&#10003;"
+                           style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:white;
+                                  -fx-background-color:rgba(255,255,255,0.15);
+                                  -fx-background-radius:50%; -fx-padding:4 8 4 8;"/>
+                    <Label text="Acces illimite a tous les cours"
+                           style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                </HBox>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="&#10003;"
+                           style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:white;
+                                  -fx-background-color:rgba(255,255,255,0.15);
+                                  -fx-background-radius:50%; -fx-padding:4 8 4 8;"/>
+                    <Label text="Challenges corriges par IA"
+                           style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                </HBox>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="&#10003;"
+                           style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:white;
+                                  -fx-background-color:rgba(255,255,255,0.15);
+                                  -fx-background-radius:50%; -fx-padding:4 8 4 8;"/>
+                    <Label text="Evenements et hackathons en Tunisie"
+                           style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                </HBox>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="&#10003;"
+                           style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:white;
+                                  -fx-background-color:rgba(255,255,255,0.15);
+                                  -fx-background-radius:50%; -fx-padding:4 8 4 8;"/>
+                    <Label text="Badges et certificats"
+                           style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                </HBox>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="&#10003;"
+                           style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:white;
+                                  -fx-background-color:rgba(255,255,255,0.15);
+                                  -fx-background-radius:50%; -fx-padding:4 8 4 8;"/>
+                    <Label text="Communaute active et entraide"
+                           style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                </HBox>
+            </VBox>
+        </VBox>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <!-- Bottom trust badge -->
+        <HBox alignment="CENTER" spacing="8"
+              style="-fx-padding:20 48 28 48; -fx-background-color:rgba(0,0,0,0.1);">
+            <Label text="&#128274;"
+                   style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.5);"/>
+            <Label text="Inscription 100% gratuite — aucune carte bancaire requise"
+                   style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.5);"/>
+        </HBox>
+
+    </VBox>
 
 </HBox>
