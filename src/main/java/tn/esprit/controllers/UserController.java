@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import tn.esprit.entities.Admin;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
+import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
 
@@ -403,9 +404,12 @@ public class UserController {
 
         if (!isEditMode) {
             // Admin always creates students
+            String plainPassword = password; // keep plain copy before hashing for email
             User newUser = new Etudiant(nom, prenom, email, tn.esprit.tools.PasswordUtil.hash(password), comboNiveau.getValue());
             service.ajouter(newUser);
-            showAlert(Alert.AlertType.INFORMATION, "Succès", "Étudiant créé avec succès.");
+            // Notify the new student by email
+            EmailService.sendAdminCreatedAccount(email, prenom, nom, plainPassword);
+            showAlert(Alert.AlertType.INFORMATION, "Succès", "Étudiant créé avec succès. Un email lui a été envoyé.");
         } else {
             editingUser.setNom(nom);
             editingUser.setPrenom(prenom);
