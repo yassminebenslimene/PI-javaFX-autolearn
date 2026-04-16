@@ -38,18 +38,27 @@ public class MainApp extends Application {
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
-        showLogin();
+        primaryStage.setMaximized(true);
+        showLanding();
         primaryStage.show();
+    }
+
+    public static void showLanding() throws Exception {
+        load("/views/landing.fxml");
+        primaryStage.setTitle("AutoLearn — Bienvenue");
+        primaryStage.setMaximized(true);
     }
 
     public static void showRegister() throws Exception {
         load("/views/auth/register.fxml");
         primaryStage.setTitle("AutoLearn — Inscription");
+        primaryStage.setMaximized(true);
     }
 
     public static void showLogin() throws Exception {
         load("/views/auth/login.fxml");
         primaryStage.setTitle("AutoLearn — Connexion");
+        primaryStage.setMaximized(true);
     }
 
     public static void showResetPassword() throws Exception {
