@@ -58,37 +58,62 @@ public class ActivityApiClient {
         /** Human-readable action label */
         public String actionLabel() {
             return switch (action) {
-                case "user.login"            -> "Connexion";
-                case "user.logout"           -> "Deconnexion";
-                case "user.created"          -> "Compte cree";
-                case "user.updated"          -> "Profil modifie";
-                case "user.suspended"        -> "Suspendu";
-                case "user.reactivated"      -> "Reactive";
-                case "user.viewed"           -> "Profil consulte";
-                case "user.view_cours"       -> "Cours consultes";
-                case "user.view_challenges"  -> "Challenges consultes";
-                case "user.view_evenements"  -> "Evenements consultes";
-                case "user.view_communaute"  -> "Communaute consultee";
-                case "user.view_profile"     -> "Profil consulte";
-                default -> action.replace("user.", "").replace("_", " ");
+                case "user.login"                -> "Connexion";
+                case "user.logout"               -> "Deconnexion";
+                case "user.created"              -> "Compte cree";
+                case "user.updated"              -> "Profil modifie";
+                case "user.suspended"            -> "Suspendu";
+                case "user.reactivated"          -> "Reactive";
+                case "user.viewed"               -> "Profil consulte";
+                case "user.view_cours"           -> "Cours consultes";
+                case "user.view_challenges"      -> "Challenges consultes";
+                case "user.view_evenements"      -> "Evenements consultes";
+                case "user.view_communaute"      -> "Communaute consultee";
+                case "user.view_profile"         -> "Profil consulte";
+                case "admin.created_student"     -> "Etudiant cree";
+                case "admin.updated_student"     -> "Etudiant modifie";
+                case "admin.suspended_student"   -> "Etudiant suspendu";
+                case "admin.reactivated_student" -> "Etudiant reactive";
+                case "admin.view_dashboard"      -> "Dashboard consulte";
+                case "admin.view_users"          -> "Utilisateurs consultes";
+                case "admin.view_cours"          -> "Cours consultes";
+                case "admin.view_challenges"     -> "Challenges consultes";
+                case "admin.view_evenements"     -> "Evenements consultes";
+                case "admin.view_quiz"           -> "Quiz consultes";
+                case "admin.view_exercices"      -> "Exercices consultes";
+                case "admin.view_communaute"     -> "Communaute consultee";
+                case "admin.view_chapitres"      -> "Chapitres consultes";
+                default -> action.replace("admin.", "").replace("user.", "").replace("_", " ");
             };
         }
 
         /** Emoji icon per action */
         public String actionIcon() {
             return switch (action) {
-                case "user.login"            -> "🔑";
-                case "user.logout"           -> "🚪";
-                case "user.created"          -> "✅";
-                case "user.updated"          -> "✏️";
-                case "user.suspended"        -> "⛔";
-                case "user.reactivated"      -> "✔️";
-                case "user.viewed"           -> "👁";
-                case "user.view_cours"       -> "📚";
-                case "user.view_challenges"  -> "🏆";
-                case "user.view_evenements"  -> "📅";
-                case "user.view_communaute"  -> "👥";
-                case "user.view_profile"     -> "👤";
+                case "user.login"                -> "🔑";
+                case "user.logout"               -> "🚪";
+                case "user.created"              -> "✅";
+                case "user.updated"              -> "✏️";
+                case "user.suspended"            -> "⛔";
+                case "user.reactivated"          -> "✔️";
+                case "user.view_cours"           -> "📚";
+                case "user.view_challenges"      -> "🏆";
+                case "user.view_evenements"      -> "📅";
+                case "user.view_communaute"      -> "👥";
+                case "user.view_profile"         -> "👤";
+                case "admin.created_student"     -> "✅";
+                case "admin.updated_student"     -> "✏️";
+                case "admin.suspended_student"   -> "⛔";
+                case "admin.reactivated_student" -> "✔️";
+                case "admin.view_dashboard"      -> "⊞";
+                case "admin.view_users"          -> "👥";
+                case "admin.view_cours"          -> "📚";
+                case "admin.view_challenges"     -> "🏆";
+                case "admin.view_evenements"     -> "📅";
+                case "admin.view_quiz"           -> "❓";
+                case "admin.view_exercices"      -> "⚡";
+                case "admin.view_communaute"     -> "💬";
+                case "admin.view_chapitres"      -> "📖";
                 default -> "•";
             };
         }

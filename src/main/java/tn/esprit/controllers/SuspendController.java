@@ -98,12 +98,18 @@ public class SuspendController {
 
         service.modifier(user);
 
-        // ── Log to Symfony ActivityAPI ────────────────────────────────────────
+        // ── Log under ADMIN's ID ──────────────────────────────────────────────
+        var admin = SessionManager.getCurrentUser();
+        int logId = (admin != null) ? admin.getId() : user.getId();
         if (user.isIsSuspended()) {
-            ActivityApiClient.logAsync(user.getId(), "user.suspended",
-                java.util.Map.of("reason", user.getSuspensionReason() != null ? user.getSuspensionReason() : ""));
+            ActivityApiClient.logAsync(logId, "admin.suspended_student",
+                java.util.Map.of("student_email", user.getEmail(),
+                                 "student_name", user.getPrenom() + " " + user.getNom(),
+                                 "reason", user.getSuspensionReason() != null ? user.getSuspensionReason() : ""));
         } else {
-            ActivityApiClient.logAsync(user.getId(), "user.reactivated");
+            ActivityApiClient.logAsync(logId, "admin.reactivated_student",
+                java.util.Map.of("student_email", user.getEmail(),
+                                 "student_name", user.getPrenom() + " " + user.getNom()));
         }
 
         // Send email notification (async)
