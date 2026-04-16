@@ -18,6 +18,7 @@ public class BackofficeController {
 
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
+    @FXML private Button btnActivites;
     @FXML private Button btnQuiz;
     @FXML private Button btnCours;
     @FXML private Button btnEvenements;
@@ -53,7 +54,7 @@ public class BackofficeController {
     }
 
     private void setActive(Button active) {
-        for (Button b : new Button[]{btnDashboard, btnUsers, btnQuiz, btnCours, btnEvenements,
+        for (Button b : new Button[]{btnDashboard, btnUsers, btnActivites, btnQuiz, btnCours, btnEvenements,
                                       btnExercices, btnChallenges, btnCommunaute, btnProfile}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
@@ -69,6 +70,12 @@ public class BackofficeController {
         setActive(btnUsers);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Utilisateurs");
         loadView("/views/backoffice/user/index.fxml");
+    }
+
+    @FXML public void navigateToActivites() {
+        setActive(btnActivites);
+        if (labelPageTitle != null) labelPageTitle.setText("Suivi des Activites");
+        loadView("/views/backoffice/activites/index.fxml");
     }
 
     @FXML public void navigateToQuiz() {
