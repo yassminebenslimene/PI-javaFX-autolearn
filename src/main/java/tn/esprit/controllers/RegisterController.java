@@ -86,7 +86,6 @@ public class RegisterController {
             ft.play(); tt.play();
         }
     }
-    }
 
     @FXML
     private void onRegister() {
