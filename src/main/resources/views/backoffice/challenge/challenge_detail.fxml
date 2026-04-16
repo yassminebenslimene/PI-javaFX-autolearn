@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.ChallengeDetailsController"
+            style="-fx-background-color:#0a0f0d;">
+
+    <center>
+        <VBox spacing="20" style="-fx-padding:30; -fx-background-color:#0a0f0d;">
+
+            <Label text="Détails du Challenge"
+                   style="-fx-font-size:22; -fx-font-weight:bold; -fx-text-fill:white;"/>
+
+            <VBox spacing="15"
+                  style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:15;
+                         -fx-padding:25;">
+
+                <HBox spacing="15">
+                    <Label text="Titre :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="120"/>
+                    <Label fx:id="lblTitre" style="-fx-text-fill:white; -fx-font-size:14;"/>
+                </HBox>
+
+                <HBox spacing="15">
+                    <Label text="Description :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="120"/>
+                    <Label fx:id="lblDescription" wrapText="true"
+                           style="-fx-text-fill:white; -fx-font-size:13;"/>
+                </HBox>
+
+                <HBox spacing="15">
+                    <Label text="Niveau :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="120"/>
+                    <Label fx:id="lblNiveau" style="-fx-text-fill:white; -fx-font-size:14;"/>
+                </HBox>
+
+                <HBox spacing="15">
+                    <Label text="Durée :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="120"/>
+                    <Label fx:id="lblDuree" style="-fx-text-fill:white; -fx-font-size:14;"/>
+                </HBox>
+
+                <HBox spacing="15">
+                    <Label text="Date début :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="120"/>
+                    <Label fx:id="lblDateDebut" style="-fx-text-fill:white; -fx-font-size:14;"/>
+                </HBox>
+
+                <HBox spacing="15">
+                    <Label text="Date fin :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="120"/>
+                    <Label fx:id="lblDateFin" style="-fx-text-fill:white; -fx-font-size:14;"/>
+                </HBox>
+
+            </VBox>
+
+            <Button text="Fermer" onAction="#closeWindow"
+                    style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13;
+                           -fx-font-weight:bold; -fx-padding:10 20 10 20; -fx-background-radius:8;
+                           -fx-cursor:hand; -fx-border-width:0;"
+                    maxWidth="Infinity"/>
+
+        </VBox>
+    </center>
+</BorderPane>

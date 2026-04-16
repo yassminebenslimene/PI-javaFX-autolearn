@@ -13,7 +13,9 @@ import tn.esprit.entities.Exercice;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.ExerciceService;
 import tn.esprit.session.SessionManager;
-
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -95,7 +97,11 @@ public class ChallengeController {
         // Actions
         HBox actionsBox = new HBox(12);
         actionsBox.setPrefWidth(150);
-
+        Button btnView = new Button("View");
+        btnView.setStyle("-fx-background-color:rgba(59,130,246,0.25); -fx-text-fill:#60a5fa; " +
+                "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; " +
+                "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
+        btnView.setOnAction(e -> viewChallenge(challenge));
         Button editBtn = new Button("Edit");
         editBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#fbbf24; -fx-font-size:12; -fx-cursor:hand;");
         editBtn.setOnAction(e -> openChallengeForm(challenge, true));
@@ -107,7 +113,7 @@ public class ChallengeController {
             deleteChallenge();
         });
 
-        actionsBox.getChildren().addAll(editBtn, deleteBtn);
+        actionsBox.getChildren().addAll(btnView,editBtn, deleteBtn);
         row.getChildren().addAll(titreLabel, descriptionLabel, niveauLabel, dureeLabel, actionsBox);
 
         return row;
@@ -247,5 +253,24 @@ public class ChallengeController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+    @FXML
+    private void viewChallenge(Challenge challenge) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/backoffice/challenge/challenge_detail.fxml"));
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("Détails du Challenge - " + challenge.getTitre());
+            stage.setScene(new Scene(loader.load(), 600, 500));
+            stage.setResizable(false);
+
+            ChallengeDetailsController controller = loader.getController();
+            controller.setChallenge(challenge);
+
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible d'ouvrir les détails du challenge");
+        }
     }
 }

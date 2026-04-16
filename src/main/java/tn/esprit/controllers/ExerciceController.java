@@ -10,7 +10,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tn.esprit.entities.Exercice;
 import tn.esprit.services.ExerciceService;
-
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -79,23 +81,38 @@ public class ExerciceController {
 
         HBox actionsBox = new HBox(12);
         actionsBox.setPrefWidth(150);
+        actionsBox.setAlignment(Pos.CENTER);
 
+        // Bouton View (AJOUTÉ)
+        Button viewBtn = new Button("View");
+        viewBtn.setStyle("-fx-background-color:rgba(59,130,246,0.25); -fx-text-fill:#60a5fa; " +
+                "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; " +
+                "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
+        viewBtn.setOnAction(e -> viewExercice(exercice));
+
+        // Bouton Edit
         Button editBtn = new Button("Edit");
-        editBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#fbbf24; -fx-font-size:12; -fx-cursor:hand;");
+        editBtn.setStyle("-fx-background-color:rgba(251,191,36,0.25); -fx-text-fill:#fbbf24; " +
+                "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; " +
+                "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
         editBtn.setOnAction(e -> openExerciceForm(exercice, true));
 
+        // Bouton Delete
         Button deleteBtn = new Button("Delete");
-        deleteBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#f87171; -fx-font-size:12; -fx-cursor:hand;");
+        deleteBtn.setStyle("-fx-background-color:rgba(248,113,113,0.25); -fx-text-fill:#fda4af; " +
+                "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; " +
+                "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
         deleteBtn.setOnAction(e -> {
             selectedExercice = exercice;
             deleteExercice();
         });
 
-        actionsBox.getChildren().addAll(editBtn, deleteBtn);
+        actionsBox.getChildren().addAll(viewBtn, editBtn, deleteBtn);
         row.getChildren().addAll(questionLabel, reponseLabel, pointsLabel, actionsBox);
 
         return row;
     }
+
     /**
      * Ouvre la fenêtre modale pour ajouter/modifier un exercice
      */
@@ -112,7 +129,6 @@ public class ExerciceController {
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             DialogPane dialogPane = loader.load();
 
-            // Récupérer les champs
             TextField txtQuestion = (TextField) dialogPane.lookup("#txtQuestion");
             TextField txtReponse = (TextField) dialogPane.lookup("#txtReponse");
             TextField txtPoints = (TextField) dialogPane.lookup("#txtPoints");
@@ -127,7 +143,6 @@ public class ExerciceController {
                 dialogTitle.setText("Ajouter un exercice");
             }
 
-            // Créer les boutons
             ButtonType saveButton = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
             ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
 
@@ -137,7 +152,6 @@ public class ExerciceController {
             dialog.initOwner(exercicesContainer.getScene().getWindow());
             dialog.getDialogPane().getButtonTypes().addAll(saveButton, cancelButton);
 
-            // Appliquer le style aux boutons (comme dans profile.fxml)
             dialog.getDialogPane().lookupButton(saveButton).setStyle(
                     "-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold; " +
                             "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
@@ -147,7 +161,6 @@ public class ExerciceController {
                             "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
             );
 
-            // Effet hover pour le bouton Annuler
             Button cancelBtn = (Button) dialog.getDialogPane().lookupButton(cancelButton);
             cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(
                     "-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold; " +
@@ -200,17 +213,12 @@ public class ExerciceController {
             showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible d'ouvrir le formulaire : " + e.getMessage());
         }
     }
-    /**
-     * Ajouter un exercice (ouvre le modal)
-     */
+
     @FXML
     public void addExercice() {
         openExerciceForm(null, false);
     }
 
-    /**
-     * Supprimer un exercice
-     */
     @FXML
     public void deleteExercice() {
         if (selectedExercice == null) {
@@ -275,6 +283,26 @@ public class ExerciceController {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    @FXML
+    private void viewExercice(Exercice exercice) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/backoffice/exercice/exercice_detail.fxml"));
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("Détails de l'exercice");
+            stage.setScene(new Scene(loader.load(), 550, 400));
+            stage.setResizable(false);
+
+            ExerciceDetailController controller = loader.getController();
+            controller.setExercice(exercice);
+
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible d'ouvrir les détails de l'exercice");
+        }
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
