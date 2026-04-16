@@ -33,6 +33,11 @@ public class RegisterController {
     @FXML private Label         errorNiveau;
     @FXML private Label         errorGeneral;
 
+    // Right panel animated elements
+    @FXML private javafx.scene.image.ImageView bgImage;
+    @FXML private javafx.scene.layout.VBox quoteCard;
+    @FXML private javafx.scene.layout.VBox benefitsList;
+
     private final UserService service = new UserService();
 
     @FXML
@@ -40,7 +45,6 @@ public class RegisterController {
         comboRole.setItems(FXCollections.observableArrayList("ADMIN", "ETUDIANT"));
         comboNiveau.setItems(FXCollections.observableArrayList("DEBUTANT", "INTERMEDIAIRE", "AVANCE"));
 
-        // Show niveau only for ETUDIANT
         comboRole.valueProperty().addListener((obs, o, newVal) -> {
             boolean isEtudiant = "ETUDIANT".equals(newVal);
             labelNiveau.setVisible(isEtudiant); labelNiveau.setManaged(isEtudiant);
@@ -48,6 +52,40 @@ public class RegisterController {
             errorNiveau.setVisible(isEtudiant); errorNiveau.setManaged(isEtudiant);
             if (!isEtudiant) comboNiveau.setValue(null);
         });
+
+        // Animate right panel
+        javafx.application.Platform.runLater(this::animateRightPanel);
+    }
+
+    private void animateRightPanel() {
+        if (bgImage != null) {
+            String[] imgs = {"/images/event1.jpg", "/images/event2.jpg", "/images/event3.jpg"};
+            try {
+                var url = getClass().getResource(imgs[new java.util.Random().nextInt(imgs.length)]);
+                if (url != null) bgImage.setImage(new javafx.scene.image.Image(url.toExternalForm()));
+            } catch (Exception ignored) {}
+        }
+
+        if (quoteCard != null) {
+            quoteCard.setOpacity(0);
+            quoteCard.setTranslateY(30);
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(600), quoteCard);
+            ft.setFromValue(0); ft.setToValue(1); ft.setDelay(javafx.util.Duration.millis(200));
+            javafx.animation.TranslateTransition tt = new javafx.animation.TranslateTransition(javafx.util.Duration.millis(600), quoteCard);
+            tt.setFromY(30); tt.setToY(0); tt.setDelay(javafx.util.Duration.millis(200));
+            ft.play(); tt.play();
+        }
+
+        if (benefitsList != null) {
+            benefitsList.setOpacity(0);
+            benefitsList.setTranslateY(20);
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(500), benefitsList);
+            ft.setFromValue(0); ft.setToValue(1); ft.setDelay(javafx.util.Duration.millis(400));
+            javafx.animation.TranslateTransition tt = new javafx.animation.TranslateTransition(javafx.util.Duration.millis(500), benefitsList);
+            tt.setFromY(20); tt.setToY(0); tt.setDelay(javafx.util.Duration.millis(400));
+            ft.play(); tt.play();
+        }
+    }
     }
 
     @FXML
