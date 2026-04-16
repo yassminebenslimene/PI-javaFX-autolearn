@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import tn.esprit.entities.User;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
@@ -96,6 +97,14 @@ public class SuspendController {
         }
 
         service.modifier(user);
+
+        // ── Log to Symfony ActivityAPI ────────────────────────────────────────
+        if (user.isIsSuspended()) {
+            ActivityApiClient.logAsync(user.getId(), "user.suspended",
+                java.util.Map.of("reason", user.getSuspensionReason() != null ? user.getSuspensionReason() : ""));
+        } else {
+            ActivityApiClient.logAsync(user.getId(), "user.reactivated");
+        }
 
         // Send email notification (async)
         if (user.isIsSuspended()) {

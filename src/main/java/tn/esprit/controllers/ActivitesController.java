@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ApiService;
 import tn.esprit.services.AuditService;
 
@@ -35,6 +36,7 @@ public class ActivitesController {
 
     private final AuditService auditService = new AuditService();
     private List<AuditService.AuditEntry> allEntries;
+    private List<ActivityApiClient.ActivityEntry> allApiEntries;
 
     @FXML
     public void initialize() {
@@ -50,106 +52,218 @@ public class ActivitesController {
             });
         });
 
-        // Load audit data (async to avoid blocking UI)
-        CompletableFuture.supplyAsync(() -> auditService.getAllAuditEntries(500))
-            .thenAccept(entries -> Platform.runLater(() -> {
-                allEntries = entries;
-                populateFilters(entries);
-                updateStats(entries);
-                renderRows(entries);
-            }));
+        // Load from Symfony ActivityAPI (JavaFX-side actions: login, suspend, etc.)
+        ActivityApiClient.fetchRecentActivities(200).thenAccept(apiEntries -> {
+            // Also load Doctrine audit entries (Symfony-side content changes)
+            CompletableFuture.supplyAsync(() -> auditService.getAllAuditEntries(300))
+                .thenAccept(auditEntries -> Platform.runLater(() -> {
+                    allApiEntries = apiEntries;
+                    allEntries    = auditEntries;
+                    populateFilters(apiEntries, auditEntries);
+                    updateStats(apiEntries, auditEntries);
+                    renderRows(apiEntries, auditEntries);
+                }));
+        });
     }
 
     // ── Filters ───────────────────────────────────────────────────────────────
 
-    private void populateFilters(List<AuditService.AuditEntry> entries) {
-        // Entity types
-        List<String> types = entries.stream()
-            .map(AuditService.AuditEntry::entityType)
-            .distinct().sorted().collect(Collectors.toList());
-        types.add(0, "Tous les types");
+    private void populateFilters(List<ActivityApiClient.ActivityEntry> apiEntries,
+                                  List<AuditService.AuditEntry> auditEntries) {
+        // Collect all action types
+        List<String> types = new java.util.ArrayList<>();
+        types.add("Toutes les activites");
+        types.add("--- Actions JavaFX ---");
+        apiEntries.stream().map(ActivityApiClient.ActivityEntry::action)
+            .distinct().sorted().forEach(types::add);
+        types.add("--- Contenu Symfony ---");
+        auditEntries.stream().map(AuditService.AuditEntry::entityType)
+            .distinct().sorted().forEach(types::add);
         filterType.setItems(FXCollections.observableArrayList(types));
-        filterType.setValue("Tous les types");
+        filterType.setValue("Toutes les activites");
         filterType.setOnAction(e -> applyFilters());
 
-        // Actions
         filterAction.setItems(FXCollections.observableArrayList(
-            "Toutes les actions", "Création (INS)", "Modification (UPD)", "Suppression (DEL)"));
+            "Toutes les actions", "Connexion", "Suspension", "Creation", "Modification", "Suppression"));
         filterAction.setValue("Toutes les actions");
         filterAction.setOnAction(e -> applyFilters());
 
-        // Users
-        List<String> users = entries.stream()
-            .map(AuditService.AuditEntry::username)
-            .distinct().sorted().collect(Collectors.toList());
-        users.add(0, "Tous les utilisateurs");
+        // Users from API entries
+        List<String> users = new java.util.ArrayList<>();
+        users.add("Tous les utilisateurs");
+        apiEntries.stream().map(ActivityApiClient.ActivityEntry::userName)
+            .distinct().sorted().forEach(users::add);
         filterUser.setItems(FXCollections.observableArrayList(users));
         filterUser.setValue("Tous les utilisateurs");
         filterUser.setOnAction(e -> applyFilters());
     }
 
     private void applyFilters() {
-        if (allEntries == null) return;
-        List<AuditService.AuditEntry> filtered = allEntries.stream()
+        if (allApiEntries == null) return;
+        applyFiltersInternal(allApiEntries, allEntries);
+    }
+
+    private void applyFiltersInternal(List<ActivityApiClient.ActivityEntry> apiEntries,
+                                       List<AuditService.AuditEntry> auditEntries) {
+        String typeFilter   = filterType.getValue();
+        String actionFilter = filterAction.getValue();
+        String userFilter   = filterUser.getValue();
+
+        List<ActivityApiClient.ActivityEntry> filteredApi = apiEntries.stream()
             .filter(e -> {
-                String type = filterType.getValue();
-                if (type != null && !type.startsWith("Tous") && !type.equals(e.entityType()))
-                    return false;
-                String action = filterAction.getValue();
-                if (action != null && !action.startsWith("Toutes")) {
-                    String code = action.contains("INS") ? "INS" : action.contains("UPD") ? "UPD" : "DEL";
-                    if (!code.equals(e.revType())) return false;
+                if (typeFilter != null && !typeFilter.startsWith("Toutes") && !typeFilter.startsWith("---")) {
+                    if (!e.action().equals(typeFilter)) return false;
                 }
-                String user = filterUser.getValue();
-                if (user != null && !user.startsWith("Tous") && !user.equals(e.username()))
-                    return false;
+                if (actionFilter != null && !actionFilter.startsWith("Toutes")) {
+                    boolean match = switch (actionFilter) {
+                        case "Connexion"    -> e.action().contains("login");
+                        case "Suspension"   -> e.action().contains("suspend");
+                        case "Creation"     -> e.action().contains("creat");
+                        case "Modification" -> e.action().contains("updat");
+                        default -> true;
+                    };
+                    if (!match) return false;
+                }
+                if (userFilter != null && !userFilter.startsWith("Tous")) {
+                    if (!e.userName().equals(userFilter)) return false;
+                }
                 return true;
-            })
-            .collect(Collectors.toList());
-        updateStats(filtered);
-        renderRows(filtered);
+            }).collect(java.util.stream.Collectors.toList());
+
+        List<AuditService.AuditEntry> filteredAudit = auditEntries.stream()
+            .filter(e -> {
+                if (typeFilter != null && !typeFilter.startsWith("Toutes") && !typeFilter.startsWith("---")) {
+                    if (!e.entityType().equals(typeFilter)) return false;
+                }
+                if (actionFilter != null && !actionFilter.startsWith("Toutes")) {
+                    boolean match = switch (actionFilter) {
+                        case "Creation"     -> "INS".equals(e.revType());
+                        case "Modification" -> "UPD".equals(e.revType());
+                        case "Suppression"  -> "DEL".equals(e.revType());
+                        default -> true;
+                    };
+                    if (!match) return false;
+                }
+                return true;
+            }).collect(java.util.stream.Collectors.toList());
+
+        updateStats(filteredApi, filteredAudit);
+        renderRows(filteredApi, filteredAudit);
     }
 
     @FXML
     private void onReset() {
-        filterType.setValue("Tous les types");
+        filterType.setValue("Toutes les activites");
         filterAction.setValue("Toutes les actions");
         filterUser.setValue("Tous les utilisateurs");
-        if (allEntries != null) {
-            updateStats(allEntries);
-            renderRows(allEntries);
-        }
+        if (allApiEntries != null) applyFiltersInternal(allApiEntries, allEntries);
     }
 
     // ── Stats ─────────────────────────────────────────────────────────────────
 
-    private void updateStats(List<AuditService.AuditEntry> entries) {
-        statTotal.setText(String.valueOf(entries.size()));
-        statCreations.setText(String.valueOf(entries.stream().filter(e -> "INS".equals(e.revType())).count()));
-        statModifs.setText(String.valueOf(entries.stream().filter(e -> "UPD".equals(e.revType())).count()));
-        statSupprs.setText(String.valueOf(entries.stream().filter(e -> "DEL".equals(e.revType())).count()));
+    private void updateStats(List<ActivityApiClient.ActivityEntry> apiEntries,
+                              List<AuditService.AuditEntry> auditEntries) {
+        int total = apiEntries.size() + auditEntries.size();
+        statTotal.setText(String.valueOf(total));
+        long creations = apiEntries.stream().filter(e -> e.action().contains("creat")).count()
+                       + auditEntries.stream().filter(e -> "INS".equals(e.revType())).count();
+        long modifs    = apiEntries.stream().filter(e -> e.action().contains("updat") || e.action().contains("login")).count()
+                       + auditEntries.stream().filter(e -> "UPD".equals(e.revType())).count();
+        long supprs    = apiEntries.stream().filter(e -> e.action().contains("suspend") || e.action().contains("delet")).count()
+                       + auditEntries.stream().filter(e -> "DEL".equals(e.revType())).count();
+        statCreations.setText(String.valueOf(creations));
+        statModifs.setText(String.valueOf(modifs));
+        statSupprs.setText(String.valueOf(supprs));
     }
 
     // ── Render rows ───────────────────────────────────────────────────────────
 
-    private void renderRows(List<AuditService.AuditEntry> entries) {
+    private void renderRows(List<ActivityApiClient.ActivityEntry> apiEntries,
+                             List<AuditService.AuditEntry> auditEntries) {
         auditListContainer.getChildren().clear();
 
-        if (entries.isEmpty()) {
+        if (apiEntries.isEmpty() && auditEntries.isEmpty()) {
             Label empty = new Label("Aucune activite trouvee.");
             empty.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:14; -fx-padding:40 0 0 0;");
             auditListContainer.getChildren().add(empty);
             return;
         }
 
-        // Header row
-        HBox header = buildHeaderRow();
-        auditListContainer.getChildren().add(header);
+        auditListContainer.getChildren().add(buildHeaderRow());
 
-        // Data rows
-        for (int i = 0; i < entries.size(); i++) {
-            auditListContainer.getChildren().add(buildRow(entries.get(i), i % 2 == 0));
+        // API entries first (most recent JavaFX actions)
+        if (!apiEntries.isEmpty()) {
+            Label section = new Label("  Actions depuis l'application JavaFX");
+            section.setStyle("-fx-text-fill:rgba(165,180,252,0.7); -fx-font-size:11; -fx-font-weight:700;" +
+                             "-fx-padding:12 0 4 0;");
+            auditListContainer.getChildren().add(section);
+            for (int i = 0; i < apiEntries.size(); i++) {
+                auditListContainer.getChildren().add(buildApiRow(apiEntries.get(i), i % 2 == 0));
+            }
         }
+
+        // Audit entries (Symfony content changes)
+        if (!auditEntries.isEmpty()) {
+            Label section = new Label("  Modifications de contenu (Symfony)");
+            section.setStyle("-fx-text-fill:rgba(52,211,153,0.7); -fx-font-size:11; -fx-font-weight:700;" +
+                             "-fx-padding:16 0 4 0;");
+            auditListContainer.getChildren().add(section);
+            for (int i = 0; i < auditEntries.size(); i++) {
+                auditListContainer.getChildren().add(buildRow(auditEntries.get(i), i % 2 == 0));
+            }
+        }
+    }
+
+    private HBox buildApiRow(ActivityApiClient.ActivityEntry e, boolean even) {
+        String bg = even ? "-fx-background-color:rgba(255,255,255,0.02);" : "-fx-background-color:transparent;";
+        HBox row = new HBox(0);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setStyle(bg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" +
+                     "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent;" +
+                     "-fx-border-width:0 0 1 0;");
+
+        Label revLbl = new Label("#" + e.id());
+        revLbl.setPrefWidth(60);
+        revLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:0 8 0 8;");
+
+        Label dateLbl = new Label(e.createdAt());
+        dateLbl.setPrefWidth(130);
+        dateLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.6); -fx-font-size:12; -fx-padding:0 8 0 8;");
+
+        Label userLbl = new Label(e.userName());
+        userLbl.setPrefWidth(160);
+        userLbl.setStyle("-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:600; -fx-padding:0 8 0 8;");
+
+        Label typeLbl = new Label("👤 " + e.userRole());
+        typeLbl.setPrefWidth(110);
+        typeLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.75); -fx-font-size:12; -fx-padding:0 8 0 8;");
+
+        String loc = e.location() != null && !e.location().equals("—") ? e.location() : e.ipAddress();
+        Label locLbl = new Label(loc != null ? loc : "—");
+        locLbl.setPrefWidth(220);
+        locLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.45); -fx-font-size:11; -fx-padding:0 8 0 8;");
+
+        String badgeColor = e.action().contains("login")     ? "-fx-background-color:rgba(99,102,241,0.25); -fx-text-fill:#a5b4fc;" :
+                            e.action().contains("suspend")   ? "-fx-background-color:rgba(239,68,68,0.25); -fx-text-fill:#f87171;" :
+                            e.action().contains("reactivat") ? "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;" :
+                            e.action().contains("creat")     ? "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;" :
+                                                               "-fx-background-color:rgba(251,191,36,0.25); -fx-text-fill:#fbbf24;";
+        Label actionLbl = new Label(e.actionIcon() + " " + e.actionLabel());
+        actionLbl.setStyle(badgeColor + "-fx-font-size:11; -fx-font-weight:700; -fx-background-radius:6; -fx-padding:3 10 3 10;");
+        HBox actionBox = new HBox(actionLbl);
+        actionBox.setPrefWidth(110);
+        actionBox.setPadding(new javafx.geometry.Insets(0, 8, 0, 8));
+        actionBox.setAlignment(Pos.CENTER_LEFT);
+
+        row.getChildren().addAll(revLbl, dateLbl, userLbl, typeLbl, locLbl, actionBox);
+
+        row.setOnMouseEntered(ev -> row.setStyle(
+            "-fx-background-color:rgba(99,102,241,0.1); -fx-padding:10 0 10 0; -fx-cursor:hand;" +
+            "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent; -fx-border-width:0 0 1 0;"));
+        row.setOnMouseExited(ev -> row.setStyle(
+            bg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" +
+            "-fx-border-color:transparent transparent rgba(255,255,255,0.05) transparent; -fx-border-width:0 0 1 0;"));
+        return row;
     }
 
     private HBox buildHeaderRow() {
