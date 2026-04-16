@@ -8,152 +8,237 @@
       fx:controller="tn.esprit.controllers.LoginController"
       maxWidth="Infinity" maxHeight="Infinity">
 
-    <!-- LEFT: violet brand panel -->
-    <VBox spacing="32" alignment="CENTER_LEFT" prefWidth="480" minWidth="380"
-          style="-fx-background-color:#7a6ad8; -fx-padding:64 56 64 64;">
+    <!-- LEFT: clean white form panel -->
+    <VBox spacing="0" alignment="CENTER" prefWidth="520" minWidth="440"
+          style="-fx-background-color:white; -fx-padding:0;">
 
-        <!-- Logo -->
-        <VBox spacing="6">
-            <Label text="AutoLearn"
-                   style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:white;"/>
-            <Label text="Votre plateforme d'apprentissage"
-                   style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.7);"/>
-        </VBox>
+        <VBox spacing="32" maxWidth="360" alignment="CENTER_LEFT"
+              style="-fx-padding:56 0 56 0;">
 
-        <!-- Tagline -->
-        <VBox spacing="12">
-            <Label text="Apprenez. Pratiquez. Progressez."
-                   style="-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:white;"
-                   wrapText="true"/>
-            <Label text="Des cours structures, des challenges corriges par IA et des evenements tech en Tunisie."
-                   wrapText="true"
-                   style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.75); -fx-line-spacing:4; -fx-max-width:340;"/>
-        </VBox>
-
-        <!-- Feature pills -->
-        <VBox spacing="10">
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="&#10003;"
-                       style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
-                              -fx-background-color:white; -fx-background-radius:50%;
-                              -fx-padding:3 7 3 7;"/>
-                <Label text="Cours de programmation structures"
-                       style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
+            <!-- Logo -->
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Auto"
+                       style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#7a6ad8;"/>
+                <Label text="Learn"
+                       style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#1a1a2e;"/>
             </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="&#10003;"
-                       style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
-                              -fx-background-color:white; -fx-background-radius:50%;
-                              -fx-padding:3 7 3 7;"/>
-                <Label text="Challenges avec feedback IA"
-                       style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="&#10003;"
-                       style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
-                              -fx-background-color:white; -fx-background-radius:50%;
-                              -fx-padding:3 7 3 7;"/>
-                <Label text="Evenements et hackathons en Tunisie"
-                       style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85);"/>
-            </HBox>
-        </VBox>
-
-        <Region VBox.vgrow="ALWAYS"/>
-
-        <Label text="Pas encore de compte ?"
-               style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.6);"/>
-        <Button text="Creer un compte gratuitement →" onAction="#onGoToRegister"
-                style="-fx-background-color:white; -fx-text-fill:#7a6ad8;
-                       -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand;
-                       -fx-border-width:0; -fx-padding:12 24 12 24; -fx-background-radius:8;"/>
-    </VBox>
-
-    <!-- RIGHT: white form panel -->
-    <VBox spacing="0" alignment="CENTER" HBox.hgrow="ALWAYS"
-          style="-fx-background-color:white; -fx-padding:64 80 64 80;">
-
-        <VBox spacing="28" maxWidth="400">
 
             <!-- Header -->
             <VBox spacing="6">
                 <Label text="Bon retour !"
-                       style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:#1a1a2e;"/>
-                <Label text="Connectez-vous a votre compte AutoLearn"
-                       style="-fx-font-size:13; -fx-text-fill:#888;"/>
+                       style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:#1a1a2e;"/>
+                <Label text="Connectez-vous pour continuer votre apprentissage"
+                       wrapText="true" maxWidth="340"
+                       style="-fx-font-size:13; -fx-text-fill:#888; -fx-line-spacing:2;"/>
             </VBox>
 
             <!-- Error label -->
-            <Label fx:id="errorLabel" text="" wrapText="true" maxWidth="400"
+            <Label fx:id="errorLabel" text="" wrapText="true" maxWidth="360"
                    style="-fx-text-fill:#dc2626; -fx-font-size:12;
-                          -fx-background-color:#fef2f2;
-                          -fx-background-radius:8; -fx-padding:10 14 10 14;
-                          -fx-border-color:#fecaca; -fx-border-radius:8; -fx-border-width:1;"
+                          -fx-background-color:#fef2f2; -fx-background-radius:8;
+                          -fx-padding:10 14 10 14; -fx-border-color:#fecaca;
+                          -fx-border-radius:8; -fx-border-width:1;"
                    visible="false" managed="false"/>
 
             <!-- Form -->
             <VBox spacing="16">
+                <!-- Email -->
                 <VBox spacing="6">
                     <Label text="Adresse email"
                            style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#374151;"/>
                     <TextField fx:id="fieldEmail" promptText="exemple@domaine.com"
                                style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                      -fx-border-radius:8; -fx-background-radius:8;
-                                      -fx-padding:12 14 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                      -fx-border-radius:10; -fx-background-radius:10;
+                                      -fx-padding:13 16 13 16; -fx-font-size:14; -fx-text-fill:#1a1a2e;"/>
                 </VBox>
 
+                <!-- Password -->
                 <VBox spacing="6">
                     <HBox alignment="CENTER_LEFT">
                         <Label text="Mot de passe"
                                style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#374151;"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="Mot de passe oublie ?" onAction="#onForgotPassword"
+                        <Button text="Oublie ?" onAction="#onForgotPassword"
                                 style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8;
                                        -fx-font-size:12; -fx-cursor:hand; -fx-padding:0; -fx-border-width:0;"/>
                     </HBox>
-                    <!-- Password field with show/hide toggle -->
                     <StackPane>
                         <PasswordField fx:id="fieldPassword" promptText="Votre mot de passe"
                                        style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                              -fx-border-radius:8; -fx-background-radius:8;
-                                              -fx-padding:12 44 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                              -fx-border-radius:10; -fx-background-radius:10;
+                                              -fx-padding:13 44 13 16; -fx-font-size:14; -fx-text-fill:#1a1a2e;"/>
                         <TextField fx:id="fieldPasswordVisible" promptText="Votre mot de passe"
                                    visible="false" managed="false"
                                    style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
-                                          -fx-border-radius:8; -fx-background-radius:8;
-                                          -fx-padding:12 44 12 14; -fx-font-size:13; -fx-text-fill:#1a1a2e;"/>
+                                          -fx-border-radius:10; -fx-background-radius:10;
+                                          -fx-padding:13 44 13 16; -fx-font-size:14; -fx-text-fill:#1a1a2e;"/>
                         <Button fx:id="btnTogglePassword" text="&#128065;" onAction="#onTogglePassword"
                                 style="-fx-background-color:transparent; -fx-border-width:0;
-                                       -fx-cursor:hand; -fx-font-size:14; -fx-text-fill:#9ca3af;
-                                       -fx-padding:0 12 0 0;"
+                                       -fx-cursor:hand; -fx-font-size:15; -fx-text-fill:#9ca3af;
+                                       -fx-padding:0 14 0 0;"
                                 StackPane.alignment="CENTER_RIGHT"/>
                     </StackPane>
                 </VBox>
 
+                <!-- Remember me -->
                 <HBox alignment="CENTER_LEFT" spacing="8">
                     <CheckBox fx:id="checkRememberMe"/>
                     <Label text="Se souvenir de moi"
-                           style="-fx-font-size:12; -fx-text-fill:#6b7280;"/>
+                           style="-fx-font-size:13; -fx-text-fill:#6b7280;"/>
                 </HBox>
 
+                <!-- Login button -->
                 <Button text="Se connecter" onAction="#onLogin" maxWidth="Infinity"
                         style="-fx-background-color:#7a6ad8; -fx-text-fill:white;
-                               -fx-font-size:14; -fx-font-weight:700;
-                               -fx-padding:14 0 14 0; -fx-background-radius:8;
+                               -fx-font-size:15; -fx-font-weight:700;
+                               -fx-padding:14 0 14 0; -fx-background-radius:10;
                                -fx-cursor:hand; -fx-border-width:0;
-                               -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.3),10,0,0,3);"/>
+                               -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.35),10,0,0,3);"/>
+
+                <!-- Divider -->
+                <HBox alignment="CENTER" spacing="12">
+                    <Line endX="120" style="-fx-stroke:#e5e7eb;"/>
+                    <Label text="ou" style="-fx-font-size:12; -fx-text-fill:#aaa;"/>
+                    <Line endX="120" style="-fx-stroke:#e5e7eb;"/>
+                </HBox>
+
+                <!-- Social hint (decorative) -->
+                <HBox alignment="CENTER" spacing="12">
+                    <VBox alignment="CENTER" prefWidth="100" prefHeight="44"
+                          style="-fx-background-color:#f9fafb; -fx-background-radius:10;
+                                 -fx-border-color:#e5e7eb; -fx-border-radius:10; -fx-border-width:1;">
+                        <Label text="G" style="-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#ea4335;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" prefWidth="100" prefHeight="44"
+                          style="-fx-background-color:#f9fafb; -fx-background-radius:10;
+                                 -fx-border-color:#e5e7eb; -fx-border-radius:10; -fx-border-width:1;">
+                        <Label text="f" style="-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#1877f2;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" prefWidth="100" prefHeight="44"
+                          style="-fx-background-color:#f9fafb; -fx-background-radius:10;
+                                 -fx-border-color:#e5e7eb; -fx-border-radius:10; -fx-border-width:1;">
+                        <Label text="&#63743;" style="-fx-font-size:18; -fx-text-fill:#1a1a2e;"/>
+                    </VBox>
+                </HBox>
             </VBox>
 
-            <!-- Back to landing -->
-            <HBox alignment="CENTER" spacing="6">
-                <Label text="&#8592;"
-                       style="-fx-font-size:12; -fx-text-fill:#aaa;"/>
-                <Button text="Retour a l'accueil" onAction="#onBackToLanding"
-                        style="-fx-background-color:transparent; -fx-text-fill:#aaa;
-                               -fx-font-size:12; -fx-cursor:hand; -fx-padding:0; -fx-border-width:0;"/>
-            </HBox>
+            <!-- Footer links -->
+            <VBox spacing="10" alignment="CENTER">
+                <HBox alignment="CENTER" spacing="6">
+                    <Label text="Pas encore de compte ?"
+                           style="-fx-font-size:13; -fx-text-fill:#888;"/>
+                    <Button text="S'inscrire gratuitement" onAction="#onGoToRegister"
+                            style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8;
+                                   -fx-font-size:13; -fx-font-weight:700;
+                                   -fx-cursor:hand; -fx-padding:0; -fx-border-width:0;"/>
+                </HBox>
+                <HBox alignment="CENTER" spacing="6">
+                    <Label text="&#8592;"
+                           style="-fx-font-size:12; -fx-text-fill:#ccc;"/>
+                    <Button text="Retour a l'accueil" onAction="#onBackToLanding"
+                            style="-fx-background-color:transparent; -fx-text-fill:#ccc;
+                                   -fx-font-size:12; -fx-cursor:hand; -fx-padding:0; -fx-border-width:0;"/>
+                </HBox>
+            </VBox>
 
         </VBox>
     </VBox>
 
-</HBox>
+    <!-- RIGHT: violet panel with photo + testimonial -->
+    <VBox HBox.hgrow="ALWAYS" alignment="TOP_LEFT" spacing="0"
+          style="-fx-background-color:#7a6ad8;">
 
+        <!-- Quote section -->
+        <VBox spacing="16" style="-fx-padding:56 48 40 48;">
+            <Label text="&#171; AutoLearn m'a permis de progresser a mon rythme et de decrocher mon premier poste en developpement. &#187;"
+                   wrapText="true"
+                   style="-fx-font-size:18; -fx-font-weight:700; -fx-text-fill:white;
+                          -fx-line-spacing:5;"/>
+            <VBox spacing="3">
+                <Label text="Islem B. — Etudiant en Informatique"
+                       style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                <Label text="Tunis, Tunisie"
+                       style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.55);"/>
+            </VBox>
+        </VBox>
+
+        <!-- Stats strip -->
+        <HBox spacing="0"
+              style="-fx-background-color:rgba(255,255,255,0.1); -fx-padding:20 48 20 48;">
+            <VBox alignment="CENTER" spacing="4" HBox.hgrow="ALWAYS">
+                <Label text="500+"
+                       style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:white;"/>
+                <Label text="Etudiants actifs"
+                       style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.65);"/>
+            </VBox>
+            <Rectangle width="1" height="40" style="-fx-fill:rgba(255,255,255,0.2);"/>
+            <VBox alignment="CENTER" spacing="4" HBox.hgrow="ALWAYS">
+                <Label text="50+"
+                       style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:white;"/>
+                <Label text="Cours disponibles"
+                       style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.65);"/>
+            </VBox>
+            <Rectangle width="1" height="40" style="-fx-fill:rgba(255,255,255,0.2);"/>
+            <VBox alignment="CENTER" spacing="4" HBox.hgrow="ALWAYS">
+                <Label text="100%"
+                       style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:white;"/>
+                <Label text="Gratuit"
+                       style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.65);"/>
+            </VBox>
+        </HBox>
+
+        <!-- Feature list -->
+        <VBox spacing="20" style="-fx-padding:40 48 40 48;">
+            <Label text="Pourquoi AutoLearn ?"
+                   style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:rgba(255,255,255,0.7);"/>
+            <VBox spacing="14">
+                <HBox spacing="14" alignment="CENTER_LEFT">
+                    <Label text="&#128218;"
+                           style="-fx-font-size:22; -fx-background-color:rgba(255,255,255,0.15);
+                                  -fx-background-radius:10; -fx-padding:8 10 8 10;"/>
+                    <VBox spacing="2">
+                        <Label text="Cours structures par des experts"
+                               style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:white;"/>
+                        <Label text="Progressez a votre rythme, ou que vous soyez"
+                               style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.6);"/>
+                    </VBox>
+                </HBox>
+                <HBox spacing="14" alignment="CENTER_LEFT">
+                    <Label text="&#129302;"
+                           style="-fx-font-size:22; -fx-background-color:rgba(255,255,255,0.15);
+                                  -fx-background-radius:10; -fx-padding:8 10 8 10;"/>
+                    <VBox spacing="2">
+                        <Label text="Correction par IA"
+                               style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:white;"/>
+                        <Label text="Feedback instantane et personnalise"
+                               style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.6);"/>
+                    </VBox>
+                </HBox>
+                <HBox spacing="14" alignment="CENTER_LEFT">
+                    <Label text="&#127942;"
+                           style="-fx-font-size:22; -fx-background-color:rgba(255,255,255,0.15);
+                                  -fx-background-radius:10; -fx-padding:8 10 8 10;"/>
+                    <VBox spacing="2">
+                        <Label text="Challenges et badges"
+                               style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:white;"/>
+                        <Label text="Testez vos competences et grimpez dans le classement"
+                               style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.6);"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </VBox>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <!-- Bottom trust badge -->
+        <HBox alignment="CENTER" spacing="8"
+              style="-fx-padding:20 48 28 48; -fx-background-color:rgba(0,0,0,0.1);">
+            <Label text="&#128274;"
+                   style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.5);"/>
+            <Label text="Connexion securisee — vos donnees sont protegees"
+                   style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.5);"/>
+        </HBox>
+
+    </VBox>
+
+</HBox>
