@@ -242,6 +242,8 @@ public class QuizFormController {
         if (!valid) return;
 
         // ── Sauvegarde en BDD ──
+        // ── Sauvegarde ────────────────────────────────────────────────────────────
+        boolean ok;
         if (quizAModifier == null) {
             Quiz newQuiz = new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null, chapitreSelectionne.getId());
             ok = serviceQuiz.ajouter(newQuiz);
