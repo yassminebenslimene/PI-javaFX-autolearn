@@ -17,6 +17,7 @@ import tn.esprit.entities.Challenge;
 import tn.esprit.entities.Cours;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.Evenement;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.EvenementService;
 import tn.esprit.services.ServiceCours;
@@ -571,6 +572,10 @@ public class FrontofficeController {
 
     private void naviguerVersCours() {
         if (!requireLogin()) return;
+        // Track student action
+        var u = SessionManager.getCurrentUser();
+        if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_cours",
+            java.util.Map.of("email", u.getEmail()));
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/cours/index.fxml"));
             Parent view = loader.load();
@@ -615,6 +620,10 @@ public class FrontofficeController {
     @FXML public void onEvenements() {
         if (!requireLogin()) return;
         setActiveNav(btnNavEvenements);
+        // Track student action
+        var u = SessionManager.getCurrentUser();
+        if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_evenements",
+            java.util.Map.of("email", u.getEmail()));
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/evenements.fxml"));
             Parent root = loader.load();
@@ -632,6 +641,9 @@ public class FrontofficeController {
     @FXML public void onCommunaute() {
         if (!requireLogin()) return;
         setActiveNav(btnNavCommunaute);
+        var u = SessionManager.getCurrentUser();
+        if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_communaute",
+            java.util.Map.of("email", u.getEmail()));
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/communaute/index.fxml"));
             Parent root = loader.load();
@@ -648,6 +660,9 @@ public class FrontofficeController {
     @FXML public void onChallenges() {
         if (!requireLogin()) return;
         setActiveNav(btnNavChallenges);
+        var u = SessionManager.getCurrentUser();
+        if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_challenges",
+            java.util.Map.of("email", u.getEmail()));
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
             Parent root = loader.load();
@@ -663,6 +678,9 @@ public class FrontofficeController {
 
     @FXML public void onProfile() {
         try {
+            var u = SessionManager.getCurrentUser();
+            if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_profile",
+                java.util.Map.of("email", u.getEmail()));
             MainApp.showProfile();
         } catch (Exception e) {
             e.printStackTrace();
