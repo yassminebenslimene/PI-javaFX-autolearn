@@ -241,7 +241,6 @@ public class QuizFormController {
         // Si une validation a échoué, on arrête ici
         if (!valid) return;
 
-        // ── Sauvegarde en BDD ──
         // ── Sauvegarde ────────────────────────────────────────────────────────────
         boolean ok;
         if (quizAModifier == null) {
