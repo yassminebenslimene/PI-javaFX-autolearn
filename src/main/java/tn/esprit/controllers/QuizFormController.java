@@ -7,8 +7,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Quiz;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceQuiz;
+import tn.esprit.session.SessionManager;
 
 import java.util.List;
 
@@ -240,7 +242,6 @@ public class QuizFormController {
         if (!valid) return;
 
         // ── Sauvegarde en BDD ──
-        boolean ok;
         if (quizAModifier == null) {
             Quiz newQuiz = new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null, chapitreSelectionne.getId());
             ok = serviceQuiz.ajouter(newQuiz);
@@ -248,6 +249,9 @@ public class QuizFormController {
                 showError("❌ Échec de l'ajout — vérifiez que la table 'quiz' existe et que le chapitre_id est valide.");
                 return;
             }
+            var admin = SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_quiz",
+                java.util.Map.of("titre", titre));
             showAlert(true, "Quiz ajouté avec succès !", "");
         } else {
             quizAModifier.setTitre(titre);
@@ -258,6 +262,11 @@ public class QuizFormController {
             quizAModifier.setMaxTentatives(tentatives);
             quizAModifier.setChapitreId(chapitreSelectionne.getId());
             ok = serviceQuiz.modifier(quizAModifier);
+            if (ok) {
+                var admin = SessionManager.getCurrentUser();
+                if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_quiz",
+                    java.util.Map.of("titre", titre));
+            }
             showAlert(ok, "Quiz modifié avec succès !", "Échec de la modification du quiz.");
         }
         // Si succès → retourner à la liste des quiz
