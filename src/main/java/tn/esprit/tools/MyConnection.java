@@ -17,13 +17,9 @@ public class MyConnection {
 
     private MyConnection() {
         try {
-      
-       // force le chargement du driver
             connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
             System.out.println("Connexion Etablie!");
             initializeSchema();
-        } catch (ClassNotFoundException e) {
-            System.err.println("Driver MySQL introuvable: " + e.getMessage());
         } catch (SQLException e) {
             System.err.println("Erreur connexion: " + e.getMessage());
         }
