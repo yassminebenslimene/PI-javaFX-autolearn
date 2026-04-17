@@ -2,6 +2,9 @@ package tn.esprit.controllers;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfWriter;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,6 +15,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.ServiceChapitre;
@@ -68,8 +72,24 @@ public class FrontChapitreController {
         grid.setVgap(20);
         grid.setPrefWrapLength(1000);
 
+        int i = 0;
         for (Chapitre chapitre : chapitres) {
-            grid.getChildren().add(buildChapitreCard(cours, chapitre));
+            VBox card = buildChapitreCard(cours, chapitre);
+            // Animation : fade-in + slide-up décalée par carte
+            card.setOpacity(0);
+            card.setTranslateY(30);
+            grid.getChildren().add(card);
+
+            FadeTransition fade = new FadeTransition(Duration.millis(400), card);
+            fade.setFromValue(0); fade.setToValue(1);
+
+            TranslateTransition slide = new TranslateTransition(Duration.millis(400), card);
+            slide.setFromY(30); slide.setToY(0);
+
+            ParallelTransition anim = new ParallelTransition(fade, slide);
+            anim.setDelay(Duration.millis(80 * i));
+            anim.play();
+            i++;
         }
         chaptersContainer.getChildren().add(grid);
     }
@@ -144,6 +164,17 @@ public class FrontChapitreController {
         card.setStyle("-fx-background-color:white; -fx-background-radius:18;"
             + "-fx-border-color:#e2e8f0; -fx-border-radius:18;"
             + "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.09),14,0,0,4);");
+
+        // Couleur douce au hover (pas de scale, juste fond légèrement coloré)
+        card.setOnMouseEntered(e ->
+            card.setStyle("-fx-background-color:#f5f3ff; -fx-background-radius:18;"
+                + "-fx-border-color:#c4b5fd; -fx-border-radius:18;"
+                + "-fx-effect:dropshadow(gaussian,rgba(129,140,248,0.18),16,0,0,5);"));
+        card.setOnMouseExited(e ->
+            card.setStyle("-fx-background-color:white; -fx-background-radius:18;"
+                + "-fx-border-color:#e2e8f0; -fx-border-radius:18;"
+                + "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.09),14,0,0,4);"));
+
         return card;
     }
 

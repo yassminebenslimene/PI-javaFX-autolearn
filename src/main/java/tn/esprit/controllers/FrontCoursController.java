@@ -1,5 +1,9 @@
 package tn.esprit.controllers;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -8,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
@@ -75,7 +80,21 @@ public class FrontCoursController {
         labelEmpty.setVisible(false); labelEmpty.setManaged(false);
 
         for (int i = 0; i < liste.size(); i++) {
-            cardsContainer.getChildren().add(buildCard(liste.get(i), i));
+            VBox card = buildCard(liste.get(i), i);
+            // Animation fade-in + slide-up décalée
+            card.setOpacity(0);
+            card.setTranslateY(40);
+            cardsContainer.getChildren().add(card);
+
+            FadeTransition fade = new FadeTransition(Duration.millis(450), card);
+            fade.setFromValue(0); fade.setToValue(1);
+
+            TranslateTransition slide = new TranslateTransition(Duration.millis(450), card);
+            slide.setFromY(40); slide.setToY(0);
+
+            ParallelTransition anim = new ParallelTransition(fade, slide);
+            anim.setDelay(Duration.millis(70 * i));
+            anim.play();
         }
     }
 
@@ -166,15 +185,21 @@ public class FrontCoursController {
         clip.setArcWidth(16); clip.setArcHeight(16);
         card.setClip(clip);
 
-        // Hover sur la carte
-        card.setOnMouseEntered(e -> card.setStyle(
-            "-fx-background-color:white; -fx-background-radius:16;" +
-            "-fx-border-color:" + accent + "; -fx-border-radius:16;" +
-            "-fx-effect:dropshadow(gaussian," + accentA + ",20,0,0,6);"));
-        card.setOnMouseExited(e -> card.setStyle(
-            "-fx-background-color:white; -fx-background-radius:16;" +
-            "-fx-border-color:#eeeeee; -fx-border-radius:16;" +
-            "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),14,0,0,4);"));
+        // Hover animé sur la carte
+        card.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
+            st.setToX(1.03); st.setToY(1.03); st.play();
+            card.setStyle("-fx-background-color:white; -fx-background-radius:16;"
+                + "-fx-border-color:" + accent + "; -fx-border-radius:16;"
+                + "-fx-effect:dropshadow(gaussian," + accentA + ",22,0,0,8);");
+        });
+        card.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
+            st.setToX(1.0); st.setToY(1.0); st.play();
+            card.setStyle("-fx-background-color:white; -fx-background-radius:16;"
+                + "-fx-border-color:#eeeeee; -fx-border-radius:16;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),14,0,0,4);");
+        });
 
         return card;
     }
