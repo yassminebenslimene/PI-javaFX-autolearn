@@ -11,8 +11,6 @@ import tn.esprit.services.EvenementService;
 
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ResourceBundle;
 
 public class EvenementFormController implements Initializable {
@@ -22,8 +20,12 @@ public class EvenementFormController implements Initializable {
     @FXML private TextArea fieldDescription;
     @FXML private ComboBox<String> comboType;
     @FXML private TextField fieldNbMax;
-    @FXML private TextField fieldDateDebut;
-    @FXML private TextField fieldDateFin;
+    @FXML private javafx.scene.control.DatePicker pickerDateDebut;
+    @FXML private javafx.scene.control.Spinner<Integer> spinnerHeureDebut;
+    @FXML private javafx.scene.control.Spinner<Integer> spinnerMinDebut;
+    @FXML private javafx.scene.control.DatePicker pickerDateFin;
+    @FXML private javafx.scene.control.Spinner<Integer> spinnerHeureFin;
+    @FXML private javafx.scene.control.Spinner<Integer> spinnerMinFin;
     @FXML private TextField fieldLieu;
     @FXML private Label labelError;
     @FXML private Button btnSubmit;
@@ -37,7 +39,6 @@ public class EvenementFormController implements Initializable {
     @FXML private Label errLieu;
 
     private final EvenementService service = new EvenementService();
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private Evenement evenementToEdit = null; // null = mode ajout
 
     @Override
@@ -45,13 +46,25 @@ public class EvenementFormController implements Initializable {
         comboType.getItems().addAll("Hackathon", "Conference", "Workshop");
         comboType.setValue("Conference");
 
-        // Listeners pour effacer l'erreur en temps réel
+        // Format DatePicker en dd/MM/yyyy
+        java.time.format.DateTimeFormatter dateFmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        javafx.util.StringConverter<java.time.LocalDate> converter = new javafx.util.StringConverter<>() {
+            public String toString(java.time.LocalDate d) { return d != null ? d.format(dateFmt) : ""; }
+            public java.time.LocalDate fromString(String s) {
+                try { return s != null && !s.isBlank() ? java.time.LocalDate.parse(s, dateFmt) : null; }
+                catch (Exception e) { return null; }
+            }
+        };
+        pickerDateDebut.setConverter(converter);
+        pickerDateFin.setConverter(converter);
+
+        // Listeners pour effacer les erreurs
         fieldTitre.textProperty().addListener((o, ov, nv) -> clearFieldError(fieldTitre));
         fieldDescription.textProperty().addListener((o, ov, nv) -> clearFieldError(fieldDescription));
         fieldLieu.textProperty().addListener((o, ov, nv) -> clearFieldError(fieldLieu));
         fieldNbMax.textProperty().addListener((o, ov, nv) -> clearFieldError(fieldNbMax));
-        fieldDateDebut.textProperty().addListener((o, ov, nv) -> clearFieldError(fieldDateDebut));
-        fieldDateFin.textProperty().addListener((o, ov, nv) -> clearFieldError(fieldDateFin));
+        pickerDateDebut.valueProperty().addListener((o, ov, nv) -> { if (errDateDebut != null) errDateDebut.setText(""); });
+        pickerDateFin.valueProperty().addListener((o, ov, nv) -> { if (errDateFin != null) errDateFin.setText(""); });
 
         // Forcer uniquement des chiffres dans nbMax
         fieldNbMax.textProperty().addListener((o, ov, nv) -> {
@@ -59,19 +72,26 @@ public class EvenementFormController implements Initializable {
         });
     }
 
-    /** Appelé depuis EvenementIndexController pour pré-remplir en mode édition */
     public void setEvenement(Evenement e) {
         this.evenementToEdit = e;
-        labelFormTitle.setText("Modifier l'Événement: " + e.getTitre());
-        btnSubmit.setText("💾  Enregistrer");
+        labelFormTitle.setText("Modifier l'Evenement: " + e.getTitre());
+        btnSubmit.setText("Enregistrer");
 
         fieldTitre.setText(e.getTitre());
         fieldDescription.setText(e.getDescription());
         comboType.setValue(e.getType());
         fieldNbMax.setText(String.valueOf(e.getNbMax()));
         fieldLieu.setText(e.getLieu());
-        if (e.getDateDebut() != null) fieldDateDebut.setText(e.getDateDebut().format(FMT));
-        if (e.getDateFin() != null)   fieldDateFin.setText(e.getDateFin().format(FMT));
+        if (e.getDateDebut() != null) {
+            pickerDateDebut.setValue(e.getDateDebut().toLocalDate());
+            spinnerHeureDebut.getValueFactory().setValue(e.getDateDebut().getHour());
+            spinnerMinDebut.getValueFactory().setValue(e.getDateDebut().getMinute());
+        }
+        if (e.getDateFin() != null) {
+            pickerDateFin.setValue(e.getDateFin().toLocalDate());
+            spinnerHeureFin.getValueFactory().setValue(e.getDateFin().getHour());
+            spinnerMinFin.getValueFactory().setValue(e.getDateFin().getMinute());
+        }
     }
 
     @FXML
@@ -144,40 +164,57 @@ public class EvenementFormController implements Initializable {
             }
         }
 
-        // Date début : obligatoire, format valide, doit être dans le futur (mode ajout)
+        // Date debut : obligatoire, ne peut pas être dans le passé (heure incluse)
+        // Force commit si l'utilisateur a tapé la date sans passer par le calendrier
+        if (pickerDateDebut.getValue() == null && pickerDateDebut.getEditor().getText() != null
+                && !pickerDateDebut.getEditor().getText().trim().isEmpty()) {
+            pickerDateDebut.getEditor().commitValue();
+        }
         LocalDateTime dateDebut = null;
-        String dateDebutStr = fieldDateDebut.getText().trim();
-        if (dateDebutStr.isEmpty()) {
-            setFieldError(fieldDateDebut, "La date de début est obligatoire.");
+        if (pickerDateDebut.getValue() == null) {
+            if (errDateDebut != null) errDateDebut.setText("La date de début est obligatoire.");
             valid = false;
         } else {
-            try {
-                dateDebut = LocalDateTime.parse(dateDebutStr, FMT);
-                if (evenementToEdit == null && dateDebut.isBefore(LocalDateTime.now())) {
-                    setFieldError(fieldDateDebut, "La date de début doit être dans le futur.");
+            int h = spinnerHeureDebut.getValue();
+            int m = spinnerMinDebut.getValue();
+            dateDebut = pickerDateDebut.getValue().atTime(h, m);
+            if (evenementToEdit == null) {
+                LocalDateTime now = LocalDateTime.now();
+                if (dateDebut.isBefore(now)) {
+                    if (pickerDateDebut.getValue().isBefore(java.time.LocalDate.now())) {
+                        if (errDateDebut != null) errDateDebut.setText("Impossible de planifier un événement dans le passé.");
+                    } else {
+                        // même jour mais heure passée
+                        if (errDateDebut != null) errDateDebut.setText("L'heure de début doit être supérieure à l'heure actuelle (" +
+                            String.format("%02d:%02d", now.getHour(), now.getMinute()) + ").");
+                    }
                     valid = false;
                 }
-            } catch (DateTimeParseException ex) {
-                setFieldError(fieldDateDebut, "Format invalide. Utilisez jj/MM/aaaa HH:mm");
-                valid = false;
             }
         }
 
-        // Date fin : obligatoire, format valide, doit être après date début
+        // Date fin : obligatoire, doit être strictement après date début
+        // Force commit si l'utilisateur a tapé la date sans passer par le calendrier
+        if (pickerDateFin.getValue() == null && pickerDateFin.getEditor().getText() != null
+                && !pickerDateFin.getEditor().getText().trim().isEmpty()) {
+            pickerDateFin.getEditor().commitValue();
+        }
         LocalDateTime dateFin = null;
-        String dateFinStr = fieldDateFin.getText().trim();
-        if (dateFinStr.isEmpty()) {
-            setFieldError(fieldDateFin, "La date de fin est obligatoire.");
+        if (pickerDateFin.getValue() == null) {
+            if (errDateFin != null) errDateFin.setText("La date de fin est obligatoire.");
             valid = false;
         } else {
-            try {
-                dateFin = LocalDateTime.parse(dateFinStr, FMT);
-                if (dateDebut != null && dateFin.isBefore(dateDebut)) {
-                    setFieldError(fieldDateFin, "La date de fin doit être après la date de début.");
-                    valid = false;
+            int h = spinnerHeureFin.getValue();
+            int m = spinnerMinFin.getValue();
+            dateFin = pickerDateFin.getValue().atTime(h, m);
+            if (dateDebut != null && !dateFin.isAfter(dateDebut)) {
+                if (dateFin.toLocalDate().isBefore(dateDebut.toLocalDate())) {
+                    if (errDateFin != null) errDateFin.setText("La date de fin ne peut pas être antérieure à la date de début.");
+                } else {
+                    // même jour, heure inférieure ou égale
+                    if (errDateFin != null) errDateFin.setText("L'heure de fin doit être supérieure à l'heure de début (" +
+                        String.format("%02d:%02d", dateDebut.getHour(), dateDebut.getMinute()) + ").");
                 }
-            } catch (DateTimeParseException ex) {
-                setFieldError(fieldDateFin, "Format invalide. Utilisez jj/MM/aaaa HH:mm");
                 valid = false;
             }
         }
@@ -245,8 +282,6 @@ public class EvenementFormController implements Initializable {
         if (field == fieldTitre) return errTitre;
         if (field == fieldDescription) return errDescription;
         if (field == fieldNbMax) return errNbMax;
-        if (field == fieldDateDebut) return errDateDebut;
-        if (field == fieldDateFin) return errDateFin;
         if (field == fieldLieu) return errLieu;
         return null;
     }
@@ -261,10 +296,12 @@ public class EvenementFormController implements Initializable {
     }
 
     private void resetFieldStyles() {
-        for (Control c : new Control[]{fieldTitre, fieldLieu, fieldNbMax, fieldDateDebut, fieldDateFin}) {
+        for (Control c : new Control[]{fieldTitre, fieldLieu, fieldNbMax}) {
             clearFieldError(c);
         }
         clearFieldError(fieldDescription);
+        if (errDateDebut != null) errDateDebut.setText("");
+        if (errDateFin != null) errDateFin.setText("");
         if (errType != null) errType.setText("");
         if (labelError != null) labelError.setText("");
     }

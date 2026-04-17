@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.FrontofficeController"
+            prefWidth="1200" prefHeight="760"
+            style="-fx-background-color:#f5f5f5;">
+
+    <!-- ══ NAVBAR (Scholar purple style) ══ -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="0"
+              style="-fx-background-color:rgba(122,106,216,0.96);
+                     -fx-min-height:68; -fx-max-height:68;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
+            <padding><Insets left="36" right="36"/></padding>
+
+            <!-- Logo -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="🎓" style="-fx-font-size:24;"/>
+                <Label text="AutoLearn"
+                       style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;
+                              -fx-font-family:'Poppins',sans-serif;"/>
+            </HBox>
+
+            <!-- Nav links -->
+            <HBox spacing="0" alignment="CENTER" style="-fx-padding:0 0 0 36;">
+                <Button fx:id="btnHome" text="Accueil" onAction="#onHome"
+                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
+                               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Cours" onAction="#onCours"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
+                               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Challenges"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Événements"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Communauté" onAction="#onCommunaute"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+            </HBox>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- User info + profile + logout -->
+            <HBox alignment="CENTER" spacing="14">
+                <!-- Avatar circle -->
+                <Label fx:id="labelAvatarNav"
+                       style="-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white;
+                              -fx-font-weight:700; -fx-font-size:14; -fx-background-radius:50%;
+                              -fx-padding:8 11 8 11;"/>
+                <VBox alignment="CENTER_RIGHT" spacing="1">
+                    <Label fx:id="labelCurrentUser" text=""
+                           style="-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;"/>
+                    <Label fx:id="labelNiveauUser" text=""
+                           style="-fx-text-fill:rgba(255,255,255,0.65); -fx-font-size:11;"/>
+                </VBox>
+                <Separator orientation="VERTICAL"
+                           style="-fx-background-color:rgba(255,255,255,0.3); -fx-pref-height:28;"/>
+                <Button text="👤  Mon Profil" onAction="#onProfile"
+                        style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                               -fx-font-size:12; -fx-font-weight:600; -fx-padding:7 14 7 14;
+                               -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"/>
+                <Button text="Déconnexion" onAction="#onLogout"
+                        style="-fx-background-color:#e94560; -fx-text-fill:white; -fx-font-size:12;
+                               -fx-font-weight:700; -fx-padding:7 16 7 16; -fx-background-radius:20;
+                               -fx-cursor:hand; -fx-border-width:0;
+                               -fx-effect:dropshadow(gaussian,rgba(233,69,96,0.4),8,0,0,2);"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <!-- ══ CONTENT ══ -->
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                    style="-fx-background-color:#f5f5f5; -fx-background:transparent; -fx-border-width:0;">
+            <VBox spacing="0">
+
+                <!-- ── HERO BANNER ── -->
+                <VBox alignment="CENTER" spacing="20" prefHeight="340"
+                      style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c);
+                             -fx-padding:60 80 60 80;">
+                    <Label text="Bienvenue sur AutoLearn 🚀"
+                           style="-fx-font-size:36; -fx-font-weight:800; -fx-text-fill:white;
+                                  -fx-font-family:'Poppins',sans-serif;"/>
+                    <Label fx:id="welcomeLabel" text=""
+                           style="-fx-font-size:16; -fx-text-fill:rgba(255,255,255,0.8);"/>
+                    <HBox spacing="16" alignment="CENTER">
+                        <Button text="▶  Voir les cours" onAction="#onHome"
+                                style="-fx-background-color:white; -fx-text-fill:#7a6ad8; -fx-font-size:13;
+                                       -fx-font-weight:700; -fx-padding:12 28 12 28; -fx-background-radius:30;
+                                       -fx-cursor:hand; -fx-border-width:0;
+                                       -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,3);"/>
+                        <Button text="🏆  Challenges"
+                                style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                                       -fx-font-size:13; -fx-font-weight:600; -fx-padding:12 28 12 28;
+                                       -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:1;
+                                       -fx-border-color:rgba(255,255,255,0.4); -fx-border-radius:30;"/>
+                    </HBox>
+                </VBox>
+
+                <!-- ── STATS BAR ── -->
+                <HBox alignment="CENTER" spacing="0"
+                      style="-fx-background-color:white;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),8,0,0,2);">
+                    <VBox alignment="CENTER" spacing="4" prefWidth="200" prefHeight="80"
+                          style="-fx-border-color:transparent rgba(0,0,0,0.06) transparent transparent; -fx-border-width:0 1 0 0;">
+                        <Label text="🎓" style="-fx-font-size:20;"/>
+                        <Label fx:id="labelNiveauStat" text="—"
+                               style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                        <Label text="Votre niveau" style="-fx-font-size:11; -fx-text-fill:#999;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="4" prefWidth="200" prefHeight="80"
+                          style="-fx-border-color:transparent rgba(0,0,0,0.06) transparent transparent; -fx-border-width:0 1 0 0;">
+                        <Label text="📚" style="-fx-font-size:20;"/>
+                        <Label text="12" style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                        <Label text="Cours disponibles" style="-fx-font-size:11; -fx-text-fill:#999;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="4" prefWidth="200" prefHeight="80"
+                          style="-fx-border-color:transparent rgba(0,0,0,0.06) transparent transparent; -fx-border-width:0 1 0 0;">
+                        <Label text="🏆" style="-fx-font-size:20;"/>
+                        <Label text="8" style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                        <Label text="Challenges actifs" style="-fx-font-size:11; -fx-text-fill:#999;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="4" prefWidth="200" prefHeight="80">
+                        <Label text="👥" style="-fx-font-size:20;"/>
+                        <Label text="240+" style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                        <Label text="Étudiants actifs" style="-fx-font-size:11; -fx-text-fill:#999;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- ── SECTION TITLE: Nos Cours ── -->
+                <VBox alignment="CENTER" spacing="8" style="-fx-padding:52 80 24 80; -fx-background-color:#f5f5f5;">
+                    <Label text="Nos Cours"
+                           style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
+                                  -fx-background-color:rgba(122,106,216,0.1); -fx-background-radius:20;
+                                  -fx-padding:4 14 4 14;"/>
+                    <Label text="Découvrez Nos Cours de Programmation"
+                           style="-fx-font-size:26; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                    <Label text="Apprenez à votre rythme avec du contenu de qualité"
+                           style="-fx-font-size:14; -fx-text-fill:#888;"/>
+                </VBox>
+
+                <!-- ── COURSE CARDS ── -->
+                <HBox spacing="24" alignment="CENTER"
+                      style="-fx-padding:0 80 52 80; -fx-background-color:#f5f5f5;">
+                    <!-- Card 1 -->
+                    <VBox spacing="16" prefWidth="320"
+                          style="-fx-background-color:white; -fx-background-radius:16;
+                                 -fx-border-color:#eeeeee; -fx-border-radius:16;
+                                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);
+                                 -fx-padding:28;">
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <Label text="🤖"
+                                   style="-fx-font-size:28; -fx-background-color:rgba(122,106,216,0.1);
+                                          -fx-background-radius:12; -fx-padding:10 12 10 12;"/>
+                            <VBox spacing="3">
+                                <Label text="Intelligence Artificielle"
+                                       style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                                <Label text="Avancé"
+                                       style="-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:#e94560;
+                                              -fx-background-color:rgba(233,69,96,0.1); -fx-background-radius:10;
+                                              -fx-padding:2 8 2 8;"/>
+                            </VBox>
+                        </HBox>
+                        <Label text="Correction automatique et analyse sémantique des réponses grâce à l'IA. Génération intelligente d'exercices adaptés."
+                               wrapText="true"
+                               style="-fx-font-size:12; -fx-text-fill:#666; -fx-line-spacing:3;"/>
+                        <Button text="Voir le cours  →"
+                                style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                                       -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;
+                                       -fx-padding:9 20 9 20; -fx-background-radius:10;
+                                       -fx-cursor:hand; -fx-border-width:0;"/>
+                    </VBox>
+
+                    <!-- Card 2 -->
+                    <VBox spacing="16" prefWidth="320"
+                          style="-fx-background-color:white; -fx-background-radius:16;
+                                 -fx-border-color:#eeeeee; -fx-border-radius:16;
+                                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);
+                                 -fx-padding:28;">
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <Label text="🏆"
+                                   style="-fx-font-size:28; -fx-background-color:rgba(251,191,36,0.12);
+                                          -fx-background-radius:12; -fx-padding:10 12 10 12;"/>
+                            <VBox spacing="3">
+                                <Label text="Challenges Interactifs"
+                                       style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                                <Label text="Intermédiaire"
+                                       style="-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:#f59e0b;
+                                              -fx-background-color:rgba(245,158,11,0.1); -fx-background-radius:10;
+                                              -fx-padding:2 8 2 8;"/>
+                            </VBox>
+                        </HBox>
+                        <Label text="Participez à des challenges stimulants avec feedback détaillé et explications personnalisées. Suivez votre progression."
+                               wrapText="true"
+                               style="-fx-font-size:12; -fx-text-fill:#666; -fx-line-spacing:3;"/>
+                        <Button text="Voir le cours  →"
+                                style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                                       -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;
+                                       -fx-padding:9 20 9 20; -fx-background-radius:10;
+                                       -fx-cursor:hand; -fx-border-width:0;"/>
+                    </VBox>
+
+                    <!-- Card 3 -->
+                    <VBox spacing="16" prefWidth="320"
+                          style="-fx-background-color:white; -fx-background-radius:16;
+                                 -fx-border-color:#eeeeee; -fx-border-radius:16;
+                                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);
+                                 -fx-padding:28;">
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <Label text="👥"
+                                   style="-fx-font-size:28; -fx-background-color:rgba(52,211,153,0.12);
+                                          -fx-background-radius:12; -fx-padding:10 12 10 12;"/>
+                            <VBox spacing="3">
+                                <Label text="Communauté Active"
+                                       style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                                <Label text="Débutant"
+                                       style="-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:#059669;
+                                              -fx-background-color:rgba(5,150,105,0.1); -fx-background-radius:10;
+                                              -fx-padding:2 8 2 8;"/>
+                            </VBox>
+                        </HBox>
+                        <Label text="Rejoignez une communauté d'apprenants passionnés. Partagez vos connaissances et collaborez avec d'autres étudiants."
+                               wrapText="true"
+                               style="-fx-font-size:12; -fx-text-fill:#666; -fx-line-spacing:3;"/>
+                        <Button text="Voir le cours  →"
+                                style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                                       -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;
+                                       -fx-padding:9 20 9 20; -fx-background-radius:10;
+                                       -fx-cursor:hand; -fx-border-width:0;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- ── FEATURES SECTION ── -->
+                <VBox spacing="0" style="-fx-background-color:white; -fx-padding:52 80 52 80;">
+                    <VBox alignment="CENTER" spacing="8" style="-fx-padding:0 0 36 0;">
+                        <Label text="Nos Fonctionnalités"
+                               style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
+                                      -fx-background-color:rgba(122,106,216,0.1); -fx-background-radius:20;
+                                      -fx-padding:4 14 4 14;"/>
+                        <Label text="Ce qui nous rend uniques"
+                               style="-fx-font-size:26; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                    </VBox>
+                    <HBox spacing="24" alignment="CENTER">
+                        <VBox spacing="12" prefWidth="260" alignment="CENTER"
+                              style="-fx-background-color:#f9f9ff; -fx-background-radius:16;
+                                     -fx-border-color:#eeeeee; -fx-border-radius:16; -fx-padding:28;">
+                            <Label text="🤖" style="-fx-font-size:36;"/>
+                            <Label text="IA Intégrée"
+                                   style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                            <Label text="Correction automatique et génération d'exercices adaptés à votre niveau."
+                                   wrapText="true" style="-fx-font-size:12; -fx-text-fill:#888; -fx-text-alignment:CENTER;"/>
+                        </VBox>
+                        <VBox spacing="12" prefWidth="260" alignment="CENTER"
+                              style="-fx-background-color:#f9f9ff; -fx-background-radius:16;
+                                     -fx-border-color:#eeeeee; -fx-border-radius:16; -fx-padding:28;">
+                            <Label text="📊" style="-fx-font-size:36;"/>
+                            <Label text="Suivi de Progression"
+                                   style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                            <Label text="Visualisez votre avancement en temps réel sur chaque cours et chapitre."
+                                   wrapText="true" style="-fx-font-size:12; -fx-text-fill:#888; -fx-text-alignment:CENTER;"/>
+                        </VBox>
+                        <VBox spacing="12" prefWidth="260" alignment="CENTER"
+                              style="-fx-background-color:#f9f9ff; -fx-background-radius:16;
+                                     -fx-border-color:#eeeeee; -fx-border-radius:16; -fx-padding:28;">
+                            <Label text="📅" style="-fx-font-size:36;"/>
+                            <Label text="Événements Live"
+                                   style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                            <Label text="Participez à des webinaires et sessions de formation en direct."
+                                   wrapText="true" style="-fx-font-size:12; -fx-text-fill:#888; -fx-text-alignment:CENTER;"/>
+                        </VBox>
+                        <VBox spacing="12" prefWidth="260" alignment="CENTER"
+                              style="-fx-background-color:#f9f9ff; -fx-background-radius:16;
+                                     -fx-border-color:#eeeeee; -fx-border-radius:16; -fx-padding:28;">
+                            <Label text="🏅" style="-fx-font-size:36;"/>
+                            <Label text="Certifications"
+                                   style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                            <Label text="Obtenez des badges et certifications pour valoriser vos compétences."
+                                   wrapText="true" style="-fx-font-size:12; -fx-text-fill:#888; -fx-text-alignment:CENTER;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- ── FOOTER ── -->
+                <HBox alignment="CENTER" prefHeight="56"
+                      style="-fx-background-color:#1e1e1e;">
+                    <Label text="© 2026 AutoLearn — Tous droits réservés"
+                           style="-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:12;"/>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

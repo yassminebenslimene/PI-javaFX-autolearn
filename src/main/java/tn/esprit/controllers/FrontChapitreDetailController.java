@@ -38,12 +38,11 @@ public class FrontChapitreDetailController {
     @FXML private Button btnSuivant;    // bouton "Chapitre suivant →" (caché sur le dernier)
 
     // ── État interne ──────────────────────────────────────────────────────────
-    private Cours          cours;         // cours parent du chapitre affiché
-    private List<Chapitre> chapitres;     // liste complète des chapitres du cours (pour navigation)
-    private int            currentIndex;  // index du chapitre actuellement affiché dans la liste
-
-    // Callback pour revenir à la grille des chapitres (injecté par FrontofficeController)
+    private Cours          cours;
+    private List<Chapitre> chapitres;
+    private int            currentIndex;
     private Runnable onRetourCallback;
+    private Runnable onQuizCallback;
 
     private final ServiceChapitre serviceChapitre = new ServiceChapitre();
 
@@ -106,10 +105,19 @@ public class FrontChapitreDetailController {
 
     // ── ACTIONS ───────────────────────────────────────────────────────────────
 
-    /** Retourne à la grille des chapitres en exécutant le callback injecté. */
+    /** Injecte le callback pour lancer le quiz du chapitre courant. */
+    public void setOnQuizCallback(Runnable r) { this.onQuizCallback = r; }
+
+    /** Retourne à la grille des chapitres. */
     @FXML
     private void onRetour() {
         if (onRetourCallback != null) onRetourCallback.run();
+    }
+
+    /** Lance le quiz du chapitre courant. */
+    @FXML
+    private void onQuiz() {
+        if (onQuizCallback != null) onQuizCallback.run();
     }
 
     /**

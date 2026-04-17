@@ -2,10 +2,7 @@ package tn.esprit.session;
 
 import tn.esprit.entities.User;
 
-/**
- * Holds the currently logged-in user for the session.
- * Mirrors Symfony's Security component / getUser().
- */
+
 public class SessionManager {
 
     private static User currentUser;

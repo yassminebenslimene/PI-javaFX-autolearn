@@ -28,7 +28,6 @@ public class MainApp extends Application {
     public static void showBackofficeView(String fxml, String title) throws Exception {
         if (backofficeController != null) {
             backofficeController.loadView(fxml);
-            // setActive handled by each module's own controller
         } else showBackoffice();
     }
 
@@ -155,6 +154,18 @@ public class MainApp extends Application {
         load("/views/frontoffice/select_event.fxml");
         primaryStage.setMaximized(true);
         primaryStage.setTitle("AutoLearn — Choisir un evenement");
+    }
+
+    public static void showChallengesFront() throws Exception {
+        load("/views/frontoffice/showchallenges.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Challenges");
+    }
+
+    public static void showCommunauteFront() throws Exception {
+        load("/views/frontoffice/communaute/index.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Communauté");
     }
 
     public static void showFeedback(Participation p, Evenement ev) throws Exception {

@@ -55,6 +55,10 @@ public class FrontChapitreController {
         this.onPasserQuiz = callback;
     }
 
+    public java.util.function.Consumer<Chapitre> getOnPasserQuiz() {
+        return this.onPasserQuiz;
+    }
+
     // ── CHARGEMENT DES CHAPITRES ──────────────────────────────────────────────
     /**
      * Appelé par FrontofficeController après avoir injecté les callbacks.
