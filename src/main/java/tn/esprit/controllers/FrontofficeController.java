@@ -310,7 +310,8 @@ public class FrontofficeController {
                     FXMLLoader chapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
                     Parent chapView = chapLoader.load();
                     FrontChapitreController chapCtrl = chapLoader.getController();
-                    chapCtrl.setOnLireChapitre((c, chapitre) -> {                        try {
+                    chapCtrl.setOnLireChapitre((c, chapitre) -> {
+                        try {
                             FXMLLoader detailLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/detail.fxml"));
                             Parent detailView = detailLoader.load();
                             FrontChapitreDetailController detailCtrl = detailLoader.getController();
