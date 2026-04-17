@@ -17,7 +17,8 @@ public class MyConnection {
 
     private MyConnection() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); // force le chargement du driver
+      
+       // force le chargement du driver
             connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
             System.out.println("Connexion Etablie!");
             initializeSchema();
