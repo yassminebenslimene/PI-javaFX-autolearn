@@ -16,9 +16,7 @@ import java.util.List;
 
 public class TeamDetailsController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private HBox successBanner;
     @FXML private Label labelTeamName;
     @FXML private Label labelMembersCount;
@@ -41,8 +39,7 @@ public class TeamDetailsController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-    }
+            }
 
     private void refresh() {
         if (successBanner != null) {
