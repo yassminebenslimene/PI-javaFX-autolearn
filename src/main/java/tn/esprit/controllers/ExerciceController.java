@@ -16,7 +16,7 @@ import javafx.stage.Modality;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import tn.esprit.services.AIService;
 public class ExerciceController {
 
     @FXML private VBox exercicesContainer;
@@ -27,12 +27,22 @@ public class ExerciceController {
     private ExerciceService exerciceService;
     private ObservableList<Exercice> masterExercicesList;
     private Exercice selectedExercice;
+    @FXML private Button aiGenerateBtn;
+    @FXML private VBox aiPanel;
+    @FXML private TextField aiTopicField;
+    @FXML private ComboBox<Integer> aiCountCombo;
+    @FXML private ComboBox<String> aiDifficultyCombo;
+    @FXML private ProgressIndicator aiProgress;
+    @FXML private Label aiStatusLabel;
+
+    private boolean isAIPanelVisible = false;
 
     @FXML
     public void initialize() {
         exerciceService = new ExerciceService();
         loadExercices();
         setupSearchListener();
+        initAIPanel();
     }
 
     private void loadExercices() {
@@ -268,7 +278,161 @@ public class ExerciceController {
             showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible d'ouvrir les détails de l'exercice");
         }
     }
+    private void initAIPanel() {
+        // Initialiser le ComboBox pour le nombre d'exercices
+        ObservableList<Integer> counts = FXCollections.observableArrayList(1, 2, 3, 5, 10, 15, 20);
+        aiCountCombo.setItems(counts);
+        aiCountCombo.setValue(5);
 
+        // Initialiser le ComboBox pour la difficulté
+        ObservableList<String> difficulties = FXCollections.observableArrayList("Débutant", "Intermédiaire", "Avancé", "Expert");
+        aiDifficultyCombo.setItems(difficulties);
+        aiDifficultyCombo.setValue("Intermédiaire");
+
+        // Style pour rendre le texte blanc dans les ComboBox
+        String comboStyle = "-fx-background-color:rgba(255,255,255,0.08); " +
+                "-fx-border-color:rgba(255,255,255,0.15); " +
+                "-fx-border-radius:8; -fx-background-radius:8; " +
+                "-fx-padding:5 10 5 10; -fx-font-size:13; " +
+                "-fx-text-fill:white;";  // Texte blanc
+
+        aiCountCombo.setStyle(comboStyle);
+        aiDifficultyCombo.setStyle(comboStyle);
+
+        // Style pour le texte sélectionné affiché (bouton)
+        aiCountCombo.setButtonCell(new ListCell<Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.valueOf(item));
+                    setStyle("-fx-text-fill:white; -fx-background-color:transparent;");
+                }
+            }
+        });
+
+        aiDifficultyCombo.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill:white; -fx-background-color:transparent;");
+                }
+            }
+        });
+
+        // Style pour les items dans la liste déroulante
+        aiCountCombo.setCellFactory(lv -> new ListCell<Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.valueOf(item));
+                    setStyle("-fx-text-fill:white; -fx-background-color:#1a1a2e;");
+                }
+            }
+        });
+
+        aiDifficultyCombo.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill:white; -fx-background-color:#1a1a2e;");
+                }
+            }
+        });
+
+        // Style du prompt text (placeholder)
+        aiTopicField.setStyle("-fx-background-color:rgba(255,255,255,0.08); " +
+                "-fx-border-color:rgba(255,255,255,0.15); " +
+                "-fx-border-radius:8; -fx-background-radius:8; " +
+                "-fx-padding:10 14 10 14; -fx-font-size:13; " +
+                "-fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.4);");
+
+        aiPanel.setVisible(false);
+        aiPanel.setManaged(false);
+    }
+
+    @FXML
+    private void generateAIExercises() {
+        isAIPanelVisible = !isAIPanelVisible;
+        aiPanel.setVisible(isAIPanelVisible);
+        aiPanel.setManaged(isAIPanelVisible);
+    }
+
+    @FXML
+    private void cancelAIGeneration() {
+        aiPanel.setVisible(false);
+        aiPanel.setManaged(false);
+        isAIPanelVisible = false;
+        aiTopicField.clear();
+        aiStatusLabel.setText("");
+    }
+
+    @FXML
+    private void executeAIGeneration() {
+        String topic = aiTopicField.getText().trim();
+        if (topic.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Attention", "Veuillez entrer un domaine/sujet.");
+            return;
+        }
+
+        int count = aiCountCombo.getValue();
+        String difficulty = aiDifficultyCombo.getValue();
+
+        // Désactiver les boutons pendant la génération
+        aiGenerateBtn.setDisable(true);
+        aiProgress.setVisible(true);
+        aiProgress.setManaged(true);
+        aiStatusLabel.setText("🤖 Génération d'exercices IA en cours...");
+
+        new Thread(() -> {
+            AIService aiService = new AIService();
+            List<AIService.AIExercise> generatedExercises = aiService.generateExercises(topic, count, difficulty);
+
+            javafx.application.Platform.runLater(() -> {
+                aiProgress.setVisible(false);
+                aiProgress.setManaged(false);
+                aiGenerateBtn.setDisable(false);
+                aiStatusLabel.setText("");
+
+                if (generatedExercises.isEmpty()) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Aucun exercice généré.");
+                    return;
+                }
+
+                // Ajouter les exercices générés à la base de données
+                int addedCount = 0;
+                for (AIService.AIExercise aiEx : generatedExercises) {
+                    Exercice exercice = new Exercice(aiEx.getQuestion(), aiEx.getAnswer(), aiEx.getPoints());
+                    exerciceService.add(exercice);
+                    addedCount++;
+                }
+
+                // Rafraîchir l'affichage
+                loadExercices();
+
+                // Fermer le panneau IA
+                aiPanel.setVisible(false);
+                aiPanel.setManaged(false);
+                isAIPanelVisible = false;
+                aiTopicField.clear();
+
+                showSuccessMessage(addedCount + " exercices générés par IA avec succès !");
+            });
+        }).start();
+    }
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
