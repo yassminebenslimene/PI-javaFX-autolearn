@@ -28,7 +28,6 @@ public class MainApp extends Application {
     public static void showBackofficeView(String fxml, String title) throws Exception {
         if (backofficeController != null) {
             backofficeController.loadView(fxml);
-            // setActive handled by each module's own controller
         } else showBackoffice();
     }
 

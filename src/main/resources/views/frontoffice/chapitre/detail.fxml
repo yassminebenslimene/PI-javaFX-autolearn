@@ -66,12 +66,7 @@
 
             <!-- Boutons actions -->
             <HBox spacing="14" alignment="CENTER_LEFT">
-                <Button fx:id="btnPdf" text="📄   PDF"
-                        style="-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);
-                               -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13;
-                               -fx-padding:12 28 12 28; -fx-background-radius:12;
-                               -fx-cursor:hand; -fx-border-width:0;"/>
-                <Button fx:id="btnQuiz" text="❓   Passer le quiz"
+                <Button fx:id="btnQuiz" text="❓   Passer le quiz" onAction="#onQuiz"
                         style="-fx-background-color:linear-gradient(to right,#f59e0b,#d97706);
                                -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13;
                                -fx-padding:12 28 12 28; -fx-background-radius:12;
