@@ -147,12 +147,14 @@ public class ChallengeService {
         c.setId(rs.getInt("id"));
         c.setTitre(rs.getString("titre"));
         c.setDescription(rs.getString("description"));
-        c.setDateDebut(rs.getDate(colDateDebut) != null ? rs.getDate(colDateDebut).toLocalDate() : LocalDate.now());
-        c.setDateFin(rs.getDate(colDateFin) != null ? rs.getDate(colDateFin).toLocalDate() : LocalDate.now());
+        c.setDateDebut(rs.getDate(colDateDebut) != null ? rs.getDate(colDateDebut).toLocalDate() : java.time.LocalDate.now());
+        c.setDateFin(rs.getDate(colDateFin) != null ? rs.getDate(colDateFin).toLocalDate() : java.time.LocalDate.now());
         c.setNiveau(rs.getString("niveau"));
         c.setDuree(rs.getInt("duree"));
         try { c.setCreatedBy(rs.getInt(colCreatedBy)); } catch (java.sql.SQLException ignored) {}
-        c.setExerciceIds(getChallengeExercices(c.getId()));
+        // Charger les exercices liés (table challenge_exercice peut ne pas exister)
+        try { c.setExerciceIds(getChallengeExercices(c.getId())); }
+        catch (Exception ignored) { c.setExerciceIds(new ArrayList<>()); }
         c.setQuizIds(new ArrayList<>());
         return c;
     }
