@@ -39,6 +39,11 @@ build/
 
 ### Symfony subproject (has its own git) ###
 symfony/
+Partie_symfony/
+
+### Local files not to push ###
+SPRINT_BACKLOG_JAVA.html
+session3.md
 
 ### IntelliJ Run Configurations (local paths, not shared) ###
 .idea/runConfigurations/
