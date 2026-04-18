@@ -305,8 +305,7 @@ public class FrontofficeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/cours/index.fxml"));
             Parent view = loader.load();
             FrontCoursController ctrl = loader.getController();
-            ctrl.setOnVoirChapitres(cours -> {
-                try {
+            ctrl.setOnVoirChapitres(cours -> {                try {
                     FXMLLoader chapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
                     Parent chapView = chapLoader.load();
                     FrontChapitreController chapCtrl = chapLoader.getController();
@@ -328,7 +327,19 @@ public class FrontofficeController {
                             FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
                             Parent quizView = quizLoader.load();
                             FrontQuizController quizCtrl = quizLoader.getController();
-                            quizCtrl.setChapitre(chapitre, () -> setCenter(chapView));
+                            // Après le quiz → recharger les chapitres pour mettre à jour la progression
+                            quizCtrl.setChapitre(chapitre, () -> {
+                                try {
+                                    FXMLLoader newChapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
+                                    Parent newChapView = newChapLoader.load();
+                                    FrontChapitreController newChapCtrl = newChapLoader.getController();
+                                    newChapCtrl.setOnLireChapitre(chapCtrl.getOnLireChapitre());
+                                    newChapCtrl.setOnPasserQuiz(chapCtrl.getOnPasserQuiz());
+                                    newChapCtrl.setOnRetourCours(() -> naviguerVersCours());
+                                    newChapCtrl.setCours(cours); // recharge avec completedIds à jour
+                                    setCenter(newChapView);
+                                } catch (Exception ex) { setCenter(chapView); }
+                            });
                             setCenterDirect(quizView);
                             javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
                         } catch (Exception ex) { ex.printStackTrace(); }
