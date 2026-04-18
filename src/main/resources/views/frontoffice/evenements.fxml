@@ -6,49 +6,62 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.evenement.front.EvenementFrontController"
             prefWidth="1200" prefHeight="760"
-            style="-fx-background-color:#f0f0f8;">
+            style="-fx-background-color:#f4f3ff;">
 
-    <!-- NAVBAR fixe -->
-        <top>
+    <top>
         <fx:include source="../components/navbar_front.fxml" fx:id="navbar"/>
     </top>
 
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
-                    style="-fx-background-color:#f0f0f8; -fx-background:transparent; -fx-border-width:0;">
+                    style="-fx-background-color:#f4f3ff; -fx-background:transparent; -fx-border-width:0;">
             <VBox spacing="0">
-                <!-- Header -->
-                <VBox alignment="CENTER" spacing="12" prefHeight="160"
-                      style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c); -fx-padding:40 80 40 80;">
-                    <Label text="Nos Evenements"
-                           style="-fx-font-size:34; -fx-font-weight:800; -fx-text-fill:white;"/>
-                    <Button text="&#128197;  Voir le calendrier"
-                            style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
-                                   -fx-font-weight:600; -fx-padding:8 24 8 24; -fx-background-radius:20;
-                                   -fx-border-color:rgba(255,255,255,0.5); -fx-border-radius:20; -fx-cursor:hand;"/>
+
+                <!-- Hero header -->
+                <VBox alignment="CENTER" spacing="14" prefHeight="170"
+                      style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c);
+                             -fx-padding:44 80 44 80;">
+                    <Label text="🎉  Nos Événements"
+                           style="-fx-font-size:36; -fx-font-weight:800; -fx-text-fill:white;"/>
+                    <Label text="Participez, apprenez et connectez-vous avec vos pairs"
+                           style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.8);"/>
+                    <Button text="📅  Voir le Calendrier" onAction="#onVoirCalendrier"
+                            style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                                   -fx-font-size:13; -fx-font-weight:600; -fx-padding:9 26 9 26;
+                                   -fx-background-radius:22; -fx-border-color:rgba(255,255,255,0.5);
+                                   -fx-border-radius:22; -fx-cursor:hand; -fx-border-width:1.5;"/>
                 </VBox>
 
-                <!-- Intro banner -->
-                <VBox alignment="CENTER" spacing="8"
-                      style="-fx-background-color:white; -fx-padding:24 80 24 80;
-                             -fx-border-color:transparent transparent #eeeeee transparent; -fx-border-width:0 0 1 0;">
-                    <Label text="&#127919;  Developpez vos competences par la pratique"
+                <!-- Intro -->
+                <VBox alignment="CENTER" spacing="6"
+                      style="-fx-background-color:white; -fx-padding:20 80 20 80;
+                             -fx-border-color:#eeeeee; -fx-border-width:0 0 1 0;">
+                    <Label text="🎯  Développez vos compétences par la pratique"
                            style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#333;"/>
-                    <Label text="Nos evenements sont concus pour aider les etudiants a developper des competences techniques et relationnelles."
-                           wrapText="true" style="-fx-font-size:12; -fx-text-fill:#666; -fx-text-alignment:CENTER;"/>
+                    <Label text="Hackathons, workshops, conférences — rejoignez une équipe et participez !"
+                           wrapText="true"
+                           style="-fx-font-size:12; -fx-text-fill:#666; -fx-text-alignment:CENTER;"/>
                 </VBox>
 
-                <!-- Events list -->
-                <VBox fx:id="eventsContainer" spacing="16"
-                      style="-fx-padding:32 80 32 80; -fx-background-color:#f0f0f8;"/>
+                <!-- Filtres + compteur -->
+                <HBox alignment="CENTER_LEFT" spacing="16"
+                      style="-fx-background-color:#f4f3ff; -fx-padding:20 40 14 40;">
+                    <HBox fx:id="filterBar" spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="labelTotal" style="-fx-font-size:13; -fx-font-weight:700;"/>
+                </HBox>
+
+                <!-- Grille des événements -->
+                <VBox fx:id="eventsContainer" spacing="0"
+                      style="-fx-padding:0 40 40 40; -fx-background-color:#f4f3ff;"/>
+
             </VBox>
         </ScrollPane>
     </center>
 
     <bottom>
-        <HBox alignment="CENTER" prefHeight="56" style="-fx-background-color:#1e1e1e;">
+        <HBox alignment="CENTER" prefHeight="50" style="-fx-background-color:#1e1e1e;">
             <Label text="© 2026 AutoLearn — Tous droits réservés"
-                   style="-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:12;"/>
+                   style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:12;"/>
         </HBox>
     </bottom>
 </BorderPane>

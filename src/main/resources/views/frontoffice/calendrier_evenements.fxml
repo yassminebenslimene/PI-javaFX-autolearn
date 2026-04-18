@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.evenement.front.CalendrierEvenementsController"
+            prefWidth="1200" prefHeight="760"
+            style="-fx-background-color:#f0f0f8;">
+
+    <top>
+        <fx:include source="../components/navbar_front.fxml" fx:id="navbar"/>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                    style="-fx-background-color:#f0eeff; -fx-background:transparent; -fx-border-width:0;">
+            <VBox spacing="0">
+
+                <!-- Hero header -->
+                <VBox alignment="CENTER" spacing="10" prefHeight="160"
+                      style="-fx-background-color:linear-gradient(to bottom right,#667eea,#764ba2);
+                             -fx-padding:40 80 40 80;">
+                    <Label text="📅  Calendrier des Événements"
+                           style="-fx-font-size:36; -fx-font-weight:800; -fx-text-fill:white;"/>
+                    <Label text="Vue d'ensemble de tous les événements à venir"
+                           style="-fx-font-size:14; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                    <Button text="📋  Retour à la Vue Liste" onAction="#onRetourListe"
+                            style="-fx-background-color:white; -fx-text-fill:#667eea; -fx-font-size:13;
+                                   -fx-font-weight:600; -fx-padding:10 28 10 28; -fx-background-radius:20;
+                                   -fx-cursor:hand; -fx-border-width:0;
+                                   -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,2);"/>
+                </VBox>
+
+                <!-- Légende -->
+                <HBox spacing="20" alignment="CENTER_LEFT"
+                      style="-fx-background-color:#f4f2ff; -fx-padding:16 40 16 40;
+                             -fx-border-color:#e0d8ff; -fx-border-width:0 0 1 0;">
+                    <Label text="🎨  Légende des Types d'Événements"
+                           style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#667eea;"/>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label style="-fx-background-color:#667eea; -fx-min-width:18; -fx-min-height:18; -fx-background-radius:4;"/>
+                        <Label text="Workshop" style="-fx-font-size:12; -fx-text-fill:#333;"/>
+                    </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label style="-fx-background-color:#f093fb; -fx-min-width:18; -fx-min-height:18; -fx-background-radius:4;"/>
+                        <Label text="Conference" style="-fx-font-size:12; -fx-text-fill:#333;"/>
+                    </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label style="-fx-background-color:#4facfe; -fx-min-width:18; -fx-min-height:18; -fx-background-radius:4;"/>
+                        <Label text="Hackathon" style="-fx-font-size:12; -fx-text-fill:#333;"/>
+                    </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label style="-fx-background-color:#43e97b; -fx-min-width:18; -fx-min-height:18; -fx-background-radius:4;"/>
+                        <Label text="Seminar" style="-fx-font-size:12; -fx-text-fill:#333;"/>
+                    </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label style="-fx-background-color:#95a5a6; -fx-min-width:18; -fx-min-height:18; -fx-background-radius:4;"/>
+                        <Label text="Annulé" style="-fx-font-size:12; -fx-text-fill:#333;"/>
+                    </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label style="-fx-background-color:#7fb77e; -fx-min-width:18; -fx-min-height:18; -fx-background-radius:4;"/>
+                        <Label text="Passé" style="-fx-font-size:12; -fx-text-fill:#333;"/>
+                    </HBox>
+                </HBox>
+
+                <!-- Calendrier (pleine largeur maintenant) -->
+                <HBox spacing="0" style="-fx-padding:24 40 32 40; -fx-background-color:linear-gradient(to bottom,#f0eeff,#e8e4ff);">
+                    <VBox spacing="0" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:white; -fx-background-radius:14;
+                                 -fx-border-color:#d8d0ff; -fx-border-radius:14; -fx-border-width:1;
+                                 -fx-effect:dropshadow(gaussian,rgba(102,126,234,0.15),14,0,0,4);">
+
+                        <!-- Toolbar navigation -->
+                        <HBox alignment="CENTER_LEFT" spacing="10"
+                              style="-fx-padding:16 20 16 20; -fx-background-color:#f4f2ff;
+                                     -fx-background-radius:14 14 0 0;
+                                     -fx-border-color:#e0d8ff; -fx-border-width:0 0 1 0;">
+                            <Button text="‹" onAction="#onPrevMonth"
+                                    style="-fx-background-color:linear-gradient(to right,#667eea,#764ba2);
+                                           -fx-text-fill:white; -fx-font-size:16; -fx-font-weight:700;
+                                           -fx-padding:8 14 8 14; -fx-background-radius:8;
+                                           -fx-cursor:hand; -fx-border-width:0;"/>
+                            <Button text="›" onAction="#onNextMonth"
+                                    style="-fx-background-color:linear-gradient(to right,#667eea,#764ba2);
+                                           -fx-text-fill:white; -fx-font-size:16; -fx-font-weight:700;
+                                           -fx-padding:8 14 8 14; -fx-background-radius:8;
+                                           -fx-cursor:hand; -fx-border-width:0;"/>
+                            <Button text="Aujourd'hui" onAction="#onAujourdhui"
+                                    style="-fx-background-color:rgba(102,126,234,0.15); -fx-text-fill:#667eea;
+                                           -fx-font-size:12; -fx-font-weight:700;
+                                           -fx-padding:8 16 8 16; -fx-background-radius:8;
+                                           -fx-cursor:hand; -fx-border-width:0;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="labelMoisAnnee"
+                                   style="-fx-font-size:22; -fx-font-weight:700; -fx-text-fill:#4a3f8a;"/>
+                        </HBox>
+
+                        <!-- Grille calendrier -->
+                        <GridPane fx:id="calendarGrid" hgap="0" vgap="0"
+                                  style="-fx-padding:0;" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER" prefHeight="50"
+              style="-fx-background-color:#1e1e1e;">
+            <Label text="© 2026 AutoLearn — Tous droits réservés"
+                   style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:12;"/>
+        </HBox>
+    </bottom>
+</BorderPane>
