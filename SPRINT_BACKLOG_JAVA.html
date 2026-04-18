@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Sprint Backlog Java - Module Gestion des Événements</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; color: #222; margin: 0; padding: 0; }
+  .header { background: linear-gradient(135deg, #1e1b4b, #4c1d95); color: white; padding: 40px; text-align: center; }
+  .header h1 { font-size: 2.2em; margin: 0 0 8px 0; }
+  .header p { margin: 4px 0; opacity: 0.85; font-size: 1em; }
+  .stats { display: flex; gap: 24px; justify-content: center; padding: 28px 40px; flex-wrap: wrap; }
+  .stat-card { background: white; border-radius: 14px; padding: 20px 32px; text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08); min-width: 130px; }
+  .stat-card .num { font-size: 2em; font-weight: 800; color: #4c1d95; }
+  .stat-card .lbl { font-size: 0.85em; color: #666; margin-top: 4px; }
+  .section { max-width: 1200px; margin: 0 auto; padding: 0 32px 40px 32px; }
+  .us-block { background: white; border-radius: 14px; margin-bottom: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+  .us-title { padding: 16px 24px; font-size: 1em; font-weight: 700; border-left: 5px solid #4c1d95; }
+  .us-title.done { border-left-color: #059669; background: #f0fdf4; color: #065f46; }
+  .us-title.partial { border-left-color: #f59e0b; background: #fffbeb; color: #92400e; }
+  .us-title.todo { border-left-color: #e11d48; background: #fff1f2; color: #9f1239; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #f8f7ff; color: #4c1d95; font-size: 0.82em; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 10px 16px; text-align: left; border-bottom: 2px solid #ede9fe; }
+  td { padding: 12px 16px; font-size: 0.9em; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.78em; font-weight: 700; }
+  .done-badge { background: #d1fae5; color: #065f46; }
+  .todo-badge { background: #fee2e2; color: #991b1b; }
+  .partial-badge { background: #fef3c7; color: #92400e; }
+  .file { font-family: monospace; font-size: 0.82em; color: #6d28d9; background: #f5f3ff;
+    padding: 2px 7px; border-radius: 5px; display: inline-block; margin: 2px 2px 2px 0; }
+  .sys-row td { background: #eff6ff; }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; padding: 16px 32px; max-width: 1200px; margin: 0 auto; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.88em; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; }
+  .note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 14px 20px;
+    border-radius: 8px; margin: 0 32px 24px 32px; max-width: 1136px; margin-left: auto; margin-right: auto; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📋 SPRINT BACKLOG — JAVA (JavaFX)</h1>
+  <p>Module Gestion des Événements — Application Desktop IntelliJ</p>
+  <p>Responsable: [Nom Étudiant] &nbsp;|&nbsp; 19 User Stories &nbsp;|&nbsp; ~120h estimées</p>
+</div>
+
+<div class="stats">
+  <div class="stat-card"><div class="num">19</div><div class="lbl">User Stories</div></div>
+  <div class="stat-card"><div class="num">~120h</div><div class="lbl">Estimation Totale</div></div>
+  <div class="stat-card"><div class="num">13</div><div class="lbl">US Réalisées ✓</div></div>
+  <div class="stat-card"><div class="num">4</div><div class="lbl">US Partielles</div></div>
+  <div class="stat-card"><div class="num">2</div><div class="lbl">US À Faire</div></div>
+</div>
+
+<div style="max-width:1200px;margin:0 auto;padding:0 32px;">
+<div class="note">
+  <strong>⚠ Note Importante :</strong> Ce Sprint Backlog est basé sur l'analyse du code Java/JavaFX existant dans le module Événement.
+  Les tâches marquées <span class="badge done-badge">✓ Réalisé</span> correspondent aux fichiers et fonctionnalités effectivement implémentés.
+  Les tâches <span class="badge partial-badge">⚡ Partiel</span> sont implémentées mais sans certaines fonctionnalités avancées (emails, PDF, IA).
+  Les tâches <span class="badge todo-badge">✗ À Faire</span> sont absentes du code actuel.
+</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot" style="background:#059669"></div> Tâche réalisée</div>
+  <div class="legend-item"><div class="dot" style="background:#f59e0b"></div> Tâche partielle</div>
+  <div class="legend-item"><div class="dot" style="background:#e11d48"></div> Tâche à faire</div>
+  <div class="legend-item"><div class="dot" style="background:#3b82f6"></div> Tâche système intégrée</div>
+</div>
+
+<div class="section">
+
+<!-- US-5.1 : Créer un événement -->
+<div class="us-block">
+  <div class="us-title done">US-5.1 : En tant qu'Admin, je souhaite créer un événement (Priorité: 95) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.1.1</td><td>Créer l'entité Evenement avec tous les attributs (titre, lieu, description, type, dateDebut, dateFin, status, isCanceled, workflowStatus, nbMax)</td><td><span class="file">entities/Evenement.java</span></td><td>2h</td><td>95</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.1.2</td><td>Créer les enums / constantes pour Type (Hackathon, Conference, Workshop) et Statut (Plannifié, En cours, Passé, Annulé)</td><td><span class="file">entities/Evenement.java</span> (computeStatus())</td><td>1h</td><td>95</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.1.3</td><td>Créer EvenementService avec méthode ajouter() + connexion JDBC</td><td><span class="file">services/EvenementService.java</span></td><td>1h</td><td>95</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.1.4</td><td>Créer le formulaire de création (FXML + Controller) avec champs titre, description, type, lieu, nbMax, dateDebut, dateFin</td><td><span class="file">controllers/evenement/EvenementFormController.java</span> <span class="file">views/backoffice/evenement/form.fxml</span></td><td>2h</td><td>95</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.1.5</td><td>Ajouter les validations dans le formulaire (titre 5-255 chars, description 10-2000, lieu 2-255, nbMax 1-100, date passée interdite)</td><td><span class="file">controllers/evenement/EvenementFormController.java</span></td><td>1.5h</td><td>95</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.1.6</td><td>Afficher les erreurs inline par champ (labels erreur rouge)</td><td><span class="file">controllers/evenement/EvenementFormController.java</span> <span class="file">views/backoffice/evenement/form.fxml</span></td><td>1h</td><td>95</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.1.TEST</td><td>Tests manuels création événement</td><td>Tests manuels</td><td>1h</td><td>95</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.2 : Modifier un événement -->
+<div class="us-block">
+  <div class="us-title done">US-5.2 : En tant qu'Admin, je souhaite modifier un événement (Priorité: 90) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.2.1</td><td>Ajouter méthode modifier() dans EvenementService</td><td><span class="file">services/EvenementService.java</span></td><td>0.5h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.2.2</td><td>Implémenter setEvenement() dans EvenementFormController pour pré-remplir le formulaire en mode édition</td><td><span class="file">controllers/evenement/EvenementFormController.java</span></td><td>1h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.2.3</td><td>Recalculer workflowStatus et status après modification des dates</td><td><span class="file">controllers/evenement/EvenementFormController.java</span></td><td>0.5h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.2.4</td><td>Bouton Modifier dans EvenementIndexController et EvenementShowController</td><td><span class="file">controllers/evenement/EvenementIndexController.java</span> <span class="file">controllers/evenement/EvenementShowController.java</span></td><td>0.5h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.2.TEST</td><td>Tests manuels modification événement</td><td>Tests manuels</td><td>1h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.3 : Supprimer un événement -->
+<div class="us-block">
+  <div class="us-title done">US-5.3 : En tant qu'Admin, je souhaite supprimer un événement (Priorité: 85) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.3.1</td><td>Implémenter supprimer() avec suppression en cascade (equipe_etudiant → equipe → participation → evenement) via transaction JDBC</td><td><span class="file">services/EvenementService.java</span></td><td>1.5h</td><td>85</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.3.2</td><td>Bouton Supprimer dans EvenementIndexController avec action directe</td><td><span class="file">controllers/evenement/EvenementIndexController.java</span> <span class="file">views/backoffice/evenement/index.fxml</span></td><td>0.5h</td><td>85</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.3.TEST</td><td>Tests manuels suppression événement</td><td>Tests manuels</td><td>1h</td><td>85</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.4 : Annuler un événement + Workflow -->
+<div class="us-block">
+  <div class="us-title done">US-5.4 : En tant qu'Admin, je souhaite annuler manuellement un événement + Workflow automatique (Priorité: 88/100) — ✓ RÉALISÉ (partiel)</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.4.1</td><td>Implémenter action annuler dans EvenementIndexController (setIsCanceled=true, workflowStatus="annule")</td><td><span class="file">controllers/evenement/EvenementIndexController.java</span></td><td>1h</td><td>88</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.4.2</td><td>Bouton "✖ Annuler" conditionnel (masqué si déjà annulé ou passé)</td><td><span class="file">controllers/evenement/EvenementIndexController.java</span> <span class="file">views/backoffice/evenement/index.fxml</span></td><td>0.5h</td><td>88</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.4.3</td><td>Implémenter computeStatus() dans Evenement pour calcul automatique du statut selon les dates (planifie → en_cours → termine)</td><td><span class="file">entities/Evenement.java</span></td><td>1h</td><td>100</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.4.4</td><td>Afficher badge statut coloré dans la liste (Plannifié=bleu, En cours=vert, Passé=vert clair, Annulé=orange)</td><td><span class="file">controllers/evenement/EvenementIndexController.java</span></td><td>0.5h</td><td>88</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-5.4.5</td><td>[SYSTÈME] Envoi email d'annulation aux participants — Non implémenté en Java (pas de service email)</td><td>—</td><td>2h</td><td>88</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.4.TEST</td><td>Tests manuels annulation et workflow</td><td>Tests manuels</td><td>1h</td><td>88</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.5 : Consulter la liste des événements avec détails -->
+<div class="us-block">
+  <div class="us-title done">US-5.5 : En tant qu'Admin, je souhaite consulter la liste des événements avec détails (Priorité: 92) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.5.1</td><td>Créer EvenementIndexController avec chargement de la liste depuis EvenementService.getAll()</td><td><span class="file">controllers/evenement/EvenementIndexController.java</span> <span class="file">views/backoffice/evenement/index.fxml</span></td><td>1.5h</td><td>92</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.5.2</td><td>Afficher colonnes : titre, type, dateDebut, dateFin, statut, nbMax, actions</td><td><span class="file">controllers/evenement/EvenementIndexController.java</span></td><td>1h</td><td>92</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.5.3</td><td>Créer EvenementShowController avec détails complets + comptage équipes et participations</td><td><span class="file">controllers/evenement/EvenementShowController.java</span> <span class="file">views/backoffice/evenement/show.fxml</span></td><td>1.5h</td><td>92</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.5.4</td><td>Ajouter statistiques (nb équipes, nb participations) via EquipeService.countByEvenement() et ParticipationService.countByEvenement()</td><td><span class="file">services/EquipeService.java</span> <span class="file">services/ParticipationService.java</span></td><td>1h</td><td>92</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.5.TEST</td><td>Tests manuels liste et détails</td><td>Tests manuels</td><td>1h</td><td>92</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.6 : Définir nombre maximum d'équipes -->
+<div class="us-block">
+  <div class="us-title done">US-5.6 : En tant qu'Admin, je souhaite définir un nombre maximum d'équipes (Priorité: 87) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.6.1</td><td>Champ nbMax dans l'entité Evenement avec validation 1-100</td><td><span class="file">entities/Evenement.java</span></td><td>0.5h</td><td>87</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.6.2</td><td>Champ fieldNbMax dans le formulaire avec validation numérique</td><td><span class="file">controllers/evenement/EvenementFormController.java</span> <span class="file">views/backoffice/evenement/form.fxml</span></td><td>0.5h</td><td>87</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.6.3</td><td>Afficher places restantes dans la vue frontoffice (nbMax - nbEquipes)</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>0.5h</td><td>87</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.6.TEST</td><td>Tests manuels nbMax</td><td>Tests manuels</td><td>0.5h</td><td>87</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.7 : Consulter les événements disponibles (Étudiant) -->
+<div class="us-block">
+  <div class="us-title done">US-5.7 : En tant qu'Étudiant, je souhaite consulter les événements disponibles (Priorité: 94) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.7.1</td><td>Créer EvenementFrontController avec chargement de tous les événements</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span> <span class="file">views/frontoffice/evenements.fxml</span></td><td>1.5h</td><td>94</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.7.2</td><td>Construire les cartes événements avec header expandable (titre, type, lieu, date, équipes, temps restant)</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>2.5h</td><td>94</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.7.3</td><td>Afficher badge ANNULÉ et bannière d'annulation / bannière événement terminé</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>1h</td><td>94</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.7.4</td><td>Afficher équipes participantes dans le panneau détails de chaque événement</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>1h</td><td>94</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.7.5</td><td>Masquer bouton Participer si événement annulé, terminé ou complet</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>0.5h</td><td>94</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.7.TEST</td><td>Tests manuels vue frontoffice événements</td><td>Tests manuels</td><td>1h</td><td>94</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.8 : Créer une équipe -->
+<div class="us-block">
+  <div class="us-title done">US-5.8 : En tant qu'Étudiant, je souhaite créer une équipe (Priorité: 96) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.8.1</td><td>Créer l'entité Equipe (id, nom, evenementId)</td><td><span class="file">entities/Equipe.java</span></td><td>0.5h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.8.2</td><td>Créer la relation ManyToMany Equipe-Etudiant via table equipe_etudiant</td><td><span class="file">services/EquipeService.java</span> (ajouterEtudiantEquipe)</td><td>1h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.8.3</td><td>Créer EquipeService avec ajouter(), ajouterEtRetournerId(), ajouterEtudiantEquipe()</td><td><span class="file">services/EquipeService.java</span></td><td>1.5h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.8.4</td><td>Créer CreateTeamController avec liste des étudiants (checkboxes), champ nom équipe</td><td><span class="file">controllers/evenement/front/CreateTeamController.java</span> <span class="file">views/frontoffice/create_team.fxml</span></td><td>2h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.8.5</td><td>Validation 4-6 membres obligatoire + étudiant courant pré-sélectionné et non-désélectionnable</td><td><span class="file">controllers/evenement/front/CreateTeamController.java</span></td><td>1h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-5.8.6</td><td>[SYSTÈME] Validation : aucun membre ne doit déjà être inscrit à cet événement (etudiantDejaInscritEvenement)</td><td><span class="file">services/EquipeService.java</span> <span class="file">controllers/evenement/front/CreateTeamController.java</span></td><td>1h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-5.8.7</td><td>[SYSTÈME] Validation conflit horaire : aucun membre ne doit participer à un événement simultané (etudiantConflitHoraire)</td><td><span class="file">services/EquipeService.java</span> <span class="file">controllers/evenement/front/CreateTeamController.java</span></td><td>1.5h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.8.8</td><td>Naviguer vers TeamDetailsController après création réussie</td><td><span class="file">controllers/evenement/front/CreateTeamController.java</span> <span class="file">controllers/evenement/front/TeamDetailsController.java</span></td><td>0.5h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.8.TEST</td><td>Tests manuels création équipe</td><td>Tests manuels</td><td>1h</td><td>96</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.9 : Modifier mon équipe -->
+<div class="us-block">
+  <div class="us-title done">US-5.9 : En tant qu'Étudiant, je souhaite modifier mon équipe (Priorité: 65) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.9.1</td><td>Créer EditTeamController avec pré-remplissage du nom et des membres actuels</td><td><span class="file">controllers/evenement/front/EditTeamController.java</span> <span class="file">views/frontoffice/edit_team.fxml</span></td><td>1.5h</td><td>65</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.9.2</td><td>Implémenter modifier() dans EquipeService + supprimerEtudiantsEquipe() + réajout des membres sélectionnés</td><td><span class="file">services/EquipeService.java</span></td><td>1h</td><td>65</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.9.3</td><td>Validation 4-6 membres lors de la modification</td><td><span class="file">controllers/evenement/front/EditTeamController.java</span></td><td>0.5h</td><td>65</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.9.TEST</td><td>Tests manuels modification équipe</td><td>Tests manuels</td><td>1h</td><td>65</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.10 : Inscrire mon équipe à un événement -->
+<div class="us-block">
+  <div class="us-title partial">US-5.10 : En tant qu'Étudiant, je souhaite inscrire mon équipe à un événement (Priorité: 98) — ⚡ PARTIEL</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.10.1</td><td>Créer l'entité Participation (id, equipeId, evenementId, statut, feedbacks)</td><td><span class="file">entities/Participation.java</span></td><td>1h</td><td>98</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.10.2</td><td>Créer ParticipationService avec ajouter(), modifier(), getByEtudiant(), getByEvenement()</td><td><span class="file">services/ParticipationService.java</span></td><td>1.5h</td><td>98</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.10.3</td><td>Créer JoinEventController : afficher équipes disponibles (< 6 membres) pour rejoindre</td><td><span class="file">controllers/evenement/front/JoinEventController.java</span> <span class="file">views/frontoffice/join_event.fxml</span></td><td>2h</td><td>98</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.10.4</td><td>Créer TeamDetailsController avec bouton "Participer à l'événement" → crée la participation</td><td><span class="file">controllers/evenement/front/TeamDetailsController.java</span> <span class="file">views/frontoffice/team_details.fxml</span></td><td>1.5h</td><td>98</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-5.10.5</td><td>[SYSTÈME] Acceptation automatique si contraintes respectées (statut="Accepté" directement)</td><td><span class="file">controllers/evenement/front/JoinEventController.java</span> <span class="file">controllers/evenement/front/TeamDetailsController.java</span></td><td>1h</td><td>98</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-5.10.6</td><td>[SYSTÈME] Vérification nb équipes < nbMax avant inscription</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>0.5h</td><td>98</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-5.10.7</td><td>[SYSTÈME] Envoi email de confirmation avec QR Code et Badge PDF — Non implémenté (pas de service email/PDF en Java)</td><td>—</td><td>4h</td><td>98</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.10.TEST</td><td>Tests manuels inscription équipe</td><td>Tests manuels</td><td>1h</td><td>98</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.11 : Consulter le statut de ma participation -->
+<div class="us-block">
+  <div class="us-title done">US-5.11 : En tant qu'Étudiant, je souhaite consulter le statut de ma participation (Priorité: 93) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.11.1</td><td>Créer MesParticipationsController : liste des participations de l'étudiant connecté</td><td><span class="file">controllers/evenement/front/MesParticipationsController.java</span> <span class="file">views/frontoffice/mes_participations.fxml</span></td><td>1.5h</td><td>93</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.11.2</td><td>Afficher badge statut "Accepté" avec style vert, nom équipe, lieu, date</td><td><span class="file">controllers/evenement/front/MesParticipationsController.java</span></td><td>1h</td><td>93</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.11.3</td><td>Créer ParticipationDetailsController avec détails complets (événement + membres équipe)</td><td><span class="file">controllers/evenement/front/ParticipationDetailsController.java</span> <span class="file">views/frontoffice/participation_details.fxml</span></td><td>1.5h</td><td>93</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.11.4</td><td>Bouton supprimer participation avec confirmation (supprimerAvecEquipe)</td><td><span class="file">controllers/evenement/front/ParticipationDetailsController.java</span></td><td>0.5h</td><td>93</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.11.TEST</td><td>Tests manuels consultation participations</td><td>Tests manuels</td><td>1h</td><td>93</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.12 : Calendrier visuel -->
+<div class="us-block">
+  <div class="us-title todo">US-5.12 : En tant qu'Étudiant, je souhaite consulter un calendrier visuel des événements (Priorité: 70) — ✗ NON RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.12.1</td><td>Intégrer une vue calendrier dans JavaFX (ex: CalendarFX ou vue custom avec GridPane par mois)</td><td><span class="file">controllers/evenement/front/CalendrierController.java</span> (à créer)</td><td>3h</td><td>70</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.12.2</td><td>Charger les événements et les positionner sur le calendrier selon leur date de début</td><td><span class="file">controllers/evenement/front/CalendrierController.java</span></td><td>2h</td><td>70</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.12.3</td><td>Ajouter route/navigation vers la vue calendrier depuis la navbar</td><td><span class="file">MainApp.java</span> <span class="file">views/frontoffice/calendrier.fxml</span></td><td>1h</td><td>70</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.12.TEST</td><td>Tests manuels calendrier</td><td>Tests manuels</td><td>1h</td><td>70</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.13 : Météo -->
+<div class="us-block">
+  <div class="us-title todo">US-5.13 : En tant qu'Étudiant, je souhaite voir la météo prévue pour l'événement (Priorité: 35) — ✗ NON RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.13.1</td><td>Créer WeatherService avec appel API OpenWeatherMap (HttpClient Java 11+)</td><td><span class="file">services/WeatherService.java</span> (à créer)</td><td>2h</td><td>35</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.13.2</td><td>Afficher météo dans la vue détails événement frontoffice</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>1.5h</td><td>35</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.13.3</td><td>Configurer clé API dans un fichier de configuration</td><td><span class="file">resources/config.properties</span></td><td>0.25h</td><td>35</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.13.TEST</td><td>Tests manuels météo</td><td>Tests manuels</td><td>1h</td><td>35</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.14 : Donner feedback -->
+<div class="us-block">
+  <div class="us-title done">US-5.14 : En tant qu'Étudiant, je souhaite donner mon feedback après un événement (Priorité: 90) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.14.1</td><td>Créer FeedbackController avec rating global (étoiles 1-5), ratings par catégorie (organisation, contenu, lieu, animation)</td><td><span class="file">controllers/evenement/front/FeedbackController.java</span> <span class="file">views/frontoffice/feedback.fxml</span></td><td>2.5h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.14.2</td><td>Implémenter sélection sentiment (Très satisfait, Satisfait, Neutre, Déçu, Très déçu) avec boutons visuels</td><td><span class="file">controllers/evenement/front/FeedbackController.java</span></td><td>1.5h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.14.3</td><td>Champ commentaire avec compteur de caractères (max 1000)</td><td><span class="file">controllers/evenement/front/FeedbackController.java</span></td><td>0.5h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.14.4</td><td>Sauvegarder feedback en JSON dans participation.feedbacks via ParticipationService.saveFeedback()</td><td><span class="file">services/ParticipationService.java</span></td><td>1h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.14.5</td><td>Vérifier que l'événement est terminé avant d'afficher le bouton feedback (isPast check)</td><td><span class="file">controllers/evenement/front/MesParticipationsController.java</span></td><td>0.5h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.14.TEST</td><td>Tests manuels feedback</td><td>Tests manuels</td><td>1h</td><td>90</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.15 : Modifier/Supprimer feedback -->
+<div class="us-block">
+  <div class="us-title done">US-5.15 : En tant qu'Étudiant, je souhaite modifier ou supprimer mon feedback (Priorité: 58) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.15.1</td><td>Pré-remplir le formulaire feedback si un feedback existe déjà (prefillFromExisting via parsing JSON)</td><td><span class="file">controllers/evenement/front/FeedbackController.java</span></td><td>1.5h</td><td>58</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.15.2</td><td>Bouton "Modifier mon feedback" dans MesParticipationsController si feedback déjà existant</td><td><span class="file">controllers/evenement/front/MesParticipationsController.java</span></td><td>0.5h</td><td>58</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.15.TEST</td><td>Tests manuels modification feedback</td><td>Tests manuels</td><td>1h</td><td>58</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.16 : Statistiques feedbacks Admin -->
+<div class="us-block">
+  <div class="us-title todo">US-5.16 : En tant qu'Admin, je souhaite consulter les statistiques de feedbacks (Priorité: 85) — ✗ NON RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.16.1</td><td>Créer FeedbackAnalyticsService : parser les JSON feedbacks, calculer moyennes par catégorie et par type d'événement</td><td><span class="file">services/FeedbackAnalyticsService.java</span> (à créer)</td><td>3h</td><td>85</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.16.2</td><td>Créer vue backoffice statistiques feedbacks avec graphiques (JavaFX Charts : BarChart, PieChart)</td><td><span class="file">controllers/evenement/FeedbackStatsController.java</span> <span class="file">views/backoffice/evenement/feedback_stats.fxml</span> (à créer)</td><td>3h</td><td>85</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.16.TEST</td><td>Tests manuels statistiques</td><td>Tests manuels</td><td>1h</td><td>85</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.17 : Rapport IA -->
+<div class="us-block">
+  <div class="us-title todo">US-5.17 : En tant qu'Admin, je souhaite consulter le rapport d'analyse généré par l'IA (Priorité: 82) — ✗ NON RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.17.1</td><td>Créer AIReportService avec appel API Hugging Face (HttpClient) pour analyse des feedbacks</td><td><span class="file">services/AIReportService.java</span> (à créer)</td><td>4h</td><td>82</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.17.2</td><td>Configurer clé API Hugging Face dans config.properties</td><td><span class="file">resources/config.properties</span></td><td>0.25h</td><td>82</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.17.3</td><td>Créer vue backoffice rapport IA avec affichage du rapport généré</td><td><span class="file">controllers/evenement/AIReportController.java</span> <span class="file">views/backoffice/evenement/ai_report.fxml</span> (à créer)</td><td>2h</td><td>82</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr><td>T-5.17.TEST</td><td>Tests manuels rapport IA</td><td>Tests manuels</td><td>1h</td><td>82</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.18 : Rejoindre une équipe existante -->
+<div class="us-block">
+  <div class="us-title done">US-5.18 : En tant qu'Étudiant, je souhaite rejoindre une équipe existante (Priorité: 72) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.18.1</td><td>Créer JoinEventController : afficher les équipes disponibles (< 6 membres) pour l'événement sélectionné</td><td><span class="file">controllers/evenement/front/JoinEventController.java</span> <span class="file">views/frontoffice/join_event.fxml</span></td><td>1.5h</td><td>72</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.18.2</td><td>Afficher cartes équipes avec nb membres, places disponibles, bouton "Rejoindre"</td><td><span class="file">controllers/evenement/front/JoinEventController.java</span></td><td>1h</td><td>72</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-5.18.3</td><td>[SYSTÈME] Vérifier que l'étudiant n'est pas déjà dans une autre équipe pour le même événement</td><td><span class="file">services/EquipeService.java</span> (etudiantDejaInscritEvenement)</td><td>0.5h</td><td>72</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.18.TEST</td><td>Tests manuels rejoindre équipe</td><td>Tests manuels</td><td>1h</td><td>72</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- US-5.19 : Voir les équipes participantes -->
+<div class="us-block">
+  <div class="us-title done">US-5.19 : En tant qu'Étudiant, je souhaite voir les équipes participantes à un événement (Priorité: 40) — ✓ RÉALISÉ</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr><td>T-5.19.1</td><td>Afficher la liste des équipes participantes dans le panneau détails de chaque événement (EvenementFrontController)</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>1h</td><td>40</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.19.2</td><td>Afficher cartes équipes avec nom, type événement, nb membres via EquipeService.getByEvenement()</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span> <span class="file">services/EquipeService.java</span></td><td>1h</td><td>40</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.19.3</td><td>Créer MesEquipesController : liste des équipes de l'étudiant connecté avec détails événement</td><td><span class="file">controllers/evenement/front/MesEquipesController.java</span> <span class="file">views/frontoffice/mes_equipes.fxml</span></td><td>1.5h</td><td>40</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr><td>T-5.19.TEST</td><td>Tests manuels vue équipes</td><td>Tests manuels</td><td>1h</td><td>40</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+  </table>
+</div>
+
+<!-- TÂCHES SYSTÈME SUPPLÉMENTAIRES -->
+<div class="us-block">
+  <div class="us-title" style="border-left-color:#3b82f6; background:#eff6ff; color:#1e40af;">TÂCHES SYSTÈME SUPPLÉMENTAIRES — Automatisations et Contraintes</div>
+  <table>
+    <tr><th>Tâche ID</th><th>Description</th><th>Fichier(s) Java</th><th>Temps (h)</th><th>Priorité</th><th>Statut</th></tr>
+    <tr class="sys-row"><td>T-SYS.1</td><td>[SYSTÈME] Suppression en cascade des équipes lors de la suppression d'un événement (transaction JDBC)</td><td><span class="file">services/EvenementService.java</span></td><td>1h</td><td>94</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-SYS.2</td><td>[SYSTÈME] Empêcher participation à un événement annulé (bannière + masquage bouton Participer)</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>0.5h</td><td>89</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-SYS.3</td><td>[SYSTÈME] Empêcher participation à un événement terminé (bannière "Événement terminé")</td><td><span class="file">controllers/evenement/front/EvenementFrontController.java</span></td><td>0.5h</td><td>87</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-SYS.4</td><td>[SYSTÈME] Vérification conflit horaire lors de la création d'équipe (etudiantConflitHoraire)</td><td><span class="file">services/EquipeService.java</span></td><td>1.5h</td><td>91</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-SYS.5</td><td>[SYSTÈME] Suppression participation + équipe associée (supprimerAvecEquipe)</td><td><span class="file">services/ParticipationService.java</span></td><td>1h</td><td>80</td><td><span class="badge done-badge">✓ Réalisé</span></td></tr>
+    <tr class="sys-row"><td>T-SYS.6</td><td>[SYSTÈME] Envoi email rappel 3 jours avant événement — Non implémenté en Java</td><td>—</td><td>2h</td><td>60</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr class="sys-row"><td>T-SYS.7</td><td>[SYSTÈME] Génération certificat PDF après fin d'événement — Non implémenté en Java</td><td>—</td><td>3h</td><td>78</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+    <tr class="sys-row"><td>T-SYS.8</td><td>[SYSTÈME] Génération fichier .ics pour calendrier personnel — Non implémenté en Java</td><td>—</td><td>1.5h</td><td>45</td><td><span class="badge todo-badge">✗ À Faire</span></td></tr>
+  </table>
+</div>
+
+<!-- RÉSUMÉ -->
+<div style="background:white; border-radius:14px; padding:28px 32px; box-shadow:0 2px 12px rgba(0,0,0,0.07); margin-bottom:40px;">
+  <h2 style="color:#4c1d95; margin-top:0;">✅ Résumé du Sprint Backlog Java</h2>
+  <table style="width:100%;">
+    <tr style="background:#f8f7ff;">
+      <th style="padding:10px 16px; text-align:left; color:#4c1d95;">Métrique</th>
+      <th style="padding:10px 16px; text-align:left; color:#4c1d95;">Valeur</th>
+    </tr>
+    <tr><td style="padding:10px 16px;">Total User Stories</td><td style="padding:10px 16px; font-weight:700;">19 (Admin: 7, Étudiant: 12)</td></tr>
+    <tr style="background:#f8f7ff;"><td style="padding:10px 16px;">Total Tâches</td><td style="padding:10px 16px; font-weight:700;">~75 tâches (incluant tâches système)</td></tr>
+    <tr><td style="padding:10px 16px;">Temps Estimé Total</td><td style="padding:10px 16px; font-weight:700;">~120 heures</td></tr>
+    <tr style="background:#f8f7ff;"><td style="padding:10px 16px;">Tâches Réalisées</td><td style="padding:10px 16px; font-weight:700; color:#059669;">~58 tâches ✓</td></tr>
+    <tr><td style="padding:10px 16px;">Tâches À Faire</td><td style="padding:10px 16px; font-weight:700; color:#e11d48;">~17 tâches (email, PDF, IA, calendrier, météo, stats)</td></tr>
+    <tr style="background:#f8f7ff;"><td style="padding:10px 16px;">Tâches Système Intégrées</td><td style="padding:10px 16px; font-weight:700;">Validations contraintes, workflow statut, cascade suppression, conflit horaire</td></tr>
+    <tr><td style="padding:10px 16px;">Fonctionnalités Non Portées (Symfony → Java)</td><td style="padding:10px 16px; font-weight:700; color:#f59e0b;">Emails automatiques, Badge PDF, QR Code, Certificats, Rappels, IA Hugging Face, Calendrier FullCalendar, Météo API</td></tr>
+  </table>
+</div>
+
+<!-- LÉGENDE -->
+<div style="background:white; border-radius:14px; padding:20px 32px; box-shadow:0 2px 12px rgba(0,0,0,0.07); margin-bottom:40px;">
+  <h3 style="color:#4c1d95; margin-top:0;">📌 Légende</h3>
+  <div style="display:flex; gap:24px; flex-wrap:wrap;">
+    <div><span class="badge done-badge">✓ Réalisé</span> — Tâche implémentée dans le code Java</div>
+    <div><span class="badge partial-badge">⚡ Partiel</span> — Implémenté sans fonctionnalités avancées</div>
+    <div><span class="badge todo-badge">✗ À Faire</span> — Non implémenté, à développer</div>
+    <div style="background:#eff6ff; padding:3px 10px; border-radius:20px; font-size:0.78em; font-weight:700; color:#1e40af; display:inline-block;">[SYSTÈME]</div> — Tâche technique système intégrée dans une US utilisateur
+  </div>
+</div>
+
+</div><!-- end section -->
+</body>
+</html>
