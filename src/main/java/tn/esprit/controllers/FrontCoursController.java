@@ -14,8 +14,10 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import tn.esprit.entities.Cours;
+import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
+import tn.esprit.session.SessionManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,8 +37,9 @@ public class FrontCoursController {
     @FXML private TextField searchField;
     @FXML private Button   btnAll, btnDebutant, btnInter, btnAvance;
 
-    private final ServiceCours    serviceCours    = new ServiceCours();
-    private final ServiceChapitre serviceChapitre = new ServiceChapitre();
+    private final ServiceCours          serviceCours    = new ServiceCours();
+    private final ServiceChapitre       serviceChapitre = new ServiceChapitre();
+    private final CourseProgressService progressService = new CourseProgressService();
 
     private Consumer<Cours> onVoirChapitres;
     private List<Cours>     allCours;
@@ -157,6 +160,31 @@ public class FrontCoursController {
         sep.setPrefHeight(1);
         sep.setStyle("-fx-background-color:#f0f0f0;");
 
+        // Barre de progression
+        int userId = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
+        int progress = userId > 0 ? progressService.getCourseProgress(userId, cours.getId()) : 0;
+
+        // Couleur selon progression : rouge < 50%, orange 50-79%, vert >= 80%
+        String progressColor = progress >= 80 ? "#059669" : progress >= 50 ? "#f59e0b" : "#e94560";
+        String progressBgColor = progress >= 80 ? "rgba(5,150,105,0.1)" : progress >= 50 ? "rgba(245,158,11,0.1)" : "rgba(233,69,96,0.1)";
+
+        Label progressLabel = new Label("Progression : " + progress + "%");
+        progressLabel.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:" + progressColor + ";");
+
+        // Barre de progression
+        Region progressFill = new Region();
+        progressFill.setPrefHeight(8);
+        double fillRatio = Math.max(0, Math.min(progress, 100)) / 100.0;
+        progressFill.setPrefWidth(fillRatio * 252); // largeur max ~252px
+        progressFill.setStyle("-fx-background-color:" + progressColor + "; -fx-background-radius:4;");
+
+        HBox progressBarBox = new HBox(progressFill);
+        progressBarBox.setPrefHeight(8);
+        progressBarBox.setStyle("-fx-background-color:#f0f0f0; -fx-background-radius:4;");
+
+        VBox progressBox = new VBox(5, progressLabel, progressBarBox);
+        progressBox.setStyle("-fx-background-color:" + progressBgColor + "; -fx-background-radius:8; -fx-padding:8 10 8 10;");
+
         // Bouton
         Button btn = new Button("Voir les chapitres  →");
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -170,7 +198,7 @@ public class FrontCoursController {
         btn.setOnMouseEntered(e -> btn.setOpacity(0.88));
         btn.setOnMouseExited(e -> btn.setOpacity(1.0));
 
-        content.getChildren().addAll(titre, matiere, descLabel, sep, btn);
+        content.getChildren().addAll(titre, matiere, descLabel, sep, progressBox, btn);
 
         // ── Assembler la carte ──
         VBox card = new VBox(0, banner, content);

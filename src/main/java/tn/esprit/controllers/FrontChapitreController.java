@@ -18,11 +18,16 @@ import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
+import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.ServiceChapitre;
+import tn.esprit.session.SessionManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiConsumer;
 
 /**
@@ -36,13 +41,16 @@ public class FrontChapitreController {
     @FXML private Label labelEmpty;
     @FXML private VBox  chaptersContainer;
 
-    private final ServiceChapitre serviceChapitre = new ServiceChapitre();
+    private final ServiceChapitre       serviceChapitre = new ServiceChapitre();
+    private final CourseProgressService progressService  = new CourseProgressService();
 
     private BiConsumer<Cours, Chapitre>           onLireChapitre;
     private java.util.function.Consumer<Chapitre> onPasserQuiz;
     private Runnable                              onRetourCours;
+    private Set<Integer>                          completedIds = new HashSet<>();
 
     public void setOnLireChapitre(BiConsumer<Cours, Chapitre> callback) { this.onLireChapitre = callback; }
+    public BiConsumer<Cours, Chapitre> getOnLireChapitre() { return onLireChapitre; }
     public void setOnPasserQuiz(java.util.function.Consumer<Chapitre> callback) { this.onPasserQuiz = callback; }
     public void setOnRetourCours(Runnable callback) { this.onRetourCours = callback; }
     public java.util.function.Consumer<Chapitre> getOnPasserQuiz() { return onPasserQuiz; }
@@ -58,6 +66,13 @@ public class FrontChapitreController {
         labelCourseMeta.setText("Matière: " + cours.getMatiere()
             + "  |  Niveau: " + cours.getNiveau()
             + "  |  Durée: " + cours.getDuree() + "h");
+
+        // Charger les chapitres complétés par l'étudiant
+        if (SessionManager.getCurrentUser() != null) {
+            completedIds = new HashSet<>(
+                progressService.getCompletedChapitreIds(
+                    SessionManager.getCurrentUser().getId(), cours.getId()));
+        }
 
         List<Chapitre> chapitres = serviceChapitre.consulterParCoursId(cours.getId());
         chaptersContainer.getChildren().clear();
@@ -124,6 +139,16 @@ public class FrontChapitreController {
         HBox badgeBox = new HBox(badge);
         badgeBox.setAlignment(Pos.CENTER);
 
+        // Badge "✓ Complété" si le chapitre est réussi
+        boolean completed = completedIds.contains(chapitre.getId());
+        Label completedBadge = new Label("✓  Complété");
+        completedBadge.setStyle("-fx-background-color:rgba(5,150,105,0.12);"
+            + "-fx-text-fill:#059669; -fx-font-size:11; -fx-font-weight:700;"
+            + "-fx-padding:4 12 4 12; -fx-background-radius:999;");
+        completedBadge.setVisible(completed); completedBadge.setManaged(completed);
+        HBox completedBox = new HBox(completedBadge);
+        completedBox.setAlignment(Pos.CENTER);
+
         // Cours parent
         Label coursLabel = new Label("🎓  " + cours.getTitre());
         coursLabel.setStyle("-fx-font-size:11; -fx-text-fill:#94a3b8;");
@@ -156,7 +181,7 @@ public class FrontChapitreController {
 
         VBox buttons = new VBox(8, btnLire, btnPdf, btnQuiz);
 
-        VBox card = new VBox(12, iconBox, titre, contenu, badgeBox, coursBox, buttons);
+        VBox card = new VBox(12, iconBox, titre, contenu, badgeBox, completedBox, coursBox, buttons);
         card.setAlignment(Pos.TOP_CENTER);
         card.setPrefWidth(240);
         card.setMaxWidth(240);
