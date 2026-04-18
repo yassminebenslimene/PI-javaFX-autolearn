@@ -71,7 +71,7 @@ public class NavbarController {
         else navigate(() -> MainApp.showFrontoffice());
     }
     @FXML private void onCours() {
-        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/user/index.fxml", "Cours"));
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/cours/index.fxml", "Cours"));
         else navigate(() -> MainApp.showFrontoffice());
     }
     @FXML private void onEvenements() {

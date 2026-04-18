@@ -66,7 +66,6 @@ public class UserService implements IUserService {
         return null;
     }
 
-    /** Find by email — used for login */
     public User trouverParEmail(String email) {
         Connection cnx = getConn();
         if (cnx == null) return null;
