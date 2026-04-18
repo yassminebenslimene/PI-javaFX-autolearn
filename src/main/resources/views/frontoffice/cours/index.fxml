@@ -3,22 +3,88 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color:transparent; -fx-background:#f1f5f9;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.FrontCoursController">
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER"
+            style="-fx-background-color:transparent; -fx-background:#f4f6fb; -fx-border-width:0;"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.controllers.FrontCoursController">
     <content>
-        <VBox spacing="14" style="-fx-background-color:#f1f5f9;">
-            <padding><Insets top="20" right="20" bottom="28" left="20"/></padding>
+        <VBox spacing="0" style="-fx-background-color:#f4f6fb;">
 
-            <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color:white; -fx-background-radius:14; -fx-border-color:#e2e8f0; -fx-border-radius:14; -fx-padding:16;">
-                <Label text="Catalogue des cours" style="-fx-text-fill:#0f172a; -fx-font-size:24; -fx-font-weight:900;"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Total:" style="-fx-text-fill:#64748b; -fx-font-weight:700;"/>
-                <Label fx:id="labelTotalCours" text="0" style="-fx-text-fill:#2563eb; -fx-font-size:20; -fx-font-weight:900;"/>
+            <!-- HEADER BANNER -->
+            <VBox spacing="10" alignment="CENTER_LEFT"
+                  style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                         -fx-padding:36 60 36 60;">
+                <Label text="Catalogue des Cours"
+                       style="-fx-text-fill:white; -fx-font-size:30; -fx-font-weight:900;"/>
+                <Label text="Explorez toutes nos formations et commencez votre apprentissage"
+                       style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:14;"/>
+                <HBox spacing="20" style="-fx-padding:10 0 0 0;">
+                    <VBox alignment="CENTER" spacing="2"
+                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-padding:10 20 10 20;">
+                        <Label fx:id="labelTotalCours" text="0"
+                               style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:800;"/>
+                        <Label text="Cours disponibles"
+                               style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:11;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2"
+                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-padding:10 20 10 20;">
+                        <Label fx:id="labelTotalChapitres" text="0"
+                               style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:800;"/>
+                        <Label text="Chapitres au total"
+                               style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:11;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- SEARCH BAR -->
+            <HBox alignment="CENTER" style="-fx-padding:24 60 8 60; -fx-background-color:#f4f6fb;">
+                <HBox alignment="CENTER_LEFT" spacing="10" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color:white; -fx-background-radius:30;
+                             -fx-border-color:#e0e0e0; -fx-border-radius:30;
+                             -fx-padding:10 18 10 18;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),8,0,0,2);">
+                    <Label text="🔍" style="-fx-font-size:14; -fx-text-fill:#aaa;"/>
+                    <TextField fx:id="searchField" onKeyReleased="#onSearch"
+                               promptText="Rechercher un cours, une matière..."
+                               style="-fx-background-color:transparent; -fx-border-width:0;
+                                      -fx-font-size:14; -fx-text-fill:#333;
+                                      -fx-prompt-text-fill:#bbb;" prefWidth="500"/>
+                    <Button onAction="#onClearSearch" text="✕"
+                            style="-fx-background-color:transparent; -fx-text-fill:#bbb;
+                                   -fx-cursor:hand; -fx-border-width:0; -fx-font-size:13;"/>
+                </HBox>
             </HBox>
 
-            <Label fx:id="labelEmpty" text="Aucun cours disponible pour le moment." visible="false" managed="false"
-                   style="-fx-text-fill:#64748b; -fx-font-size:13; -fx-padding:8 4 8 4;"/>
+            <!-- FILTER BADGES -->
+            <HBox spacing="10" alignment="CENTER_LEFT"
+                  style="-fx-padding:12 60 16 60; -fx-background-color:#f4f6fb;">
+                <Button fx:id="btnAll" text="Tous" onAction="#onFilterAll"
+                        style="-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:12;
+                               -fx-font-weight:700; -fx-padding:6 18 6 18; -fx-background-radius:20;
+                               -fx-cursor:hand; -fx-border-width:0;"/>
+                <Button fx:id="btnDebutant" text="Débutant" onAction="#onFilterDebutant"
+                        style="-fx-background-color:white; -fx-text-fill:#059669; -fx-font-size:12;
+                               -fx-font-weight:600; -fx-padding:6 18 6 18; -fx-background-radius:20;
+                               -fx-cursor:hand; -fx-border-color:#059669; -fx-border-width:1; -fx-border-radius:20;"/>
+                <Button fx:id="btnInter" text="Intermédiaire" onAction="#onFilterInter"
+                        style="-fx-background-color:white; -fx-text-fill:#f59e0b; -fx-font-size:12;
+                               -fx-font-weight:600; -fx-padding:6 18 6 18; -fx-background-radius:20;
+                               -fx-cursor:hand; -fx-border-color:#f59e0b; -fx-border-width:1; -fx-border-radius:20;"/>
+                <Button fx:id="btnAvance" text="Avancé" onAction="#onFilterAvance"
+                        style="-fx-background-color:white; -fx-text-fill:#e94560; -fx-font-size:12;
+                               -fx-font-weight:600; -fx-padding:6 18 6 18; -fx-background-radius:20;
+                               -fx-cursor:hand; -fx-border-color:#e94560; -fx-border-width:1; -fx-border-radius:20;"/>
+            </HBox>
 
-            <VBox fx:id="cardsContainer" spacing="12"/>
+            <!-- EMPTY STATE -->
+            <Label fx:id="labelEmpty" text="Aucun cours trouvé." visible="false" managed="false"
+                   style="-fx-text-fill:#aaa; -fx-font-size:15; -fx-padding:40 60 0 60;"/>
+
+            <!-- CARDS GRID -->
+            <FlowPane fx:id="cardsContainer" hgap="24" vgap="24"
+                      style="-fx-padding:0 60 40 60; -fx-background-color:#f4f6fb;"
+                      prefWrapLength="1000"/>
+
         </VBox>
     </content>
 </ScrollPane>

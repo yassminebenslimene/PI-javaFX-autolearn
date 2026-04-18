@@ -36,6 +36,16 @@ public class FrontofficeController {
     @FXML private Label labelChallengesCount;
     @FXML private Label labelEtudiantsCount;
 
+    // Navbar buttons (pour gérer l'état actif)
+    @FXML private Button btnHome;
+    @FXML private Button btnCours;
+    @FXML private Button btnChallenges;
+    @FXML private Button btnEvenements;
+    @FXML private Button btnCommunaute;
+
+    private static final String NAV_ACTIVE   = "-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0; -fx-background-radius:8;";
+    private static final String NAV_INACTIVE = "-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
+
     // Slider icons (set in Java to avoid encoding issues)
     @FXML private Label slide1Icon, slide2Icon, slide3Icon;
     @FXML private Label aboutIcon1, aboutIcon2, aboutIcon3, aboutIcon4;
@@ -53,6 +63,7 @@ public class FrontofficeController {
 
     // Container dynamique pour les cartes de cours
     @FXML private HBox coursCardsContainer;
+    @FXML private HBox challengeCardsContainer;
     @FXML private ScrollPane mainScrollPane;
 
     private javafx.scene.Node homeCenter;
@@ -107,6 +118,8 @@ public class FrontofficeController {
 
                 // Charger les vraies cartes de cours
                 if (coursCardsContainer != null) loadCoursCards();
+                // Charger les cartes challenges
+                if (challengeCardsContainer != null) loadChallengeCards();
 
                 // Démarrer le slider automatique
                 startSlider();
@@ -135,16 +148,74 @@ public class FrontofficeController {
         String[] icons = {"📚", "🤖", "🏆", "💡", "🔬", "🎯"};
         String[] colors = {"rgba(122,106,216,0.1)", "rgba(251,191,36,0.12)", "rgba(52,211,153,0.12)",
                            "rgba(239,68,68,0.1)", "rgba(59,130,246,0.1)", "rgba(168,85,247,0.1)"};
-        int max = Math.min(cours.size(), 3);
+        // Afficher jusqu'à 4 cours sur la page d'accueil
+        int max = Math.min(cours.size(), 4);
         for (int i = 0; i < max; i++) {
             Cours c = cours.get(i);
             coursCardsContainer.getChildren().add(buildCoursCard(c, icons[i % icons.length], colors[i % colors.length]));
         }
-        // Si moins de 3 cours, compléter avec des placeholders vides
         if (cours.isEmpty()) {
             Label empty = new Label("Aucun cours disponible pour le moment.");
             empty.setStyle("-fx-text-fill:#888; -fx-font-size:14;");
             coursCardsContainer.getChildren().add(empty);
+        }
+    }
+
+    private void loadChallengeCards() {
+        challengeCardsContainer.getChildren().clear();
+        var challenges = challengeService.getAll();
+        String[] colors = {"#e94560", "#7a6ad8", "#059669", "#f59e0b"};
+        String[] icons  = {"🏆", "⚡", "🎯", "🔥"};
+        int max = Math.min(challenges.size(), 4);
+        for (int i = 0; i < max; i++) {
+            var c = challenges.get(i);
+            int idx = i;
+            // Card challenge
+            Label titre = new Label(c.getTitre());
+            titre.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+            titre.setWrapText(true);
+
+            String col = colors[idx % colors.length];
+            Label niveauBadge = new Label(c.getNiveau() != null ? c.getNiveau() : "");
+            niveauBadge.setStyle("-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:" + col +
+                                 "; -fx-background-color:rgba(0,0,0,0.06); -fx-background-radius:10; -fx-padding:2 8 2 8;");
+
+            Label duree = new Label("⏱  " + c.getDuree() + " min");
+            duree.setStyle("-fx-font-size:12; -fx-text-fill:#999;");
+
+            String desc = c.getDescription() != null ? c.getDescription() : "";
+            if (desc.length() > 80) desc = desc.substring(0, 80) + "...";
+            Label descLabel = new Label(desc);
+            descLabel.setWrapText(true);
+            descLabel.setStyle("-fx-font-size:12; -fx-text-fill:#666; -fx-line-spacing:3;");
+
+            Button btn = new Button("Relever le challenge  →");
+            btn.setMaxWidth(Double.MAX_VALUE);
+            btn.setStyle("-fx-background-color:linear-gradient(to right," + col + "," + col + ");" +
+                         "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;" +
+                         "-fx-padding:10 20 10 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+            btn.setOnAction(e -> onChallenges());
+
+            // Icône en haut
+            Label iconLabel = new Label(icons[idx % icons.length]);
+            iconLabel.setStyle("-fx-font-size:36; -fx-background-color:rgba(0,0,0,0.04);" +
+                               "-fx-background-radius:12; -fx-padding:12 16 12 16;");
+
+            VBox content = new VBox(10, iconLabel, titre, niveauBadge, duree, descLabel, btn);
+            content.setPadding(new Insets(16));
+
+            VBox card = new VBox(0, content);
+            card.setPrefWidth(240);
+            card.setMaxWidth(240);
+            card.setStyle("-fx-background-color:white; -fx-background-radius:16;" +
+                          "-fx-border-color:#eeeeee; -fx-border-radius:16;" +
+                          "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);");
+            challengeCardsContainer.getChildren().add(card);
+        }
+        if (challenges.isEmpty()) {
+            Label empty = new Label("Aucun challenge disponible pour le moment.");
+            empty.setStyle("-fx-text-fill:#888; -fx-font-size:14;");
+            challengeCardsContainer.getChildren().add(empty);
         }
     }
 
@@ -216,6 +287,7 @@ public class FrontofficeController {
     // ── Navigation — seul le center change, la navbar reste fixe ──────────────
 
     @FXML public void onHome() {
+        setActiveNav(btnHome);
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
@@ -224,17 +296,16 @@ public class FrontofficeController {
         else if (mainScrollPane != null) root.setCenter(mainScrollPane);
     }
 
-    @FXML public void onCours() { naviguerVersCours(); }
+    @FXML public void onCours() { setActiveNav(btnCours); naviguerVersCours(); }
 
-    @FXML public void onViewCourses() { naviguerVersCours(); }
+    @FXML public void onViewCourses() { setActiveNav(btnCours); naviguerVersCours(); }
 
     private void naviguerVersCours() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/cours/index.fxml"));
             Parent view = loader.load();
             FrontCoursController ctrl = loader.getController();
-            ctrl.setOnVoirChapitres(cours -> {
-                try {
+            ctrl.setOnVoirChapitres(cours -> {                try {
                     FXMLLoader chapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
                     Parent chapView = chapLoader.load();
                     FrontChapitreController chapCtrl = chapLoader.getController();
@@ -256,11 +327,24 @@ public class FrontofficeController {
                             FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
                             Parent quizView = quizLoader.load();
                             FrontQuizController quizCtrl = quizLoader.getController();
-                            quizCtrl.setChapitre(chapitre, () -> setCenter(chapView));
+                            // Après le quiz → recharger les chapitres pour mettre à jour la progression
+                            quizCtrl.setChapitre(chapitre, () -> {
+                                try {
+                                    FXMLLoader newChapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
+                                    Parent newChapView = newChapLoader.load();
+                                    FrontChapitreController newChapCtrl = newChapLoader.getController();
+                                    newChapCtrl.setOnLireChapitre(chapCtrl.getOnLireChapitre());
+                                    newChapCtrl.setOnPasserQuiz(chapCtrl.getOnPasserQuiz());
+                                    newChapCtrl.setOnRetourCours(() -> naviguerVersCours());
+                                    newChapCtrl.setCours(cours); // recharge avec completedIds à jour
+                                    setCenter(newChapView);
+                                } catch (Exception ex) { setCenter(chapView); }
+                            });
                             setCenterDirect(quizView);
                             javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
                         } catch (Exception ex) { ex.printStackTrace(); }
                     });
+                    chapCtrl.setOnRetourCours(() -> naviguerVersCours());
                     chapCtrl.setCours(cours);
                     setCenter(chapView);
                 } catch (Exception ex) { ex.printStackTrace(); }
@@ -271,6 +355,7 @@ public class FrontofficeController {
     }
 
     @FXML public void onEvenements() {
+        setActiveNav(btnEvenements);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/evenements.fxml"));
             BorderPane bp = loader.load();
@@ -279,6 +364,7 @@ public class FrontofficeController {
     }
 
     @FXML public void onCommunaute() {
+        setActiveNav(btnCommunaute);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/communaute/index.fxml"));
             javafx.scene.Node root = loader.load();
@@ -290,10 +376,10 @@ public class FrontofficeController {
     }
 
     @FXML public void onChallenges() {
+        setActiveNav(btnChallenges);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
             BorderPane bp = loader.load();
-            // Extraire seulement le center pour éviter la double navbar
             setCenter((Parent) bp.getCenter());
         } catch (Exception e) { e.printStackTrace(); }
     }
@@ -391,6 +477,14 @@ public class FrontofficeController {
         contactStatus.setText("Message envoyé avec succès ! Nous vous répondrons sous 24h.");
         contactStatus.setStyle("-fx-text-fill:#059669; -fx-font-size:12;");
         contactStatus.setVisible(true); contactStatus.setManaged(true);
+    }
+
+    private void setActiveNav(Button active) {
+        Button[] all = {btnHome, btnCours, btnChallenges, btnEvenements, btnCommunaute};
+        for (Button b : all) {
+            if (b == null) continue;
+            b.setStyle(b == active ? NAV_ACTIVE : NAV_INACTIVE);
+        }
     }
 
     private void setCenter(Parent view) {
