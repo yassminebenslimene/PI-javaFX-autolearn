@@ -176,6 +176,12 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Feedback");
     }
 
+    public static void showCalendrierEvenements() throws Exception {
+        load("/views/frontoffice/calendrier_evenements.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Calendrier des Événements");
+    }
+
     private static FXMLLoader getLoader(String fxml) throws Exception {
         java.net.URL resource = MainApp.class.getResource(fxml);
         if (resource == null) throw new Exception("FXML not found: " + fxml);
