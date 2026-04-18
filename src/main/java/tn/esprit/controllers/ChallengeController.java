@@ -154,8 +154,16 @@ public class ChallengeController {
                             "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
             );
 
+            // Empêcher la fermeture automatique du dialog
+            Button saveBtn = (Button) dialog.getDialogPane().lookupButton(saveButton);
+            saveBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+                if (!formController.validateFields()) {
+                    event.consume(); // Empêche la fermeture du dialog
+                }
+            });
+
             dialog.showAndWait().ifPresent(response -> {
-                if (response == saveButton && formController.validateFields()) {
+                if (response == saveButton) {
                     Challenge updatedChallenge = formController.getChallenge();
                     updatedChallenge.setCreatedBy(SessionManager.getCurrentUser().getId());
 

@@ -37,7 +37,28 @@ public class ChallengeFormController {
     private ExerciceService exerciceService;
     private List<ExerciceCard> exerciceCards = new ArrayList<>();
     private boolean isEditMode = false;
+    // Styles pour les champs
+    private final String DEFAULT_STYLE = "-fx-background-color:rgba(255,255,255,0.08); " +
+            "-fx-border-color:rgba(255,255,255,0.15); " +
+            "-fx-border-radius:8; -fx-background-radius:8; " +
+            "-fx-padding:10 14 10 14; -fx-font-size:13; " +
+            "-fx-text-fill:white;";
 
+    private final String ERROR_STYLE = "-fx-background-color:rgba(239,68,68,0.08); " +
+            "-fx-border-color:#ef4444; " +
+            "-fx-border-radius:8; -fx-background-radius:8; " +
+            "-fx-padding:10 14 10 14; -fx-font-size:13; " +
+            "-fx-text-fill:white;";
+
+    private final String DATE_STYLE = "-fx-border-color:rgba(255,255,255,0.15); " +
+            "-fx-background-color:rgba(255,255,255,0.08); " +
+            "-fx-border-radius:8; -fx-background-radius:8; " +
+            "-fx-text-fill:white;";
+
+    private final String DATE_ERROR_STYLE = "-fx-border-color:#ef4444; " +
+            "-fx-background-color:rgba(239,68,68,0.08); " +
+            "-fx-border-radius:8; -fx-background-radius:8; " +
+            "-fx-text-fill:white;";
     // Classe interne pour gérer les cartes d'exercices
     private class ExerciceCard extends VBox {
         private Exercice exercice;
@@ -105,6 +126,37 @@ public class ChallengeFormController {
         // Initialiser les niveaux
         comboNiveau.setItems(FXCollections.observableArrayList("Débutant", "Intermédiaire", "Avancé"));
 
+        // Listeners pour réinitialiser les styles quand l'utilisateur tape
+        txtTitre.textProperty().addListener((obs, oldVal, newVal) -> {
+            errorTitre.setText("");
+            txtTitre.setStyle(DEFAULT_STYLE);
+        });
+
+        txtDescription.textProperty().addListener((obs, oldVal, newVal) -> {
+            errorDescription.setText("");
+            txtDescription.setStyle(DEFAULT_STYLE);
+        });
+
+        txtDuree.textProperty().addListener((obs, oldVal, newVal) -> {
+            errorDuree.setText("");
+            txtDuree.setStyle(DEFAULT_STYLE);
+        });
+
+        dateDebut.valueProperty().addListener((obs, oldVal, newVal) -> {
+            errorDateDebut.setText("");
+            dateDebut.setStyle(DATE_STYLE);
+        });
+
+        dateFin.valueProperty().addListener((obs, oldVal, newVal) -> {
+            errorDateFin.setText("");
+            dateFin.setStyle(DATE_STYLE);
+        });
+
+        comboNiveau.valueProperty().addListener((obs, oldVal, newVal) -> {
+            errorNiveau.setText("");
+            comboNiveau.setStyle(DEFAULT_STYLE);
+        });
+
         // Style personnalisé pour le ComboBox
         comboNiveau.setButtonCell(new ListCell<String>() {
             @Override
@@ -129,13 +181,6 @@ public class ChallengeFormController {
                     setText(item);
                     setStyle("-fx-text-fill:white; -fx-background-color:#1a1a2e;");
                 }
-            }
-        });
-
-        // Validation de la durée
-        txtDuree.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*")) {
-                txtDuree.setText(newVal.replaceAll("[^\\d]", ""));
             }
         });
     }
@@ -195,7 +240,7 @@ public class ChallengeFormController {
     public boolean validateFields() {
         boolean isValid = true;
 
-        // Reset errors
+        // Reset errors et styles
         errorTitre.setText("");
         errorDescription.setText("");
         errorDateDebut.setText("");
@@ -203,54 +248,104 @@ public class ChallengeFormController {
         errorNiveau.setText("");
         errorDuree.setText("");
 
+        txtTitre.setStyle(DEFAULT_STYLE);
+        txtDescription.setStyle(DEFAULT_STYLE);
+        txtDuree.setStyle(DEFAULT_STYLE);
+        dateDebut.setStyle(DATE_STYLE);
+        dateFin.setStyle(DATE_STYLE);
+        comboNiveau.setStyle(DEFAULT_STYLE);
+
+        // Validation Titre
         String titre = txtTitre.getText().trim();
         if (titre.isEmpty()) {
-            errorTitre.setText("Le titre ne peut pas être vide");
+            errorTitre.setText("⚠ Le titre ne peut pas être vide");
+            txtTitre.setStyle(ERROR_STYLE);
+            isValid = false;
+        } else if (titre.length() < 3) {
+            errorTitre.setText("⚠ Le titre doit contenir au moins 3 caractères");
+            txtTitre.setStyle(ERROR_STYLE);
+            isValid = false;
+        } else if (titre.length() > 100) {
+            errorTitre.setText("⚠ Le titre ne peut pas dépasser 100 caractères");
+            txtTitre.setStyle(ERROR_STYLE);
             isValid = false;
         }
 
+        // Validation Description
         String description = txtDescription.getText().trim();
         if (description.isEmpty()) {
-            errorDescription.setText("La description ne peut pas être vide");
+            errorDescription.setText("⚠ La description ne peut pas être vide");
+            txtDescription.setStyle(ERROR_STYLE);
+            isValid = false;
+        } else if (description.length() < 10) {
+            errorDescription.setText("⚠ La description doit contenir au moins 10 caractères");
+            txtDescription.setStyle(ERROR_STYLE);
+            isValid = false;
+        } else if (description.length() > 500) {
+            errorDescription.setText("⚠ La description ne peut pas dépasser 500 caractères");
+            txtDescription.setStyle(ERROR_STYLE);
             isValid = false;
         }
 
+        // Validation Date Début
         LocalDate debut = dateDebut.getValue();
         if (debut == null) {
-            errorDateDebut.setText("La date de début est obligatoire");
+            errorDateDebut.setText("⚠ La date de début est obligatoire");
+            dateDebut.setStyle(DATE_ERROR_STYLE);
+            isValid = false;
+        } else if (debut.isBefore(LocalDate.now())) {
+            errorDateDebut.setText("⚠ La date de début ne peut pas être dans le passé");
+            dateDebut.setStyle(DATE_ERROR_STYLE);
             isValid = false;
         }
 
+        // Validation Date Fin
         LocalDate fin = dateFin.getValue();
         if (fin == null) {
-            errorDateFin.setText("La date de fin est obligatoire");
+            errorDateFin.setText("⚠ La date de fin est obligatoire");
+            dateFin.setStyle(DATE_ERROR_STYLE);
             isValid = false;
         } else if (debut != null && fin.isBefore(debut)) {
-            errorDateFin.setText("La date de fin doit être après la date de début");
+            errorDateFin.setText("⚠ La date de fin doit être après la date de début");
+            dateFin.setStyle(DATE_ERROR_STYLE);
             isValid = false;
         }
 
+        // Validation Niveau
         String niveau = comboNiveau.getValue();
         if (niveau == null || niveau.isEmpty()) {
-            errorNiveau.setText("Veuillez sélectionner un niveau");
+            errorNiveau.setText("⚠ Veuillez sélectionner un niveau");
+            comboNiveau.setStyle(ERROR_STYLE);
+            isValid = false;
+        } else if (!niveau.equals("Débutant") && !niveau.equals("Intermédiaire") && !niveau.equals("Avancé")) {
+            errorNiveau.setText("⚠ Le niveau doit être: Débutant, Intermédiaire ou Avancé");
+            comboNiveau.setStyle(ERROR_STYLE);
             isValid = false;
         }
 
+        // Validation Durée
         String dureeStr = txtDuree.getText().trim();
         if (dureeStr.isEmpty()) {
-            errorDuree.setText("La durée est obligatoire");
+            errorDuree.setText("⚠ La durée est obligatoire");
+            txtDuree.setStyle(ERROR_STYLE);
             isValid = false;
         } else {
             try {
                 int duree = Integer.parseInt(dureeStr);
                 if (duree <= 0) {
-                    errorDuree.setText("La durée doit être positive");
+                    errorDuree.setText("⚠ La durée doit être positive");
+                    txtDuree.setStyle(ERROR_STYLE);
+                    isValid = false;
+                } else if (duree > 600) {
+                    errorDuree.setText("⚠ La durée ne peut pas dépasser 600 minutes (10 heures)");
+                    txtDuree.setStyle(ERROR_STYLE);
                     isValid = false;
                 } else {
                     challenge.setDuree(duree);
                 }
             } catch (NumberFormatException e) {
-                errorDuree.setText("La durée doit être un nombre valide");
+                errorDuree.setText("⚠ La durée doit être un nombre valide");
+                txtDuree.setStyle(ERROR_STYLE);
                 isValid = false;
             }
         }
@@ -262,7 +357,7 @@ public class ChallengeFormController {
             challenge.setDateFin(fin);
             challenge.setNiveau(niveau);
 
-            // Récupérer les IDs des exercices sélectionnés
+            // Récupérer les IDs des exercices sélectionnés (optionnel)
             List<Integer> exerciceIds = new ArrayList<>();
             for (ExerciceCard card : exerciceCards) {
                 if (card.isSelected()) {
@@ -274,4 +369,5 @@ public class ChallengeFormController {
 
         return isValid;
     }
+
 }

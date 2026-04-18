@@ -128,20 +128,8 @@ public class ExerciceController {
 
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             DialogPane dialogPane = loader.load();
-
-            TextField txtQuestion = (TextField) dialogPane.lookup("#txtQuestion");
-            TextField txtReponse = (TextField) dialogPane.lookup("#txtReponse");
-            TextField txtPoints = (TextField) dialogPane.lookup("#txtPoints");
-            Label dialogTitle = (Label) dialogPane.lookup("#dialogTitle");
-
-            if (isEdit && exercice != null) {
-                dialogTitle.setText("Modifier l'exercice");
-                txtQuestion.setText(exercice.getQuestion());
-                txtReponse.setText(exercice.getReponse());
-                txtPoints.setText(String.valueOf(exercice.getPoints()));
-            } else {
-                dialogTitle.setText("Ajouter un exercice");
-            }
+            ExerciceFormController formController = loader.getController();
+            formController.setExercice(exercice);
 
             ButtonType saveButton = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
             ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -152,6 +140,7 @@ public class ExerciceController {
             dialog.initOwner(exercicesContainer.getScene().getWindow());
             dialog.getDialogPane().getButtonTypes().addAll(saveButton, cancelButton);
 
+            // Style des boutons
             dialog.getDialogPane().lookupButton(saveButton).setStyle(
                     "-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold; " +
                             "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
@@ -161,50 +150,25 @@ public class ExerciceController {
                             "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
             );
 
-            Button cancelBtn = (Button) dialog.getDialogPane().lookupButton(cancelButton);
-            cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(
-                    "-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold; " +
-                            "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
-            ));
-            cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(
-                    "-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold; " +
-                            "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
-            ));
+            // Empêcher la fermeture automatique du dialog
+            Button saveBtn = (Button) dialog.getDialogPane().lookupButton(saveButton);
+            saveBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+                if (!formController.validateFields()) {
+                    event.consume(); // Empêche la fermeture du dialog
+                }
+            });
 
             dialog.showAndWait().ifPresent(response -> {
                 if (response == saveButton) {
-                    String question = txtQuestion.getText().trim();
-                    String reponse = txtReponse.getText().trim();
-                    String pointsStr = txtPoints.getText().trim();
-
-                    if (question.isEmpty() || reponse.isEmpty() || pointsStr.isEmpty()) {
-                        showAlert(Alert.AlertType.WARNING, "Attention", "Tous les champs sont obligatoires");
-                        return;
+                    Exercice updatedExercice = formController.getExercice();
+                    if (isEdit && exercice != null) {
+                        exerciceService.update(updatedExercice);
+                        showSuccessMessage("Exercice modifié avec succès !");
+                    } else {
+                        exerciceService.add(updatedExercice);
+                        showSuccessMessage("Exercice ajouté avec succès !");
                     }
-
-                    try {
-                        int points = Integer.parseInt(pointsStr);
-                        if (points <= 0) {
-                            showAlert(Alert.AlertType.WARNING, "Attention", "Les points doivent être positifs");
-                            return;
-                        }
-
-                        if (isEdit && exercice != null) {
-                            exercice.setQuestion(question);
-                            exercice.setReponse(reponse);
-                            exercice.setPoints(points);
-                            exerciceService.update(exercice);
-                            showSuccessMessage("Exercice modifié avec succès !");
-                        } else {
-                            Exercice newExercice = new Exercice(question, reponse, points);
-                            exerciceService.add(newExercice);
-                            showSuccessMessage("Exercice ajouté avec succès !");
-                        }
-                        loadExercices();
-
-                    } catch (NumberFormatException e) {
-                        showAlert(Alert.AlertType.ERROR, "Erreur", "Les points doivent être un nombre valide");
-                    }
+                    loadExercices();
                 }
             });
 
