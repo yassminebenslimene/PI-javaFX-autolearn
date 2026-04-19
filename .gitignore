@@ -42,3 +42,6 @@ symfony/
 
 ### IntelliJ Run Configurations (local paths, not shared) ###
 .idea/runConfigurations/
+
+### Duplicate nested folder (artifact from GestionUser merge) ###
+Downloads/
