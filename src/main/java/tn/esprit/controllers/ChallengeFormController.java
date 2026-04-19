@@ -7,7 +7,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import tn.esprit.entities.Challenge;
 import tn.esprit.entities.Exercice;
+import tn.esprit.entities.Quiz;
 import tn.esprit.services.ExerciceService;
+import tn.esprit.services.ServiceQuiz;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ public class ChallengeFormController {
     @FXML private TextField txtId;
 
     @FXML private FlowPane exercicesContainer;
+    @FXML private FlowPane quizsContainer;
 
     @FXML private Label errorTitre;
     @FXML private Label errorDescription;
@@ -35,8 +38,11 @@ public class ChallengeFormController {
 
     private Challenge challenge;
     private ExerciceService exerciceService;
+    private ServiceQuiz quizService;
     private List<ExerciceCard> exerciceCards = new ArrayList<>();
+    private List<QuizCard> quizCards = new ArrayList<>();
     private boolean isEditMode = false;
+
     // Styles pour les champs
     private final String DEFAULT_STYLE = "-fx-background-color:rgba(255,255,255,0.08); " +
             "-fx-border-color:rgba(255,255,255,0.15); " +
@@ -59,7 +65,8 @@ public class ChallengeFormController {
             "-fx-background-color:rgba(239,68,68,0.08); " +
             "-fx-border-radius:8; -fx-background-radius:8; " +
             "-fx-text-fill:white;";
-    // Classe interne pour gérer les cartes d'exercices
+
+    // Classe interne pour les cartes d'exercices
     private class ExerciceCard extends VBox {
         private Exercice exercice;
         private boolean selected = false;
@@ -85,8 +92,6 @@ public class ChallengeFormController {
             VBox.setMargin(questionLabel, new Insets(0, 0, 8, 0));
 
             getChildren().addAll(questionLabel, pointsLabel);
-
-            // Gestion du clic
             setOnMouseClicked(e -> toggleSelection());
         }
 
@@ -112,13 +117,65 @@ public class ChallengeFormController {
             }
         }
 
-        public boolean isSelected() {
-            return selected;
+        public boolean isSelected() { return selected; }
+        public Exercice getExercice() { return exercice; }
+    }
+
+    // Classe interne pour les cartes de quiz
+    private class QuizCard extends VBox {
+        private Quiz quiz;
+        private boolean selected = false;
+        private Label titreLabel;
+        private Label etatLabel;
+
+        public QuizCard(Quiz quiz) {
+            this.quiz = quiz;
+
+            setPrefWidth(180);
+            setMinWidth(160);
+            setMaxWidth(200);
+            setStyle("-fx-background-color:rgba(255,255,255,0.05); -fx-border-color:rgba(255,255,255,0.15); " +
+                    "-fx-border-radius:10; -fx-background-radius:10; -fx-padding:12; -fx-cursor:hand;");
+
+            titreLabel = new Label(quiz.getTitre());
+            titreLabel.setWrapText(true);
+            titreLabel.setStyle("-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold;");
+
+            etatLabel = new Label("📋 " + quiz.getEtat());
+            String etatColor = quiz.getEtat().equals("actif") ? "#34d399" :
+                    (quiz.getEtat().equals("inactif") ? "#f87171" : "#fbbf24");
+            etatLabel.setStyle("-fx-text-fill:" + etatColor + "; -fx-font-size:11;");
+
+            VBox.setMargin(titreLabel, new Insets(0, 0, 8, 0));
+
+            getChildren().addAll(titreLabel, etatLabel);
+            setOnMouseClicked(e -> toggleSelection());
         }
 
-        public Exercice getExercice() {
-            return exercice;
+        public void toggleSelection() {
+            selected = !selected;
+            if (selected) {
+                setStyle("-fx-background-color:rgba(5,150,105,0.2); -fx-border-color:#059669; " +
+                        "-fx-border-radius:10; -fx-background-radius:10; -fx-padding:12; -fx-cursor:hand;");
+            } else {
+                setStyle("-fx-background-color:rgba(255,255,255,0.05); -fx-border-color:rgba(255,255,255,0.15); " +
+                        "-fx-border-radius:10; -fx-background-radius:10; -fx-padding:12; -fx-cursor:hand;");
+            }
         }
+
+        public void setSelected(boolean selected) {
+            this.selected = selected;
+            if (selected) {
+                setStyle("-fx-background-color:rgba(5,150,105,0.2); -fx-border-color:#059669; " +
+                        "-fx-border-radius:10; -fx-background-radius:10; -fx-padding:12; -fx-cursor:hand;");
+            } else {
+                setStyle("-fx-background-color:rgba(255,255,255,0.05); -fx-border-color:rgba(255,255,255,0.15); " +
+                        "-fx-border-radius:10; -fx-background-radius:10; -fx-padding:12; -fx-cursor:hand;");
+            }
+        }
+
+        public boolean isSelected() { return selected; }
+        public Quiz getQuiz() { return quiz; }
     }
 
     @FXML
@@ -126,7 +183,7 @@ public class ChallengeFormController {
         // Initialiser les niveaux
         comboNiveau.setItems(FXCollections.observableArrayList("Débutant", "Intermédiaire", "Avancé"));
 
-        // Listeners pour réinitialiser les styles quand l'utilisateur tape
+        // Listeners pour réinitialiser les styles
         txtTitre.textProperty().addListener((obs, oldVal, newVal) -> {
             errorTitre.setText("");
             txtTitre.setStyle(DEFAULT_STYLE);
@@ -157,14 +214,13 @@ public class ChallengeFormController {
             comboNiveau.setStyle(DEFAULT_STYLE);
         });
 
-        // Style personnalisé pour le ComboBox
+        // Style du ComboBox
         comboNiveau.setButtonCell(new ListCell<String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
+                if (empty || item == null) setText(null);
+                else {
                     setText(item);
                     setStyle("-fx-text-fill:white;");
                 }
@@ -175,9 +231,8 @@ public class ChallengeFormController {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
+                if (empty || item == null) setText(null);
+                else {
                     setText(item);
                     setStyle("-fx-text-fill:white; -fx-background-color:#1a1a2e;");
                 }
@@ -190,6 +245,11 @@ public class ChallengeFormController {
         loadExercices();
     }
 
+    public void setQuizService(ServiceQuiz service) {
+        this.quizService = service;
+        loadQuizs();
+    }
+
     private void loadExercices() {
         if (exerciceService != null) {
             List<Exercice> allExercices = exerciceService.getAll();
@@ -200,6 +260,20 @@ public class ChallengeFormController {
                 ExerciceCard card = new ExerciceCard(e);
                 exerciceCards.add(card);
                 exercicesContainer.getChildren().add(card);
+            }
+        }
+    }
+
+    private void loadQuizs() {
+        if (quizService != null) {
+            List<Quiz> allQuizs = quizService.afficher();  // Utilisez la méthode appropriée
+            quizsContainer.getChildren().clear();
+            quizCards.clear();
+
+            for (Quiz q : allQuizs) {
+                QuizCard card = new QuizCard(q);
+                quizCards.add(card);
+                quizsContainer.getChildren().add(card);
             }
         }
     }
@@ -221,6 +295,16 @@ public class ChallengeFormController {
             for (Integer exerciceId : challenge.getExerciceIds()) {
                 for (ExerciceCard card : exerciceCards) {
                     if (card.getExercice().getId() == exerciceId) {
+                        card.setSelected(true);
+                        break;
+                    }
+                }
+            }
+
+            // Sélectionner les quiz déjà associés
+            for (Integer quizId : challenge.getQuizIds()) {
+                for (QuizCard card : quizCards) {
+                    if (card.getQuiz().getId() == quizId) {
                         card.setSelected(true);
                         break;
                     }
@@ -357,7 +441,7 @@ public class ChallengeFormController {
             challenge.setDateFin(fin);
             challenge.setNiveau(niveau);
 
-            // Récupérer les IDs des exercices sélectionnés (optionnel)
+            // Récupérer les IDs des exercices sélectionnés
             List<Integer> exerciceIds = new ArrayList<>();
             for (ExerciceCard card : exerciceCards) {
                 if (card.isSelected()) {
@@ -365,9 +449,17 @@ public class ChallengeFormController {
                 }
             }
             challenge.setExerciceIds(exerciceIds);
+
+            // Récupérer les IDs des quiz sélectionnés
+            List<Integer> quizIds = new ArrayList<>();
+            for (QuizCard card : quizCards) {
+                if (card.isSelected()) {
+                    quizIds.add(card.getQuiz().getId());
+                }
+            }
+            challenge.setQuizIds(quizIds);
         }
 
         return isValid;
     }
-
 }

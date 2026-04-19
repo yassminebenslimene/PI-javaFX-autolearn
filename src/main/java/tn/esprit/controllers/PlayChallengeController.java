@@ -10,8 +10,10 @@ import javafx.util.Duration;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Challenge;
 import tn.esprit.entities.Exercice;
+import tn.esprit.entities.Quiz;
 import tn.esprit.entities.UserChallenge;
 import tn.esprit.services.ExerciceService;
+import tn.esprit.services.ServiceQuiz;
 import tn.esprit.services.UserChallengeService;
 import tn.esprit.session.SessionManager;
 
@@ -36,17 +38,22 @@ public class PlayChallengeController {
 
     private Challenge challenge;
     private List<Exercice> exercices;
+    private List<Quiz> quizzes;
+    private List<Object> allQuestions; // Pour mélanger exercices et quiz
     private Map<Integer, String> answers;
+    private Map<Integer, Integer> quizAnswers; // Pour stocker les réponses des quiz (score)
     private int currentIndex = 0;
     private int score = 0;
     private Timeline timer;
     private int remainingSeconds;
     private UserChallengeService userChallengeService;
     private ExerciceService exerciceService;
+    private ServiceQuiz quizService;
 
     @FXML
     public void initialize() {
         System.out.println("PlayChallengeController initialisé");
+        quizService = new ServiceQuiz();
     }
 
     public void setChallenge(Challenge challenge) {
@@ -63,7 +70,22 @@ public class PlayChallengeController {
             }
         }
 
+        // Récupérer les quiz du challenge
+        quizzes = new ArrayList<>();
+        for (Integer quizId : challenge.getQuizIds()) {
+            Quiz q = quizService.findById(quizId);
+            if (q != null) {
+                quizzes.add(q);
+            }
+        }
+
+        // Combiner exercices et quiz dans une seule liste
+        allQuestions = new ArrayList<>();
+        allQuestions.addAll(exercices);
+        allQuestions.addAll(quizzes);
+
         answers = new HashMap<>();
+        quizAnswers = new HashMap<>();
 
         // Vérifier si déjà commencé
         UserChallenge existing = userChallengeService.findByUserAndChallenge(
@@ -128,8 +150,8 @@ public class PlayChallengeController {
             return;
         }
 
-        if (exercices.isEmpty()) {
-            questionLabel.setText("Aucun exercice disponible pour ce challenge.");
+        if (allQuestions.isEmpty()) {
+            questionLabel.setText("Aucun contenu disponible pour ce challenge.");
             answerField.setDisable(true);
             prevButton.setDisable(true);
             nextButton.setDisable(true);
@@ -137,16 +159,16 @@ public class PlayChallengeController {
         }
 
         updateProgress();
-        displayCurrentExercice();
+        displayCurrentQuestion();
     }
 
     private void updateProgress() {
-        progressLabel.setText((currentIndex + 1) + "/" + exercices.size());
-        progressBar.setProgress((double)(currentIndex + 1) / exercices.size());
+        progressLabel.setText((currentIndex + 1) + "/" + allQuestions.size());
+        progressBar.setProgress((double)(currentIndex + 1) / allQuestions.size());
 
         prevButton.setDisable(currentIndex == 0);
 
-        if (currentIndex == exercices.size() - 1) {
+        if (currentIndex == allQuestions.size() - 1) {
             nextButton.setVisible(false);
             nextButton.setManaged(false);
             finishButton.setVisible(true);
@@ -159,19 +181,48 @@ public class PlayChallengeController {
         }
     }
 
-    private void displayCurrentExercice() {
-        Exercice e = exercices.get(currentIndex);
-        questionLabel.setText(e.getQuestion());
-        pointsLabel.setText("Points: " + e.getPoints());
+    private void displayCurrentQuestion() {
+        Object current = allQuestions.get(currentIndex);
 
-        String savedAnswer = answers.get(e.getId());
-        answerField.setText(savedAnswer != null ? savedAnswer : "");
+        if (current instanceof Exercice) {
+            Exercice e = (Exercice) current;
+            questionLabel.setText(e.getQuestion());
+            pointsLabel.setText("Points: " + e.getPoints());
+            answerField.setPromptText("Votre réponse...");
+            answerField.setDisable(false);
+
+            String savedAnswer = answers.get(e.getId());
+            answerField.setText(savedAnswer != null ? savedAnswer : "");
+
+        } else if (current instanceof Quiz) {
+            Quiz q = (Quiz) current;
+            questionLabel.setText(q.getTitre() + "\n\n" + q.getDescription());
+            pointsLabel.setText("Points: 50");
+            answerField.setPromptText("Entrez votre score (0-100) ou laissez vide...");
+            answerField.setDisable(false);
+
+            Integer savedScore = quizAnswers.get(q.getId());
+            answerField.setText(savedScore != null ? String.valueOf(savedScore) : "");
+        }
     }
 
     private void saveCurrentAnswer() {
-        if (currentIndex < exercices.size()) {
+        if (currentIndex < allQuestions.size()) {
+            Object current = allQuestions.get(currentIndex);
             String answer = answerField.getText();
-            answers.put(exercices.get(currentIndex).getId(), answer);
+
+            if (current instanceof Exercice) {
+                answers.put(((Exercice) current).getId(), answer);
+            } else if (current instanceof Quiz) {
+                try {
+                    int quizScore = Integer.parseInt(answer.trim());
+                    if (quizScore >= 0 && quizScore <= 100) {
+                        quizAnswers.put(((Quiz) current).getId(), quizScore);
+                    }
+                } catch (NumberFormatException e) {
+                    // Si ce n'est pas un nombre, on ne sauvegarde pas
+                }
+            }
 
             UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
                     SessionManager.getCurrentUser().getId(), challenge.getId());
@@ -189,9 +240,9 @@ public class PlayChallengeController {
     @FXML
     public void onNext() {
         saveCurrentAnswer();
-        if (currentIndex < exercices.size() - 1) {
+        if (currentIndex < allQuestions.size() - 1) {
             currentIndex++;
-            displayCurrentExercice();
+            displayCurrentQuestion();
             updateProgress();
         }
     }
@@ -201,7 +252,7 @@ public class PlayChallengeController {
         saveCurrentAnswer();
         if (currentIndex > 0) {
             currentIndex--;
-            displayCurrentExercice();
+            displayCurrentQuestion();
             updateProgress();
         }
     }
@@ -226,6 +277,8 @@ public class PlayChallengeController {
 
     private void calculateFinalScore() {
         score = 0;
+
+        // Calculer le score des exercices
         for (Exercice e : exercices) {
             String userAnswer = answers.get(e.getId());
             if (userAnswer != null && userAnswer.trim().equalsIgnoreCase(e.getReponse().trim())) {
@@ -233,23 +286,22 @@ public class PlayChallengeController {
             }
         }
 
-        UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
-                SessionManager.getCurrentUser().getId(), challenge.getId());
-        if (userChallenge == null) {
-            userChallenge = new UserChallenge();
-            userChallenge.setUserId(SessionManager.getCurrentUser().getId());
-            userChallenge.setChallengeId(challenge.getId());
+        // Calculer le score des quiz
+        for (Quiz q : quizzes) {
+            Integer quizScore = quizAnswers.get(q.getId());
+            if (quizScore != null && quizScore >= 50) { // Seuil de réussite à 50%
+                score += 50; // Points pour avoir réussi le quiz
+            }
         }
-        userChallenge.setAnswersMap(answers);
-        userChallenge.setScore(score);
-        userChallenge.setTotalPoints(getTotalPoints());
-        userChallenge.setCompleted(true);
-        userChallenge.setCompletedAt(LocalDateTime.now());
-        userChallengeService.save(userChallenge);
     }
 
     private int getTotalPoints() {
-        return exercices.stream().mapToInt(Exercice::getPoints).sum();
+        int total = 0;
+        for (Exercice e : exercices) {
+            total += e.getPoints();
+        }
+        total += quizzes.size() * 50; // 50 points par quiz
+        return total;
     }
 
     @FXML

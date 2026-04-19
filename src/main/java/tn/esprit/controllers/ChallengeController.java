@@ -16,7 +16,7 @@ import tn.esprit.entities.Exercice;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.ExerciceService;
 import tn.esprit.session.SessionManager;
-
+import tn.esprit.services.ServiceQuiz;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -333,8 +333,13 @@ public class ChallengeController {
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             DialogPane dialogPane = loader.load();
             ChallengeFormController formController = loader.getController();
-            formController.setExerciceService(exerciceService);  // charger les exercices D'ABORD
-            formController.setChallenge(challenge);               // puis pré-remplir le formulaire
+
+            // Ajouter les services
+            formController.setExerciceService(exerciceService);
+            formController.setQuizService(new ServiceQuiz());  // ← AJOUTER CETTE LIGNE
+
+            // Puis charger le challenge
+            formController.setChallenge(challenge);
 
             ButtonType saveButton = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
             ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
