@@ -626,6 +626,30 @@ public class FrontQuizController {
         labelPourcentage.setText(String.format("%.0f%%", pct));
         labelPointsTotal.setText(String.valueOf(totalPoints));
 
+        // ── PROGRESSION : marquer le chapitre comme complété si quiz réussi ──
+        if (pct >= seuil && chapitre != null) {
+            try {
+                tn.esprit.services.CourseProgressService progressService =
+                    new tn.esprit.services.CourseProgressService();
+                int userId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+                // Utiliser directement coursId depuis l'objet chapitre (déjà chargé)
+                int coursId = chapitre.getCoursId();
+                System.out.println("DEBUG progression: userId=" + userId
+                    + " chapitreId=" + chapitre.getId()
+                    + " coursId=" + coursId
+                    + " score=" + (int)pct + "%");
+                progressService.markChapterCompleted(userId, chapitre.getId(), coursId, (int) pct);
+                System.out.println("✅ Chapitre " + chapitre.getId() + " marqué complété — score: " + (int)pct + "%");
+            } catch (Exception ex) {
+                System.err.println("Erreur progression: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        } else {
+            System.out.println("DEBUG: quiz non réussi ou chapitre null — pct=" + pct
+                + " seuil=" + (quiz.getSeuilReussite() != null ? quiz.getSeuilReussite() : 50)
+                + " chapitre=" + (chapitre != null ? chapitre.getId() : "null"));
+        }
+
         // Message et couleur selon le résultat
         if (pct >= seuil) {
             labelMessage.setText("🎉  Félicitations ! Vous avez réussi le quiz !");

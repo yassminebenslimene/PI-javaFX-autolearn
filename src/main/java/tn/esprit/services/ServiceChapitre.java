@@ -79,7 +79,7 @@ public class ServiceChapitre implements IService<Chapitre> {
     // ── READ ALL ──────────────────────────────────────────────────────────────
     /** Retourne tous les chapitres de la BDD (tous cours confondus). */
     @Override
-    public List<Chapitre> consulter() {
+    public List<Chapitre> getAll() {
         List<Chapitre> chapitres = new ArrayList<>();
         String req = "SELECT * FROM chapitre";
         try (Statement statement = connection.createStatement();
@@ -96,7 +96,7 @@ public class ServiceChapitre implements IService<Chapitre> {
     // ── READ ONE ──────────────────────────────────────────────────────────────
     /** Retourne un chapitre par son id, ou null s'il n'existe pas. */
     @Override
-    public Chapitre consulterParId(int id) {
+    public Chapitre getById(int id) {
         String req = "SELECT * FROM chapitre WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setInt(1, id);
@@ -108,6 +108,10 @@ public class ServiceChapitre implements IService<Chapitre> {
         }
         return null;
     }
+
+    // Alias pour compatibilité avec le code existant
+    public List<Chapitre> consulter() { return getAll(); }
+    public Chapitre consulterParId(int id) { return getById(id); }
 
     // ── READ BY COURS ─────────────────────────────────────────────────────────
     /**
