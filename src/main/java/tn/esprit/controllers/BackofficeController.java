@@ -155,6 +155,7 @@ public class BackofficeController {
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Impossible de charger : " + path + " — " + e.getMessage());
+            if (e.getCause() != null) System.err.println("Cause: " + e.getCause().getMessage());
         }
     }
 }
