@@ -10,11 +10,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tn.esprit.entities.Exercice;
 import tn.esprit.services.ExerciceService;
-
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import tn.esprit.services.AIService;
 public class ExerciceController {
 
     @FXML private VBox exercicesContainer;
@@ -25,12 +27,22 @@ public class ExerciceController {
     private ExerciceService exerciceService;
     private ObservableList<Exercice> masterExercicesList;
     private Exercice selectedExercice;
+    @FXML private Button aiGenerateBtn;
+    @FXML private VBox aiPanel;
+    @FXML private TextField aiTopicField;
+    @FXML private ComboBox<Integer> aiCountCombo;
+    @FXML private ComboBox<String> aiDifficultyCombo;
+    @FXML private ProgressIndicator aiProgress;
+    @FXML private Label aiStatusLabel;
+
+    private boolean isAIPanelVisible = false;
 
     @FXML
     public void initialize() {
         exerciceService = new ExerciceService();
         loadExercices();
         setupSearchListener();
+        initAIPanel();
     }
 
     private void loadExercices() {
@@ -79,23 +91,38 @@ public class ExerciceController {
 
         HBox actionsBox = new HBox(12);
         actionsBox.setPrefWidth(150);
+        actionsBox.setAlignment(Pos.CENTER);
 
+        // Bouton View (AJOUTÉ)
+        Button viewBtn = new Button("View");
+        viewBtn.setStyle("-fx-background-color:rgba(59,130,246,0.25); -fx-text-fill:#60a5fa; " +
+                "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; " +
+                "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
+        viewBtn.setOnAction(e -> viewExercice(exercice));
+
+        // Bouton Edit
         Button editBtn = new Button("Edit");
-        editBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#fbbf24; -fx-font-size:12; -fx-cursor:hand;");
+        editBtn.setStyle("-fx-background-color:rgba(251,191,36,0.25); -fx-text-fill:#fbbf24; " +
+                "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; " +
+                "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
         editBtn.setOnAction(e -> openExerciceForm(exercice, true));
 
+        // Bouton Delete
         Button deleteBtn = new Button("Delete");
-        deleteBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#f87171; -fx-font-size:12; -fx-cursor:hand;");
+        deleteBtn.setStyle("-fx-background-color:rgba(248,113,113,0.25); -fx-text-fill:#fda4af; " +
+                "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; " +
+                "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
         deleteBtn.setOnAction(e -> {
             selectedExercice = exercice;
             deleteExercice();
         });
 
-        actionsBox.getChildren().addAll(editBtn, deleteBtn);
+        actionsBox.getChildren().addAll(viewBtn, editBtn, deleteBtn);
         row.getChildren().addAll(questionLabel, reponseLabel, pointsLabel, actionsBox);
 
         return row;
     }
+
     /**
      * Ouvre la fenêtre modale pour ajouter/modifier un exercice
      */
@@ -111,23 +138,9 @@ public class ExerciceController {
 
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             DialogPane dialogPane = loader.load();
+            ExerciceFormController formController = loader.getController();
+            formController.setExercice(exercice);
 
-            // Récupérer les champs
-            TextField txtQuestion = (TextField) dialogPane.lookup("#txtQuestion");
-            TextField txtReponse = (TextField) dialogPane.lookup("#txtReponse");
-            TextField txtPoints = (TextField) dialogPane.lookup("#txtPoints");
-            Label dialogTitle = (Label) dialogPane.lookup("#dialogTitle");
-
-            if (isEdit && exercice != null) {
-                dialogTitle.setText("Modifier l'exercice");
-                txtQuestion.setText(exercice.getQuestion());
-                txtReponse.setText(exercice.getReponse());
-                txtPoints.setText(String.valueOf(exercice.getPoints()));
-            } else {
-                dialogTitle.setText("Ajouter un exercice");
-            }
-
-            // Créer les boutons
             ButtonType saveButton = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
             ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
 
@@ -137,7 +150,7 @@ public class ExerciceController {
             dialog.initOwner(exercicesContainer.getScene().getWindow());
             dialog.getDialogPane().getButtonTypes().addAll(saveButton, cancelButton);
 
-            // Appliquer le style aux boutons (comme dans profile.fxml)
+            // Style des boutons
             dialog.getDialogPane().lookupButton(saveButton).setStyle(
                     "-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold; " +
                             "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
@@ -147,51 +160,25 @@ public class ExerciceController {
                             "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
             );
 
-            // Effet hover pour le bouton Annuler
-            Button cancelBtn = (Button) dialog.getDialogPane().lookupButton(cancelButton);
-            cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle(
-                    "-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold; " +
-                            "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
-            ));
-            cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle(
-                    "-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold; " +
-                            "-fx-padding:11 24 11 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"
-            ));
+            // Empêcher la fermeture automatique du dialog
+            Button saveBtn = (Button) dialog.getDialogPane().lookupButton(saveButton);
+            saveBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+                if (!formController.validateFields()) {
+                    event.consume(); // Empêche la fermeture du dialog
+                }
+            });
 
             dialog.showAndWait().ifPresent(response -> {
                 if (response == saveButton) {
-                    String question = txtQuestion.getText().trim();
-                    String reponse = txtReponse.getText().trim();
-                    String pointsStr = txtPoints.getText().trim();
-
-                    if (question.isEmpty() || reponse.isEmpty() || pointsStr.isEmpty()) {
-                        showAlert(Alert.AlertType.WARNING, "Attention", "Tous les champs sont obligatoires");
-                        return;
+                    Exercice updatedExercice = formController.getExercice();
+                    if (isEdit && exercice != null) {
+                        exerciceService.update(updatedExercice);
+                        showSuccessMessage("Exercice modifié avec succès !");
+                    } else {
+                        exerciceService.add(updatedExercice);
+                        showSuccessMessage("Exercice ajouté avec succès !");
                     }
-
-                    try {
-                        int points = Integer.parseInt(pointsStr);
-                        if (points <= 0) {
-                            showAlert(Alert.AlertType.WARNING, "Attention", "Les points doivent être positifs");
-                            return;
-                        }
-
-                        if (isEdit && exercice != null) {
-                            exercice.setQuestion(question);
-                            exercice.setReponse(reponse);
-                            exercice.setPoints(points);
-                            exerciceService.update(exercice);
-                            showSuccessMessage("Exercice modifié avec succès !");
-                        } else {
-                            Exercice newExercice = new Exercice(question, reponse, points);
-                            exerciceService.add(newExercice);
-                            showSuccessMessage("Exercice ajouté avec succès !");
-                        }
-                        loadExercices();
-
-                    } catch (NumberFormatException e) {
-                        showAlert(Alert.AlertType.ERROR, "Erreur", "Les points doivent être un nombre valide");
-                    }
+                    loadExercices();
                 }
             });
 
@@ -200,17 +187,12 @@ public class ExerciceController {
             showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible d'ouvrir le formulaire : " + e.getMessage());
         }
     }
-    /**
-     * Ajouter un exercice (ouvre le modal)
-     */
+
     @FXML
     public void addExercice() {
         openExerciceForm(null, false);
     }
 
-    /**
-     * Supprimer un exercice
-     */
     @FXML
     public void deleteExercice() {
         if (selectedExercice == null) {
@@ -277,6 +259,180 @@ public class ExerciceController {
         }).start();
     }
 
+    @FXML
+    private void viewExercice(Exercice exercice) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/backoffice/exercice/exercice_detail.fxml"));
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("Détails de l'exercice");
+            stage.setScene(new Scene(loader.load(), 550, 400));
+            stage.setResizable(false);
+
+            ExerciceDetailController controller = loader.getController();
+            controller.setExercice(exercice);
+
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible d'ouvrir les détails de l'exercice");
+        }
+    }
+    private void initAIPanel() {
+        // Initialiser le ComboBox pour le nombre d'exercices
+        ObservableList<Integer> counts = FXCollections.observableArrayList(1, 2, 3, 5, 10, 15, 20);
+        aiCountCombo.setItems(counts);
+        aiCountCombo.setValue(5);
+
+        // Initialiser le ComboBox pour la difficulté
+        ObservableList<String> difficulties = FXCollections.observableArrayList("Débutant", "Intermédiaire", "Avancé", "Expert");
+        aiDifficultyCombo.setItems(difficulties);
+        aiDifficultyCombo.setValue("Intermédiaire");
+
+        // Style pour rendre le texte blanc dans les ComboBox
+        String comboStyle = "-fx-background-color:rgba(255,255,255,0.08); " +
+                "-fx-border-color:rgba(255,255,255,0.15); " +
+                "-fx-border-radius:8; -fx-background-radius:8; " +
+                "-fx-padding:5 10 5 10; -fx-font-size:13; " +
+                "-fx-text-fill:white;";  // Texte blanc
+
+        aiCountCombo.setStyle(comboStyle);
+        aiDifficultyCombo.setStyle(comboStyle);
+
+        // Style pour le texte sélectionné affiché (bouton)
+        aiCountCombo.setButtonCell(new ListCell<Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.valueOf(item));
+                    setStyle("-fx-text-fill:white; -fx-background-color:transparent;");
+                }
+            }
+        });
+
+        aiDifficultyCombo.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill:white; -fx-background-color:transparent;");
+                }
+            }
+        });
+
+        // Style pour les items dans la liste déroulante
+        aiCountCombo.setCellFactory(lv -> new ListCell<Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.valueOf(item));
+                    setStyle("-fx-text-fill:white; -fx-background-color:#1a1a2e;");
+                }
+            }
+        });
+
+        aiDifficultyCombo.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill:white; -fx-background-color:#1a1a2e;");
+                }
+            }
+        });
+
+        // Style du prompt text (placeholder)
+        aiTopicField.setStyle("-fx-background-color:rgba(255,255,255,0.08); " +
+                "-fx-border-color:rgba(255,255,255,0.15); " +
+                "-fx-border-radius:8; -fx-background-radius:8; " +
+                "-fx-padding:10 14 10 14; -fx-font-size:13; " +
+                "-fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.4);");
+
+        aiPanel.setVisible(false);
+        aiPanel.setManaged(false);
+    }
+
+    @FXML
+    private void generateAIExercises() {
+        isAIPanelVisible = !isAIPanelVisible;
+        aiPanel.setVisible(isAIPanelVisible);
+        aiPanel.setManaged(isAIPanelVisible);
+    }
+
+    @FXML
+    private void cancelAIGeneration() {
+        aiPanel.setVisible(false);
+        aiPanel.setManaged(false);
+        isAIPanelVisible = false;
+        aiTopicField.clear();
+        aiStatusLabel.setText("");
+    }
+
+    @FXML
+    private void executeAIGeneration() {
+        String topic = aiTopicField.getText().trim();
+        if (topic.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Attention", "Veuillez entrer un domaine/sujet.");
+            return;
+        }
+
+        int count = aiCountCombo.getValue();
+        String difficulty = aiDifficultyCombo.getValue();
+
+        // Désactiver les boutons pendant la génération
+        aiGenerateBtn.setDisable(true);
+        aiProgress.setVisible(true);
+        aiProgress.setManaged(true);
+        aiStatusLabel.setText("🤖 Génération d'exercices IA en cours...");
+
+        new Thread(() -> {
+            AIService aiService = new AIService();
+            List<AIService.AIExercise> generatedExercises = aiService.generateExercises(topic, count, difficulty);
+
+            javafx.application.Platform.runLater(() -> {
+                aiProgress.setVisible(false);
+                aiProgress.setManaged(false);
+                aiGenerateBtn.setDisable(false);
+                aiStatusLabel.setText("");
+
+                if (generatedExercises.isEmpty()) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Aucun exercice généré.");
+                    return;
+                }
+
+                // Ajouter les exercices générés à la base de données
+                int addedCount = 0;
+                for (AIService.AIExercise aiEx : generatedExercises) {
+                    Exercice exercice = new Exercice(aiEx.getQuestion(), aiEx.getAnswer(), aiEx.getPoints());
+                    exerciceService.add(exercice);
+                    addedCount++;
+                }
+
+                // Rafraîchir l'affichage
+                loadExercices();
+
+                // Fermer le panneau IA
+                aiPanel.setVisible(false);
+                aiPanel.setManaged(false);
+                isAIPanelVisible = false;
+                aiTopicField.clear();
+
+                showSuccessMessage(addedCount + " exercices générés par IA avec succès !");
+            });
+        }).start();
+    }
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
