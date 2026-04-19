@@ -32,8 +32,8 @@
                                -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
                 <Button text="Challenges"
                         style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;
-               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;
-               -fx-background-radius:20;"/>
+                               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;
+                               -fx-background-radius:20;"/>
                 <Button text="Événements" onAction="#onEvenements"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
@@ -89,9 +89,65 @@
                            style="-fx-font-size:34; -fx-font-weight:800; -fx-text-fill:white;"/>
                 </VBox>
 
+                <!-- ══ CALENDRIER DES CHALLENGES ══ -->
+                <VBox spacing="16" style="-fx-padding:20 80 20 80; -fx-background-color:#f5f5f5;">
+                    <Label text="📅 Calendrier des Challenges"
+                           style="-fx-font-size:18; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+
+                    <!-- Sélecteur de mois -->
+                    <HBox spacing="16" alignment="CENTER">
+                        <Button fx:id="prevMonthBtn" text="◀" onAction="#previousMonth"
+                                style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8; -fx-font-size:16;
+                                       -fx-font-weight:bold; -fx-cursor:hand;"/>
+                        <Label fx:id="monthYearLabel" text="Mars 2026"
+                               style="-fx-font-size:16; -fx-font-weight:700; -fx-text-fill:#1e1e1e; -fx-pref-width:150; -fx-alignment:CENTER;"/>
+                        <Button fx:id="nextMonthBtn" text="▶" onAction="#nextMonth"
+                                style="-fx-background-color:transparent; -fx-text-fill:#7a6ad8; -fx-font-size:16;
+                                       -fx-font-weight:bold; -fx-cursor:hand;"/>
+                    </HBox>
+
+                    <!-- Grille du calendrier -->
+                    <GridPane fx:id="calendarGrid" hgap="8" vgap="8"
+                              style="-fx-background-color:white; -fx-background-radius:16;
+                                     -fx-border-color:#eeeeee; -fx-border-radius:16;
+                                     -fx-padding:20; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),8,0,0,2);">
+                        <!-- Jours de la semaine -->
+                        <Label text="Lun" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                               style="-fx-font-weight:bold; -fx-text-fill:#7a6ad8; -fx-alignment:CENTER;"/>
+                        <Label text="Mar" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                               style="-fx-font-weight:bold; -fx-text-fill:#7a6ad8; -fx-alignment:CENTER;"/>
+                        <Label text="Mer" GridPane.columnIndex="2" GridPane.rowIndex="0"
+                               style="-fx-font-weight:bold; -fx-text-fill:#7a6ad8; -fx-alignment:CENTER;"/>
+                        <Label text="Jeu" GridPane.columnIndex="3" GridPane.rowIndex="0"
+                               style="-fx-font-weight:bold; -fx-text-fill:#7a6ad8; -fx-alignment:CENTER;"/>
+                        <Label text="Ven" GridPane.columnIndex="4" GridPane.rowIndex="0"
+                               style="-fx-font-weight:bold; -fx-text-fill:#7a6ad8; -fx-alignment:CENTER;"/>
+                        <Label text="Sam" GridPane.columnIndex="5" GridPane.rowIndex="0"
+                               style="-fx-font-weight:bold; -fx-text-fill:#7a6ad8; -fx-alignment:CENTER;"/>
+                        <Label text="Dim" GridPane.columnIndex="6" GridPane.rowIndex="0"
+                               style="-fx-font-weight:bold; -fx-text-fill:#7a6ad8; -fx-alignment:CENTER;"/>
+                    </GridPane>
+
+                    <!-- Légende -->
+                    <HBox spacing="20" alignment="CENTER">
+                        <HBox spacing="5" alignment="CENTER">
+                            <Circle radius="6" fill="#7a6ad8"/>
+                            <Label text="Challenge actif" style="-fx-font-size:12; -fx-text-fill:#666;"/>
+                        </HBox>
+                        <HBox spacing="5" alignment="CENTER">
+                            <Circle radius="6" fill="#e94560"/>
+                            <Label text="Challenge expiré" style="-fx-font-size:12; -fx-text-fill:#666;"/>
+                        </HBox>
+                        <HBox spacing="5" alignment="CENTER">
+                            <Circle radius="6" fill="#28a745"/>
+                            <Label text="Challenge complété" style="-fx-font-size:12; -fx-text-fill:#666;"/>
+                        </HBox>
+                    </HBox>
+                </VBox>
+
                 <!-- Main content -->
                 <VBox alignment="TOP_CENTER" spacing="24"
-                      style="-fx-padding:40 0 60 0; -fx-background-color:#f5f5f5;">
+                      style="-fx-padding:20 0 60 0; -fx-background-color:#f5f5f5;">
                     <VBox spacing="24" prefWidth="800" maxWidth="800">
 
                         <!-- Message d'erreur/succès -->
