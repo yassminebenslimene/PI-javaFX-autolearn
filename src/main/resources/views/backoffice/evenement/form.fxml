@@ -2,6 +2,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
+<?import java.time.LocalDate?>
 
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.evenement.EvenementFormController"
@@ -68,23 +69,47 @@
             <VBox spacing="4" HBox.hgrow="ALWAYS">
                 <Label text="Date de debut"
                        style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
-                <TextField fx:id="fieldDateDebut" promptText="jj/MM/aaaa HH:mm"
-                           style="-fx-background-color:rgba(255,255,255,0.07);
-                                  -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
-                                  -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
-                                  -fx-border-radius:10; -fx-border-width:1;
-                                  -fx-padding:12 16 12 16; -fx-font-size:13;"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <DatePicker fx:id="pickerDateDebut" promptText="jj/MM/aaaa"
+                                style="-fx-background-color:rgba(255,255,255,0.07);
+                                       -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                                       -fx-border-radius:10; -fx-border-width:1; -fx-font-size:13;"
+                                HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Spinner fx:id="spinnerHeureDebut" min="0" max="23" initialValue="8" editable="true"
+                             prefWidth="65"
+                             style="-fx-background-color:rgba(255,255,255,0.07);
+                                    -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:8;
+                                    -fx-border-width:1; -fx-font-size:13;"/>
+                    <Label text="h" style="-fx-text-fill:rgba(255,255,255,0.6); -fx-font-size:13;"/>
+                    <Spinner fx:id="spinnerMinDebut" min="0" max="59" initialValue="0" editable="true"
+                             prefWidth="65"
+                             style="-fx-background-color:rgba(255,255,255,0.07);
+                                    -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:8;
+                                    -fx-border-width:1; -fx-font-size:13;"/>
+                </HBox>
                 <Label fx:id="errDateDebut" text="" style="-fx-text-fill:#f87171; -fx-font-size:11;"/>
             </VBox>
             <VBox spacing="4" HBox.hgrow="ALWAYS">
                 <Label text="Date de fin"
                        style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
-                <TextField fx:id="fieldDateFin" promptText="jj/MM/aaaa HH:mm"
-                           style="-fx-background-color:rgba(255,255,255,0.07);
-                                  -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
-                                  -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
-                                  -fx-border-radius:10; -fx-border-width:1;
-                                  -fx-padding:12 16 12 16; -fx-font-size:13;"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <DatePicker fx:id="pickerDateFin" promptText="jj/MM/aaaa"
+                                style="-fx-background-color:rgba(255,255,255,0.07);
+                                       -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
+                                       -fx-border-radius:10; -fx-border-width:1; -fx-font-size:13;"
+                                HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Spinner fx:id="spinnerHeureFin" min="0" max="23" initialValue="17" editable="true"
+                             prefWidth="65"
+                             style="-fx-background-color:rgba(255,255,255,0.07);
+                                    -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:8;
+                                    -fx-border-width:1; -fx-font-size:13;"/>
+                    <Label text="h" style="-fx-text-fill:rgba(255,255,255,0.6); -fx-font-size:13;"/>
+                    <Spinner fx:id="spinnerMinFin" min="0" max="59" initialValue="0" editable="true"
+                             prefWidth="65"
+                             style="-fx-background-color:rgba(255,255,255,0.07);
+                                    -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:8;
+                                    -fx-border-width:1; -fx-font-size:13;"/>
+                </HBox>
                 <Label fx:id="errDateFin" text="" style="-fx-text-fill:#f87171; -fx-font-size:11;"/>
             </VBox>
         </HBox>
@@ -122,3 +147,4 @@
         </VBox>
     </VBox>
 </ScrollPane>
+

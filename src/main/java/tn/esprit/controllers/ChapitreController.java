@@ -13,6 +13,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.session.SessionManager;
 
@@ -242,6 +243,9 @@ public class ChapitreController {
         confirm.setContentText("Voulez-vous supprimer '" + chapitre.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
+                var admin = SessionManager.getCurrentUser();
+                if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_chapitre",
+                    java.util.Map.of("titre", chapitre.getTitre()));
                 serviceChapitre.supprimer(chapitre.getId());
                 loadTable();
             }
@@ -303,6 +307,9 @@ public class ChapitreController {
         if (!editMode) {
             Chapitre chapitre = new Chapitre(titre, contenu, ordre, ressources, cours.getId(), type, fichier);
             serviceChapitre.ajouter(chapitre);
+            var admin = SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_chapitre",
+                java.util.Map.of("titre", titre, "cours_id", String.valueOf(cours.getId())));
         } else {
             editingChapitre.setTitre(titre);
             editingChapitre.setContenu(contenu);
@@ -312,6 +319,9 @@ public class ChapitreController {
             editingChapitre.setRessourceFichier(fichier);
             editingChapitre.setCoursId(cours.getId());
             serviceChapitre.modifier(editingChapitre);
+            var admin = SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_chapitre",
+                java.util.Map.of("titre", titre));
         }
 
         ((Stage) fieldTitre.getScene().getWindow()).close();

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+    quiz_form.fxml — Formulaire de création / modification d'un quiz
+    Controller : QuizFormController.java
+    Utilisé pour :
+      - Créer un nouveau quiz (bouton "+ Nouveau Quiz" dans index.fxml)
+      - Modifier un quiz existant (bouton "Modifier" dans index.fxml)
+-->
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.QuizFormController"
+            style="-fx-background-color:#0f1a14; -fx-font-family:'Segoe UI',Arial,sans-serif;">
+
+    <!-- ══ HAUT : Titre de la page ══ -->
+    <top>
+        <HBox alignment="CENTER_LEFT" style="-fx-padding:20 28 0 28;">
+            <!-- fx:id="pageTitle" → modifié par initEdit() en mode modification -->
+            <Label fx:id="pageTitle" text="Nouveau Quiz"
+                   style="-fx-font-size:22px; -fx-font-weight:bold; -fx-text-fill:#f5f5f4;"/>
+        </HBox>
+    </top>
+
+    <!-- ══ CENTRE : Formulaire dans une carte verre (glassmorphism) ══ -->
+    <center>
+        <!-- ScrollPane permet de défiler si le formulaire est trop long -->
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color:transparent; -fx-background:transparent;
+                           -fx-border-color:transparent;">
+            <VBox style="-fx-padding:16 28 32 28;" spacing="16">
+
+                <!-- Carte principale avec effet verre -->
+                <VBox style="-fx-background-color:rgba(255,255,255,0.05);
+                             -fx-border-color:rgba(255,255,255,0.1);
+                             -fx-border-radius:16px; -fx-background-radius:16px;
+                             -fx-border-width:1px;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),20,0,0,6);"
+                      spacing="0">
+
+                    <!-- ── En-tête de la carte ── -->
+                    <HBox alignment="CENTER_LEFT" spacing="10"
+                          style="-fx-padding:18 24 14 24;
+                                 -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
+                                 -fx-border-width:0 0 1 0;">
+                        <VBox spacing="3" HBox.hgrow="ALWAYS">
+                            <!-- fx:id="cardTitle" → modifié par initEdit() en mode modification -->
+                            <Label fx:id="cardTitle" text="Nouveau Quiz"
+                                   style="-fx-text-fill:#f5f5f4; -fx-font-size:16; -fx-font-weight:bold;"/>
+                            <!-- fx:id="cardSubtitle" → modifié par initEdit() en mode modification -->
+                            <Label fx:id="cardSubtitle" text="Créez un nouveau questionnaire"
+                                   style="-fx-font-size:12px; -fx-text-fill:rgba(245,245,244,0.4);"/>
+                        </VBox>
+                        <!-- Bouton retour en haut à droite -->
+                        <Button text="← Retour" onAction="#retour"
+                                style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
+                                       -fx-background-radius:8; -fx-padding:8 16; -fx-cursor:hand; -fx-border-width:0;"/>
+                    </HBox>
+
+                    <!-- ── Corps du formulaire ── -->
+                    <VBox spacing="0" style="-fx-padding:24 28 28 28;">
+
+                        <!-- Champ : Titre (obligatoire, 3-255 caractères) -->
+                        <Label text="Titre du quiz"
+                               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);
+                                      -fx-padding:0 0 6 0;"/>
+                        <!-- fx:id="titreField" → lu par sauvegarder() dans le controller -->
+                        <TextField fx:id="titreField" promptText="Entrez le titre du quiz"
+                                   style="-fx-background-color:rgba(255,255,255,0.05);
+                                          -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                                          -fx-background-radius:8px; -fx-border-width:1px;
+                                          -fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);
+                                          -fx-padding:9px 13px; -fx-font-size:13px;"/>
+                        <!-- Indication de validation sous le champ -->
+                        <Label text="Entre 3 et 255 caractères"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Champ : Description (obligatoire, 10-2000 caractères) -->
+                        <Label text="Description"
+                               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);
+                                      -fx-padding:0 0 6 0;"/>
+                        <!-- TextArea = zone de texte multi-lignes (prefRowCount=5 lignes visibles) -->
+                        <TextArea fx:id="descriptionField" promptText="Décrivez le contenu du quiz"
+                                  prefRowCount="5"
+                                  style="-fx-control-inner-background:rgba(30,50,35,0.95);
+                                         -fx-background-color:rgba(255,255,255,0.05);
+                                         -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                                         -fx-background-radius:8px; -fx-border-width:1px;
+                                         -fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);
+                                         -fx-padding:9px 13px; -fx-font-size:13px;"/>
+                        <Label text="Entre 10 et 2000 caractères"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Champ : État (obligatoire, liste déroulante) -->
+                        <Label text="État"
+                               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);
+                                      -fx-padding:0 0 6 0;"/>
+                        <ComboBox fx:id="etatCombo" promptText="Sélectionnez un état" maxWidth="Infinity"
+                                  style="-fx-background-color:#1a2e1f;
+                                         -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                                         -fx-background-radius:8px; -fx-border-width:1px; -fx-padding:3px;
+                                         -fx-text-fill:#f5f5f4;"/>
+                        <Label text="Définissez le statut du quiz"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Champ : Chapitre (OBLIGATOIRE) -->
+                        <Label text="Chapitre *"
+                               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:#fca5a5;
+                                      -fx-padding:0 0 6 0;"/>
+                        <ComboBox fx:id="chapitreCombo" promptText="Sélectionnez un chapitre obligatoirement"
+                                  maxWidth="Infinity"
+                                  style="-fx-background-color:#1a2e1f;
+                                         -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                                         -fx-background-radius:8px; -fx-border-width:1px; -fx-padding:3px;
+                                         -fx-text-fill:#f5f5f4;"/>
+                        <Label fx:id="chapitreErrorLabel" text="🔒 OBLIGATOIRE : Sélectionnez un chapitre"
+                               visible="false" managed="false"
+                               style="-fx-text-fill:#fca5a5; -fx-font-size:12; -fx-font-weight:bold;"/>
+                        <Label text="🔒 OBLIGATOIRE : Chaque quiz doit appartenir à un chapitre"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Champ : Durée maximale (optionnel) -->
+                        <Label text="Durée maximale (minutes)"
+                               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);
+                                      -fx-padding:0 0 6 0;"/>
+                        <!-- Laisser vide = pas de limite de temps -->
+                        <TextField fx:id="dureeField" promptText="ex: 30"
+                                   style="-fx-background-color:rgba(255,255,255,0.05);
+                                          -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                                          -fx-background-radius:8px; -fx-border-width:1px;
+                                          -fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);
+                                          -fx-padding:9px 13px; -fx-font-size:13px;"/>
+                        <Label text="Laissez vide pour un quiz sans limite de temps"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Champ : Seuil de réussite (optionnel, 0-100%) -->
+                        <Label text="Seuil de réussite (%)"
+                               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);
+                                      -fx-padding:0 0 6 0;"/>
+                        <!-- Pourcentage minimum pour valider le quiz -->
+                        <TextField fx:id="seuilField" promptText="ex: 50"
+                                   style="-fx-background-color:rgba(255,255,255,0.05);
+                                          -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                                          -fx-background-radius:8px; -fx-border-width:1px;
+                                          -fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);
+                                          -fx-padding:9px 13px; -fx-font-size:13px;"/>
+                        <Label text="Pourcentage minimum pour valider le quiz (défaut: 50%)"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 16 0;"/>
+
+                        <!-- Champ : Nombre de tentatives (optionnel) -->
+                        <Label text="Nombre maximum de tentatives"
+                               style="-fx-font-size:12px; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);
+                                      -fx-padding:0 0 6 0;"/>
+                        <!-- Laisser vide = tentatives illimitées -->
+                        <TextField fx:id="tentativesField" promptText="ex: 3"
+                                   style="-fx-background-color:rgba(255,255,255,0.05);
+                                          -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;
+                                          -fx-background-radius:8px; -fx-border-width:1px;
+                                          -fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);
+                                          -fx-padding:9px 13px; -fx-font-size:13px;"/>
+                        <Label text="Laissez vide pour un nombre illimité de tentatives"
+                               style="-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-padding:4 0 20 0;"/>
+
+                        <!-- Zone d'affichage des messages d'erreur (remplie par le controller) -->
+                        <Label fx:id="messageLabel" wrapText="true"
+                               style="-fx-font-size:13px; -fx-padding:0 0 10 0;"/>
+
+                        <!-- ── Boutons d'action ── -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <!-- Bouton Retour (gauche) -->
+                            <Button text="← Retour" onAction="#retour"
+                                    style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
+                                           -fx-background-radius:8; -fx-padding:10 20; -fx-cursor:hand; -fx-border-width:0;"/>
+                            <!-- Bouton Gestion Quiz (raccourci vers la liste) -->
+                            <Button text="🏠 Gestion Quiz" onAction="#retour"
+                                    style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
+                                           -fx-background-radius:8; -fx-padding:10 20; -fx-cursor:hand; -fx-border-width:0;"/>
+                            <!-- Espace flexible pour pousser le bouton Enregistrer à droite -->
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <!-- Bouton Enregistrer (droite) — vert, appelle sauvegarder() -->
+                            <!-- fx:id="btnSauvegarder" → son texte change en "Mettre à jour" en mode modification -->
+                            <Button fx:id="btnSauvegarder" text="✓ Enregistrer" onAction="#sauvegarder"
+                                    style="-fx-background-color:linear-gradient(to bottom right,#34d399,#059669);
+                                           -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:14px;
+                                           -fx-padding:10 28; -fx-background-radius:8px; -fx-cursor:hand;
+                                           -fx-border-width:0;
+                                           -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.4),10,0,0,3);"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

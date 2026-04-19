@@ -57,3 +57,4 @@
         <Button onAction="#onSave" style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13;                        -fx-font-weight:bold; -fx-padding:10 22 10 22; -fx-background-radius:8;                        -fx-cursor:hand; -fx-border-width:0;" text="✔  Enregistrer" />
     </HBox>
 </VBox>
+
