@@ -3,19 +3,12 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
 
-<!--
-    SHARED BACKOFFICE SIDEBAR
-    Usage:
-        <fx:include source="../components/sidebar_back.fxml" fx:id="sidebar"/>
--->
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="tn.esprit.controllers.NavbarController"
       prefWidth="260" spacing="0"
       style="-fx-background-color:rgba(255,255,255,0.05);
              -fx-border-color:rgba(255,255,255,0.1) rgba(255,255,255,0.1) rgba(255,255,255,0.1) transparent;
              -fx-border-width:0 1 0 0;">
-
-    <!-- Logo -->
     <HBox alignment="CENTER_LEFT" spacing="12"
           style="-fx-padding:24 20 24 20;
                  -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent;
@@ -26,76 +19,59 @@
         <Label text="AutoLearn"
                style="-fx-text-fill:white; -fx-font-size:16; -fx-font-weight:bold;"/>
     </HBox>
-
-    <!-- MAIN MENU -->
     <VBox spacing="2" style="-fx-padding:16 8 8 8;">
         <Label text="MAIN MENU"
                style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10;
                       -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
-        <Button fx:id="btnDashboard" text="  ⊞   Dashboard" maxWidth="Infinity"
-                onAction="#onDashboard"
+        <Button fx:id="btnDashboard" text="  Dashboard" maxWidth="Infinity" onAction="#onDashboard"
                 style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                        -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16;
                        -fx-background-radius:10; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-        <Button fx:id="btnUsers" text="  👥   Utilisateurs" maxWidth="Infinity"
-                onAction="#onUsers"
+        <Button fx:id="btnUsers" text="  Utilisateurs" maxWidth="Infinity" onAction="#onUsers"
                 style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                        -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16;
                        -fx-background-radius:10; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-        <Button fx:id="btnCours" text="  📚   Cours" maxWidth="Infinity"
-                onAction="#onCours"
+        <Button fx:id="btnCours" text="  Cours" maxWidth="Infinity" onAction="#onCours"
                 style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                        -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16;
                        -fx-background-radius:10; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-        <Button fx:id="btnEvenements" text="  📅   Événements" maxWidth="Infinity"
-                onAction="#onEvenements"
+        <Button fx:id="btnEvenements" text="  Evenements" maxWidth="Infinity" onAction="#onEvenements"
                 style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                        -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16;
                        -fx-background-radius:10; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-        <Button fx:id="btnChallenges" text="  🏆   Challenges" maxWidth="Infinity"
-                onAction="#onChallenges"
+        <Button fx:id="btnChallenges" text="  Challenges" maxWidth="Infinity" onAction="#onChallenges"
                 style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                        -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16;
                        -fx-background-radius:10; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-        <Button fx:id="btnCommunaute" text="  👥   Communauté" maxWidth="Infinity"
-                onAction="#onCommunaute"
+        <Button fx:id="btnCommunaute" text="  Communaute" maxWidth="Infinity" onAction="#onCommunaute"
                 style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                        -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16;
                        -fx-background-radius:10; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
     </VBox>
-
-    <!-- COMPTE -->
-    <VBox spacing="2" style="-fx-padding:8 8 8 8;">
-        <Label text="COMPTE"
-               style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10;
-                      -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
-        <Button fx:id="btnProfile" text="  👤   Mon Profil" maxWidth="Infinity"
-                onAction="#onProfile"
-                style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
-                       -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16;
-                       -fx-background-radius:10; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-        <Button text="  ⎋   Déconnexion" maxWidth="Infinity"
-                onAction="#onLogout"
-                style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
-                       -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16;
-                       -fx-background-radius:10; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-    </VBox>
-
     <Region VBox.vgrow="ALWAYS"/>
-
-    <!-- User footer -->
-    <HBox spacing="10" alignment="CENTER_LEFT"
-          style="-fx-background-color:rgba(255,255,255,0.05); -fx-padding:16;
+    <VBox spacing="4"
+          style="-fx-padding:16 20 20 20;
                  -fx-border-color:rgba(255,255,255,0.1) transparent transparent transparent;
                  -fx-border-width:1 0 0 0;">
-        <Label fx:id="labelAvatarSidebar"
-               style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-weight:bold;
-                      -fx-font-size:13; -fx-background-radius:50%; -fx-padding:8 10 8 10;"/>
-        <VBox spacing="1">
-            <Label fx:id="labelCurrentUser"
-                   style="-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold;"/>
-            <Label fx:id="labelCurrentRole"
-                   style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:11;"/>
-        </VBox>
-    </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label fx:id="labelAvatarSidebar"
+                   style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                          -fx-font-weight:700; -fx-font-size:13; -fx-background-radius:50%;
+                          -fx-padding:7 10 7 10;"/>
+            <VBox spacing="1">
+                <Label fx:id="labelCurrentUser" text=""
+                       style="-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;"/>
+                <Label fx:id="labelCurrentRole" text=""
+                       style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:10;"/>
+            </VBox>
+        </HBox>
+        <Button fx:id="btnProfile" text="Mon Profil" maxWidth="Infinity" onAction="#onProfile"
+                style="-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:rgba(255,255,255,0.8);
+                       -fx-alignment:CENTER_LEFT; -fx-padding:8 12 8 12;
+                       -fx-background-radius:8; -fx-font-size:12; -fx-cursor:hand; -fx-border-width:0;"/>
+        <Button text="Deconnexion" maxWidth="Infinity" onAction="#onLogout"
+                style="-fx-background-color:#e94560; -fx-text-fill:white; -fx-font-size:12;
+                       -fx-font-weight:700; -fx-padding:8 12 8 12; -fx-background-radius:8;
+                       -fx-cursor:hand; -fx-border-width:0;"/>
+    </VBox>
 </VBox>

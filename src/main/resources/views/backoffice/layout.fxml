@@ -43,6 +43,11 @@
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
 
+                    <Button fx:id="btnActivites" text="  📊   Activites" maxWidth="Infinity" onAction="#navigateToActivites"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
                     <Button fx:id="btnEvenements" text="  📅   Événements" maxWidth="Infinity" onAction="#navigateToEvenements"
                             style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
@@ -64,6 +69,11 @@
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
 
                     <Button fx:id="btnCours" text="  📚   Cours" maxWidth="Infinity" onAction="#navigateToCours"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+
+                    <Button fx:id="btnCommunaute" text="  💬   Communauté" maxWidth="Infinity" onAction="#navigateToCommunaute"
                             style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>

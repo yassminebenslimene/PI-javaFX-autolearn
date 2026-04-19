@@ -14,6 +14,8 @@ import javafx.stage.Stage;
 import tn.esprit.entities.Admin;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
+import tn.esprit.services.ActivityApiClient;
+import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
 
@@ -402,10 +404,16 @@ public class UserController {
         String niveau   = comboNiveau.getValue();
 
         if (!isEditMode) {
-            // Admin always creates students
+            String plainPassword = password;
             User newUser = new Etudiant(nom, prenom, email, tn.esprit.tools.PasswordUtil.hash(password), comboNiveau.getValue());
             service.ajouter(newUser);
-            showAlert(Alert.AlertType.INFORMATION, "Succès", "Étudiant créé avec succès.");
+            EmailService.sendAdminCreatedAccount(email, prenom, nom, plainPassword);
+            // Log under ADMIN's ID
+            var admin = tn.esprit.session.SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_student",
+                java.util.Map.of("student_email", email, "student_name", prenom + " " + nom,
+                                 "niveau", niveau != null ? niveau : ""));
+            showAlert(Alert.AlertType.INFORMATION, "Succès", "Étudiant créé avec succès. Un email lui a été envoyé.");
         } else {
             editingUser.setNom(nom);
             editingUser.setPrenom(prenom);
@@ -413,6 +421,10 @@ public class UserController {
             if (!password.isEmpty()) editingUser.setPassword(tn.esprit.tools.PasswordUtil.hash(password));
             if (editingUser instanceof Etudiant e && niveau != null) e.setNiveau(niveau);
             service.modifier(editingUser);
+            // Log under ADMIN's ID
+            var admin = tn.esprit.session.SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_student",
+                java.util.Map.of("student_email", email, "student_id", String.valueOf(editingUser.getId())));
             showAlert(Alert.AlertType.INFORMATION, "Succès", "Utilisateur modifié avec succès.");
         }
         ((Stage) fieldNom.getScene().getWindow()).close();

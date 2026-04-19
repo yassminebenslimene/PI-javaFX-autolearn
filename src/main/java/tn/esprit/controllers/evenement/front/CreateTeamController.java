@@ -16,9 +16,7 @@ import java.util.List;
 
 public class CreateTeamController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private Label labelForEvent;
     @FXML private TextField fieldNomEquipe;
     @FXML private VBox studentsContainer;
@@ -38,8 +36,7 @@ public class CreateTeamController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-        var user = SessionManager.getCurrentUser();
+                var user = SessionManager.getCurrentUser();
         if (user != null) currentUserId = user.getId();
     }
 

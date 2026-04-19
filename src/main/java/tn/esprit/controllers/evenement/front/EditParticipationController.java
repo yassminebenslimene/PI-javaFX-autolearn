@@ -17,9 +17,7 @@ import java.util.List;
 
 public class EditParticipationController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private ComboBox<String> comboEquipe;
     @FXML private ComboBox<String> comboEvenement;
     @FXML private Label labelError;
@@ -40,8 +38,7 @@ public class EditParticipationController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-    }
+            }
 
     private void loadDropdowns() {
         var user = SessionManager.getCurrentUser();

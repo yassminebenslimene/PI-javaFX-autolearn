@@ -10,6 +10,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tn.esprit.entities.Challenge;
 import tn.esprit.entities.Exercice;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.ExerciceService;
 import tn.esprit.session.SessionManager;
@@ -155,9 +156,15 @@ public class ChallengeController {
 
                     if (isEdit) {
                         challengeService.update(updatedChallenge);
+                        var admin = SessionManager.getCurrentUser();
+                        if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_challenge",
+                            java.util.Map.of("titre", updatedChallenge.getTitre() != null ? updatedChallenge.getTitre() : ""));
                         showSuccessMessage("Challenge modifié avec succès !");
                     } else {
                         challengeService.add(updatedChallenge);
+                        var admin = SessionManager.getCurrentUser();
+                        if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_challenge",
+                            java.util.Map.of("titre", updatedChallenge.getTitre() != null ? updatedChallenge.getTitre() : ""));
                         showSuccessMessage("Challenge ajouté avec succès !");
                     }
                     loadChallenges();
@@ -189,6 +196,9 @@ public class ChallengeController {
 
         if (confirmation.showAndWait().get() == ButtonType.OK) {
             try {
+                var admin = SessionManager.getCurrentUser();
+                if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_challenge",
+                    java.util.Map.of("titre", selectedChallenge.getTitre() != null ? selectedChallenge.getTitre() : ""));
                 challengeService.delete(selectedChallenge.getId());
                 loadChallenges();
                 selectedChallenge = null;

@@ -13,9 +13,7 @@ import java.util.List;
 
 public class SelectEventController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private VBox eventsContainer;
 
     private final EvenementService evenementService = new EvenementService();
@@ -23,8 +21,7 @@ public class SelectEventController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-        loadEvents();
+                loadEvents();
     }
 
     private void loadEvents() {

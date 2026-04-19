@@ -39,3 +39,6 @@ build/
 
 ### Symfony subproject (has its own git) ###
 symfony/
+
+### IntelliJ Run Configurations (local paths, not shared) ###
+.idea/runConfigurations/

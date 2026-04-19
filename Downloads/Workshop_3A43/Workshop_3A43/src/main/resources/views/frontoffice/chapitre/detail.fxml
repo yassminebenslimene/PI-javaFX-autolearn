@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER"
+            style="-fx-background-color:transparent; -fx-background:#f1f5f9;"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.controllers.FrontChapitreDetailController">
+    <content>
+        <VBox spacing="20" style="-fx-background-color:#f1f5f9;">
+            <padding><Insets top="28" right="32" bottom="40" left="32"/></padding>
+
+            <!-- Bouton retour -->
+            <HBox>
+                <Button fx:id="btnRetour" text="← Retour aux chapitres" onAction="#onRetour"
+                        style="-fx-background-color:transparent; -fx-text-fill:#2563eb;
+                               -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand;
+                               -fx-border-width:0; -fx-padding:0;"/>
+            </HBox>
+
+            <!-- Card principale -->
+            <VBox spacing="18"
+                  style="-fx-background-color:white; -fx-background-radius:20;
+                         -fx-border-color:#e2e8f0; -fx-border-radius:20;
+                         -fx-padding:32 36 32 36;
+                         -fx-effect:dropshadow(gaussian,rgba(15,23,42,0.08),16,0,0,4);">
+
+                <!-- Badge chapitre + cours -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label fx:id="labelBadge"
+                           style="-fx-background-color:linear-gradient(to right,#34d399,#059669);
+                                  -fx-text-fill:white; -fx-font-size:11; -fx-font-weight:700;
+                                  -fx-padding:5 14 5 14; -fx-background-radius:999;"/>
+                    <Label fx:id="labelCours"
+                           style="-fx-text-fill:#94a3b8; -fx-font-size:12; -fx-font-weight:600;"/>
+                </HBox>
+
+                <!-- Titre -->
+                <Label fx:id="labelTitre"
+                       style="-fx-text-fill:#0f172a; -fx-font-size:28; -fx-font-weight:900;"
+                       wrapText="true"/>
+
+                <Separator style="-fx-background-color:#e2e8f0;"/>
+
+                <!-- Contenu -->
+                <Label fx:id="labelContenu"
+                       style="-fx-text-fill:#334155; -fx-font-size:14; -fx-line-spacing:4;"
+                       wrapText="true"/>
+
+                <!-- Ressource si disponible -->
+                <VBox fx:id="boxRessource" spacing="6" managed="false" visible="false">
+                    <Separator style="-fx-background-color:#e2e8f0;"/>
+                    <Label text="Ressource"
+                           style="-fx-text-fill:#64748b; -fx-font-size:11; -fx-font-weight:700;"/>
+                    <Label fx:id="labelRessource"
+                           style="-fx-text-fill:#2563eb; -fx-font-size:13;" wrapText="true"/>
+                </VBox>
+
+            </VBox>
+
+            <!-- Boutons actions -->
+            <HBox spacing="14" alignment="CENTER_LEFT">
+                <Button fx:id="btnPdf" text="📄   PDF"
+                        style="-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);
+                               -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13;
+                               -fx-padding:12 28 12 28; -fx-background-radius:12;
+                               -fx-cursor:hand; -fx-border-width:0;"/>
+                <Button fx:id="btnQuiz" text="❓   Passer le quiz"
+                        style="-fx-background-color:linear-gradient(to right,#f59e0b,#d97706);
+                               -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13;
+                               -fx-padding:12 28 12 28; -fx-background-radius:12;
+                               -fx-cursor:hand; -fx-border-width:0;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="btnSuivant" text="Chapitre suivant →" onAction="#onSuivant"
+                        style="-fx-background-color:linear-gradient(to right,#06b6d4,#0ea5e9);
+                               -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13;
+                               -fx-padding:12 28 12 28; -fx-background-radius:12;
+                               -fx-cursor:hand; -fx-border-width:0;"/>
+            </HBox>
+
+        </VBox>
+    </content>
+</ScrollPane>

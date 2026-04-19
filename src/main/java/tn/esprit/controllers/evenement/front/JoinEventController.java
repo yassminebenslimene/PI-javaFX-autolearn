@@ -14,9 +14,7 @@ import java.util.List;
 
 public class JoinEventController {
 
-    @FXML private Label labelAvatarNav;
-    @FXML private Label labelCurrentUser;
-    @FXML private MenuButton menuUser;
+    @FXML private tn.esprit.controllers.NavbarController navbarController;
     @FXML private Label labelEventName;
     @FXML private Label labelJoinStatus;
     @FXML private VBox joinTeamsContainer;
@@ -32,8 +30,7 @@ public class JoinEventController {
 
     @FXML
     public void initialize() {
-        FrontNavHelper.initNavbar(labelAvatarNav, labelCurrentUser, menuUser);
-    }
+            }
 
     private void loadJoinOptions() {
         joinTeamsContainer.getChildren().clear();
@@ -86,6 +83,13 @@ public class JoinEventController {
     private void joinTeam(Equipe eq) {
         var user = SessionManager.getCurrentUser();
         if (!(user instanceof Etudiant etudiant)) return;
+
+        // Vérifier que l'étudiant ne participe pas déjà à cet événement
+        if (equipeService.etudiantDejaInscritEvenement(etudiant.getId(), evenement.getId())) {
+            labelJoinStatus.setText("Vous participez deja a cet evenement avec une autre equipe.");
+            return;
+        }
+
         equipeService.ajouterEtudiantEquipe(eq.getId(), etudiant.getId());
         // Create participation
         tn.esprit.entities.Participation p = new tn.esprit.entities.Participation(eq.getId(), evenement.getId());

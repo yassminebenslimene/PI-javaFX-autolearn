@@ -57,13 +57,28 @@ public class EvenementService implements IService<Evenement> {
 
     @Override
     public void supprimer(int id) {
-        String req = "DELETE FROM evenement WHERE id=?";
-        try (PreparedStatement ps = connection.prepareStatement(req)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
-            System.out.println("Événement supprimé : " + id);
+        // Suppression en cascade : membres équipes → équipes → participations → événement
+        String[] cascade = {
+            "DELETE ee FROM equipe_etudiant ee INNER JOIN equipe eq ON ee.equipe_id = eq.id WHERE eq.evenement_id = ?",
+            "DELETE FROM equipe WHERE evenement_id = ?",
+            "DELETE FROM participation WHERE evenement_id = ?",
+            "DELETE FROM evenement WHERE id = ?"
+        };
+        try {
+            connection.setAutoCommit(false);
+            for (String req : cascade) {
+                try (PreparedStatement ps = connection.prepareStatement(req)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+            }
+            connection.commit();
+            System.out.println("Événement supprimé (cascade) : " + id);
         } catch (SQLException ex) {
+            try { connection.rollback(); } catch (SQLException ignored) {}
             System.err.println("Erreur suppression événement: " + ex.getMessage());
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException ignored) {}
         }
     }
 
