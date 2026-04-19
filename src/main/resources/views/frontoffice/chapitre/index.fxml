@@ -8,31 +8,38 @@
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fitToWidth="true" hbarPolicy="NEVER"
-            style="-fx-background-color:transparent; -fx-background:#f1f5f9;"
+            style="-fx-background-color:transparent; -fx-background:#f4f6fb; -fx-border-width:0;"
             xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="tn.esprit.controllers.FrontChapitreController">
     <content>
-        <VBox spacing="18" style="-fx-background-color:#f1f5f9;">
-            <padding><Insets top="24" right="24" bottom="32" left="24"/></padding>
+        <VBox spacing="0" style="-fx-background-color:#f4f6fb;">
 
-            <!-- Header -->
-            <VBox spacing="6"
-                  style="-fx-background-color:white; -fx-background-radius:16;
-                         -fx-border-color:#e2e8f0; -fx-border-radius:16; -fx-padding:20 24 20 24;
-                         -fx-effect:dropshadow(gaussian,rgba(15,23,42,0.07),12,0,0,3);">
+            <!-- HEADER BANNER avec bouton retour -->
+            <VBox spacing="10"
+                  style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                         -fx-padding:28 60 28 60;">
+                <!-- Bouton retour en haut à droite -->
+                <HBox alignment="CENTER_LEFT">
+                    <Button text="← Retour aux cours" onAction="#onRetourCours"
+                            style="-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;
+                                   -fx-font-size:12; -fx-font-weight:600; -fx-padding:7 16 7 16;
+                                   -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                </HBox>
                 <Label fx:id="labelCourseTitle" text="Chapitres"
-                       style="-fx-text-fill:#0f172a; -fx-font-size:26; -fx-font-weight:900;"/>
+                       style="-fx-text-fill:white; -fx-font-size:26; -fx-font-weight:900;"/>
                 <Label fx:id="labelCourseMeta"
-                       style="-fx-text-fill:#64748b; -fx-font-size:13; -fx-font-weight:600;"/>
+                       style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13; -fx-font-weight:600;"/>
             </VBox>
 
-            <!-- Empty state -->
+            <!-- EMPTY STATE -->
             <Label fx:id="labelEmpty" text="Aucun chapitre disponible pour ce cours."
                    visible="false" managed="false"
-                   style="-fx-text-fill:#94a3b8; -fx-font-size:14; -fx-padding:20 0 0 4;"/>
+                   style="-fx-text-fill:#94a3b8; -fx-font-size:14; -fx-padding:40 60 0 60;"/>
 
-            <!-- Cards grid (populated by controller) -->
-            <VBox fx:id="chaptersContainer" spacing="0"/>
+            <!-- CARDS GRID -->
+            <VBox fx:id="chaptersContainer" spacing="0"
+                  style="-fx-padding:24 60 40 60;"/>
 
         </VBox>
     </content>
