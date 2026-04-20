@@ -30,6 +30,7 @@ import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
 import javafx.animation.RotateTransition;
 import javafx.animation.ScaleTransition;
@@ -40,7 +41,9 @@ import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -52,6 +55,7 @@ import tn.esprit.entities.Quiz;
 import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 import tn.esprit.services.ServiceQuiz;
+import tn.esprit.tools.SoundPlayer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -122,6 +126,15 @@ public class FrontQuizController {
 
     /** Indicateur de progression (ex : "Question 3 / 10"). */
     @FXML private Label  labelProgress;
+
+    /** Barre de progression animée */
+    @FXML private javafx.scene.control.ProgressBar progressBar;
+
+    /** Pourcentage affiché à droite de la barre */
+    @FXML private Label  labelPourcentageProgress;
+
+    /** Conteneur des points de navigation (un cercle par question) */
+    @FXML private HBox   questionDots;
 
     /** Texte de la question courante, affiché dans la carte blanche centrale. */
     @FXML private Label  labelQuestion;
@@ -322,13 +335,13 @@ public class FrontQuizController {
     private void onCommencer() {
         indexQuestion = 0;
         reponsesChoisies.clear();
+        SoundPlayer.playStart(); // Son de démarrage du quiz
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/loading.fxml"));
             Parent view = loader.load();
             FrontQuizController loadingCtrl = loader.getController();
             if (sceneRef == null) sceneRef = labelTitreQuiz;
             setCenter(view);
-            // Lance l'animation de chargement ; à la fin, navigue vers les questions
             loadingCtrl.startLoading("Quiz - " + quiz.getTitre(), this::naviguerVersQuestion);
         } catch (Exception e) {
             e.printStackTrace();
@@ -451,10 +464,61 @@ public class FrontQuizController {
         if (questions == null || questions.isEmpty() || labelQuestion == null) return;
         Question q = questions.get(indexQuestion);
         labelTitreHeader.setText("Quiz - " + quiz.getTitre());
-        // Ex : "Question 3 / 10"
         labelProgress.setText("Question " + (indexQuestion + 1) + " / " + questions.size());
         labelQuestion.setText(q.getTexteQuestion());
         labelPoints.setText("⭐ " + q.getPoint() + " points");
+
+        // ── Barre de progression animée ──
+        double progress = (double)(indexQuestion + 1) / questions.size();
+        if (progressBar != null) {
+            // Animation fluide de la barre
+            javafx.animation.Timeline anim = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(javafx.util.Duration.millis(300),
+                    new javafx.animation.KeyValue(progressBar.progressProperty(), progress,
+                        javafx.animation.Interpolator.EASE_OUT))
+            );
+            anim.play();
+        }
+        if (labelPourcentageProgress != null)
+            labelPourcentageProgress.setText((int)(progress * 100) + "%");
+
+        // ── Points de navigation (un cercle par question) ──
+        if (questionDots != null) {
+            questionDots.getChildren().clear();
+            for (int i = 0; i < questions.size(); i++) {
+                Label dot = new Label("●");
+                boolean isAnswered = reponsesChoisies.containsKey(questions.get(i).getId());
+                boolean isCurrent  = i == indexQuestion;
+                if (isCurrent) {
+                    dot.setStyle("-fx-font-size:14; -fx-text-fill:white;");
+                } else if (isAnswered) {
+                    dot.setStyle("-fx-font-size:10; -fx-text-fill:#22c55e;");
+                } else {
+                    dot.setStyle("-fx-font-size:10; -fx-text-fill:rgba(255,255,255,0.3);");
+                }
+                final int idx = i;
+                dot.setOnMouseClicked(e -> {
+                    // Navigation directe vers une question en cliquant sur son point
+                    indexQuestion = idx;
+                    afficherQuestion();
+                });
+                dot.setStyle(dot.getStyle() + "-fx-cursor:hand;");
+                questionDots.getChildren().add(dot);
+            }
+        }
+
+        // Initialiser le bouton soumettre
+        if (btnSoumettre != null) {
+            btnSoumettre.setDisable(reponsesChoisies.size() < questions.size());
+            if (reponsesChoisies.size() < questions.size()) {
+                btnSoumettre.setStyle(
+                    "-fx-background-color:rgba(255,255,255,0.15);" +
+                    "-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:13; -fx-font-weight:700;" +
+                    "-fx-padding:10 22 10 22; -fx-background-radius:12;" +
+                    "-fx-cursor:default; -fx-border-width:0;"
+                );
+            }
+        }
         mettreAJourRepondues();
         demarrerTimer();
         afficherOptions(q);
@@ -490,6 +554,7 @@ public class FrontQuizController {
                 : "-fx-background-color:rgba(255,255,255,0.15);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:600;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:2;-fx-border-color:rgba(255,255,255,0.3);-fx-border-radius:12;"
             );
             btn.setOnAction(e -> {
+                SoundPlayer.playClick(); // Son de sélection d'option
                 // Enregistre la réponse choisie pour cette question
                 reponsesChoisies.put(q.getId(), opt.getId());
                 // Redessine les options pour refléter la sélection
@@ -551,6 +616,7 @@ public class FrontQuizController {
     @FXML
     private void onSoumettre() {
         if (timerTimeline != null) timerTimeline.stop();
+        SoundPlayer.playFinish(); // Son de fin de quiz
         naviguerVersResultat();
     }
 
