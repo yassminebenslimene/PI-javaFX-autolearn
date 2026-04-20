@@ -58,7 +58,6 @@ import tn.esprit.services.EmailService;
 import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 import tn.esprit.services.ServiceQuiz;
-import tn.esprit.tools.SoundPlayer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -398,7 +397,7 @@ public class FrontQuizController {
         
         indexQuestion = 0;
         reponsesChoisies.clear();
-        SoundPlayer.playStart(); // Son de démarrage du quiz
+        playStart(); // Son de démarrage du quiz
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/loading.fxml"));
             Parent view = loader.load();
@@ -656,7 +655,7 @@ public class FrontQuizController {
 
                 final int idx = i;
                 content.setOnMouseClicked(e -> {
-                    SoundPlayer.playClick();
+                    playClick();
                     reponsesChoisies.put(q.getId(), opt.getId());
                     afficherOptions(q);
                     mettreAJourRepondues();
@@ -705,7 +704,7 @@ public class FrontQuizController {
                     : "-fx-background-color:rgba(255,255,255,0.15);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:600;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:2;-fx-border-color:rgba(255,255,255,0.3);-fx-border-radius:12;"
                 );
                 btn.setOnAction(e -> {
-                    SoundPlayer.playClick();
+                    playClick();
                     reponsesChoisies.put(q.getId(), opt.getId());
                     afficherOptions(q);
                     mettreAJourRepondues();
@@ -809,7 +808,7 @@ public class FrontQuizController {
     @FXML
     private void onSoumettre() {
         if (timerTimeline != null) timerTimeline.stop();
-        SoundPlayer.playFinish(); // Son de fin de quiz
+        playFinish(); // Son de fin de quiz
         naviguerVersResultat();
     }
 
@@ -1164,5 +1163,49 @@ public class FrontQuizController {
             region.setMaxWidth(Double.MAX_VALUE);
         }
         root.setCenter(view);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // SONS — Sons instantanés via Clip pré-chargé (fusionné depuis SoundPlayer)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    private static boolean soundEnabled = true;
+    private static final javax.sound.sampled.Clip clipClick  = buildClip(880,  60,  0.25f);
+    private static final javax.sound.sampled.Clip clipStart  = buildClip(784,  200, 0.40f);
+    private static final javax.sound.sampled.Clip clipFinish = buildClip(1047, 300, 0.55f);
+
+    private static void playClick()  { playClip(clipClick); }
+    private static void playStart()  { playClip(clipStart); }
+    private static void playFinish() { playClip(clipFinish); }
+
+    private static void playClip(javax.sound.sampled.Clip clip) {
+        if (!soundEnabled || clip == null) return;
+        clip.stop();
+        clip.setFramePosition(0);
+        clip.start();
+    }
+
+    private static javax.sound.sampled.Clip buildClip(int freqHz, int durationMs, float volume) {
+        try {
+            float sampleRate = 44100f;
+            int samples = (int)(sampleRate * durationMs / 1000);
+            byte[] buf = new byte[samples * 2];
+            for (int i = 0; i < samples; i++) {
+                double angle = 2.0 * Math.PI * i * freqHz / sampleRate;
+                double fadeIn  = sampleRate * 0.005;
+                double fadeOut = sampleRate * 0.015;
+                double env = Math.min(1.0, Math.min(i / fadeIn, (samples - i) / fadeOut));
+                short val = (short)(Math.sin(angle) * env * volume * Short.MAX_VALUE);
+                buf[i * 2]     = (byte)(val & 0xFF);
+                buf[i * 2 + 1] = (byte)((val >> 8) & 0xFF);
+            }
+            javax.sound.sampled.AudioFormat fmt =
+                new javax.sound.sampled.AudioFormat(sampleRate, 16, 1, true, false);
+            javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
+            clip.open(fmt, buf, 0, buf.length);
+            return clip;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
