@@ -53,12 +53,14 @@ public class QuestionController {
             @Override protected void updateItem(Quiz item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item.getTitre());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         quizCombo.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(Quiz item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? "Choisissez le quiz auquel appartient cette question" : item.getTitre());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         quizCombo.valueProperty().addListener((o, ov, nv) -> {

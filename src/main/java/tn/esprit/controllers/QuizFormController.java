@@ -66,6 +66,20 @@ public class QuizFormController {
         etatCombo.setItems(FXCollections.observableArrayList(
             "actif", "inactif", "brouillon", "archive"
         ));
+        etatCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item);
+                setStyle("-fx-text-fill:#f5f5f4;");
+            }
+        });
+        etatCombo.setButtonCell(new ListCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "Sélectionnez un état" : item);
+                setStyle("-fx-text-fill:#f5f5f4;");
+            }
+        });
 
         // Remplir la ComboBox chapitres
         List<Chapitre> chapitres = serviceChapitre.consulter();
@@ -74,12 +88,14 @@ public class QuizFormController {
             @Override protected void updateItem(Chapitre item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item.getTitre());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         chapitreCombo.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(Chapitre item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? "Sélectionnez un chapitre obligatoirement" : item.getTitre());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         chapitreCombo.valueProperty().addListener((o, ov, nv) -> {
