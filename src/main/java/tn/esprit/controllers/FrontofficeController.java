@@ -993,6 +993,14 @@ public class FrontofficeController {
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
-        ((BorderPane) scene.getRoot()).setCenter(view);
+        BorderPane root = (BorderPane) scene.getRoot();
+        // Forcer la vue à prendre toute la hauteur du center
+        if (view instanceof javafx.scene.layout.Region region) {
+            region.prefHeightProperty().unbind();
+            region.prefWidthProperty().unbind();
+            region.setMaxHeight(Double.MAX_VALUE);
+            region.setMaxWidth(Double.MAX_VALUE);
+        }
+        root.setCenter(view);
     }
 }
