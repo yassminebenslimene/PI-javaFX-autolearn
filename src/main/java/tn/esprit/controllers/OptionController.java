@@ -53,12 +53,14 @@ public class OptionController {
             @Override protected void updateItem(Question item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item.getTexteQuestion());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         questionCombo.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(Question item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? "Choisissez la question à laquelle appartient cette option" : item.getTexteQuestion());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         questionCombo.valueProperty().addListener((o, ov, nv) -> {
