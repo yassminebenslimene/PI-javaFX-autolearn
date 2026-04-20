@@ -13,6 +13,9 @@ import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ApiService;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
+import tn.esprit.services.GoogleOAuthService;
+import tn.esprit.services.FacebookOAuthService;
+import tn.esprit.services.GitHubOAuthService;
 import tn.esprit.session.SessionManager;
 import tn.esprit.tools.PasswordUtil;
 
@@ -317,5 +320,81 @@ public class LoginController {
 
     @FXML private void onForgotPassword() {
         try { MainApp.showResetPassword(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML
+    private void onGoogleLogin() {
+        handleOAuthLogin("Google", GoogleOAuthService.authenticate());
+    }
+
+    @FXML
+    private void onFacebookLogin() {
+        handleOAuthLogin("Facebook", FacebookOAuthService.authenticate());
+    }
+
+    @FXML
+    private void onGitHubLogin() {
+        handleOAuthLogin("GitHub", GitHubOAuthService.authenticate());
+    }
+
+    private void handleOAuthLogin(String provider, CompletableFuture<Map<String, String>> authFuture) {
+        errorLabel.setText("Connexion avec " + provider + " en cours...");
+        errorLabel.setStyle("-fx-text-fill:#7a6ad8; -fx-font-size:12; -fx-background-color:#f3f0ff;" +
+                           "-fx-background-radius:8; -fx-padding:10 14 10 14; -fx-border-color:#ddd6fe;" +
+                           "-fx-border-radius:8; -fx-border-width:1;");
+        errorLabel.setVisible(true);
+        errorLabel.setManaged(true);
+
+        authFuture.thenAccept(userInfo -> {
+            javafx.application.Platform.runLater(() -> {
+                try {
+                    String email = userInfo.get("email");
+                    if (email == null || email.isEmpty()) {
+                        showError("Aucun email recu de " + provider + ". Veuillez reessayer.");
+                        return;
+                    }
+
+                    // Check if user exists
+                    User found = service.trouverParEmail(email);
+                    if (found == null) {
+                        showError("Aucun compte trouve avec cet email. Veuillez vous inscrire d'abord.");
+                        return;
+                    }
+
+                    // Check if suspended
+                    if (found.isIsSuspended()) {
+                        showError("Compte suspendu : " +
+                            (found.getSuspensionReason() != null ? found.getSuspensionReason() : "") +
+                            "\nContactez autolearn66@gmail.com");
+                        return;
+                    }
+
+                    // Update last login
+                    found.setLastLoginAt(Timestamp.valueOf(LocalDateTime.now()));
+                    service.modifier(found);
+
+                    // Remember email
+                    addToHistory(email);
+
+                    // Login
+                    SessionManager.login(found);
+
+                    ActivityApiClient.logAsync(found.getId(), "user.login_oauth",
+                        java.util.Map.of("provider", provider, "email", email));
+
+                    // Navigate
+                    if ("ADMIN".equals(found.getRole())) MainApp.showBackoffice();
+                    else                                  MainApp.showFrontoffice();
+
+                } catch (Exception e) {
+                    showError("Erreur lors de la connexion: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
+        }).exceptionally(ex -> {
+            javafx.application.Platform.runLater(() ->
+                showError("Erreur " + provider + ": " + ex.getMessage()));
+            return null;
+        });
     }
 }

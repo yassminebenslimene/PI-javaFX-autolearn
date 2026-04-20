@@ -119,6 +119,39 @@
                                -fx-font-size:15; -fx-font-weight:700; -fx-padding:14 0 14 0;
                                -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;"/>
 
+                <HBox alignment="CENTER" spacing="12">
+                    <Line endX="180" style="-fx-stroke:#e5e7eb;"/>
+                    <Label text="ou" style="-fx-font-size:12; -fx-text-fill:#aaa;"/>
+                    <Line endX="180" style="-fx-stroke:#e5e7eb;"/>
+                </HBox>
+
+                <HBox alignment="CENTER" spacing="12">
+                    <Button onAction="#onGoogleRegister" prefWidth="130" prefHeight="44"
+                            style="-fx-background-color:#f9fafb; -fx-background-radius:10;
+                                   -fx-border-color:#e5e7eb; -fx-border-radius:10; -fx-border-width:1;
+                                   -fx-cursor:hand;">
+                        <graphic>
+                            <Label text="G" style="-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#ea4335;"/>
+                        </graphic>
+                    </Button>
+                    <Button onAction="#onFacebookRegister" prefWidth="130" prefHeight="44"
+                            style="-fx-background-color:#f9fafb; -fx-background-radius:10;
+                                   -fx-border-color:#e5e7eb; -fx-border-radius:10; -fx-border-width:1;
+                                   -fx-cursor:hand;">
+                        <graphic>
+                            <Label text="f" style="-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#1877f2;"/>
+                        </graphic>
+                    </Button>
+                    <Button onAction="#onGitHubRegister" prefWidth="130" prefHeight="44"
+                            style="-fx-background-color:#f9fafb; -fx-background-radius:10;
+                                   -fx-border-color:#e5e7eb; -fx-border-radius:10; -fx-border-width:1;
+                                   -fx-cursor:hand;">
+                        <graphic>
+                            <Label text="&#63743;" style="-fx-font-size:18; -fx-text-fill:#1a1a2e;"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+
                 <VBox spacing="10" alignment="CENTER">
                     <HBox alignment="CENTER" spacing="6">
                         <Label text="Deja un compte ?" style="-fx-font-size:13; -fx-text-fill:#888;"/>
