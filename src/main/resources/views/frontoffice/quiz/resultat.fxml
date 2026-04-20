@@ -185,10 +185,9 @@
 
                 <!--
                     Tuile 2 : Meilleur score
-                    labelMeilleurScore : pourcentage du meilleur score (= score actuel dans cette version)
+                    labelMeilleurScore : pourcentage du meilleur score enregistré.
                     Fond jaune clair, bordure jaune.
                 -->
-                <!-- Meilleur score -->
                 <HBox spacing="14" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"
                       style="-fx-background-color:#fffbf0; -fx-background-radius:12;
                              -fx-border-color:#fde68a; -fx-border-radius:12; -fx-border-width:1;
@@ -196,7 +195,6 @@
                     <Label text="●"
                            style="-fx-font-size:28; -fx-text-fill:#f59e0b;"/>
                     <VBox spacing="2">
-                        <!-- Meilleur score en pourcentage (ex : "75%") -->
                         <Label fx:id="labelMeilleurScore" text="0%"
                                style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#f59e0b;"/>
                         <Label text="MEILLEUR SCORE"

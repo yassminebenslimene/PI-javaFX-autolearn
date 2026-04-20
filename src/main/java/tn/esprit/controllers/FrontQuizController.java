@@ -198,6 +198,32 @@ public class FrontQuizController {
     @FXML private Label labelPeutRecommencer;
 
     // ══════════════════════════════════════════════════════════════════════════
+    // CHAMPS FXML — resultat_pro.fxml (VERSION PROFESSIONNELLE)
+    // Nouveaux champs pour XP, badges et corrections détaillées
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /** XP gagné lors de cette tentative (ex : "+850 XP"). */
+    @FXML private Label labelXPGagne;
+
+    /** Niveau actuel de l'étudiant (ex : "Niveau 3"). */
+    @FXML private Label labelNiveau;
+
+    /** Titre du niveau (ex : "INTERMÉDIAIRE"). */
+    @FXML private Label labelTitreNiveau;
+
+    /** Icône du niveau (emoji qui change selon le niveau). */
+    @FXML private Label labelIconeNiveau;
+
+    /** XP total accumulé par l'étudiant (ex : "3,450 XP"). */
+    @FXML private Label labelXPTotal;
+
+    /** Conteneur de la section badges (visible uniquement si badges débloqués). */
+    @FXML private javafx.scene.layout.VBox containerBadges;
+
+    /** FlowPane pour afficher les badges en grille. */
+    @FXML private javafx.scene.layout.FlowPane flowPaneBadges;
+
+    // ══════════════════════════════════════════════════════════════════════════
     // ÉTAT INTERNE DU CONTRÔLEUR
     // Ces champs maintiennent l'état du quiz tout au long de la session.
     // ══════════════════════════════════════════════════════════════════════════
@@ -799,7 +825,12 @@ public class FrontQuizController {
      */
     private void naviguerVersResultat() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/resultat.fxml"));
+            java.net.URL vueResultat = getClass().getResource("/views/frontoffice/quiz/resultat.fxml");
+            if (vueResultat == null) {
+                throw new IllegalStateException("Aucune vue de résultat quiz n'a été trouvée");
+            }
+
+            FXMLLoader loader = new FXMLLoader(vueResultat);
             Parent view = loader.load();
             FrontQuizController ctrl = loader.getController();
             // Transfert de l'état complet vers le contrôleur de résultats
@@ -834,37 +865,65 @@ public class FrontQuizController {
      *   
      * ✅ FIX BUG 1 : Enregistrement de la tentative après soumission
      * ✅ FIX BUG 3 : Utilisation des vraies statistiques
+     * ✅ NOUVEAU : Système de badges, XP et statistiques avancées
      */
     private void afficherResultat() {
         if (labelTitreResultat == null) return;
         
         int pointsObtenus = 0;
+        java.util.Map<Integer, Boolean> detailsReponses = new java.util.HashMap<>();
+        
         for (Question q : questions) {
             Integer choisi = reponsesChoisies.get(q.getId());
-            if (choisi == null) continue; // Question non répondue → 0 point
-            List<Option> opts = optionsParQuestion.getOrDefault(q.getId(), serviceOption.findByQuestionId(q.getId()));
-            for (Option o : opts) {
-                if (o.isEstCorrecte()) {
-                    // Comparaison par valeur (int) pour éviter les pièges de l'auto-unboxing Integer
-                    if (o.getId() == choisi.intValue()) pointsObtenus += q.getPoint();
-                    break; // Une seule option correcte par question
+            boolean correct = false;
+            
+            if (choisi != null) {
+                List<Option> opts = optionsParQuestion.getOrDefault(q.getId(), serviceOption.findByQuestionId(q.getId()));
+                for (Option o : opts) {
+                    if (o.isEstCorrecte()) {
+                        if (o.getId() == choisi.intValue()) {
+                            pointsObtenus += q.getPoint();
+                            correct = true;
+                        }
+                        break;
+                    }
                 }
             }
+            
+            detailsReponses.put(q.getId(), correct);
         }
+        
         // Calcul du pourcentage, arrondi à 2 décimales
         double pct = totalPoints > 0 ? Math.round((pointsObtenus * 100.0 / totalPoints) * 100.0) / 100.0 : 0.0;
-        // Seuil de réussite défini dans le quiz, 50 % par défaut
         int seuil = quiz.getSeuilReussite() != null ? quiz.getSeuilReussite() : 50;
 
-        // ✅ FIX BUG 1 : Enregistrer la tentative terminée
+        // Calculer la durée (si timer était actif)
+        int dureeSecondes = 0;
+        if (quiz.getDureeMaxMinutes() != null) {
+            dureeSecondes = (quiz.getDureeMaxMinutes() * 60) - secondesRestantes;
+        }
+
+        // ✅ FIX BUG 1 : Enregistrer la tentative terminée avec détails complets
         int etudiantId = tn.esprit.session.SessionManager.getCurrentUser().getId();
-        serviceQuiz.enregistrerTentative(etudiantId, quiz.getId(), pointsObtenus, totalPoints, pct);
+        serviceQuiz.enregistrerTentative(etudiantId, quiz.getId(), pointsObtenus, totalPoints, pct, dureeSecondes, detailsReponses);
         
         // ✅ FIX BUG 3 : Récupérer les vraies statistiques
         java.util.Map<String, Object> statistiques = serviceQuiz.getStatistiquesEtudiant(etudiantId, quiz);
         int nombreTentatives = (int) statistiques.get("nombreTentatives");
         Integer maxTentatives = (Integer) statistiques.get("maxTentatives");
         boolean peutRecommencer = (boolean) statistiques.get("peutRecommencer");
+        double meilleurScore = (double) statistiques.get("meilleurScore");
+        
+        // Récupérer les nouveaux badges et XP
+        @SuppressWarnings("unchecked")
+        java.util.Set<String> badges = (java.util.Set<String>) statistiques.get("badges");
+        
+        // Récupérer XP gagné depuis les derniers résultats
+        java.util.Map<String, Object> derniers = serviceQuiz.getDerniersResultats(etudiantId, quiz.getId());
+        int xpGagne = derniers != null ? (int) derniers.getOrDefault("xpGagne", 0) : 0;
+        int xpTotal = (int) statistiques.get("xp");
+        int niveau = (int) statistiques.get("niveau");
+        String titreNiveau = (String) statistiques.get("titreNiveau");
 
         // Remplissage des labels principaux
         labelTitreResultat.setText("Quiz - " + quiz.getTitre());
@@ -872,13 +931,67 @@ public class FrontQuizController {
         labelPourcentage.setText(String.format("%.0f%%", pct));
         labelPointsTotal.setText(String.valueOf(totalPoints));
 
+        // ── NOUVEAUX LABELS XP ET NIVEAU ──
+        if (labelXPGagne != null) {
+            labelXPGagne.setText("+" + xpGagne + " XP");
+        }
+        if (labelXPTotal != null) {
+            labelXPTotal.setText(String.format("%,d XP", xpTotal));
+        }
+        if (labelNiveau != null) {
+            labelNiveau.setText("Niveau " + niveau);
+        }
+        if (labelTitreNiveau != null) {
+            labelTitreNiveau.setText(titreNiveau.toUpperCase().replace("🌱 ", "")
+                .replace("🎯 ", "").replace("💎 ", "").replace("⭐ ", "").replace("🏆 ", ""));
+        }
+        if (labelIconeNiveau != null) {
+            // Extraire l'emoji du titre
+            String icone = titreNiveau.split(" ")[0];
+            labelIconeNiveau.setText(icone);
+        }
+
+        // ── AFFICHAGE DES BADGES ──
+        if (containerBadges != null && flowPaneBadges != null && !badges.isEmpty()) {
+            containerBadges.setVisible(true);
+            containerBadges.setManaged(true);
+            flowPaneBadges.getChildren().clear();
+            
+            for (String badge : badges) {
+                // Créer une carte pour chaque badge
+                javafx.scene.layout.VBox badgeCard = new javafx.scene.layout.VBox();
+                badgeCard.setAlignment(javafx.geometry.Pos.CENTER);
+                badgeCard.setSpacing(6);
+                badgeCard.setStyle(
+                    "-fx-background-color:linear-gradient(to bottom right,#fef3c7,#fde68a);" +
+                    "-fx-background-radius:12; -fx-padding:16; -fx-min-width:120; -fx-min-height:100;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,2);"
+                );
+                
+                // Extraire l'emoji et le nom du badge
+                String[] parts = badge.split(" ", 2);
+                String emoji = parts.length > 0 ? parts[0] : "🏅";
+                String nom = parts.length > 1 ? parts[1] : badge;
+                
+                Label emojiLabel = new Label(emoji);
+                emojiLabel.setStyle("-fx-font-size:36;");
+                
+                Label nomLabel = new Label(nom);
+                nomLabel.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#92400e; -fx-text-alignment:center;");
+                nomLabel.setWrapText(true);
+                nomLabel.setMaxWidth(110);
+                
+                badgeCard.getChildren().addAll(emojiLabel, nomLabel);
+                flowPaneBadges.getChildren().add(badgeCard);
+            }
+        }
+
         // ── PROGRESSION : marquer le chapitre comme complété si quiz réussi ──
         if (pct >= seuil && chapitre != null) {
             try {
                 tn.esprit.services.CourseProgressService progressService =
                     new tn.esprit.services.CourseProgressService();
                 int userId = tn.esprit.session.SessionManager.getCurrentUser().getId();
-                // Utiliser directement coursId depuis l'objet chapitre (déjà chargé)
                 int coursId = chapitre.getCoursId();
                 System.out.println("DEBUG progression: userId=" + userId
                     + " chapitreId=" + chapitre.getId()
@@ -890,23 +1003,31 @@ public class FrontQuizController {
                 System.err.println("Erreur progression: " + ex.getMessage());
                 ex.printStackTrace();
             }
-        } else {
-            System.out.println("DEBUG: quiz non réussi ou chapitre null — pct=" + pct
-                + " seuil=" + (quiz.getSeuilReussite() != null ? quiz.getSeuilReussite() : 50)
-                + " chapitre=" + (chapitre != null ? chapitre.getId() : "null"));
         }
 
         // Message et couleur selon le résultat
+        String messageTexte = "";
+        String messageStyle = "";
+        
         if (pct >= seuil) {
-            labelMessage.setText("🎉  Félicitations ! Vous avez réussi le quiz !");
-            labelMessage.setStyle("-fx-font-size:14;-fx-font-weight:700;-fx-text-fill:#059669;-fx-background-color:#f0fdf4;-fx-background-radius:10;-fx-padding:10 20 10 20;");
+            messageTexte = "🎉  Félicitations ! Vous avez réussi le quiz !";
+            messageStyle = "-fx-font-size:14;-fx-font-weight:700;-fx-text-fill:#059669;-fx-background-color:#f0fdf4;-fx-background-radius:10;-fx-padding:10 20 10 20;";
         } else if (pct >= (double) seuil / 2) {
-            labelMessage.setText("📈  Peut mieux faire — continuez vos efforts !");
-            labelMessage.setStyle("-fx-font-size:14;-fx-font-weight:700;-fx-text-fill:#d97706;-fx-background-color:#fffbeb;-fx-background-radius:10;-fx-padding:10 20 10 20;");
+            messageTexte = "📈  Peut mieux faire — continuez vos efforts !";
+            messageStyle = "-fx-font-size:14;-fx-font-weight:700;-fx-text-fill:#d97706;-fx-background-color:#fffbeb;-fx-background-radius:10;-fx-padding:10 20 10 20;";
         } else {
-            labelMessage.setText("😔  Score insuffisant — révisez et réessayez !");
-            labelMessage.setStyle("-fx-font-size:14;-fx-font-weight:700;-fx-text-fill:#dc2626;-fx-background-color:#fef2f2;-fx-background-radius:10;-fx-padding:10 20 10 20;");
+            messageTexte = "😔  Score insuffisant — révisez et réessayez !";
+            messageStyle = "-fx-font-size:14;-fx-font-weight:700;-fx-text-fill:#dc2626;-fx-background-color:#fef2f2;-fx-background-radius:10;-fx-padding:10 20 10 20;";
         }
+
+        if (titreNiveau != null && !titreNiveau.isBlank()) {
+            String niveauTexte = titreNiveau.replace("🌱 ", "")
+                .replace("🎯 ", "").replace("💎 ", "").replace("⭐ ", "").replace("🏆 ", "");
+            messageTexte += "  |  Niveau " + niveau + "  " + niveauTexte;
+        }
+        
+        labelMessage.setText(messageTexte);
+        labelMessage.setStyle(messageStyle);
 
         // ✅ Statistiques réelles (pas hardcodées)
         if (labelTentative != null) labelTentative.setText(String.valueOf(nombreTentatives));
@@ -914,7 +1035,7 @@ public class FrontQuizController {
             String maxText = maxTentatives != null ? String.valueOf(maxTentatives) : "∞";
             labelMaxTentatives.setText("TENTATIVE / " + maxText);
         }
-        if (labelMeilleurScore != null) labelMeilleurScore.setText(String.format("%.0f%%", pct));
+        if (labelMeilleurScore != null) labelMeilleurScore.setText(String.format("%.0f%%", meilleurScore));
         if (labelPeutRecommencer != null) {
             labelPeutRecommencer.setText(peutRecommencer ? "OUI" : "NON");
             if (!peutRecommencer) {
@@ -924,8 +1045,6 @@ public class FrontQuizController {
             }
         }
         
-        System.out.println("📊 Statistiques : " + nombreTentatives + " / " + 
-            (maxTentatives != null ? maxTentatives : "∞") + " tentatives — Peut recommencer : " + peutRecommencer);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
