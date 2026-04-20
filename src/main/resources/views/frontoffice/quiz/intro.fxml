@@ -35,10 +35,10 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 
-<!-- Conteneur racine : fond violet plein, occupe tout l'espace disponible -->
+<!-- Conteneur racine : fond violet dégradé (harmonisé avec loading.fxml), occupe tout l'espace disponible -->
 <StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="tn.esprit.controllers.FrontQuizController"
-           style="-fx-background-color:#46178F;">
+           style="-fx-background-color: linear-gradient(to bottom right, #46178F, #764ba2);">
 
     <!-- Couche de fond : contient uniquement le bouton "Retour" en haut à gauche -->
     <!-- Fond violet avec effet diagonal (simulé par des rectangles) -->

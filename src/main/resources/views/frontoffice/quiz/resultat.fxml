@@ -60,7 +60,7 @@
 <!-- Conteneur racine : fond dégradé violet (du haut-gauche vers le bas-droit) -->
 <StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="tn.esprit.controllers.FrontQuizController"
-           style="-fx-background-color:linear-gradient(to bottom right,#46178F,#764ba2);">
+           style="-fx-background-color: linear-gradient(to bottom right, #46178F, #764ba2);">
 
     <!-- Contenu principal centré, largeur maximale 680 px -->
     <VBox alignment="CENTER" spacing="20" maxWidth="680">

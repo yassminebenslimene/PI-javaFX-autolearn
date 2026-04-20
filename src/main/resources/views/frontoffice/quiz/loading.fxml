@@ -50,7 +50,7 @@
 <StackPane fx:id="rootPane"
            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="tn.esprit.controllers.FrontQuizController"
-           style="-fx-background-color:linear-gradient(to bottom right,#46178F,#764ba2);"
+           style="-fx-background-color: linear-gradient(to bottom right, #46178F, #764ba2);"
            prefWidth="1000" prefHeight="700">
 
     <!-- Contenu centré verticalement et horizontalement -->
