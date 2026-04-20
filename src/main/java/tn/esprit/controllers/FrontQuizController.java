@@ -341,9 +341,34 @@ public class FrontQuizController {
      * Réinitialise l'index de question et les réponses, puis charge l'écran
      * de chargement animé (loading.fxml). En cas d'erreur de chargement FXML,
      * navigue directement vers les questions.
+     * 
+     * ✅ FIX BUG 2 : Vérification si l'étudiant peut passer le quiz
      */
     @FXML
     private void onCommencer() {
+        // ✅ VÉRIFICATION : L'étudiant peut-il passer ce quiz ?
+        int etudiantId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+        java.util.Map<String, Object> check = serviceQuiz.canStudentTakeQuiz(etudiantId, quiz);
+        boolean canTake = (boolean) check.get("canTake");
+        
+        if (!canTake) {
+            // Afficher les erreurs et bloquer l'accès
+            @SuppressWarnings("unchecked")
+            java.util.List<String> errors = (java.util.List<String>) check.get("errors");
+            
+            // Créer une alerte d'erreur
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.ERROR
+            );
+            alert.setTitle("Accès refusé");
+            alert.setHeaderText("Vous ne pouvez pas passer ce quiz");
+            alert.setContentText(String.join("\n", errors));
+            alert.showAndWait();
+            
+            System.err.println("❌ Accès refusé au quiz : " + String.join(", ", errors));
+            return; // Bloquer l'accès
+        }
+        
         indexQuestion = 0;
         reponsesChoisies.clear();
         SoundPlayer.playStart(); // Son de démarrage du quiz
@@ -806,6 +831,9 @@ public class FrontQuizController {
      *   - pct >= seuil          → "Félicitations !" (vert)
      *   - pct >= seuil / 2      → "Peut mieux faire" (orange)
      *   - pct < seuil / 2       → "Score insuffisant" (rouge)
+     *   
+     * ✅ FIX BUG 1 : Enregistrement de la tentative après soumission
+     * ✅ FIX BUG 3 : Utilisation des vraies statistiques
      */
     private void afficherResultat() {
         if (labelTitreResultat == null) return;
@@ -827,6 +855,16 @@ public class FrontQuizController {
         double pct = totalPoints > 0 ? Math.round((pointsObtenus * 100.0 / totalPoints) * 100.0) / 100.0 : 0.0;
         // Seuil de réussite défini dans le quiz, 50 % par défaut
         int seuil = quiz.getSeuilReussite() != null ? quiz.getSeuilReussite() : 50;
+
+        // ✅ FIX BUG 1 : Enregistrer la tentative terminée
+        int etudiantId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+        serviceQuiz.enregistrerTentative(etudiantId, quiz.getId(), pointsObtenus, totalPoints, pct);
+        
+        // ✅ FIX BUG 3 : Récupérer les vraies statistiques
+        java.util.Map<String, Object> statistiques = serviceQuiz.getStatistiquesEtudiant(etudiantId, quiz);
+        int nombreTentatives = (int) statistiques.get("nombreTentatives");
+        Integer maxTentatives = (Integer) statistiques.get("maxTentatives");
+        boolean peutRecommencer = (boolean) statistiques.get("peutRecommencer");
 
         // Remplissage des labels principaux
         labelTitreResultat.setText("Quiz - " + quiz.getTitre());
@@ -870,16 +908,24 @@ public class FrontQuizController {
             labelMessage.setStyle("-fx-font-size:14;-fx-font-weight:700;-fx-text-fill:#dc2626;-fx-background-color:#fef2f2;-fx-background-radius:10;-fx-padding:10 20 10 20;");
         }
 
-        // Statistiques de la session (tentative, meilleur score, possibilité de recommencer)
-        if (labelTentative != null) labelTentative.setText("1"); // Toujours 1 dans cette version
-        if (labelMaxTentatives != null) labelMaxTentatives.setText("TENTATIVE / " + (quiz.getMaxTentatives() != null ? quiz.getMaxTentatives() : "∞"));
+        // ✅ Statistiques réelles (pas hardcodées)
+        if (labelTentative != null) labelTentative.setText(String.valueOf(nombreTentatives));
+        if (labelMaxTentatives != null) {
+            String maxText = maxTentatives != null ? String.valueOf(maxTentatives) : "∞";
+            labelMaxTentatives.setText("TENTATIVE / " + maxText);
+        }
         if (labelMeilleurScore != null) labelMeilleurScore.setText(String.format("%.0f%%", pct));
         if (labelPeutRecommencer != null) {
-            // Peut recommencer si maxTentatives est null (illimité) ou > 1
-            boolean peut = quiz.getMaxTentatives() == null || quiz.getMaxTentatives() > 1;
-            labelPeutRecommencer.setText(peut ? "OUI" : "NON");
-            if (!peut) labelPeutRecommencer.setStyle("-fx-font-size:22;-fx-font-weight:900;-fx-text-fill:#ef4444;");
+            labelPeutRecommencer.setText(peutRecommencer ? "OUI" : "NON");
+            if (!peutRecommencer) {
+                labelPeutRecommencer.setStyle("-fx-font-size:22;-fx-font-weight:900;-fx-text-fill:#ef4444;");
+            } else {
+                labelPeutRecommencer.setStyle("-fx-font-size:22;-fx-font-weight:900;-fx-text-fill:#3b82f6;");
+            }
         }
+        
+        System.out.println("📊 Statistiques : " + nombreTentatives + " / " + 
+            (maxTentatives != null ? maxTentatives : "∞") + " tentatives — Peut recommencer : " + peutRecommencer);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -916,11 +962,22 @@ public class FrontQuizController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
             Parent view = loader.load();
             FrontQuizController ctrl = loader.getController();
+            
+            // Transfert complet de l'état
+            ctrl.quiz = this.quiz;
+            ctrl.chapitre = this.chapitre;
+            ctrl.questions = this.questions;
+            ctrl.totalPoints = this.totalPoints;
             ctrl.onRetourCallback = this.onRetourCallback;
             ctrl.sceneRef = this.sceneRef != null ? this.sceneRef : this.labelTitreResultat;
-            ctrl.setQuiz(this.quiz);
+            
+            // Afficher l'intro
+            ctrl.afficherIntro();
             setCenter(view);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+            System.err.println("Erreur lors du rechargement du quiz : " + e.getMessage());
+        }
     }
 
     /**

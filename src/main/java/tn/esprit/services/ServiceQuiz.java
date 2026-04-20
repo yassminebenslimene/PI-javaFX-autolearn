@@ -174,5 +174,164 @@ public class ServiceQuiz {
         }
         return quizzes;
     }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // SYSTÈME DE TENTATIVES — Stockage en mémoire (Map statique)
+    // Équivalent de la session PHP dans Symfony
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Stockage des tentatives terminées en mémoire.
+     * Clé : "etudiantId_quizId"
+     * Valeur : nombre de tentatives terminées
+     */
+    private static final java.util.Map<String, Integer> tentatives = new java.util.HashMap<>();
+
+    /**
+     * Stockage des résultats de la dernière tentative.
+     * Clé : "etudiantId_quizId"
+     * Valeur : Map contenant score, totalPoints, percentage, date
+     */
+    private static final java.util.Map<String, java.util.Map<String, Object>> derniersResultats = new java.util.HashMap<>();
+
+    /**
+     * Génère une clé unique pour un étudiant et un quiz.
+     * Format : "etudiantId_quizId"
+     */
+    private String getKey(int etudiantId, int quizId) {
+        return etudiantId + "_" + quizId;
+    }
+
+    /**
+     * Obtient le nombre de tentatives terminées pour un étudiant et un quiz.
+     * Équivalent de getNombreTentatives() dans Symfony.
+     *
+     * @param etudiantId ID de l'étudiant
+     * @param quizId ID du quiz
+     * @return nombre de tentatives (0 si aucune)
+     */
+    public int getNombreTentatives(int etudiantId, int quizId) {
+        String key = getKey(etudiantId, quizId);
+        return tentatives.getOrDefault(key, 0);
+    }
+
+    /**
+     * Enregistre une tentative terminée et incrémente le compteur.
+     * Équivalent de enregistrerTentative() dans Symfony.
+     *
+     * @param etudiantId ID de l'étudiant
+     * @param quizId ID du quiz
+     * @param score points obtenus
+     * @param totalPoints total des points possibles
+     * @param percentage pourcentage de réussite
+     */
+    public void enregistrerTentative(int etudiantId, int quizId, int score, int totalPoints, double percentage) {
+        String key = getKey(etudiantId, quizId);
+        
+        // Incrémenter le compteur
+        tentatives.put(key, tentatives.getOrDefault(key, 0) + 1);
+        
+        // Sauvegarder les résultats de cette tentative
+        java.util.Map<String, Object> resultats = new java.util.HashMap<>();
+        resultats.put("score", score);
+        resultats.put("totalPoints", totalPoints);
+        resultats.put("percentage", percentage);
+        resultats.put("date", java.time.LocalDateTime.now().toString());
+        resultats.put("tentative", tentatives.get(key));
+        
+        derniersResultats.put(key, resultats);
+        
+        System.out.println("✅ Tentative enregistrée : " + key + " → " + tentatives.get(key) + " tentative(s)");
+    }
+
+    /**
+     * Récupère les résultats de la dernière tentative.
+     * Équivalent de getDerniersResultats() dans Symfony.
+     *
+     * @param etudiantId ID de l'étudiant
+     * @param quizId ID du quiz
+     * @return Map contenant les résultats ou null si aucune tentative
+     */
+    public java.util.Map<String, Object> getDerniersResultats(int etudiantId, int quizId) {
+        String key = getKey(etudiantId, quizId);
+        return derniersResultats.get(key);
+    }
+
+    /**
+     * Vérifie si l'étudiant a réussi le quiz (basé sur la dernière tentative).
+     * Équivalent de aReussiQuiz() dans Symfony.
+     *
+     * @param etudiantId ID de l'étudiant
+     * @param quiz le quiz
+     * @return true si réussi, false sinon
+     */
+    public boolean aReussiQuiz(int etudiantId, Quiz quiz) {
+        java.util.Map<String, Object> resultats = getDerniersResultats(etudiantId, quiz.getId());
+        
+        if (resultats == null) {
+            return false;
+        }
+        
+        double percentage = (double) resultats.get("percentage");
+        int seuilReussite = quiz.getSeuilReussite() != null ? quiz.getSeuilReussite() : 50;
+        
+        return percentage >= seuilReussite;
+    }
+
+    /**
+     * Vérifie si l'étudiant peut passer le quiz.
+     * Équivalent de canStudentTakeQuiz() dans Symfony.
+     *
+     * @param etudiantId ID de l'étudiant
+     * @param quiz le quiz
+     * @return Map avec "canTake" (boolean) et "errors" (List<String>)
+     */
+    public java.util.Map<String, Object> canStudentTakeQuiz(int etudiantId, Quiz quiz) {
+        java.util.List<String> errors = new java.util.ArrayList<>();
+        
+        // VÉRIFICATION 1 : Le quiz doit être actif
+        if (!"actif".equals(quiz.getEtat())) {
+            errors.add("Ce quiz n'est pas actif.");
+        }
+        
+        // VÉRIFICATION 2 : Nombre max de tentatives non dépassé
+        if (quiz.getMaxTentatives() != null) {
+            int nbTentatives = getNombreTentatives(etudiantId, quiz.getId());
+            if (nbTentatives >= quiz.getMaxTentatives()) {
+                errors.add("Vous avez atteint le nombre maximum de tentatives (" 
+                    + quiz.getMaxTentatives() + ") pour ce quiz.");
+            }
+        }
+        
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("canTake", errors.isEmpty());
+        result.put("errors", errors);
+        
+        return result;
+    }
+
+    /**
+     * Obtient toutes les statistiques d'un étudiant pour un quiz.
+     * Équivalent de getStatistiquesEtudiant() dans Symfony.
+     *
+     * @param etudiantId ID de l'étudiant
+     * @param quiz le quiz
+     * @return Map contenant toutes les statistiques
+     */
+    public java.util.Map<String, Object> getStatistiquesEtudiant(int etudiantId, Quiz quiz) {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        
+        int nombreTentatives = getNombreTentatives(etudiantId, quiz.getId());
+        java.util.Map<String, Object> check = canStudentTakeQuiz(etudiantId, quiz);
+        
+        stats.put("nombreTentatives", nombreTentatives);
+        stats.put("maxTentatives", quiz.getMaxTentatives());
+        stats.put("derniersResultats", getDerniersResultats(etudiantId, quiz.getId()));
+        stats.put("aReussi", aReussiQuiz(etudiantId, quiz));
+        stats.put("peutRecommencer", check.get("canTake"));
+        stats.put("seuilReussite", quiz.getSeuilReussite() != null ? quiz.getSeuilReussite() : 50);
+        
+        return stats;
+    }
 }
 
