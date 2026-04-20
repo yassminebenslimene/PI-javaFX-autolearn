@@ -126,6 +126,9 @@ public class FrontQuizController {
     /** Affichage du timer (ex : "⏱  2:30") dans l'en-tête, fond dégradé orange. */
     @FXML private Label  labelTimer;
 
+    /** Bouton activer/désactiver le son. */
+    @FXML private Button btnSound;
+
     /** Indicateur de progression (ex : "Question 3 / 10"). */
     @FXML private Label  labelProgress;
 
@@ -634,6 +637,7 @@ public class FrontQuizController {
                 textLbl.setAlignment(javafx.geometry.Pos.CENTER);
                 textLbl.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:white; -fx-text-alignment:CENTER;");
                 textLbl.setMaxWidth(Double.MAX_VALUE);
+                textLbl.setPrefWidth(0); // force le wrap dans la grille
 
                 VBox iconTop = new VBox(4, iconLbl);
                 iconTop.setAlignment(javafx.geometry.Pos.TOP_LEFT);
@@ -651,7 +655,8 @@ public class FrontQuizController {
                     "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),10,0,0,5);" +
                     border
                 );
-                content.setPrefHeight(100);
+                content.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+                content.setMinHeight(90);
 
                 final int idx = i;
                 content.setOnMouseClicked(e -> {
@@ -1168,6 +1173,23 @@ public class FrontQuizController {
     // ══════════════════════════════════════════════════════════════════════════
     // SONS — Sons instantanés via Clip pré-chargé (fusionné depuis SoundPlayer)
     // ══════════════════════════════════════════════════════════════════════════
+
+    /** Toggle son ON/OFF — appelé par le bouton 🔊/🔇 dans question.fxml */
+    @FXML
+    private void onToggleSound() {
+        soundEnabled = !soundEnabled;
+        if (btnSound != null) {
+            btnSound.setText(soundEnabled ? "🔊" : "🔇");
+            btnSound.setStyle(soundEnabled
+                ? "-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;" +
+                  "-fx-font-size:16; -fx-background-radius:50%;" +
+                  "-fx-min-width:38; -fx-min-height:38; -fx-cursor:hand; -fx-border-width:0;"
+                : "-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:rgba(255,255,255,0.4);" +
+                  "-fx-font-size:16; -fx-background-radius:50%;" +
+                  "-fx-min-width:38; -fx-min-height:38; -fx-cursor:hand; -fx-border-width:0;"
+            );
+        }
+    }
 
     private static boolean soundEnabled = true;
     private static final javax.sound.sampled.Clip clipClick  = buildClip(880,  60,  0.25f);
