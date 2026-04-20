@@ -119,6 +119,84 @@ public class EmailService {
         sendAsync(toEmail, subject, body);
     }
 
+    /**
+     * 6. Quiz retry reminder — sent when student scores below the passing threshold.
+     *
+     * @param toEmail      Student email
+     * @param prenom       Student first name
+     * @param quizTitre    Quiz title
+     * @param score        Score obtained (percentage, e.g. 35)
+     * @param seuil        Passing threshold (e.g. 50)
+     * @param tentatives   Number of attempts already made
+     * @param maxTentatives Max allowed attempts (null = unlimited)
+     */
+    public static void sendQuizRetryReminder(String toEmail, String prenom,
+                                             String quizTitre, int score, int seuil,
+                                             int tentatives, Integer maxTentatives) {
+        String attemptsInfo = maxTentatives != null
+            ? tentatives + " / " + maxTentatives + " tentatives utilisées"
+            : tentatives + " tentative(s) effectuée(s)";
+
+        String subject = "💪 Réessayez le quiz : " + quizTitre;
+        String body = htmlTemplate(
+            "Vous pouvez faire mieux !",
+            "Votre score n'a pas atteint le seuil de réussite.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Vous avez passé le quiz <strong>\"" + quizTitre + "\"</strong> " +
+            "mais votre score n'a pas encore atteint le seuil de réussite.</p>" +
+            "<table style='border-collapse:collapse;margin:20px 0;width:100%;'>" +
+            "  <tr>" +
+            "    <td style='padding:10px 16px;background:#fef2f2;border-radius:8px 0 0 8px;" +
+            "        color:#dc2626;font-weight:700;font-size:22px;text-align:center;width:33%;'>" +
+            score + "%" +
+            "    </td>" +
+            "    <td style='padding:10px 16px;background:#f1f5f9;color:#64748b;" +
+            "        font-size:13px;text-align:center;width:33%;'>" +
+            "Seuil requis : <strong>" + seuil + "%</strong>" +
+            "    </td>" +
+            "    <td style='padding:10px 16px;background:#f0fdf4;border-radius:0 8px 8px 0;" +
+            "        color:#059669;font-size:13px;text-align:center;width:33%;'>" +
+            attemptsInfo +
+            "    </td>" +
+            "  </tr>" +
+            "</table>" +
+            "<p>Ne vous découragez pas ! Relancez le quiz dès maintenant et améliorez votre score. 🚀</p>",
+            "Refaire le quiz", "https://autolearn.tn/cours"
+        );
+        sendAsync(toEmail, subject, body);
+    }
+
+    /**
+     * 7. Chapter revision reminder — sent when student scores very low (below seuil/2).
+     *
+     * @param toEmail       Student email
+     * @param prenom        Student first name
+     * @param quizTitre     Quiz title
+     * @param chapitreTitre Chapter title to revise
+     * @param score         Score obtained (percentage)
+     */
+    public static void sendRevisionReminder(String toEmail, String prenom,
+                                            String quizTitre, String chapitreTitre, int score) {
+        String subject = "📚 Révisez le chapitre : " + chapitreTitre;
+        String body = htmlTemplate(
+            "Un peu de révision s'impose !",
+            "Votre score suggère de revoir le contenu du chapitre.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Votre score de <strong style='color:#dc2626;'>" + score + "%</strong> " +
+            "au quiz <strong>\"" + quizTitre + "\"</strong> indique que certaines notions " +
+            "du chapitre méritent d'être revues.</p>" +
+            "<div style='background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;" +
+            "padding:14px 18px;margin:20px 0;'>" +
+            "  <p style='margin:0;font-weight:700;color:#92400e;'>📖 Chapitre à réviser :</p>" +
+            "  <p style='margin:6px 0 0;color:#78350f;font-size:15px;'>" + chapitreTitre + "</p>" +
+            "</div>" +
+            "<p>Prenez le temps de relire le contenu du chapitre, puis retentez le quiz. " +
+            "Vous verrez la différence ! 💡</p>",
+            "Accéder au cours", "https://autolearn.tn/cours"
+        );
+        sendAsync(toEmail, subject, body);
+    }
+
     /** 5. Breached password warning (sent after registration if HIBP detects a leak) */
     public static void sendAsync_BreachedPasswordWarning(String toEmail, String prenom, int breachCount) {
         String subject = "Securite : votre mot de passe a ete detecte dans des fuites de donnees";

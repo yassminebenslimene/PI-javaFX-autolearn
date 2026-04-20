@@ -2,13 +2,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!--
-    quiz_form.fxml — Formulaire de création / modification d'un quiz
-    Controller : QuizFormController.java
-    Utilisé pour :
-      - Créer un nouveau quiz (bouton "+ Nouveau Quiz" dans index.fxml)
-      - Modifier un quiz existant (bouton "Modifier" dans index.fxml)
--->
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.QuizFormController"
             style="-fx-background-color:#0f1a14; -fx-font-family:'Segoe UI',Arial,sans-serif;">

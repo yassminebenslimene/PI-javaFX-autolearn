@@ -2,14 +2,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!--
-    question_form.fxml — Formulaire de création / modification d'une question
-    Controller : QuestionController.java
-    Utilisé pour :
-      - Créer une nouvelle question (bouton "+ Nouvelle Question" dans index.fxml)
-      - Modifier une question existante (bouton "Modifier" sur une question)
-    Note : ce formulaire est chargé dans la zone contentArea du layout.fxml
--->
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.QuestionController"
             style="-fx-background-color:#0f1a14; -fx-font-family:'Segoe UI',Arial,sans-serif;">

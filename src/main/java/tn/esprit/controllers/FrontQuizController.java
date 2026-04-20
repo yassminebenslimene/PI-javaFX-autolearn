@@ -54,6 +54,7 @@ import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Option;
 import tn.esprit.entities.Question;
 import tn.esprit.entities.Quiz;
+import tn.esprit.services.EmailService;
 import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 import tn.esprit.services.ServiceQuiz;
@@ -1028,6 +1029,29 @@ public class FrontQuizController {
         
         labelMessage.setText(messageTexte);
         labelMessage.setStyle(messageStyle);
+
+        // ── NOTIFICATIONS EMAIL ──────────────────────────────────────────────
+        // Envoi asynchrone (ne bloque pas l'UI) uniquement si l'étudiant a échoué
+        try {
+            tn.esprit.entities.User user = tn.esprit.session.SessionManager.getCurrentUser();
+            if (user != null && user.getEmail() != null && pct < seuil) {
+                String email  = user.getEmail();
+                String prenom = user.getPrenom();
+                int scorePct  = (int) pct;
+
+                if (pct < (double) seuil / 2) {
+                    // Score très bas → rappel de révision du chapitre
+                    String chapitreTitre = chapitre != null ? chapitre.getTitre() : "ce chapitre";
+                    EmailService.sendRevisionReminder(email, prenom, quiz.getTitre(), chapitreTitre, scorePct);
+                } else {
+                    // Score insuffisant mais pas catastrophique → rappel de refaire le quiz
+                    EmailService.sendQuizRetryReminder(email, prenom, quiz.getTitre(),
+                        scorePct, seuil, nombreTentatives, maxTentatives);
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println("[Notification] Erreur envoi email : " + ex.getMessage());
+        }
 
         // ✅ Statistiques réelles (pas hardcodées)
         if (labelTentative != null) labelTentative.setText(String.valueOf(nombreTentatives));

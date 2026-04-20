@@ -2,14 +2,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!--
-    option_form.fxml — Formulaire de création / modification d'une option de réponse
-    Controller : OptionController.java
-    Utilisé pour :
-      - Créer une nouvelle option (bouton "+ Nouvelle Option" dans index.fxml)
-      - Modifier une option existante (bouton "Modifier" sur une option)
-    Note : une option appartient à une question, qui appartient à un quiz
--->
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.OptionController"
             style="-fx-background-color:#0f1a14; -fx-font-family:'Segoe UI',Arial,sans-serif;">
