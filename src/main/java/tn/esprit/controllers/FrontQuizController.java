@@ -43,7 +43,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -144,6 +146,13 @@ public class FrontQuizController {
 
     /** Conteneur vertical dans lequel les boutons d'options sont générés dynamiquement. */
     @FXML private VBox   optionsContainer;
+
+    /** Grille 2x2 pour les options style Symfony */
+    @FXML private javafx.scene.layout.GridPane optionsGrid;
+
+    /** Boutons navigation précédent/suivant */
+    @FXML private Button btnPrev;
+    @FXML private Button btnNext;
 
     /** Compteur de questions répondues (ex : "3 / 10 questions répondues"). */
     @FXML private Label  labelRepondues;
@@ -300,7 +309,9 @@ public class FrontQuizController {
         this.questions = serviceQuestion.findByQuizId(quiz.getId());
         // Calcul du total des points (somme des points de chaque question)
         this.totalPoints = questions.stream().mapToInt(Question::getPoint).sum();
-        javafx.application.Platform.runLater(() -> { if (labelTitreQuiz != null) sceneRef = labelTitreQuiz; });
+        javafx.application.Platform.runLater(() -> { 
+            if (labelTitreQuiz != null) sceneRef = labelTitreQuiz;
+        });
         afficherIntro();
     }
 
@@ -462,6 +473,7 @@ public class FrontQuizController {
      */
     private void afficherQuestion() {
         if (questions == null || questions.isEmpty() || labelQuestion == null) return;
+        
         Question q = questions.get(indexQuestion);
         labelTitreHeader.setText("Quiz - " + quiz.getTitre());
         labelProgress.setText("Question " + (indexQuestion + 1) + " / " + questions.size());
@@ -508,16 +520,8 @@ public class FrontQuizController {
         }
 
         // Initialiser le bouton soumettre
-        if (btnSoumettre != null) {
-            btnSoumettre.setDisable(reponsesChoisies.size() < questions.size());
-            if (reponsesChoisies.size() < questions.size()) {
-                btnSoumettre.setStyle(
-                    "-fx-background-color:rgba(255,255,255,0.15);" +
-                    "-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:13; -fx-font-weight:700;" +
-                    "-fx-padding:10 22 10 22; -fx-background-radius:12;" +
-                    "-fx-cursor:default; -fx-border-width:0;"
-                );
-            }
+        if (btnSoumettre != null && reponsesChoisies.size() < questions.size()) {
+            btnSoumettre.setDisable(true);
         }
         mettreAJourRepondues();
         demarrerTimer();
@@ -536,37 +540,144 @@ public class FrontQuizController {
      * @param q la question dont on affiche les options
      */
     private void afficherOptions(Question q) {
-        optionsContainer.getChildren().clear();
-        Integer dejaChoisi = reponsesChoisies.get(q.getId());
-        // Utilise le cache pour éviter des requêtes répétées à la base de données
         List<Option> opts = optionsParQuestion.computeIfAbsent(q.getId(), id -> serviceOption.findByQuestionId(id));
         optionsQuestionCourante = opts;
+        Integer dejaChoisi = reponsesChoisies.get(q.getId());
 
-        for (Option opt : opts) {
-            Button btn = new Button(opt.getTexteOption());
-            btn.setMaxWidth(Double.MAX_VALUE);
-            btn.setWrapText(true);
-            btn.setPadding(new Insets(14, 20, 14, 20));
-            // Style sélectionné (violet) vs non sélectionné (semi-transparent blanc)
-            boolean sel = dejaChoisi != null && dejaChoisi == opt.getId();
-            btn.setStyle(sel
-                ? "-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:700;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:0;-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.5),10,0,0,3);"
-                : "-fx-background-color:rgba(255,255,255,0.15);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:600;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:2;-fx-border-color:rgba(255,255,255,0.3);-fx-border-radius:12;"
-            );
-            btn.setOnAction(e -> {
-                SoundPlayer.playClick(); // Son de sélection d'option
-                // Enregistre la réponse choisie pour cette question
-                reponsesChoisies.put(q.getId(), opt.getId());
-                // Redessine les options pour refléter la sélection
-                afficherOptions(q);
-                mettreAJourRepondues();
-                // Pause de 400 ms pour laisser l'étudiant voir sa sélection, puis question suivante
-                PauseTransition p = new PauseTransition(Duration.millis(400));
-                p.setOnFinished(ev -> { if (indexQuestion < questions.size() - 1) { indexQuestion++; afficherQuestion(); } });
-                p.play();
-            });
-            optionsContainer.getChildren().add(btn);
+        // Couleurs exactes Kahoot/AutoLearn selon COULEURS_QUIZ_JAVAFX.md
+        String[][] palette = {
+            {"linear-gradient(to bottom right,#e74c3c,#c0392b)", "▲"},  // Rouge
+            {"linear-gradient(to bottom right,#3498db,#2980b9)", "◆"},  // Bleu
+            {"linear-gradient(to bottom right,#f39c12,#e67e22)", "●"},  // Orange
+            {"linear-gradient(to bottom right,#2ecc71,#27ae60)", "■"},  // Vert
+        };
+
+        // Utiliser la grille 2x2 si disponible
+        if (optionsGrid != null) {
+            optionsGrid.getChildren().clear();
+            optionsGrid.getColumnConstraints().clear();
+            optionsGrid.getRowConstraints().clear();
+
+            // 2 colonnes égales
+            for (int c = 0; c < 2; c++) {
+                javafx.scene.layout.ColumnConstraints cc = new javafx.scene.layout.ColumnConstraints();
+                cc.setPercentWidth(50);
+                cc.setHgrow(javafx.scene.layout.Priority.ALWAYS);
+                optionsGrid.getColumnConstraints().add(cc);
+            }
+
+            for (int i = 0; i < opts.size(); i++) {
+                Option opt = opts.get(i);
+                String[] p = palette[i % palette.length];
+                String color = p[0];
+                String icon  = p[1];
+
+                boolean sel = dejaChoisi != null && dejaChoisi == opt.getId();
+
+                // Icône en haut à gauche
+                Label iconLbl = new Label(icon);
+                iconLbl.setStyle("-fx-font-size:18; -fx-text-fill:rgba(255,255,255,0.7);");
+
+                Label textLbl = new Label(opt.getTexteOption());
+                textLbl.setWrapText(true);
+                textLbl.setAlignment(javafx.geometry.Pos.CENTER);
+                textLbl.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:white; -fx-text-alignment:CENTER;");
+                textLbl.setMaxWidth(Double.MAX_VALUE);
+
+                VBox iconTop = new VBox(4, iconLbl);
+                iconTop.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+
+                VBox content = new VBox(8, iconTop, textLbl);
+                content.setAlignment(javafx.geometry.Pos.CENTER);
+                content.setPadding(new Insets(16, 20, 16, 20));
+                content.setMaxWidth(Double.MAX_VALUE);
+
+                String bgColor = sel ? "derive(" + color + ", -20%)" : color;
+                String border  = sel ? "-fx-border-color:white; -fx-border-width:3; -fx-border-radius:14;" : "";
+                content.setStyle(
+                    "-fx-background-color:" + bgColor + ";" +
+                    "-fx-background-radius:15; -fx-cursor:hand;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),10,0,0,5);" +
+                    border
+                );
+                content.setPrefHeight(100);
+
+                final int idx = i;
+                content.setOnMouseClicked(e -> {
+                    SoundPlayer.playClick();
+                    reponsesChoisies.put(q.getId(), opt.getId());
+                    afficherOptions(q);
+                    mettreAJourRepondues();
+                    // Passer à la question suivante après 400ms
+                    PauseTransition pause = new PauseTransition(Duration.millis(400));
+                    pause.setOnFinished(ev -> {
+                        if (indexQuestion < questions.size() - 1) {
+                            indexQuestion++;
+                            afficherQuestion();
+                        }
+                    });
+                    pause.play();
+                });
+
+                // Hover effect
+                content.setOnMouseEntered(e -> content.setStyle(
+                    "-fx-background-color:derive(" + color + ", 15%);" +
+                    "-fx-background-radius:14; -fx-cursor:hand;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.35),12,0,0,4);" + border
+                ));
+                content.setOnMouseExited(e -> content.setStyle(
+                    "-fx-background-color:" + bgColor + ";" +
+                    "-fx-background-radius:14; -fx-cursor:hand;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.25),8,0,0,3);" + border
+                ));
+
+                int row = i / 2;
+                int col = i % 2;
+                optionsGrid.add(content, col, row);
+                GridPane.setFillWidth(content, true);
+                GridPane.setFillHeight(content, true);
+                GridPane.setHgrow(content, Priority.ALWAYS);
+                GridPane.setVgrow(content, Priority.ALWAYS);
+            }
+        } else if (optionsContainer != null) {
+            // Fallback liste verticale
+            optionsContainer.getChildren().clear();
+            for (Option opt : opts) {
+                Button btn = new Button(opt.getTexteOption());
+                btn.setMaxWidth(Double.MAX_VALUE);
+                btn.setWrapText(true);
+                btn.setPadding(new Insets(14, 20, 14, 20));
+                boolean sel = dejaChoisi != null && dejaChoisi == opt.getId();
+                btn.setStyle(sel
+                    ? "-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:700;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:0;"
+                    : "-fx-background-color:rgba(255,255,255,0.15);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:600;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:2;-fx-border-color:rgba(255,255,255,0.3);-fx-border-radius:12;"
+                );
+                btn.setOnAction(e -> {
+                    SoundPlayer.playClick();
+                    reponsesChoisies.put(q.getId(), opt.getId());
+                    afficherOptions(q);
+                    mettreAJourRepondues();
+                    PauseTransition p = new PauseTransition(Duration.millis(400));
+                    p.setOnFinished(ev -> { if (indexQuestion < questions.size() - 1) { indexQuestion++; afficherQuestion(); } });
+                    p.play();
+                });
+                optionsContainer.getChildren().add(btn);
+            }
         }
+
+        // Boutons nav
+        if (btnPrev != null) btnPrev.setDisable(indexQuestion == 0);
+        if (btnNext != null) btnNext.setDisable(indexQuestion >= questions.size() - 1);
+    }
+
+    @FXML
+    private void onPrev() {
+        if (indexQuestion > 0) { indexQuestion--; afficherQuestion(); }
+    }
+
+    @FXML
+    private void onNext() {
+        if (indexQuestion < questions.size() - 1) { indexQuestion++; afficherQuestion(); }
     }
 
     /**
@@ -574,8 +685,38 @@ public class FrontQuizController {
      * Ex : "3 / 10 questions répondues"
      */
     private void mettreAJourRepondues() {
+        int repondues = reponsesChoisies.size();
+        int total = questions.size();
+
         if (labelRepondues != null)
-            labelRepondues.setText(reponsesChoisies.size() + " / " + questions.size() + " questions répondues");
+            labelRepondues.setText(repondues + " / " + total + " questions répondues");
+
+        // Mettre à jour la barre de progression
+        if (progressBar != null) {
+            double prog = total > 0 ? (double) repondues / total : 0;
+            javafx.animation.Timeline anim = new javafx.animation.Timeline(
+                new KeyFrame(Duration.millis(300),
+                    new KeyValue(progressBar.progressProperty(), prog, Interpolator.EASE_OUT))
+            );
+            anim.play();
+        }
+
+        // Activer le bouton soumettre quand toutes les questions sont répondues
+        if (btnSoumettre != null) {
+            boolean toutesRepondues = repondues >= total;
+            btnSoumettre.setDisable(!toutesRepondues);
+            btnSoumettre.setStyle(toutesRepondues
+                ? "-fx-background-color:linear-gradient(to bottom right,#2ecc71,#27ae60);" +
+                  "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;" +
+                  "-fx-padding:10 24 10 24; -fx-background-radius:24;" +
+                  "-fx-cursor:hand; -fx-border-width:0;" +
+                  "-fx-effect:dropshadow(gaussian,rgba(46,204,113,0.4),15,0,0,5);"
+                : "-fx-background-color:linear-gradient(to bottom right,#95a5a6,#7f8c8d);" +
+                  "-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:13; -fx-font-weight:700;" +
+                  "-fx-padding:10 24 10 24; -fx-background-radius:24;" +
+                  "-fx-cursor:default; -fx-border-width:0;"
+            );
+        }
     }
 
     /**
@@ -668,6 +809,7 @@ public class FrontQuizController {
      */
     private void afficherResultat() {
         if (labelTitreResultat == null) return;
+        
         int pointsObtenus = 0;
         for (Question q : questions) {
             Integer choisi = reponsesChoisies.get(q.getId());
@@ -814,6 +956,13 @@ public class FrontQuizController {
             : labelQuestion != null ? labelQuestion
             : labelTitreResultat;
         if (ref == null || ref.getScene() == null) return;
-        ((BorderPane) ref.getScene().getRoot()).setCenter(view);
+        BorderPane root = (BorderPane) ref.getScene().getRoot();
+        if (view instanceof javafx.scene.layout.Region region) {
+            region.prefHeightProperty().unbind();
+            region.prefWidthProperty().unbind();
+            region.setMaxHeight(Double.MAX_VALUE);
+            region.setMaxWidth(Double.MAX_VALUE);
+        }
+        root.setCenter(view);
     }
 }

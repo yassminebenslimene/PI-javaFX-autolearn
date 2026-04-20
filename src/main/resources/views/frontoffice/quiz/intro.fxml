@@ -38,7 +38,7 @@
 <!-- Conteneur racine : fond violet plein, occupe tout l'espace disponible -->
 <StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="tn.esprit.controllers.FrontQuizController"
-           style="-fx-background-color:#6b21a8;">
+           style="-fx-background-color:#46178F;">
 
     <!-- Couche de fond : contient uniquement le bouton "Retour" en haut à gauche -->
     <!-- Fond violet avec effet diagonal (simulé par des rectangles) -->
