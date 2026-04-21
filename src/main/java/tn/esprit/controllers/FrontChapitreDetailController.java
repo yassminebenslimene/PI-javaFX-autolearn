@@ -73,10 +73,22 @@ public class FrontChapitreDetailController {
         String contenu = chapitre.getContenu() == null ? "" : chapitre.getContenu();
         webContent.getEngine().loadContent(buildHtml(contenu));
 
-        // Ressource
+        // Ressource — si YouTube → embed dans WebView, sinon lien cliquable
         String res = chapitre.getRessources();
         if (res != null && !res.isBlank()) {
-            labelRessource.setText(res);
+            String embedUrl = convertToYoutubeEmbed(res);
+            if (embedUrl != null) {
+                // Vidéo YouTube → afficher dans WebView
+                String videoHtml = "<!DOCTYPE html><html><body style='margin:0;background:#000;'>"
+                    + "<iframe width='100%' height='360' src='" + embedUrl + "' "
+                    + "frameborder='0' allow='accelerometer; autoplay; clipboard-write; "
+                    + "encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>"
+                    + "</body></html>";
+                webContent.getEngine().loadContent(videoHtml);
+                labelRessource.setText("▶  Vidéo YouTube intégrée");
+            } else {
+                labelRessource.setText(res);
+            }
             boxRessource.setVisible(true); boxRessource.setManaged(true);
         } else {
             boxRessource.setVisible(false); boxRessource.setManaged(false);
@@ -133,6 +145,39 @@ public class FrontChapitreDetailController {
 
     @FXML private void onRetour() { if (onRetourCallback != null) onRetourCallback.run(); }
     @FXML private void onQuiz()   { if (onQuizCallback   != null) onQuizCallback.run(); }
+
+    /**
+     * Convertit un lien YouTube normal en URL embed.
+     * Supporte : youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID
+     * Retourne null si ce n'est pas un lien YouTube.
+     */
+    private String convertToYoutubeEmbed(String url) {
+        if (url == null) return null;
+        String videoId = null;
+        // Format : https://www.youtube.com/watch?v=VIDEO_ID
+        if (url.contains("youtube.com/watch")) {
+            int idx = url.indexOf("v=");
+            if (idx >= 0) {
+                videoId = url.substring(idx + 2);
+                int amp = videoId.indexOf("&");
+                if (amp >= 0) videoId = videoId.substring(0, amp);
+            }
+        }
+        // Format : https://youtu.be/VIDEO_ID
+        else if (url.contains("youtu.be/")) {
+            int idx = url.lastIndexOf("/");
+            if (idx >= 0) videoId = url.substring(idx + 1);
+        }
+        // Format : https://www.youtube.com/shorts/VIDEO_ID
+        else if (url.contains("youtube.com/shorts/")) {
+            int idx = url.lastIndexOf("/");
+            if (idx >= 0) videoId = url.substring(idx + 1);
+        }
+        if (videoId != null && !videoId.isBlank()) {
+            return "https://www.youtube.com/embed/" + videoId;
+        }
+        return null;
+    }
 
     @FXML
     private void onSuivant() {
