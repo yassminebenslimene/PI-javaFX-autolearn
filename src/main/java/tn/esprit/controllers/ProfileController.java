@@ -35,6 +35,15 @@ public class ProfileController {
     @FXML private Label labelSecurityText;
     @FXML private Label labelChainStatus;
 
+    // Geo location (new)
+    @FXML private Label labelGeoLoading;
+    @FXML private VBox  geoInfoBox;
+    @FXML private Label labelGeoCity;
+    @FXML private Label labelGeoCountry;
+    @FXML private Label labelGeoIp;
+    @FXML private Label labelGeoIsp;
+    @FXML private Label labelGeoError;
+
     // Blockchain history (new)
     @FXML private VBox blockchainHistoryBox;
 
@@ -76,6 +85,7 @@ public class ProfileController {
         populateView(u);
         loadBlockchainHistory(u.getId());
         updateSecurityPanel(u.getId());
+        loadGeoLocation();
     }
 
     // ── Populate view ─────────────────────────────────────────────────────────
@@ -129,6 +139,40 @@ public class ProfileController {
             labelNiveauRow.setVisible(isEtudiant);
             labelNiveauRow.setManaged(isEtudiant);
         }
+    }
+
+    // ── Geo Location ──────────────────────────────────────────────────────────
+
+    private void loadGeoLocation() {
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            
+            System.out.println("[Profile] Loading geo location...");
+            ApiService.GeoInfo geo = ApiService.getMyGeoInfo();
+            System.out.println("[Profile] Geo result: " + geo);
+            
+            javafx.application.Platform.runLater(() -> {
+                if (labelGeoLoading != null) {
+                    labelGeoLoading.setVisible(false);
+                    labelGeoLoading.setManaged(false);
+                }
+                if (geo != null) {
+                    if (labelGeoCity    != null) labelGeoCity.setText(geo.city());
+                    if (labelGeoCountry != null) labelGeoCountry.setText(geo.country());
+                    if (labelGeoIp      != null) labelGeoIp.setText(geo.ip());
+                    if (labelGeoIsp     != null) labelGeoIsp.setText(geo.isp());
+                    if (geoInfoBox      != null) {
+                        geoInfoBox.setVisible(true);
+                        geoInfoBox.setManaged(true);
+                    }
+                } else {
+                    if (labelGeoError != null) {
+                        labelGeoError.setText("Localisation non disponible (verifiez votre connexion).");
+                        labelGeoError.setVisible(true);
+                        labelGeoError.setManaged(true);
+                    }
+                }
+            });
+        });
     }
 
     // ── Security panel ────────────────────────────────────────────────────────
