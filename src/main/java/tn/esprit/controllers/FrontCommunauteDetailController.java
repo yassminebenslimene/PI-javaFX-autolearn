@@ -269,7 +269,13 @@ public class FrontCommunauteDetailController {
                 commentField.setPromptText("Maximum 500 caractères.");
                 return;
             }
-                commentField.setStyle("-fx-background-color:#f8fbff; -fx-background-radius:20; " +
+            if (tn.esprit.tools.BadWordFilter.containsBadWord(txt)) {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Votre commentaire contient des mots inappropriés et ne peut pas être publié.", ButtonType.OK);
+                alert.setHeaderText("Contenu inapproprié");
+                alert.showAndWait();
+                return;
+            }
+            commentField.setStyle("-fx-background-color:#f8fbff; -fx-background-radius:20; " +
                                   "-fx-border-color:#cfdbef; -fx-border-width:1; -fx-padding:9 16 9 16; -fx-font-size:12;");
             int uid = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
             Commentaire newC = new Commentaire(txt, p.getId(), uid);
@@ -472,6 +478,12 @@ public class FrontCommunauteDetailController {
             String txt = editField.getText().trim();
             if (txt.length() < 2 || txt.length() > 500) {
                 editField.setStyle("-fx-background-color: #fef2f2; -fx-border-color: #ef4444; -fx-border-radius: 10; -fx-padding: 6; -fx-font-size: 12;");
+                return;
+            }
+            if (tn.esprit.tools.BadWordFilter.containsBadWord(txt)) {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Votre modification contient des mots inappropriés.", ButtonType.OK);
+                alert.setHeaderText("Contenu inapproprié");
+                alert.showAndWait();
                 return;
             }
             c.setContenu(txt);
