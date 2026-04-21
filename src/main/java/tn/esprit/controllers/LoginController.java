@@ -16,6 +16,7 @@ import tn.esprit.services.UserService;
 import tn.esprit.services.GoogleOAuthService;
 import tn.esprit.services.FacebookOAuthService;
 import tn.esprit.services.GitHubOAuthService;
+import tn.esprit.session.JwtManager;
 import tn.esprit.session.SessionManager;
 import tn.esprit.tools.PasswordUtil;
 
@@ -187,6 +188,11 @@ public class LoginController {
             return;
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // JWT AUTHENTICATION - Pure Java (no Symfony API needed)
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // 1. Verify credentials in database
         User found = service.trouverParEmail(email);
         if (found == null) {
             showError("Aucun compte trouve avec cet email.");
@@ -197,6 +203,7 @@ public class LoginController {
             return;
         }
 
+        // 2. Check for auto-suspension (60 days inactive)
         if (!found.isIsSuspended()) {
             java.util.Date lastActivityDate = found.getLastLoginAt() != null
                 ? found.getLastLoginAt()
@@ -224,6 +231,7 @@ public class LoginController {
             }
         }
 
+        // 3. Check if account is suspended
         if (found.isIsSuspended()) {
             showError("Compte suspendu : " +
                 (found.getSuspensionReason() != null ? found.getSuspensionReason() : "") +
@@ -231,11 +239,23 @@ public class LoginController {
             return;
         }
 
+        // 4. Update last login timestamp
         found.setLastLoginAt(Timestamp.valueOf(LocalDateTime.now()));
         service.modifier(found);
 
+        // 5. Generate JWT token and store it
+        User loggedUser = JwtManager.login(found);  // Generates JWT automatically
+        
+        if (loggedUser == null) {
+            showError("Erreur lors de la génération du token. Veuillez réessayer.");
+            return;
+        }
+        
+        // Also keep SessionManager for backward compatibility (optional)
+        SessionManager.login(found);
+        
+        // 6. Remember Me
         addToHistory(email);
-
         if (checkRememberMe.isSelected()) {
             prefs.put("remembered_email", email);
             prefs.put("remembered_pass", password);
@@ -247,13 +267,12 @@ public class LoginController {
             savedCredentials.remove(email);
             saveCredentials();
         }
-
-        SessionManager.login(found);
-
-        ActivityApiClient.logAsync(found.getId(), "user.login",
-            java.util.Map.of("role", found.getRole(), "email", found.getEmail()));
-
-        final User loggedUser = found;
+        
+        // 7. Log activity
+        ActivityApiClient.logAsync(loggedUser.getId(), "user.login",
+            java.util.Map.of("role", loggedUser.getRole(), "email", loggedUser.getEmail()));
+        
+        // 8. Send admin alert (async)
         CompletableFuture.runAsync(() -> {
             ApiService.GeoInfo geo = ApiService.getMyGeoInfo();
             String location = geo != null ? geo.toString() : "Localisation inconnue";
@@ -264,10 +283,14 @@ public class LoginController {
                 " (" + loggedUser.getEmail() + ") s'est connecte depuis " + location
             );
         });
-
+        
+        // 9. Navigate based on role
         try {
-            if ("ADMIN".equals(found.getRole())) MainApp.showBackoffice();
-            else                                  MainApp.showFrontoffice();
+            if (JwtManager.isAdmin()) {
+                MainApp.showBackoffice();
+            } else {
+                MainApp.showFrontoffice();
+            }
         } catch (Exception e) {
             showError("Erreur de navigation: " + e.getMessage());
         }

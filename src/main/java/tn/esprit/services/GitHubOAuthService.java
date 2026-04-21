@@ -53,10 +53,17 @@ public class GitHubOAuthService {
             // Stop any existing server first
             stopServer();
 
+            // Small delay to let OS release the port
+            Thread.sleep(300);
+
             // Start local HTTP server to receive callback
             server = HttpServer.create(new InetSocketAddress(PORT), 0);
             server.createContext("/callback", GitHubOAuthService::handleCallback);
-            server.setExecutor(null);
+            server.setExecutor(java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "github-oauth");
+                t.setDaemon(true);
+                return t;
+            }));
             server.start();
 
             // Auto-timeout after 2 minutes
@@ -259,12 +266,12 @@ public class GitHubOAuthService {
     }
 
     private static void stopServer() {
-        isAuthenticating = false;
         if (server != null) {
             try {
                 server.stop(0);
             } catch (Exception ignored) {}
             server = null;
         }
+        isAuthenticating = false;
     }
 }
