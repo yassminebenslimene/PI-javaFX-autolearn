@@ -124,9 +124,9 @@ public class FrontCommunauteDetailController {
 
     private VBox buildPostCard(Post p) {
         VBox card = new VBox(11);
-        card.setStyle("-fx-background-color:linear-gradient(to bottom,#ffffff,#f8fbff); -fx-background-radius:16; " +
-                      "-fx-border-color:#cfe0ff; -fx-border-radius:16; -fx-border-width:1.2; " +
-                      "-fx-effect:dropshadow(gaussian,rgba(37,99,235,0.16),18,0,0,4); -fx-padding:16;");
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 20; " +
+                      "-fx-border-color: #e2e8f0; -fx-border-radius: 20; -fx-border-width: 1; " +
+                      "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 15, 0, 0, 5); -fx-padding: 20;");
 
         String auteur  = getUserName(p.getUserId());
         String dateStr = tempsRelatif(p.getCreatedAt());
@@ -171,19 +171,6 @@ public class FrontCommunauteDetailController {
 
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
-        if (p.getUserId() == currentUserId) {
-            Button btnMenu = new Button("⋮");
-            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#bbb; -fx-font-size:18; " +
-                             "-fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 4;");
-            ContextMenu menu = new ContextMenu();
-            MenuItem itemModifier  = new MenuItem("✏  Modifier");
-            MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
-            menu.getItems().addAll(itemModifier, itemSupprimer);
-            itemModifier.setOnAction(e -> onModifierPost(p, card, lblTitre, lblContenu));
-            itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));
-            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
-            topRow.getChildren().add(btnMenu);
-        }
 
         // Commentaires
         VBox commentsBox = new VBox(6);
@@ -191,28 +178,63 @@ public class FrontCommunauteDetailController {
         for (Commentaire c : serviceCommentaire.getByPost(p.getId()))
             commentsBox.getChildren().add(buildCommentRow(c));
 
-        HBox actionRow = new HBox(8);
+        HBox actionRow = new HBox(12);
         actionRow.setAlignment(javafx.geometry.Pos.CENTER);
-        actionRow.setStyle("-fx-padding:2 0 2 0;");
+        actionRow.setStyle("-fx-padding: 10 0 10 0; -fx-border-color: #f1f5f9; -fx-border-width: 1 0 1 0;");
+        
         Button likeBtn = new Button("👍 J'aime");
         Button replyBtn = new Button("💬 Commenter");
         Button shareBtn = new Button("↗ Partager");
-        String actionStyle = "-fx-background-color:transparent; -fx-text-fill:#475569; -fx-font-size:12; -fx-font-weight:700; " +
-                             "-fx-padding:6 10 6 10; -fx-background-radius:8; -fx-cursor:hand; " +
-                             "-fx-border-color:#dbe3ee; -fx-border-radius:8; -fx-border-width:1;";
+        
+        String actionStyle = "-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 13; -fx-font-weight: 700; " +
+                             "-fx-padding: 8 12; -fx-background-radius: 10; -fx-cursor: hand;";
+        
         likeBtn.setStyle(actionStyle);
         replyBtn.setStyle(actionStyle);
         shareBtn.setStyle(actionStyle);
+        
         likeBtn.setMaxWidth(Double.MAX_VALUE);
         replyBtn.setMaxWidth(Double.MAX_VALUE);
         shareBtn.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(likeBtn, Priority.ALWAYS);
         HBox.setHgrow(replyBtn, Priority.ALWAYS);
         HBox.setHgrow(shareBtn, Priority.ALWAYS);
-        likeBtn.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        
+        likeBtn.setAlignment(javafx.geometry.Pos.CENTER);
         replyBtn.setAlignment(javafx.geometry.Pos.CENTER);
-        shareBtn.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        shareBtn.setAlignment(javafx.geometry.Pos.CENTER);
+
+        // Hover effects
+        String hoverStyle = "-fx-background-color: #f1f5f9; -fx-text-fill: #2563eb;";
+        likeBtn.setOnMouseEntered(e -> likeBtn.setStyle(actionStyle + hoverStyle));
+        likeBtn.setOnMouseExited(e -> likeBtn.setStyle(actionStyle));
+        replyBtn.setOnMouseEntered(e -> replyBtn.setStyle(actionStyle + hoverStyle));
+        replyBtn.setOnMouseExited(e -> replyBtn.setStyle(actionStyle));
+        shareBtn.setOnMouseEntered(e -> shareBtn.setStyle(actionStyle + hoverStyle));
+        shareBtn.setOnMouseExited(e -> shareBtn.setStyle(actionStyle));
+
         actionRow.getChildren().addAll(likeBtn, replyBtn, shareBtn);
+
+        if (p.getUserId() == currentUserId) {
+            Button btnEdit = new Button("✏");
+            Button btnDel = new Button("🗑");
+            
+            String btnBase = "-fx-background-color: transparent; -fx-background-radius: 30; -fx-cursor: hand; -fx-font-size: 14; -fx-padding: 4 8;";
+            btnEdit.setStyle(btnBase + "-fx-text-fill: #3b82f6;");
+            btnDel.setStyle(btnBase + "-fx-text-fill: #ef4444;");
+            
+            btnEdit.setOnMouseEntered(e -> btnEdit.setStyle(btnBase + "-fx-text-fill: #2563eb; -fx-background-color: #eff6ff;"));
+            btnEdit.setOnMouseExited(e -> btnEdit.setStyle(btnBase + "-fx-text-fill: #3b82f6; -fx-background-color: transparent;"));
+            btnDel.setOnMouseEntered(e -> btnDel.setStyle(btnBase + "-fx-text-fill: #dc2626; -fx-background-color: #fef2f2;"));
+            btnDel.setOnMouseExited(e -> btnDel.setStyle(btnBase + "-fx-text-fill: #ef4444; -fx-background-color: transparent;"));
+
+            btnEdit.setOnAction(e -> onModifierPost(p, card, lblTitre, lblContenu, actionRow));
+            btnDel.setOnAction(e -> onSupprimerPost(p, card));
+            
+            HBox postActions = new HBox(5, btnEdit, btnDel);
+            postActions.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+            topRow.getChildren().add(postActions);
+        }
 
         // Champ commentaire
         HBox addComment = new HBox(8);
@@ -261,49 +283,87 @@ public class FrontCommunauteDetailController {
         return card;
     }
 
-    private void onModifierPost(Post p, VBox card, Label lblTitre, Label lblContenu) {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Modifier le post");
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+    private void onModifierPost(Post p, VBox card, Label lblTitre, Label lblContenu, HBox actionRow) {
+        // Toggle visibility
+        lblTitre.setVisible(false);
+        lblTitre.setManaged(false);
+        lblContenu.setVisible(false);
+        lblContenu.setManaged(false);
+        actionRow.setVisible(false);
+        actionRow.setManaged(false);
 
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(20));
+        VBox editBox = new VBox(10);
+        editBox.setStyle("-fx-padding: 5 0 10 0;");
+
         TextField fTitre = new TextField(p.getTitre());
-        fTitre.setPromptText("Titre (max 100 caractères)");
-        TextArea  fContenu = new TextArea(p.getContenu());
-        fContenu.setPromptText("Contenu * (10–2000 caractères)");
-        fContenu.setPrefRowCount(4);
-        Label errLabel = new Label();
-        errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:11;");
-        content.getChildren().addAll(new Label("Titre :"), fTitre, new Label("Contenu :"), fContenu, errLabel);
-        dialog.getDialogPane().setContent(content);
+        fTitre.setPromptText("Titre de la publication");
+        fTitre.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-border-color: #e2e8f0; " +
+                         "-fx-border-radius: 10; -fx-padding: 8 12; -fx-font-size: 14; -fx-font-weight: 700;");
 
-        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
-            String titre   = fTitre.getText().trim();
-            String contenu = fContenu.getText().trim();
-            if (contenu.length() < 10) {
-                errLabel.setText("Le contenu doit contenir au moins 10 caractères.");
-                e.consume();
-            } else if (contenu.length() > 2000) {
-                errLabel.setText("Le contenu ne peut pas dépasser 2000 caractères.");
-                e.consume();
-            } else if (!titre.isEmpty() && titre.length() > 100) {
-                errLabel.setText("Le titre ne peut pas dépasser 100 caractères.");
-                e.consume();
-            } else {
-                errLabel.setText("");
-            }
+        TextArea fContenu = new TextArea(p.getContenu());
+        fContenu.setPromptText("Contenu...");
+        fContenu.setPrefRowCount(3);
+        fContenu.setWrapText(true);
+        fContenu.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-border-color: #e2e8f0; " +
+                          "-fx-border-radius: 10; -fx-padding: 8 12; -fx-font-size: 13;");
+
+        Label errLabel = new Label();
+        errLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 11;");
+
+        Button btnSave = new Button("Enregistrer");
+        btnSave.setStyle("-fx-background-color: #7a6ad8; -fx-text-fill: white; -fx-font-weight: 800; " +
+                         "-fx-padding: 8 20; -fx-background-radius: 10; -fx-cursor: hand;");
+
+        Button btnCancel = new Button("Annuler");
+        btnCancel.setStyle("-fx-background-color: white; -fx-text-fill: #64748b; -fx-font-weight: 700; " +
+                           "-fx-padding: 8 20; -fx-background-radius: 10; -fx-cursor: hand; -fx-border-color: #e2e8f0; -fx-border-radius: 10;");
+
+        HBox btns = new HBox(8, btnCancel, btnSave);
+        btns.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        editBox.getChildren().addAll(new Label("Modifier le titre :") {{ setStyle("-fx-font-size: 11; -fx-text-fill: #94a3b8;"); }},
+                fTitre, new Label("Modifier le contenu :") {{ setStyle("-fx-font-size: 11; -fx-text-fill: #94a3b8;"); }},
+                fContenu, errLabel, btns);
+
+        // Add editBox after lblContenu
+        int idx = card.getChildren().indexOf(lblContenu);
+        card.getChildren().add(idx + 1, editBox);
+
+        btnCancel.setOnAction(e -> {
+            card.getChildren().remove(editBox);
+            lblTitre.setVisible(true);
+            lblTitre.setManaged(true);
+            lblContenu.setVisible(true);
+            lblContenu.setManaged(true);
+            actionRow.setVisible(true);
+            actionRow.setManaged(true);
         });
 
-        dialog.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.OK) {
-                p.setTitre(fTitre.getText().trim());
-                p.setContenu(fContenu.getText().trim());
+        btnSave.setOnAction(e -> {
+            String titre   = fTitre.getText().trim();
+            String contenu = fContenu.getText().trim();
+
+            if (contenu.length() < 10) {
+                errLabel.setText("Le contenu doit contenir au moins 10 caractères.");
+            } else if (contenu.length() > 2000) {
+                errLabel.setText("Le contenu ne peut pas dépasser 2000 caractères.");
+            } else if (!titre.isEmpty() && titre.length() > 100) {
+                errLabel.setText("Le titre ne peut pas dépasser 100 caractères.");
+            } else {
+                p.setTitre(titre);
+                p.setContenu(contenu);
                 servicePost.modifier(p);
-                lblTitre.setText(p.getTitre() != null && !p.getTitre().isEmpty()
-                        ? p.getTitre() : "(sans titre)");
-                lblContenu.setText(p.getContenu());
+                
+                lblTitre.setText(titre.isEmpty() ? "(sans titre)" : titre);
+                lblContenu.setText(contenu);
+                
+                card.getChildren().remove(editBox);
+                lblTitre.setVisible(true);
+                lblTitre.setManaged(true);
+                lblContenu.setVisible(true);
+                lblContenu.setManaged(true);
+                actionRow.setVisible(true);
+                actionRow.setManaged(true);
             }
         });
     }
@@ -342,9 +402,8 @@ public class FrontCommunauteDetailController {
         lblContenu.setStyle("-fx-font-size:12; -fx-text-fill:#334155;");
 
         VBox bubble = new VBox(2, lblNom, lblContenu);
-        bubble.setStyle("-fx-background-color:linear-gradient(to bottom,#f8fbff,#f1f6ff); -fx-background-radius:18; " +
-                        "-fx-border-color:#d7e3f4; -fx-border-radius:18; -fx-border-width:1; " +
-                        "-fx-padding:8 14 8 14;");
+        bubble.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 18; " +
+                        "-fx-padding: 10 16;");
         HBox.setHgrow(bubble, Priority.ALWAYS);
 
         HBox row = new HBox(8, avatar, bubble);
@@ -354,38 +413,21 @@ public class FrontCommunauteDetailController {
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
         if (c.getUserId() == currentUserId) {
-            Button btnMenu = new Button("⋮");
-            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#888; -fx-font-size:15; " +
-                             "-fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 4;");
+            Button btnEdit = new Button("✏");
+            Button btnDel = new Button("🗑");
+            
+            String btnBase = "-fx-background-color: transparent; -fx-background-radius: 30; -fx-cursor: hand; -fx-font-size: 11; -fx-padding: 2 6;";
+            btnEdit.setStyle(btnBase + "-fx-text-fill: #64748b;");
+            btnDel.setStyle(btnBase + "-fx-text-fill: #94a3b8;");
+            
+            btnEdit.setOnMouseEntered(e -> btnEdit.setStyle(btnBase + "-fx-text-fill: #3b82f6; -fx-background-color: #eff6ff;"));
+            btnEdit.setOnMouseExited(e -> btnEdit.setStyle(btnBase + "-fx-text-fill: #64748b; -fx-background-color: transparent;"));
+            btnDel.setOnMouseEntered(e -> btnDel.setStyle(btnBase + "-fx-text-fill: #ef4444; -fx-background-color: #fef2f2;"));
+            btnDel.setOnMouseExited(e -> btnDel.setStyle(btnBase + "-fx-text-fill: #94a3b8; -fx-background-color: transparent;"));
 
-            ContextMenu menu = new ContextMenu();
-            MenuItem itemModifier  = new MenuItem("✏  Modifier");
-            MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
-            menu.getItems().addAll(itemModifier, itemSupprimer);
-
-            itemModifier.setOnAction(e -> {
-                TextInputDialog inputDialog = new TextInputDialog(c.getContenu());
-                inputDialog.setTitle("Modifier le commentaire");
-                inputDialog.setHeaderText(null);
-                inputDialog.setContentText("Contenu :");
-                inputDialog.showAndWait().ifPresent(txt -> {
-                    String trimmed = txt.trim();
-                    if (trimmed.length() < 2 || trimmed.length() > 500) {
-                        Alert err = new Alert(Alert.AlertType.WARNING,
-                            "Le commentaire doit contenir entre 2 et 500 caractères.", ButtonType.OK);
-                        err.setHeaderText(null);
-                        err.showAndWait();
-                        return;
-                    }
-                    c.setContenu(trimmed);
-                    serviceCommentaire.modifier(c);
-                    lblContenu.setText(c.getContenu());
-                });
-            });
-
-            itemSupprimer.setOnAction(e -> {
-                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                        "Supprimer ce commentaire ?", ButtonType.YES, ButtonType.NO);
+            btnEdit.setOnAction(e -> onModifierComment(c, bubble, lblContenu));
+            btnDel.setOnAction(e -> {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Supprimer ce commentaire ?", ButtonType.YES, ButtonType.NO);
                 confirm.setHeaderText(null);
                 confirm.showAndWait().ifPresent(btn -> {
                     if (btn == ButtonType.YES) {
@@ -394,11 +436,51 @@ public class FrontCommunauteDetailController {
                     }
                 });
             });
-
-            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
-            row.getChildren().add(btnMenu);
+            
+            HBox commActions = new HBox(2, btnEdit, btnDel);
+            commActions.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
+            row.getChildren().add(commActions);
         }
         return row;
+    }
+    private void onModifierComment(Commentaire c, VBox bubble, Label lblContenu) {
+        lblContenu.setVisible(false);
+        lblContenu.setManaged(false);
+
+        TextField editField = new TextField(c.getContenu());
+        editField.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 6; -fx-font-size: 12;");
+        
+        Button btnSave = new Button("✔");
+        btnSave.setStyle("-fx-background-color: transparent; -fx-text-fill: #10b981; -fx-font-weight: 800; -fx-cursor: hand; -fx-padding: 0 4;");
+        
+        Button btnCancel = new Button("✖");
+        btnCancel.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-weight: 800; -fx-cursor: hand; -fx-padding: 0 4;");
+        
+        HBox editRow = new HBox(4, editField, btnCancel, btnSave);
+        editRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        HBox.setHgrow(editField, Priority.ALWAYS);
+        
+        bubble.getChildren().add(editRow);
+
+        btnCancel.setOnAction(e -> {
+            bubble.getChildren().remove(editRow);
+            lblContenu.setVisible(true);
+            lblContenu.setManaged(true);
+        });
+
+        btnSave.setOnAction(e -> {
+            String txt = editField.getText().trim();
+            if (txt.length() < 2 || txt.length() > 500) {
+                editField.setStyle("-fx-background-color: #fef2f2; -fx-border-color: #ef4444; -fx-border-radius: 10; -fx-padding: 6; -fx-font-size: 12;");
+                return;
+            }
+            c.setContenu(txt);
+            serviceCommentaire.modifier(c);
+            lblContenu.setText(txt);
+            bubble.getChildren().remove(editRow);
+            lblContenu.setVisible(true);
+            lblContenu.setManaged(true);
+        });
     }
 
     // Garde la compatibilité pour les appels existants

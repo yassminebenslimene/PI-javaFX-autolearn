@@ -55,16 +55,16 @@ public class FrontCommunauteController {
 
         VBox card = new VBox(12);
         card.setPrefWidth(300);
-        card.setStyle("-fx-background-color:linear-gradient(to bottom,#ffffff,#fcfbff); -fx-background-radius:18; " +
-                      "-fx-border-color:#e8e6fb; -fx-border-radius:18; -fx-border-width:1; " +
-                      "-fx-effect:dropshadow(gaussian,rgba(58,46,116,0.12),18,0,0,6); -fx-padding:22;");
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 20; " +
+                      "-fx-border-color: #e2e8f0; -fx-border-radius: 20; -fx-border-width: 1; " +
+                      "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 20, 0, 0, 8); -fx-padding: 24;");
 
         // Icône + badge cadenas si accès restreint
         HBox iconRow = new HBox(8);
         iconRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label icon = new Label("👥");
-        icon.setStyle("-fx-font-size:28; -fx-background-color:linear-gradient(to bottom right,rgba(122,106,216,0.18),rgba(78,59,156,0.24)); " +
-                      "-fx-background-radius:12; -fx-padding:10 12 10 12;");
+        icon.setStyle("-fx-font-size: 24; -fx-background-color: #f1f5f9; " +
+                      "-fx-background-radius: 12; -fx-padding: 12;");
         iconRow.getChildren().add(icon);
         if (!hasAccess) {
             Label lock = new Label("🔒");
@@ -81,11 +81,22 @@ public class FrontCommunauteController {
 
         javafx.scene.control.Button btn;
         if (hasAccess) {
-            btn = new javafx.scene.control.Button("Voir la communauté →");
-            btn.setStyle("-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c); " +
-                         "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:800; " +
-                         "-fx-padding:10 20 10 20; -fx-background-radius:11; -fx-cursor:hand; -fx-border-width:0; " +
-                         "-fx-effect:dropshadow(gaussian,rgba(122,106,216,0.35),10,0,0,3);");
+            btn = new javafx.scene.control.Button("Rejoindre le groupe →");
+            btn.setStyle("-fx-background-color: #7a6ad8; " +
+                         "-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 800; " +
+                         "-fx-padding: 12 24; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0; " +
+                         "-fx-effect: dropshadow(gaussian, rgba(122,106,216,0.3), 10, 0, 0, 3);");
+            
+            // Hover effect for button
+            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #5d4ec9; " +
+                                                    "-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 800; " +
+                                                    "-fx-padding: 12 24; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0; " +
+                                                    "-fx-effect: dropshadow(gaussian, rgba(122,106,216,0.4), 12, 0, 0, 4);"));
+            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #7a6ad8; " +
+                                                   "-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 800; " +
+                                                   "-fx-padding: 12 24; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0; " +
+                                                   "-fx-effect: dropshadow(gaussian, rgba(122,106,216,0.3), 10, 0, 0, 3);"));
+            
             btn.setOnAction(e -> ouvrirDetail(c));
         } else {
             btn = new javafx.scene.control.Button("🔒  Accès restreint");
