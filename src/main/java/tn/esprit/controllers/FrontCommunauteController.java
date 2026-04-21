@@ -3,6 +3,8 @@ package tn.esprit.controllers;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
@@ -47,20 +49,21 @@ public class FrontCommunauteController {
     private VBox buildCard(Communaute c) {
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
+        List<Integer> memberIds = c.getMemberIds() != null ? c.getMemberIds() : java.util.Collections.emptyList();
         boolean hasAccess = c.getOwnerId() == currentUserId
-                || c.getMemberIds().contains(currentUserId);
+                || memberIds.contains(currentUserId);
 
-        VBox card = new VBox(10);
+        VBox card = new VBox(12);
         card.setPrefWidth(300);
-        card.setStyle("-fx-background-color:white; -fx-background-radius:14; " +
-                      "-fx-border-color:#eeeeee; -fx-border-radius:14; " +
-                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3); -fx-padding:22;");
+        card.setStyle("-fx-background-color:linear-gradient(to bottom,#ffffff,#fcfbff); -fx-background-radius:18; " +
+                      "-fx-border-color:#e8e6fb; -fx-border-radius:18; -fx-border-width:1; " +
+                      "-fx-effect:dropshadow(gaussian,rgba(58,46,116,0.12),18,0,0,6); -fx-padding:22;");
 
         // Icône + badge cadenas si accès restreint
         HBox iconRow = new HBox(8);
         iconRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label icon = new Label("👥");
-        icon.setStyle("-fx-font-size:28; -fx-background-color:rgba(122,106,216,0.1); " +
+        icon.setStyle("-fx-font-size:28; -fx-background-color:linear-gradient(to bottom right,rgba(122,106,216,0.18),rgba(78,59,156,0.24)); " +
                       "-fx-background-radius:12; -fx-padding:10 12 10 12;");
         iconRow.getChildren().add(icon);
         if (!hasAccess) {
@@ -70,22 +73,23 @@ public class FrontCommunauteController {
         }
 
         Label nom = new Label(c.getNom());
-        nom.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        nom.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#1f1a42;");
 
         Label desc = new Label(c.getDescription() != null ? c.getDescription() : "");
         desc.setWrapText(true);
-        desc.setStyle("-fx-font-size:12; -fx-text-fill:#666;");
+        desc.setStyle("-fx-font-size:12; -fx-text-fill:#6a6790;");
 
         javafx.scene.control.Button btn;
         if (hasAccess) {
             btn = new javafx.scene.control.Button("Voir la communauté →");
             btn.setStyle("-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c); " +
-                         "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700; " +
-                         "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+                         "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:800; " +
+                         "-fx-padding:10 20 10 20; -fx-background-radius:11; -fx-cursor:hand; -fx-border-width:0; " +
+                         "-fx-effect:dropshadow(gaussian,rgba(122,106,216,0.35),10,0,0,3);");
             btn.setOnAction(e -> ouvrirDetail(c));
         } else {
             btn = new javafx.scene.control.Button("🔒  Accès restreint");
-            btn.setStyle("-fx-background-color:#f5f5f5; -fx-text-fill:#aaa; -fx-font-size:12; " +
+            btn.setStyle("-fx-background-color:#f3f2f9; -fx-text-fill:#9b98b8; -fx-font-size:12; " +
                          "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-border-width:0;");
             btn.setDisable(true);
         }
@@ -99,14 +103,14 @@ public class FrontCommunauteController {
             ownerActions.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
             javafx.scene.control.Button btnEdit = new javafx.scene.control.Button("✏ Modifier");
-            btnEdit.setStyle("-fx-background-color:#f0eeff; -fx-text-fill:#7a6ad8; -fx-font-size:11; " +
-                             "-fx-font-weight:700; -fx-padding:6 14 6 14; -fx-background-radius:8; " +
+            btnEdit.setStyle("-fx-background-color:#f1efff; -fx-text-fill:#5d4ec9; -fx-font-size:11; " +
+                             "-fx-font-weight:700; -fx-padding:7 14 7 14; -fx-background-radius:9; " +
                              "-fx-cursor:hand; -fx-border-width:0;");
             btnEdit.setOnAction(e -> onModifier(c));
 
             javafx.scene.control.Button btnDel = new javafx.scene.control.Button("🗑 Supprimer");
-            btnDel.setStyle("-fx-background-color:#fff0f0; -fx-text-fill:#e94560; -fx-font-size:11; " +
-                            "-fx-font-weight:700; -fx-padding:6 14 6 14; -fx-background-radius:8; " +
+            btnDel.setStyle("-fx-background-color:#fff1f3; -fx-text-fill:#e11d48; -fx-font-size:11; " +
+                            "-fx-font-weight:700; -fx-padding:7 14 7 14; -fx-background-radius:9; " +
                             "-fx-cursor:hand; -fx-border-width:0;");
             btnDel.setOnAction(e -> onSupprimer(c));
 
@@ -121,8 +125,12 @@ public class FrontCommunauteController {
         try {
             Communaute fresh = service.getById(c.getId());
             if (fresh == null) fresh = c;
-            FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/frontoffice/communaute/detail.fxml"));
+            var resource = getClass().getResource("/views/frontoffice/communaute/detail.fxml");
+            if (resource == null) {
+                showUiError("Impossible d'ouvrir la communauté", "Le fichier de vue detail.fxml est introuvable.");
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(resource);
             javafx.scene.Parent view = loader.load();
             FrontCommunauteDetailController ctrl = loader.getController();
             ctrl.setCommunaute(fresh, () -> {
@@ -130,8 +138,23 @@ public class FrontCommunauteController {
                     tn.esprit.MainApp.showCommunauteFront();
                 } catch (Exception ex) { ex.printStackTrace(); }
             });
+            if (tn.esprit.MainApp.getPrimaryStage() == null || tn.esprit.MainApp.getPrimaryStage().getScene() == null) {
+                showUiError("Navigation impossible", "La scène principale n'est pas encore disponible.");
+                return;
+            }
             tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(view);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+            String details = e.getMessage() != null ? ("\n\nDétail: " + e.getMessage()) : "";
+            showUiError("Impossible d'ouvrir la communauté", "Une erreur est survenue pendant le chargement de la page détail." + details);
+        }
+    }
+
+    private void showUiError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle(title);
+        alert.showAndWait();
     }
 
     @FXML

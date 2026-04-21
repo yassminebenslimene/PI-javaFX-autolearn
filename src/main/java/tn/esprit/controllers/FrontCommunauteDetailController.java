@@ -57,8 +57,10 @@ public class FrontCommunauteDetailController {
         emptyLabel = null;
         List<Post> posts = servicePost.getByCommunaute(communaute.getId());
         if (posts.isEmpty()) {
-            emptyLabel = new Label("Aucun post pour l'instant. Soyez le premier !");
-            emptyLabel.setStyle("-fx-text-fill:#aaa; -fx-font-size:13; -fx-padding:8 0 0 0;");
+            emptyLabel = new Label("Aucune publication pour le moment. Lancez la premiere discussion.");
+            emptyLabel.setStyle("-fx-text-fill:#64748b; -fx-font-size:13; -fx-font-weight:600; " +
+                    "-fx-background-color:white; -fx-background-radius:10; -fx-border-color:#dbe3ee; " +
+                    "-fx-border-radius:10; -fx-padding:12 14 12 14;");
             postsPane.getChildren().add(emptyLabel);
         } else {
             for (Post p : posts) postsPane.getChildren().add(buildPostCard(p));
@@ -121,10 +123,10 @@ public class FrontCommunauteDetailController {
     }
 
     private VBox buildPostCard(Post p) {
-        VBox card = new VBox(10);
-        card.setStyle("-fx-background-color:white; -fx-background-radius:12; " +
-                      "-fx-border-color:#eeeeee; -fx-border-radius:12; " +
-                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2); -fx-padding:18;");
+        VBox card = new VBox(11);
+        card.setStyle("-fx-background-color:linear-gradient(to bottom,#ffffff,#f8fbff); -fx-background-radius:16; " +
+                      "-fx-border-color:#cfe0ff; -fx-border-radius:16; -fx-border-width:1.2; " +
+                      "-fx-effect:dropshadow(gaussian,rgba(37,99,235,0.16),18,0,0,4); -fx-padding:16;");
 
         String auteur  = getUserName(p.getUserId());
         String dateStr = tempsRelatif(p.getCreatedAt());
@@ -135,37 +137,37 @@ public class FrontCommunauteDetailController {
         avatar.setMinSize(40, 40);
         avatar.setMaxSize(40, 40);
         avatar.setAlignment(javafx.geometry.Pos.CENTER);
-        avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c); " +
+        avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#2563eb,#7c3aed); " +
                         "-fx-background-radius:50; -fx-text-fill:white; " +
                         "-fx-font-size:15; -fx-font-weight:700;");
 
         // Nom + date empilés
         Label lblAuteur = new Label(auteur);
-        lblAuteur.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        lblAuteur.setStyle("-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#0f172a;");
         Label lblDate = new Label("🕐  " + dateStr);
-        lblDate.setStyle("-fx-font-size:11; -fx-text-fill:#999;");
-        VBox authorInfo = new VBox(1, lblAuteur, lblDate);
+        lblDate.setStyle("-fx-font-size:11; -fx-text-fill:#64748b;");
+        VBox authorInfo = new VBox(2, lblAuteur, lblDate);
+
+        Label badge = new Label("NOUVEAU");
+        badge.setStyle("-fx-background-color:linear-gradient(to right,#dbeafe,#ede9fe); -fx-text-fill:#3730a3; -fx-font-size:10; " +
+                "-fx-font-weight:800; -fx-padding:4 8 4 8; -fx-background-radius:12;");
 
         // Spacer + bouton ⋮
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox topRow = new HBox(10, avatar, authorInfo, spacer);
+        HBox topRow = new HBox(10, avatar, authorInfo, badge, spacer);
         topRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         // Titre
         Label lblTitre = new Label(p.getTitre() != null && !p.getTitre().isEmpty()
                 ? p.getTitre() : "(sans titre)");
-        lblTitre.setStyle("-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#1e1e1e; " +
+        lblTitre.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#0f172a; " +
                           "-fx-padding:6 0 0 0;");
 
         // Contenu
         Label lblContenu = new Label(p.getContenu());
         lblContenu.setWrapText(true);
-        lblContenu.setStyle("-fx-font-size:13; -fx-text-fill:#444; -fx-padding:2 0 4 0;");
-
-        // Séparateur
-        javafx.scene.control.Separator sep = new javafx.scene.control.Separator();
-        sep.setStyle("-fx-background-color:#f0f0f0;");
+        lblContenu.setStyle("-fx-font-size:13; -fx-text-fill:#334155; -fx-padding:2 0 4 0;");
 
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
@@ -185,43 +187,68 @@ public class FrontCommunauteDetailController {
 
         // Commentaires
         VBox commentsBox = new VBox(6);
-        commentsBox.setStyle("-fx-padding:4 0 0 0;");
+        commentsBox.setStyle("-fx-padding:6 0 0 0;");
         for (Commentaire c : serviceCommentaire.getByPost(p.getId()))
             commentsBox.getChildren().add(buildCommentRow(c));
+
+        HBox actionRow = new HBox(8);
+        actionRow.setAlignment(javafx.geometry.Pos.CENTER);
+        actionRow.setStyle("-fx-padding:2 0 2 0;");
+        Button likeBtn = new Button("👍 J'aime");
+        Button replyBtn = new Button("💬 Commenter");
+        Button shareBtn = new Button("↗ Partager");
+        String actionStyle = "-fx-background-color:transparent; -fx-text-fill:#475569; -fx-font-size:12; -fx-font-weight:700; " +
+                             "-fx-padding:6 10 6 10; -fx-background-radius:8; -fx-cursor:hand; " +
+                             "-fx-border-color:#dbe3ee; -fx-border-radius:8; -fx-border-width:1;";
+        likeBtn.setStyle(actionStyle);
+        replyBtn.setStyle(actionStyle);
+        shareBtn.setStyle(actionStyle);
+        likeBtn.setMaxWidth(Double.MAX_VALUE);
+        replyBtn.setMaxWidth(Double.MAX_VALUE);
+        shareBtn.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(likeBtn, Priority.ALWAYS);
+        HBox.setHgrow(replyBtn, Priority.ALWAYS);
+        HBox.setHgrow(shareBtn, Priority.ALWAYS);
+        likeBtn.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        replyBtn.setAlignment(javafx.geometry.Pos.CENTER);
+        shareBtn.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        actionRow.getChildren().addAll(likeBtn, replyBtn, shareBtn);
 
         // Champ commentaire
         HBox addComment = new HBox(8);
         TextField commentField = new TextField();
         commentField.setPromptText("Ajouter un commentaire...");
-        commentField.setStyle("-fx-background-color:#f0f2f5; -fx-background-radius:20; " +
-                              "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
+        commentField.setStyle("-fx-background-color:#f8fbff; -fx-background-radius:20; " +
+                              "-fx-border-color:#cfdbef; -fx-border-radius:20; -fx-border-width:1; " +
+                              "-fx-padding:9 16 9 16; -fx-font-size:12;");
         HBox.setHgrow(commentField, Priority.ALWAYS);
 
         Button btnComment = new Button("Envoyer");
-        btnComment.setStyle("-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:12; " +
-                            "-fx-padding:8 16 8 16; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+        btnComment.setStyle("-fx-background-color:linear-gradient(to right,#2563eb,#7c3aed); -fx-text-fill:white; -fx-font-size:12; " +
+                            "-fx-font-weight:700; -fx-padding:8 16 8 16; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0; " +
+                            "-fx-effect:dropshadow(gaussian,rgba(99,102,241,0.30),10,0,0,2);");
         btnComment.setOnAction(e -> {
             String txt = commentField.getText().trim();
             if (txt.isEmpty()) {
-                commentField.setStyle("-fx-background-color:#ffe0e0; -fx-background-radius:20; " +
-                                      "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
+                commentField.setStyle("-fx-background-color:#ffe4eb; -fx-background-radius:20; " +
+                                      "-fx-border-color:transparent; -fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
                 commentField.setPromptText("Le commentaire ne peut pas être vide !");
                 return;
             }
             if (txt.length() < 2) {
-                commentField.setStyle("-fx-background-color:#ffe0e0; -fx-background-radius:20; " +
-                                      "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
+                commentField.setStyle("-fx-background-color:#ffe4eb; -fx-background-radius:20; " +
+                                      "-fx-border-color:transparent; -fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
                 commentField.setPromptText("Minimum 2 caractères.");
                 return;
             }
             if (txt.length() > 500) {
-                commentField.setStyle("-fx-background-color:#ffe0e0; -fx-background-radius:20; " +
-                                      "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
+                commentField.setStyle("-fx-background-color:#ffe4eb; -fx-background-radius:20; " +
+                                      "-fx-border-color:transparent; -fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
                 commentField.setPromptText("Maximum 500 caractères.");
                 return;
             }
-            commentField.setStyle("-fx-background-color:#f0f2f5; -fx-background-radius:20; " +
-                                  "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
+                commentField.setStyle("-fx-background-color:#f8fbff; -fx-background-radius:20; " +
+                                  "-fx-border-color:#cfdbef; -fx-border-width:1; -fx-padding:9 16 9 16; -fx-font-size:12;");
             int uid = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
             Commentaire newC = new Commentaire(txt, p.getId(), uid);
             serviceCommentaire.ajouter(newC);
@@ -230,7 +257,7 @@ public class FrontCommunauteDetailController {
         });
 
         addComment.getChildren().addAll(commentField, btnComment);
-        card.getChildren().addAll(topRow, lblTitre, lblContenu, sep, commentsBox, addComment);
+        card.getChildren().addAll(topRow, lblTitre, lblContenu, actionRow, commentsBox, addComment);
         return card;
     }
 
@@ -303,19 +330,20 @@ public class FrontCommunauteDetailController {
         avatar.setMinSize(32, 32);
         avatar.setMaxSize(32, 32);
         avatar.setAlignment(javafx.geometry.Pos.CENTER);
-        avatar.setStyle("-fx-background-color:#7a6ad8; -fx-background-radius:50; " +
+        avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#3b82f6,#7c3aed); -fx-background-radius:50; " +
                         "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;");
 
         // Bulle : nom en gras + contenu
         Label lblNom = new Label(nom);
-        lblNom.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        lblNom.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#0f172a;");
 
         Label lblContenu = new Label(c.getContenu());
         lblContenu.setWrapText(true);
-        lblContenu.setStyle("-fx-font-size:12; -fx-text-fill:#333;");
+        lblContenu.setStyle("-fx-font-size:12; -fx-text-fill:#334155;");
 
         VBox bubble = new VBox(2, lblNom, lblContenu);
-        bubble.setStyle("-fx-background-color:#f0f2f5; -fx-background-radius:18; " +
+        bubble.setStyle("-fx-background-color:linear-gradient(to bottom,#f8fbff,#f1f6ff); -fx-background-radius:18; " +
+                        "-fx-border-color:#d7e3f4; -fx-border-radius:18; -fx-border-width:1; " +
                         "-fx-padding:8 14 8 14;");
         HBox.setHgrow(bubble, Priority.ALWAYS);
 
