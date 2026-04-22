@@ -16,6 +16,7 @@ public class BackofficeController {
     @FXML private Label labelAvatarSidebar;
     @FXML private Label labelPageTitle;
     @FXML private Button btnStudentsAtRisk;
+    @FXML private Button btnRetention;
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
     @FXML private Button btnQuiz;
@@ -110,6 +111,12 @@ public class BackofficeController {
         setActive(btnStudentsAtRisk);
         labelPageTitle.setText("Étudiants à risque - Détection décrochage");
         loadView("/views/backoffice/students_at_risk.fxml");
+    }
+    @FXML
+    public void navigateToRetention() {
+        setActive(btnRetention);
+        labelPageTitle.setText("Analyse de rétention - Cohorte Analysis");
+        loadView("/views/backoffice/retention_analysis.fxml");
     }
     @FXML public void navigateToCommunaute() {
         setActive(btnCommunaute);
