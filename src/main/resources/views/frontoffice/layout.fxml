@@ -25,6 +25,9 @@
                 <Button fx:id="btnChallenges" text="Challenges" onAction="#onChallenges"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button text="🏆 Classement" onAction="#onLeaderboard"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
+               -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
                 <Button fx:id="btnEvenements" text="Evenements" onAction="#onEvenements"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>

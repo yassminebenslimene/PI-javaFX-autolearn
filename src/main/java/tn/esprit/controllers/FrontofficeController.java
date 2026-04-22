@@ -21,6 +21,7 @@ import tn.esprit.services.ServiceCours;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
 
+import java.io.IOException;
 import java.util.List;
 
 public class FrontofficeController {
@@ -107,7 +108,7 @@ public class FrontofficeController {
                 int nbCours = serviceCours.consulter().size();
                 int nbChallenges = challengeService.getAll().size();
                 long nbEtudiants = userService.afficher().stream()
-                    .filter(usr -> usr instanceof Etudiant).count();
+                        .filter(usr -> usr instanceof Etudiant).count();
                 String niveau = (u instanceof Etudiant e && e.getNiveau() != null) ? e.getNiveau() : "—";
 
                 if (labelNiveauStat      != null) labelNiveauStat.setText(niveau);
@@ -147,8 +148,7 @@ public class FrontofficeController {
         List<Cours> cours = serviceCours.consulter();
         String[] icons = {"📚", "🤖", "🏆", "💡", "🔬", "🎯"};
         String[] colors = {"rgba(122,106,216,0.1)", "rgba(251,191,36,0.12)", "rgba(52,211,153,0.12)",
-                           "rgba(239,68,68,0.1)", "rgba(59,130,246,0.1)", "rgba(168,85,247,0.1)"};
-        // Afficher jusqu'à 4 cours sur la page d'accueil
+                "rgba(239,68,68,0.1)", "rgba(59,130,246,0.1)", "rgba(168,85,247,0.1)"};
         int max = Math.min(cours.size(), 4);
         for (int i = 0; i < max; i++) {
             Cours c = cours.get(i);
@@ -178,7 +178,7 @@ public class FrontofficeController {
             String col = colors[idx % colors.length];
             Label niveauBadge = new Label(c.getNiveau() != null ? c.getNiveau() : "");
             niveauBadge.setStyle("-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:" + col +
-                                 "; -fx-background-color:rgba(0,0,0,0.06); -fx-background-radius:10; -fx-padding:2 8 2 8;");
+                    "; -fx-background-color:rgba(0,0,0,0.06); -fx-background-radius:10; -fx-padding:2 8 2 8;");
 
             Label duree = new Label("⏱  " + c.getDuree() + " min");
             duree.setStyle("-fx-font-size:12; -fx-text-fill:#999;");
@@ -192,14 +192,14 @@ public class FrontofficeController {
             Button btn = new Button("Relever le challenge  →");
             btn.setMaxWidth(Double.MAX_VALUE);
             btn.setStyle("-fx-background-color:linear-gradient(to right," + col + "," + col + ");" +
-                         "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;" +
-                         "-fx-padding:10 20 10 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+                    "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;" +
+                    "-fx-padding:10 20 10 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
             btn.setOnAction(e -> onChallenges());
 
             // Icône en haut
             Label iconLabel = new Label(icons[idx % icons.length]);
             iconLabel.setStyle("-fx-font-size:36; -fx-background-color:rgba(0,0,0,0.04);" +
-                               "-fx-background-radius:12; -fx-padding:12 16 12 16;");
+                    "-fx-background-radius:12; -fx-padding:12 16 12 16;");
 
             VBox content = new VBox(10, iconLabel, titre, niveauBadge, duree, descLabel, btn);
             content.setPadding(new Insets(16));
@@ -208,8 +208,8 @@ public class FrontofficeController {
             card.setPrefWidth(240);
             card.setMaxWidth(240);
             card.setStyle("-fx-background-color:white; -fx-background-radius:16;" +
-                          "-fx-border-color:#eeeeee; -fx-border-radius:16;" +
-                          "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);");
+                    "-fx-border-color:#eeeeee; -fx-border-radius:16;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);");
             challengeCardsContainer.getChildren().add(card);
         }
         if (challenges.isEmpty()) {
@@ -224,7 +224,7 @@ public class FrontofficeController {
         javafx.scene.image.ImageView imgView = null;
         try {
             String[] imgs = {"/images/course1.jpg", "/images/course2.jpg", "/images/course3.jpg",
-                             "/images/course4.jpg", "/images/course5.jpg", "/images/course6.jpg"};
+                    "/images/course4.jpg", "/images/course5.jpg", "/images/course6.jpg"};
             int idx = Math.abs(c.getTitre().hashCode()) % imgs.length;
             var url = getClass().getResource(imgs[idx]);
             if (url != null) {
@@ -245,8 +245,8 @@ public class FrontofficeController {
         };
         Label niveauBadge = new Label(c.getNiveau() != null ? c.getNiveau() : "Debutant");
         niveauBadge.setStyle("-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:" + niveauColor +
-                             "; -fx-background-color:" + niveauColor.replace(")", ",0.1)").replace("#", "rgba(") +
-                             "; -fx-background-radius:10; -fx-padding:2 8 2 8;");
+                "; -fx-background-color:" + niveauColor.replace(")", ",0.1)").replace("#", "rgba(") +
+                "; -fx-background-radius:10; -fx-padding:2 8 2 8;");
 
         Label matiereLabel = new Label(c.getMatiere() != null ? c.getMatiere() : "");
         matiereLabel.setStyle("-fx-font-size:11; -fx-text-fill:#999;");
@@ -260,21 +260,21 @@ public class FrontofficeController {
         Button btn = new Button("Voir le cours  →");
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle("-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);" +
-                     "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;" +
-                     "-fx-padding:10 20 10 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+                "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;" +
+                "-fx-padding:10 20 10 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
         btn.setOnAction(e -> naviguerVersCours());
 
         VBox content = new VBox(10, titre, niveauBadge, matiereLabel, descLabel, btn);
         content.setPadding(new Insets(16));
 
         VBox card = imgView != null
-            ? new VBox(0, imgView, content)
-            : new VBox(0, content);
+                ? new VBox(0, imgView, content)
+                : new VBox(0, content);
         card.setPrefWidth(300);
         card.setMaxWidth(300);
         card.setStyle("-fx-background-color:white; -fx-background-radius:16;" +
-                      "-fx-border-color:#eeeeee; -fx-border-radius:16;" +
-                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);");
+                "-fx-border-color:#eeeeee; -fx-border-radius:16;" +
+                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);");
         if (imgView != null) {
             // Clip image corners
             javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(300, 140);
@@ -305,7 +305,8 @@ public class FrontofficeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/cours/index.fxml"));
             Parent view = loader.load();
             FrontCoursController ctrl = loader.getController();
-            ctrl.setOnVoirChapitres(cours -> {                try {
+            ctrl.setOnVoirChapitres(cours -> {
+                try {
                     FXMLLoader chapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
                     Parent chapView = chapLoader.load();
                     FrontChapitreController chapCtrl = chapLoader.getController();
@@ -327,7 +328,6 @@ public class FrontofficeController {
                             FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
                             Parent quizView = quizLoader.load();
                             FrontQuizController quizCtrl = quizLoader.getController();
-                            // Après le quiz → recharger les chapitres pour mettre à jour la progression
                             quizCtrl.setChapitre(chapitre, () -> {
                                 try {
                                     FXMLLoader newChapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
@@ -336,7 +336,7 @@ public class FrontofficeController {
                                     newChapCtrl.setOnLireChapitre(chapCtrl.getOnLireChapitre());
                                     newChapCtrl.setOnPasserQuiz(chapCtrl.getOnPasserQuiz());
                                     newChapCtrl.setOnRetourCours(() -> naviguerVersCours());
-                                    newChapCtrl.setCours(cours); // recharge avec completedIds à jour
+                                    newChapCtrl.setCours(cours);
                                     setCenter(newChapView);
                                 } catch (Exception ex) { setCenter(chapView); }
                             });
@@ -384,6 +384,15 @@ public class FrontofficeController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    @FXML public void onLeaderboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/leaderboard.fxml"));
+            MainApp.getPrimaryStage().getScene().setRoot(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @FXML public void onProfile() {
         try { MainApp.showProfile(); } catch (Exception e) { e.printStackTrace(); }
     }
@@ -427,9 +436,9 @@ public class FrontofficeController {
             var url = getClass().getResource(bgImages[index]);
             if (url != null) {
                 heroSlider.setStyle(
-                    "-fx-background-image: url('" + url.toExternalForm() + "');" +
-                    "-fx-background-size: cover; -fx-background-position: center;" +
-                    "-fx-background-color: rgba(78,59,156,0.7);"
+                        "-fx-background-image: url('" + url.toExternalForm() + "');" +
+                                "-fx-background-size: cover; -fx-background-position: center;" +
+                                "-fx-background-color: rgba(78,59,156,0.7);"
                 );
             }
         } catch (Exception ignored) {
@@ -492,7 +501,6 @@ public class FrontofficeController {
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
         BorderPane root = (BorderPane) scene.getRoot();
-        // Si la vue est déjà un ScrollPane, la mettre directement
         if (view instanceof ScrollPane) {
             ((ScrollPane) view).setFitToWidth(true);
             root.setCenter(view);
