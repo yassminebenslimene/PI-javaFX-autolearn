@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.StudentsAtRiskController"
+            prefWidth="1280" prefHeight="760"
+            style="-fx-background-color:#0a0f0d;">
+
+    <center>
+        <VBox spacing="20" style="-fx-padding:30; -fx-background-color:#0a0f0d;">
+
+            <!-- Header -->
+            <VBox spacing="4">
+                <Label text="⚠️ ALERTES ÉTUDIANTS"
+                       style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#e94560;
+                              -fx-background-color:rgba(233,69,96,0.15); -fx-background-radius:20; -fx-padding:3 12 3 12;"/>
+                <Label text="Détection des étudiants à risque de décrochage"
+                       style="-fx-font-size:24; -fx-font-weight:800; -fx-text-fill:white;"/>
+                <Label text="Identifiez les étudiants qui nécessitent une attention particulière"
+                       style="-fx-font-size:13; -fx-text-fill:rgba(245,245,244,0.5);"/>
+            </VBox>
+
+            <!-- Statistiques globales -->
+            <HBox spacing="20" alignment="CENTER">
+                <VBox spacing="5" alignment="CENTER" prefWidth="180" prefHeight="80"
+                      style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:12; -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:12; -fx-padding:10;">
+                    <Label text="⚠️ CRITIQUE" style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#ef4444;"/>
+                    <Label fx:id="critiqueCount" text="0" style="-fx-font-size:28; -fx-font-weight:800; -fx-text-fill:#ef4444;"/>
+                    <Label text="étudiants" style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.5);"/>
+                </VBox>
+                <VBox spacing="5" alignment="CENTER" prefWidth="180" prefHeight="80"
+                      style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:12; -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:12; -fx-padding:10;">
+                    <Label text="⚠️ ATTENTION" style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#f59e0b;"/>
+                    <Label fx:id="attentionCount" text="0" style="-fx-font-size:28; -fx-font-weight:800; -fx-text-fill:#f59e0b;"/>
+                    <Label text="étudiants" style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.5);"/>
+                </VBox>
+                <VBox spacing="5" alignment="CENTER" prefWidth="180" prefHeight="80"
+                      style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:12; -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:12; -fx-padding:10;">
+                    <Label text="👀 SURVEILLANCE" style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#3b82f6;"/>
+                    <Label fx:id="surveillanceCount" text="0" style="-fx-font-size:28; -fx-font-weight:800; -fx-text-fill:#3b82f6;"/>
+                    <Label text="étudiants" style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.5);"/>
+                </VBox>
+            </HBox>
+
+            <!-- Tableau des étudiants à risque (style TableView) -->
+            <VBox spacing="0"
+                  style="-fx-background-color:rgba(255,255,255,0.03); -fx-background-radius:12;
+                         -fx-border-color:rgba(255,255,255,0.08); -fx-border-radius:12;">
+
+                <!-- En-tête du tableau -->
+                <HBox spacing="8" alignment="CENTER_LEFT"
+                      style="-fx-padding:16 20 12 20; -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent; -fx-border-width:0 0 1 0;">
+                    <Label text="ÉTUDIANT" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="200"/>
+                    <Label text="NIVEAU" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="100"/>
+                    <Label text="STATUT" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="120"/>
+                    <Label text="INACTIVITÉ" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="100"/>
+                    <Label text="SCORE MOYEN" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="120"/>
+                    <Label text="ABANDONS" style="-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:12; -fx-font-weight:bold;" prefWidth="100"/>
+                </HBox>
+
+                <!-- Contenu du tableau -->
+                <VBox fx:id="studentsContainer" spacing="1" style="-fx-padding:4 0 4 0;"/>
+
+                <!-- Message vide -->
+                <Label fx:id="emptyLabel" text="Aucun étudiant à risque détecté"
+                       style="-fx-text-fill:rgba(245,245,244,0.3); -fx-font-size:13; -fx-padding:40; -fx-alignment:center;"
+                       visible="false" managed="false"/>
+            </VBox>
+
+        </VBox>
+    </center>
+</BorderPane>

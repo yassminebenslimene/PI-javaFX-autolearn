@@ -15,7 +15,7 @@ public class BackofficeController {
     @FXML private Label labelCurrentRole;
     @FXML private Label labelAvatarSidebar;
     @FXML private Label labelPageTitle;
-
+    @FXML private Button btnStudentsAtRisk;
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
     @FXML private Button btnQuiz;
@@ -105,7 +105,12 @@ public class BackofficeController {
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Challenges");
         loadView("/views/backoffice/challenge/challenges.fxml");
     }
-
+    @FXML
+    public void navigateToStudentsAtRisk() {
+        setActive(btnStudentsAtRisk);
+        labelPageTitle.setText("Étudiants à risque - Détection décrochage");
+        loadView("/views/backoffice/students_at_risk.fxml");
+    }
     @FXML public void navigateToCommunaute() {
         setActive(btnCommunaute);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion de la Communauté");
