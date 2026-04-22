@@ -10,9 +10,13 @@ import tn.esprit.entities.User;
 import tn.esprit.services.ApiService;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
+import tn.esprit.services.GoogleOAuthService;
+import tn.esprit.services.FacebookOAuthService;
+import tn.esprit.services.GitHubOAuthService;
 import tn.esprit.tools.PasswordUtil;
 
 import java.util.List;
+import java.util.Map;
 
 public class RegisterController {
 
@@ -134,6 +138,72 @@ public class RegisterController {
     @FXML
     private void onBackToLanding() {
         try { MainApp.showLanding(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML
+    private void onGoogleRegister() {
+        handleOAuthRegister("Google", GoogleOAuthService.authenticate());
+    }
+
+    @FXML
+    private void onFacebookRegister() {
+        handleOAuthRegister("Facebook", FacebookOAuthService.authenticate());
+    }
+
+    @FXML
+    private void onGitHubRegister() {
+        handleOAuthRegister("GitHub", GitHubOAuthService.authenticate());
+    }
+
+    private void handleOAuthRegister(String provider, java.util.concurrent.CompletableFuture<Map<String, String>> authFuture) {
+        errorGeneral.setText("Inscription avec " + provider + " en cours...");
+        errorGeneral.setStyle("-fx-text-fill:#7a6ad8; -fx-font-size:12;");
+
+        authFuture.thenAccept(userInfo -> {
+            javafx.application.Platform.runLater(() -> {
+                try {
+                    String email = userInfo.get("email");
+                    String givenName = userInfo.get("given_name");
+                    String familyName = userInfo.get("family_name");
+
+                    if (email == null || email.isEmpty()) {
+                        errorGeneral.setText("Aucun email recu de " + provider + ". Veuillez reessayer.");
+                        errorGeneral.setStyle("-fx-text-fill:#dc2626; -fx-font-size:12;");
+                        return;
+                    }
+
+                    // Check if user already exists
+                    User existing = service.trouverParEmail(email);
+                    if (existing != null) {
+                        errorGeneral.setText("Un compte existe deja avec cet email. Veuillez vous connecter.");
+                        errorGeneral.setStyle("-fx-text-fill:#dc2626; -fx-font-size:12;");
+                        return;
+                    }
+
+                    // Pre-fill form with OAuth data
+                    fieldEmail.setText(email);
+                    if (givenName != null && !givenName.isEmpty()) fieldPrenom.setText(givenName);
+                    if (familyName != null && !familyName.isEmpty()) fieldNom.setText(familyName);
+                    
+                    // Auto-select ETUDIANT role
+                    comboRole.setValue("ETUDIANT");
+
+                    errorGeneral.setText("Informations recues de " + provider + " ! Completez le formulaire pour finaliser votre inscription.");
+                    errorGeneral.setStyle("-fx-text-fill:#10b981; -fx-font-size:12;");
+
+                } catch (Exception e) {
+                    errorGeneral.setText("Erreur: " + e.getMessage());
+                    errorGeneral.setStyle("-fx-text-fill:#dc2626; -fx-font-size:12;");
+                    e.printStackTrace();
+                }
+            });
+        }).exceptionally(ex -> {
+            javafx.application.Platform.runLater(() -> {
+                errorGeneral.setText("Erreur " + provider + ": " + ex.getMessage());
+                errorGeneral.setStyle("-fx-text-fill:#dc2626; -fx-font-size:12;");
+            });
+            return null;
+        });
     }
 
     private boolean validate() {
