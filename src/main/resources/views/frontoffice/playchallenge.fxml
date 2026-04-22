@@ -48,7 +48,11 @@
                                  style="-fx-accent:#7a6ad8; -fx-background-color:#eeeeee; -fx-background-radius:10;"/>
                 </VBox>
 
-                <!-- Carte de l'exercice -->
+                <!-- Type badge -->
+                <Label fx:id="typeBadge" text=""
+                       style="-fx-font-size:12; -fx-font-weight:700; -fx-padding:4 12 4 12; -fx-background-radius:20;"/>
+
+                <!-- Carte de la question -->
                 <VBox spacing="16" prefWidth="600" maxWidth="600"
                       style="-fx-background-color:white; -fx-background-radius:23;
                              -fx-border-color:#eeeeee; -fx-border-radius:23;
@@ -58,10 +62,21 @@
                     <Label fx:id="questionLabel" text=""
                            style="-fx-font-size:18; -fx-font-weight:600; -fx-text-fill:#1e1e1e; -fx-wrap-text:true;"/>
 
+                    <!-- Champ texte pour les exercices -->
                     <TextField fx:id="answerField" promptText="Votre réponse..."
                                style="-fx-background-color:#f9f9f9; -fx-border-color:#dddddd;
                                       -fx-border-radius:12; -fx-background-radius:12;
                                       -fx-padding:15 18 15 18; -fx-font-size:14;"/>
+
+                    <!-- Slider pour les quiz -->
+                    <VBox fx:id="quizSliderContainer" spacing="10" visible="false" managed="false">
+                        <Label text="Évaluez votre performance sur ce quiz :"
+                               style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#555;"/>
+                        <Slider fx:id="quizScoreSlider" min="0" max="100" value="50" blockIncrement="10"
+                                style="-fx-show-tick-labels:true; -fx-show-tick-marks:true; -fx-major-tick-unit:20;"/>
+                        <Label fx:id="quizScoreLabel" text="Score: 50/100"
+                               style="-fx-font-size:13; -fx-text-fill:#7a6ad8; -fx-font-weight:700;"/>
+                    </VBox>
 
                     <Label fx:id="pointsLabel" text="Points: 0"
                            style="-fx-font-size:13; -fx-text-fill:#999;"/>

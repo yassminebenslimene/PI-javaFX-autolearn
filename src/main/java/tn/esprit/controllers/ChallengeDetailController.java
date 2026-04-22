@@ -19,8 +19,6 @@ import java.time.format.DateTimeFormatter;
 public class ChallengeDetailController {
 
     @FXML private Label challengeTitle;
-    @FXML private Label dateDebutLabel;
-    @FXML private Label dateFinLabel;
     @FXML private Label niveauLabel;
     @FXML private Label dureeLabel;
     @FXML private VBox resultContainer;
@@ -55,12 +53,6 @@ public class ChallengeDetailController {
     private void displayChallengeInfo() {
         challengeTitle.setText(challenge.getTitre());
 
-        if (dateDebutLabel != null) {
-            dateDebutLabel.setText(challenge.getDateDebut().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        }
-        if (dateFinLabel != null) {
-            dateFinLabel.setText(challenge.getDateFin().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        }
         if (niveauLabel != null) {
             niveauLabel.setText(challenge.getNiveau());
         }
@@ -119,17 +111,12 @@ public class ChallengeDetailController {
 
     private void openResult() {
         try {
-            // Charger le FXML - NE PAS créer manuellement le contrôleur
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/resultchallenge.fxml"));
             javafx.scene.Parent root = loader.load();
 
-            // Récupérer le contrôleur créé automatiquement par FXMLLoader
             ResultChallengeController controller = loader.getController();
-
-            // Passer les données au contrôleur
             controller.setChallenge(challenge);
 
-            // Récupérer et passer le score
             UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
                     SessionManager.getCurrentUser().getId(), challenge.getId());
 
@@ -137,7 +124,6 @@ public class ChallengeDetailController {
                 controller.setScore(userChallenge.getScore(), userChallenge.getTotalPoints());
             }
 
-            // Changer la vue
             MainApp.getPrimaryStage().getScene().setRoot(root);
 
         } catch (IOException e) {

@@ -8,7 +8,6 @@
             maxWidth="Infinity" maxHeight="Infinity"
             style="-fx-background-color:#f5f5f5;">
 
-    <!-- Navbar -->
     <top>
         <fx:include source="../components/navbar_front.fxml" fx:id="navbar"/>
     </top>
@@ -33,7 +32,7 @@
                 <!-- Main content -->
                 <VBox alignment="TOP_CENTER" spacing="24"
                       style="-fx-padding:40 0 60 0; -fx-background-color:#f5f5f5;">
-                    <VBox spacing="24" prefWidth="500" maxWidth="500">
+                    <VBox spacing="24" prefWidth="700" maxWidth="700">
 
                         <!-- Carte de résultat -->
                         <VBox spacing="20"
@@ -53,14 +52,6 @@
 
                             <VBox spacing="8">
                                 <HBox spacing="10">
-                                    <Label text="📅 Date début" style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#777;" prefWidth="120"/>
-                                    <Label fx:id="dateDebutLabel" text="" style="-fx-font-size:14; -fx-text-fill:#1e1e1e;"/>
-                                </HBox>
-                                <HBox spacing="10">
-                                    <Label text="📅 Date fin" style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#777;" prefWidth="120"/>
-                                    <Label fx:id="dateFinLabel" text="" style="-fx-font-size:14; -fx-text-fill:#1e1e1e;"/>
-                                </HBox>
-                                <HBox spacing="10">
                                     <Label text="⭐ Niveau" style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#777;" prefWidth="120"/>
                                     <Label fx:id="niveauLabel" text="" style="-fx-font-size:14; -fx-text-fill:#1e1e1e;"/>
                                 </HBox>
@@ -72,11 +63,23 @@
                             <VBox spacing="10" alignment="CENTER">
                                 <Label text="Évaluez ce challenge"
                                        style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
-                                <HBox fx:id="starsContainer" spacing="8" alignment="CENTER">
-                                    <!-- Les étoiles seront ajoutées dynamiquement -->
-                                </HBox>
+                                <HBox fx:id="starsContainer" spacing="8" alignment="CENTER"/>
                                 <Label fx:id="ratingMessage" text=""
                                        style="-fx-font-size:12; -fx-text-fill:#28a745;"/>
+                            </VBox>
+
+                            <Separator style="-fx-background-color:#eeeeee;"/>
+
+                            <!-- Section Analyse IA professionnelle -->
+                            <VBox spacing="15">
+                                <Label text="🤖 CORRECTION DÉTAILLÉE PAR L'INTELLIGENCE ARTIFICIELLE"
+                                       style="-fx-font-size:16; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                                <TextArea fx:id="aiAnalysisArea" editable="false" wrapText="true"
+                                          style="-fx-background-color:#f8f9fa; -fx-border-color:#e0e0e0;
+                                                 -fx-border-radius:10; -fx-background-radius:10;
+                                                 -fx-font-size:13; -fx-font-family:'Courier New', monospace;
+                                                 -fx-font-weight:normal;"
+                                          prefHeight="400" visible="false" managed="false"/>
                             </VBox>
 
                             <Button text="🏠 Retour aux challenges" onAction="#onBackToChallenges"

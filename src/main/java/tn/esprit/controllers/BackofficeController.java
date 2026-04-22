@@ -25,7 +25,7 @@ public class BackofficeController {
     @FXML private Button btnChallenges;
     @FXML private Button btnCommunaute;
     @FXML private Button btnProfile;
-
+    @FXML private Button btnChapitres;
     private static final String ACTIVE_STYLE =
         "-fx-background-color:rgba(122,106,216,0.25); -fx-text-fill:#a5b4fc;" +
         "-fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;" +

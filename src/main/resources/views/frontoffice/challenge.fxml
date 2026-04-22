@@ -53,20 +53,6 @@
                             <VBox spacing="12">
                                 <HBox spacing="20">
                                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                        <Label text="📅 Date de début"
-                                               style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#777;"/>
-                                        <Label fx:id="dateDebutLabel" text=""
-                                               style="-fx-font-size:16; -fx-font-weight:500; -fx-text-fill:#1e1e1e;"/>
-                                    </VBox>
-                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                        <Label text="📅 Date de fin"
-                                               style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#777;"/>
-                                        <Label fx:id="dateFinLabel" text=""
-                                               style="-fx-font-size:16; -fx-font-weight:500; -fx-text-fill:#1e1e1e;"/>
-                                    </VBox>
-                                </HBox>
-                                <HBox spacing="20">
-                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
                                         <Label text="⭐ Niveau"
                                                style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#777;"/>
                                         <Label fx:id="niveauLabel" text=""

@@ -270,16 +270,17 @@ public class ChapitreController {
         this.editingChapitre = chapitre;
         this.editMode = chapitre != null;
 
+        // Vérifier que les champs FXML existent avant de les utiliser
         if (formTitle == null) return;
 
         if (editMode) {
             formTitle.setText("Modifier chapitre");
-            fieldTitre.setText(chapitre.getTitre());
-            areaContenu.setText(chapitre.getContenu());
-            fieldOrdre.setText(String.valueOf(chapitre.getOrdre()));
-            fieldRessources.setText(chapitre.getRessources());
-            comboRessourceType.setValue(chapitre.getRessourceType());
-            fieldRessourceFichier.setText(chapitre.getRessourceFichier());
+            if (fieldTitre != null) fieldTitre.setText(chapitre.getTitre());
+            if (areaContenu != null) areaContenu.setText(chapitre.getContenu());
+            if (fieldOrdre != null) fieldOrdre.setText(String.valueOf(chapitre.getOrdre()));
+            if (fieldRessources != null) fieldRessources.setText(chapitre.getRessources());
+            if (comboRessourceType != null) comboRessourceType.setValue(chapitre.getRessourceType());
+            if (fieldRessourceFichier != null) fieldRessourceFichier.setText(chapitre.getRessourceFichier());
         } else {
             formTitle.setText("Nouveau chapitre");
         }
