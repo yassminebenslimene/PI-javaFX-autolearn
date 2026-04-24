@@ -42,3 +42,7 @@ symfony/
 
 ### IntelliJ Run Configurations (local paths, not shared) ###
 .idea/runConfigurations/
+
+### Local secrets (never commit these) ###
+.hf_token
+*.env.local
