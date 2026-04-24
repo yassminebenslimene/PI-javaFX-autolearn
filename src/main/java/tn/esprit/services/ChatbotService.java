@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 public class ChatbotService {
 
     private static final String OLLAMA_URL   = "http://localhost:11434/api/chat";
-    private static final String OLLAMA_MODEL = "mistral";
+    private static final String OLLAMA_MODEL = "gemma3:4b"; // Google Gemma 3 - smart and fast
     private static final Gson   GSON         = new Gson();
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
