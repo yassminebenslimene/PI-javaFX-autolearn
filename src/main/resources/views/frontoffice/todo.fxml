@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER"
+            style="-fx-background-color:transparent; -fx-background:#f4f6fb; -fx-border-width:0;"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.controllers.TodoController">
+    <content>
+        <VBox spacing="0" style="-fx-background-color:#f4f6fb;">
+
+            <!-- HEADER -->
+            <VBox spacing="10"
+                  style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                         -fx-padding:28 60 28 60;">
+                <Label text="📋  Ma Liste d'Apprentissage"
+                       style="-fx-text-fill:white; -fx-font-size:24; -fx-font-weight:900;"/>
+                <Label text="Suivez votre progression cours par cours"
+                       style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;"/>
+
+                <!-- Stats globales -->
+                <HBox spacing="16" style="-fx-padding:10 0 0 0;">
+                    <VBox alignment="CENTER" spacing="2"
+                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-padding:10 20 10 20;">
+                        <Label fx:id="labelProgGlobale" text="0%"
+                               style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:800;"/>
+                        <Label text="Progression globale"
+                               style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:11;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2"
+                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-padding:10 20 10 20;">
+                        <Label fx:id="labelDoneCount" text="0"
+                               style="-fx-text-fill:#34d399; -fx-font-size:22; -fx-font-weight:800;"/>
+                        <Label text="Cours terminés"
+                               style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:11;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2"
+                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-padding:10 20 10 20;">
+                        <Label fx:id="labelInProgressCount" text="0"
+                               style="-fx-text-fill:#fbbf24; -fx-font-size:22; -fx-font-weight:800;"/>
+                        <Label text="En cours"
+                               style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:11;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2"
+                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-padding:10 20 10 20;">
+                        <Label fx:id="labelTodoCount" text="0"
+                               style="-fx-text-fill:rgba(255,255,255,0.8); -fx-font-size:22; -fx-font-weight:800;"/>
+                        <Label text="À faire"
+                               style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:11;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- 3 COLONNES KANBAN -->
+            <HBox spacing="20" style="-fx-padding:28 40 40 40; -fx-background-color:#f4f6fb;"
+                  alignment="TOP_LEFT">
+
+                <!-- TO DO -->
+                <VBox spacing="12" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color:white; -fx-background-radius:16;
+                             -fx-border-color:#e2e8f0; -fx-border-radius:16;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),12,0,0,3);">
+                    <HBox alignment="CENTER_LEFT" spacing="10"
+                          style="-fx-padding:16 18 12 18; -fx-border-color:transparent transparent #f0f0f0 transparent; -fx-border-width:0 0 1 0;">
+                        <Label text="○" style="-fx-font-size:16; -fx-text-fill:#94a3b8;"/>
+                        <Label text="À Faire" style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#64748b;"/>
+                        <Label fx:id="badgeTodo"
+                               style="-fx-background-color:#f1f5f9; -fx-text-fill:#64748b;
+                                      -fx-font-size:11; -fx-font-weight:700;
+                                      -fx-padding:2 8 2 8; -fx-background-radius:999;"/>
+                    </HBox>
+                    <VBox fx:id="todoContainer" spacing="10" style="-fx-padding:0 12 16 12;"/>
+                </VBox>
+
+                <!-- IN PROGRESS -->
+                <VBox spacing="12" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color:white; -fx-background-radius:16;
+                             -fx-border-color:#e2e8f0; -fx-border-radius:16;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),12,0,0,3);">
+                    <HBox alignment="CENTER_LEFT" spacing="10"
+                          style="-fx-padding:16 18 12 18; -fx-border-color:transparent transparent #f0f0f0 transparent; -fx-border-width:0 0 1 0;">
+                        <Label text="◑" style="-fx-font-size:16; -fx-text-fill:#f59e0b;"/>
+                        <Label text="En Cours" style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#92400e;"/>
+                        <Label fx:id="badgeInProgress"
+                               style="-fx-background-color:#fffbeb; -fx-text-fill:#f59e0b;
+                                      -fx-font-size:11; -fx-font-weight:700;
+                                      -fx-padding:2 8 2 8; -fx-background-radius:999;"/>
+                    </HBox>
+                    <VBox fx:id="inProgressContainer" spacing="10" style="-fx-padding:0 12 16 12;"/>
+                </VBox>
+
+                <!-- DONE -->
+                <VBox spacing="12" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color:white; -fx-background-radius:16;
+                             -fx-border-color:#e2e8f0; -fx-border-radius:16;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),12,0,0,3);">
+                    <HBox alignment="CENTER_LEFT" spacing="10"
+                          style="-fx-padding:16 18 12 18; -fx-border-color:transparent transparent #f0f0f0 transparent; -fx-border-width:0 0 1 0;">
+                        <Label text="✓" style="-fx-font-size:16; -fx-text-fill:#059669;"/>
+                        <Label text="Terminé" style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#065f46;"/>
+                        <Label fx:id="badgeDone"
+                               style="-fx-background-color:#ecfdf5; -fx-text-fill:#059669;
+                                      -fx-font-size:11; -fx-font-weight:700;
+                                      -fx-padding:2 8 2 8; -fx-background-radius:999;"/>
+                    </HBox>
+                    <VBox fx:id="doneContainer" spacing="10" style="-fx-padding:0 12 16 12;"/>
+                </VBox>
+
+            </HBox>
+        </VBox>
+    </content>
+</ScrollPane>

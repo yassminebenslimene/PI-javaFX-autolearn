@@ -1,6 +1,8 @@
 package tn.esprit.controllers;
 
 import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -200,57 +202,95 @@ public class FrontChapitreDetailController {
         if (file == null) return;
 
         try {
-            Document doc = new Document(PageSize.A4, 50, 50, 60, 60);
-            PdfWriter.getInstance(doc, new FileOutputStream(file));
+            // ── Couleurs ──────────────────────────────────────────────────────
+            BaseColor VIOLET       = new BaseColor(78, 59, 156);   // #4e3b9c
+            BaseColor VIOLET_LIGHT = new BaseColor(122, 106, 216); // #7a6ad8
+            BaseColor CODE_BG      = new BaseColor(30, 30, 46);    // fond code sombre
+            BaseColor CODE_FG      = new BaseColor(205, 214, 244); // texte code clair
+            BaseColor GRAY_TEXT    = new BaseColor(100, 100, 100);
+            BaseColor BORDER_LEFT  = new BaseColor(122, 106, 216);
+
+            // ── Polices ───────────────────────────────────────────────────────
+            Font fontHeader   = new Font(Font.FontFamily.HELVETICA, 9,  Font.ITALIC,  GRAY_TEXT);
+            Font fontTitre    = new Font(Font.FontFamily.HELVETICA, 22, Font.BOLD,    VIOLET);
+            Font fontMeta     = new Font(Font.FontFamily.HELVETICA, 9,  Font.ITALIC,  GRAY_TEXT);
+            Font fontH2       = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD,    VIOLET_LIGHT);
+            Font fontH3       = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD,    new BaseColor(60, 60, 60));
+            Font fontBody     = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL,  new BaseColor(50, 50, 50));
+            Font fontCode     = new Font(Font.FontFamily.COURIER,   10, Font.NORMAL,  CODE_FG);
+            Font fontRessource= new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL,  VIOLET_LIGHT);
+
+            Document doc = new Document(PageSize.A4, 55, 55, 70, 55);
+            PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(file));
             doc.open();
 
-            Font fontAccent  = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, new BaseColor(74, 58, 156));
-            Font fontSub     = new Font(Font.FontFamily.HELVETICA, 13, Font.BOLD, BaseColor.DARK_GRAY);
-            Font fontBody    = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL, BaseColor.BLACK);
-            Font fontMeta    = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC, BaseColor.GRAY);
-
-            // Header
-            Paragraph header = new Paragraph("AutoLearn  —  " + cours.getTitre(), fontMeta);
-            header.setAlignment(Element.ALIGN_RIGHT);
-            doc.add(header);
+            // ── HEADER (en-tête page) ─────────────────────────────────────────
+            Paragraph headerLine = new Paragraph("AutoLearn  —  " + cours.getTitre(), fontHeader);
+            headerLine.setAlignment(Element.ALIGN_RIGHT);
+            doc.add(headerLine);
             doc.add(new Paragraph(" "));
 
-            // Titre
-            doc.add(new Paragraph("Chapitre " + chapitre.getOrdre() + " : " + chapitre.getTitre(), fontAccent));
-            com.itextpdf.text.pdf.draw.LineSeparator line = new com.itextpdf.text.pdf.draw.LineSeparator();
-            line.setLineColor(new BaseColor(122, 106, 216));
-            doc.add(new Chunk(line));
+            // ── BANDEAU TITRE VIOLET ──────────────────────────────────────────
+            PdfPTable bannerTable = new PdfPTable(1);
+            bannerTable.setWidthPercentage(100);
+            PdfPCell bannerCell = new PdfPCell();
+            bannerCell.setBackgroundColor(VIOLET);
+            bannerCell.setPadding(18);
+            bannerCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
+
+            // Badge "Chapitre N"
+            Paragraph badge = new Paragraph("Chapitre " + chapitre.getOrdre(),
+                new Font(Font.FontFamily.HELVETICA, 9, Font.BOLD, new BaseColor(200, 190, 255)));
+            badge.setSpacingAfter(4);
+            bannerCell.addElement(badge);
+
+            // Titre principal
+            Paragraph titrePara = new Paragraph(chapitre.getTitre(),
+                new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE));
+            titrePara.setSpacingAfter(6);
+            bannerCell.addElement(titrePara);
+
+            // Méta-infos
+            Paragraph metaPara = new Paragraph(
+                cours.getTitre() + "   •   " + cours.getMatiere() + "   •   Niveau : " + cours.getNiveau(),
+                new Font(Font.FontFamily.HELVETICA, 9, Font.NORMAL, new BaseColor(200, 190, 255)));
+            bannerCell.addElement(metaPara);
+
+            bannerTable.addCell(bannerCell);
+            doc.add(bannerTable);
             doc.add(new Paragraph(" "));
 
-            // Infos
-            doc.add(new Paragraph("Cours : " + cours.getTitre()
-                + "   |   Matière : " + cours.getMatiere()
-                + "   |   Niveau : " + cours.getNiveau(), fontMeta));
-            doc.add(new Paragraph(" "));
-
-            // Contenu (texte brut sans HTML)
-            doc.add(new Paragraph("Contenu", fontSub));
-            doc.add(new Paragraph(" "));
+            // ── CONTENU HTML → rendu structuré ───────────────────────────────
             String contenu = chapitre.getContenu() == null ? "" : chapitre.getContenu();
-            // Supprimer les balises HTML pour le PDF
-            String texte = contenu.replaceAll("<[^>]+>", "").replaceAll("&nbsp;", " ").trim();
-            Paragraph contenuPara = new Paragraph(texte, fontBody);
-            contenuPara.setLeading(16);
-            doc.add(contenuPara);
+            renderHtmlToPdf(doc, contenu, fontH2, fontH3, fontBody, fontCode,
+                            CODE_BG, CODE_FG, BORDER_LEFT, VIOLET_LIGHT);
 
-            // Ressource
+            // ── RESSOURCE ─────────────────────────────────────────────────────
             if (chapitre.getRessources() != null && !chapitre.getRessources().isBlank()) {
                 doc.add(new Paragraph(" "));
-                doc.add(new Paragraph("Ressource", fontSub));
-                doc.add(new Paragraph(chapitre.getRessources(), fontBody));
+                PdfPTable resTable = new PdfPTable(1);
+                resTable.setWidthPercentage(100);
+                PdfPCell resCell = new PdfPCell();
+                resCell.setBackgroundColor(new BaseColor(245, 243, 255));
+                resCell.setBorderColor(VIOLET_LIGHT);
+                resCell.setBorderWidth(1f);
+                resCell.setPadding(10);
+                resCell.addElement(new Paragraph("🔗  Ressource",
+                    new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, VIOLET_LIGHT)));
+                resCell.addElement(new Paragraph(chapitre.getRessources(), fontRessource));
+                resTable.addCell(resCell);
+                doc.add(resTable);
             }
 
-            // Footer
+            // ── FOOTER ────────────────────────────────────────────────────────
             doc.add(new Paragraph(" "));
-            doc.add(new Chunk(line));
-            Paragraph footer = new Paragraph("Généré par AutoLearn", fontMeta);
+            com.itextpdf.text.pdf.draw.LineSeparator sep = new com.itextpdf.text.pdf.draw.LineSeparator();
+            sep.setLineColor(new BaseColor(220, 215, 255));
+            doc.add(new Chunk(sep));
+            Paragraph footer = new Paragraph("Généré par AutoLearn  •  " + java.time.LocalDate.now(), fontHeader);
             footer.setAlignment(Element.ALIGN_CENTER);
             doc.add(footer);
+
             doc.close();
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -262,6 +302,107 @@ public class FrontChapitreDetailController {
         } catch (Exception ex) {
             ex.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Erreur PDF : " + ex.getMessage()).showAndWait();
+        }
+    }
+
+    /**
+     * Parse le HTML du contenu et génère des éléments iText structurés.
+     * Gère : h2, h3, p, pre/code, ul/li, strong, texte brut.
+     */
+    private void renderHtmlToPdf(Document doc, String html,
+            Font fontH2, Font fontH3, Font fontBody, Font fontCode,
+            BaseColor codeBg, BaseColor codeFg, BaseColor borderLeft, BaseColor violet)
+            throws Exception {
+
+        // Découper le HTML en blocs par balises principales
+        String[] lines = html.split("\n");
+        StringBuilder currentBlock = new StringBuilder();
+        boolean inPre = false;
+
+        for (String raw : lines) {
+            String line = raw.trim();
+
+            // Bloc <pre> ou <code> → fond sombre
+            if (line.toLowerCase().contains("<pre") || line.toLowerCase().contains("<code")) {
+                inPre = true;
+            }
+            if (inPre) {
+                currentBlock.append(raw).append("\n");
+                if (line.toLowerCase().contains("</pre>") || line.toLowerCase().contains("</code>")) {
+                    // Rendre le bloc code
+                    String codeText = currentBlock.toString()
+                        .replaceAll("<[^>]+>", "").replaceAll("&lt;", "<")
+                        .replaceAll("&gt;", ">").replaceAll("&amp;", "&").trim();
+                    PdfPTable codeTable = new PdfPTable(1);
+                    codeTable.setWidthPercentage(100);
+                    codeTable.setSpacingBefore(6);
+                    codeTable.setSpacingAfter(6);
+                    PdfPCell codeCell = new PdfPCell();
+                    codeCell.setBackgroundColor(codeBg);
+                    codeCell.setPadding(12);
+                    codeCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
+                    Paragraph codePara = new Paragraph(codeText, fontCode);
+                    codePara.setLeading(14);
+                    codeCell.addElement(codePara);
+                    codeTable.addCell(codeCell);
+                    doc.add(codeTable);
+                    currentBlock = new StringBuilder();
+                    inPre = false;
+                }
+                continue;
+            }
+
+            // h2 → titre avec bordure gauche violette
+            if (line.matches("(?i)<h2[^>]*>.*</h2>")) {
+                String text = line.replaceAll("<[^>]+>", "").trim();
+                PdfPTable h2Table = new PdfPTable(new float[]{3f, 97f});
+                h2Table.setWidthPercentage(100);
+                h2Table.setSpacingBefore(10);
+                h2Table.setSpacingAfter(4);
+                PdfPCell borderCell = new PdfPCell();
+                borderCell.setBackgroundColor(borderLeft);
+                borderCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
+                h2Table.addCell(borderCell);
+                PdfPCell textCell = new PdfPCell(new Phrase(text, fontH2));
+                textCell.setBorder(com.itextpdf.text.Rectangle.NO_BORDER);
+                textCell.setBackgroundColor(new BaseColor(245, 243, 255));
+                textCell.setPadding(8);
+                h2Table.addCell(textCell);
+                doc.add(h2Table);
+                continue;
+            }
+
+            // h3 → sous-titre gras
+            if (line.matches("(?i)<h3[^>]*>.*</h3>")) {
+                String text = line.replaceAll("<[^>]+>", "").trim();
+                Paragraph h3 = new Paragraph(text, fontH3);
+                h3.setSpacingBefore(8); h3.setSpacingAfter(3);
+                doc.add(h3);
+                continue;
+            }
+
+            // li → puce
+            if (line.matches("(?i)<li[^>]*>.*</li>")) {
+                String text = "•  " + line.replaceAll("<[^>]+>", "").trim();
+                Paragraph li = new Paragraph(text, fontBody);
+                li.setIndentationLeft(15);
+                li.setSpacingAfter(2);
+                doc.add(li);
+                continue;
+            }
+
+            // p ou texte brut
+            if (!line.isEmpty() && !line.matches("(?i)<(ul|ol|/ul|/ol|/li|html|body|head|/html|/body)[^>]*>")) {
+                String text = line.replaceAll("<[^>]+>", "")
+                    .replaceAll("&nbsp;", " ").replaceAll("&lt;", "<")
+                    .replaceAll("&gt;", ">").replaceAll("&amp;", "&").trim();
+                if (!text.isEmpty()) {
+                    Paragraph p = new Paragraph(text, fontBody);
+                    p.setLeading(16);
+                    p.setSpacingAfter(3);
+                    doc.add(p);
+                }
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-package tn.esprit.controllers;
+﻿package tn.esprit.controllers;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -43,6 +43,7 @@ public class FrontofficeController {
     @FXML private Button btnNavChallenges;
     @FXML private Button btnNavEvenements;
     @FXML private Button btnNavCommunaute;
+    @FXML private Button btnNavTodo;
 
     // Sections
     @FXML private VBox sectionCours;
@@ -61,7 +62,7 @@ public class FrontofficeController {
         "-fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
 
     private void setActiveNav(Button active) {
-        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavEvenements, btnNavCommunaute}) {
+        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavEvenements, btnNavCommunaute, btnNavTodo}) {
             if (b != null) b.setStyle(b == active ? NAV_ACTIVE : NAV_INACTIVE);
         }
     }
@@ -81,7 +82,7 @@ public class FrontofficeController {
     @FXML private javafx.scene.control.TextArea   contactMessage;
     @FXML private Label contactStatus;
 
-    // Container dynamique pour les cartes de challenges — carousel
+    // Container dynamique pour les cartes de challenges â€” carousel
     @FXML private StackPane challengeCarouselPane;
     @FXML private HBox challengeDots;
     private List<VBox> challengeCardsList = new java.util.ArrayList<>();
@@ -132,7 +133,7 @@ public class FrontofficeController {
                 int nbChallenges = challengeService.getAll().size();
                 long nbEtudiants = userService.afficher().stream()
                     .filter(usr -> usr instanceof Etudiant).count();
-                String niveau = (u instanceof Etudiant e && e.getNiveau() != null) ? e.getNiveau() : "—";
+                String niveau = (u instanceof Etudiant e && e.getNiveau() != null) ? e.getNiveau() : "â€”";
 
                 if (labelNiveauStat      != null) labelNiveauStat.setText(niveau);
                 if (labelCoursCount      != null) labelCoursCount.setText(String.valueOf(nbCours));
@@ -152,7 +153,7 @@ public class FrontofficeController {
                 // Construire les feature cards
                 if (featureCardsContainer != null) buildFeatureCards();
 
-                // Démarrer le slider automatique
+                // DÃ©marrer le slider automatique
                 startSlider();
 
                 // Animations d'entree sur les sections
@@ -188,7 +189,7 @@ public class FrontofficeController {
         }
     }
 
-    /** Image card with colored gradient overlay — rich visual style */
+    /** Image card with colored gradient overlay â€” rich visual style */
     private VBox buildCoursImageCard(Cours c, String imgPath) {
         // Image with gradient overlay
         StackPane imgPane = new StackPane();
@@ -226,8 +227,8 @@ public class FrontofficeController {
 
         // Niveau badge on image
         String niveauColor = switch (c.getNiveau() == null ? "" : c.getNiveau().toLowerCase()) {
-            case "avancé", "avance"               -> "#ef4444";
-            case "intermédiaire", "intermediaire" -> "#f59e0b";
+            case "avancÃ©", "avance"               -> "#ef4444";
+            case "intermÃ©diaire", "intermediaire" -> "#f59e0b";
             default                               -> "#10b981";
         };
         Label niveauBadge = new Label(c.getNiveau() != null ? c.getNiveau() : "Debutant");
@@ -246,7 +247,7 @@ public class FrontofficeController {
         Label matiere = new Label(c.getMatiere() != null ? c.getMatiere() : "");
         matiere.setStyle("-fx-font-size:11; -fx-text-fill:#888;");
 
-        Button btn = new Button("Voir le cours →");
+        Button btn = new Button("Voir le cours â†’");
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle("-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:12;" +
                      "-fx-font-weight:700; -fx-padding:9 0 9 0; -fx-background-radius:8;" +
@@ -280,7 +281,7 @@ public class FrontofficeController {
         return card;
     }
 
-    // ── Feature Cards (OpenClassrooms illustrated style) ──────────────────────
+    // â”€â”€ Feature Cards (OpenClassrooms illustrated style) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void buildFeatureCards() {
         featureCardsContainer.getChildren().clear();
@@ -347,7 +348,7 @@ public class FrontofficeController {
         return card;
     }
 
-    // ── Challenge Carousel ────────────────────────────────────────────────────
+    // â”€â”€ Challenge Carousel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void loadChallengeCarousel() {
         challengeCardsList.clear();
@@ -386,13 +387,13 @@ public class FrontofficeController {
         // Dot indicators
         if (challengeDots != null) {
             for (int i = 0; i < max; i++) {
-                Label dot = new Label("●");
+                Label dot = new Label("â—");
                 dot.setStyle("-fx-font-size:8; -fx-text-fill:" + (i == 0 ? "white" : "rgba(255,255,255,0.3)") + ";");
                 challengeDots.getChildren().add(dot);
             }
         }
 
-        // Hover on carousel pane → advance to next card
+        // Hover on carousel pane â†’ advance to next card
         if (challengeCarouselPane != null) {
             challengeCarouselPane.setOnMouseEntered(e -> advanceChallengeCard());
         }
@@ -486,8 +487,8 @@ public class FrontofficeController {
 
         // Niveau badge
         String niveauColor = switch (c.getNiveau() == null ? "" : c.getNiveau().toLowerCase()) {
-            case "avancé", "avance"               -> "#ef4444";
-            case "intermédiaire", "intermediaire" -> "#f59e0b";
+            case "avancÃ©", "avance"               -> "#ef4444";
+            case "intermÃ©diaire", "intermediaire" -> "#f59e0b";
             default                               -> "#10b981";
         };
         Label niveauBadge = new Label(c.getNiveau() != null ? c.getNiveau() : "Debutant");
@@ -514,7 +515,7 @@ public class FrontofficeController {
             meta.getChildren().add(fin);
         }
 
-        Button btn = new Button("Relever le challenge →");
+        Button btn = new Button("Relever le challenge â†’");
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle("-fx-background-color:" + accent + "; -fx-text-fill:white;" +
                      "-fx-font-size:12; -fx-font-weight:700;" +
@@ -546,7 +547,7 @@ public class FrontofficeController {
         return card;
     }
 
-    // ── Auth guard ────────────────────────────────────────────────────────────
+    // â”€â”€ Auth guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /** Returns true if user is logged in, otherwise redirects to login and returns false */
     private boolean requireLogin() {
@@ -555,7 +556,7 @@ public class FrontofficeController {
         return false;
     }
 
-    // ── Navigation — seul le center change, la navbar reste fixe ──────────────
+    // â”€â”€ Navigation â€” seul le center change, la navbar reste fixe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     @FXML public void onHome() {
         setActiveNav(btnHome);
         if (labelCurrentUser == null) return;
@@ -569,6 +570,15 @@ public class FrontofficeController {
     @FXML public void onCours() { setActiveNav(btnNavCours); naviguerVersCours(); }
 
     @FXML public void onViewCourses() { naviguerVersCours(); }
+
+    @FXML public void onTodo() {
+        setActiveNav(btnNavTodo);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/todo.fxml"));
+            Parent view = loader.load();
+            setCenter(view);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
 
     private void naviguerVersCours() {
         if (!requireLogin()) return;
@@ -701,9 +711,9 @@ public class FrontofficeController {
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    // ── Slider automatique ────────────────────────────────────────────────────
+    // â”€â”€ Slider automatique â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @FXML private StackPane heroSlider;
 
@@ -757,7 +767,7 @@ public class FrontofficeController {
         }
     }
 
-    // ── Contact ───────────────────────────────────────────────────────────────
+    // â”€â”€ Contact â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @FXML public void onContactSend() {
         if (contactNom == null) return;
@@ -774,12 +784,12 @@ public class FrontofficeController {
         contactNom.clear(); contactEmail.clear();
         if (contactSujet != null) contactSujet.clear();
         contactMessage.clear();
-        contactStatus.setText("Message envoyé avec succès ! Nous vous répondrons sous 24h.");
+        contactStatus.setText("Message envoyÃ© avec succÃ¨s ! Nous vous rÃ©pondrons sous 24h.");
         contactStatus.setStyle("-fx-text-fill:#059669; -fx-font-size:12;");
         contactStatus.setVisible(true); contactStatus.setManaged(true);
     }
 
-    // ── Animation helper ──────────────────────────────────────────────────────
+    // â”€â”€ Animation helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void animateSlideIn(javafx.scene.Node node, double delayMs) {
         if (node == null) return;
@@ -795,7 +805,7 @@ public class FrontofficeController {
         ft.play(); tt.play();
     }
 
-    // ── Evenements Sidebar ────────────────────────────────────────────────────
+    // â”€â”€ Evenements Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void loadEvenementsHome() {
         evenementsHomeContainer.getChildren().clear();
@@ -909,7 +919,7 @@ public class FrontofficeController {
         Label lieuLbl = new Label(lieu);
         lieuLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
 
-        Button btn = new Button("S'inscrire →");
+        Button btn = new Button("S'inscrire â†’");
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle("-fx-background-color:" + darkColor + "; -fx-text-fill:white;" +
                      "-fx-font-size:12; -fx-font-weight:700; -fx-padding:9 0 9 0;" +
@@ -976,7 +986,7 @@ public class FrontofficeController {
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
         BorderPane root = (BorderPane) scene.getRoot();
-        // Si la vue est déjà un ScrollPane, la mettre directement
+        // Si la vue est dÃ©jÃ  un ScrollPane, la mettre directement
         if (view instanceof ScrollPane) {
             ((ScrollPane) view).setFitToWidth(true);
             root.setCenter(view);
@@ -996,3 +1006,4 @@ public class FrontofficeController {
         ((BorderPane) scene.getRoot()).setCenter(view);
     }
 }
+
