@@ -9,152 +9,61 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Chatbot Service using Hugging Face Inference API.
+ * Chatbot Service using Ollama (local AI, no API key, no internet needed).
  *
- * Model: mistralai/Mistral-7B-Instruct-v0.3
- * - Free tier (no credit card needed)
- * - Understands French and English
- * - Can follow instructions to detect intents
+ * Setup:
+ *  1. Install Ollama: https://ollama.com
+ *  2. Run: ollama pull mistral
+ *  3. Ollama starts automatically at http://localhost:11434
  *
  * Flow:
  *  1. User sends message
- *  2. We send it to Hugging Face with a system prompt
- *  3. Model returns JSON with intent + parameters
- *  4. ActionExecutorService executes the action
+ *  2. Java calls Ollama API at localhost:11434
+ *  3. Mistral model returns JSON with intent + parameters
+ *  4. ChatbotActionExecutor executes the action
  *  5. Result shown in chat
  */
 public class ChatbotService {
 
-    // ── Hugging Face config ───────────────────────────────────────────────────
-
-    private static final String HF_API_KEY = loadApiKey();
-
-    private static final String HF_MODEL =
-        "mistralai/Mistral-7B-Instruct-v0.3";
-
-    private static final String HF_URL =
-        "https://router.huggingface.co/hf-inference/models/" + HF_MODEL + "/v1/chat/completions";
+    // Ollama runs locally - no API key needed
+    private static final String OLLAMA_URL   = "http://localhost:11434/api/chat";
+    private static final String OLLAMA_MODEL = "mistral"; // or llama3, phi3, gemma2
 
     private static final Gson GSON = new Gson();
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(10))
+        .connectTimeout(Duration.ofSeconds(5))
         .build();
 
-    // ── System prompt ─────────────────────────────────────────────────────────
-
-    /**
-     * System prompt that tells the model how to behave.
-     * It must return a JSON with intent + parameters.
-     */
-    private static final String SYSTEM_PROMPT = """
-        Tu es un assistant intelligent pour l'application AutoLearn.
-        Tu aides les administrateurs et les etudiants a gerer la plateforme.
-        
-        Quand l'utilisateur te demande d'effectuer une action, reponds TOUJOURS avec un JSON valide dans ce format:
-        {
-          "intent": "ACTION_TYPE",
-          "params": { ... },
-          "message": "Message convivial a afficher a l'utilisateur"
-        }
-        
-        Les intents disponibles sont:
-        
-        CRUD Cours:
-        - LIST_COURS: lister tous les cours
-        - CREATE_COURS: creer un cours (params: titre, description, matiere, niveau, duree)
-        - UPDATE_COURS: modifier un cours (params: id, titre, description, matiere, niveau, duree)
-        - DELETE_COURS: supprimer un cours (params: id)
-        
-        CRUD Utilisateurs:
-        - LIST_USERS: lister tous les utilisateurs
-        - CREATE_USER: creer un etudiant (params: nom, prenom, email, niveau)
-        - DELETE_USER: supprimer un utilisateur (params: id)
-        
-        CRUD Evenements:
-        - LIST_EVENEMENTS: lister tous les evenements
-        - CREATE_EVENEMENT: creer un evenement (params: titre, lieu, description, type, date_debut, date_fin, nb_max)
-        - DELETE_EVENEMENT: supprimer un evenement (params: id)
-        
-        CRUD Challenges:
-        - LIST_CHALLENGES: lister tous les challenges
-        - CREATE_CHALLENGE: creer un challenge (params: titre, description, niveau, duree, date_debut, date_fin)
-        - DELETE_CHALLENGE: supprimer un challenge (params: id)
-        
-        CRUD Communautes:
-        - LIST_COMMUNAUTES: lister toutes les communautes
-        - CREATE_COMMUNAUTE: creer une communaute (params: nom, description)
-        
-        Navigation:
-        - NAVIGATE_COURS: aller a la page cours
-        - NAVIGATE_USERS: aller a la page utilisateurs
-        - NAVIGATE_EVENEMENTS: aller a la page evenements
-        - NAVIGATE_CHALLENGES: aller a la page challenges
-        - NAVIGATE_COMMUNAUTE: aller a la page communaute
-        - NAVIGATE_DASHBOARD: aller au dashboard
-        
-        Conversation:
-        - CHAT: simple conversation, question, ou demande d'aide (params: {})
-        
-        Si l'utilisateur parle en francais, reponds en francais.
-        Si des parametres sont manquants pour une action, demande-les dans le message.
-        Mets toujours un message convivial et encourage l'utilisateur.
-        
-        IMPORTANT: Reponds UNIQUEMENT avec le JSON, rien d'autre.
-        """;
+    // System prompt - tells Mistral how to respond
+    private static final String SYSTEM_PROMPT =
+        "Tu es un assistant intelligent pour l application AutoLearn. " +
+        "Tu aides les administrateurs a gerer la plateforme. " +
+        "Quand l utilisateur demande une action, reponds UNIQUEMENT avec un JSON valide: " +
+        "{\"intent\": \"ACTION\", \"params\": {}, \"message\": \"message convivial\"} " +
+        "Intents disponibles: " +
+        "LIST_COURS, CREATE_COURS(titre,description,matiere,niveau,duree), UPDATE_COURS(id,...), DELETE_COURS(id), " +
+        "LIST_USERS, CREATE_USER(nom,prenom,email,niveau), DELETE_USER(id), " +
+        "LIST_EVENEMENTS, CREATE_EVENEMENT(titre,lieu,description,type,nb_max), DELETE_EVENEMENT(id), " +
+        "LIST_CHALLENGES, CREATE_CHALLENGE(titre,description,niveau,duree), DELETE_CHALLENGE(id), " +
+        "LIST_COMMUNAUTES, CREATE_COMMUNAUTE(nom,description), " +
+        "NAVIGATE_COURS, NAVIGATE_USERS, NAVIGATE_EVENEMENTS, NAVIGATE_CHALLENGES, NAVIGATE_COMMUNAUTE, NAVIGATE_DASHBOARD, " +
+        "CHAT (pour conversation normale). " +
+        "Reponds en francais. Reponds UNIQUEMENT avec le JSON, rien d autre.";
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    /**
-     * Loads the API key from multiple sources (priority order):
-     * 1. JVM property: -DHF_API_KEY=hf_xxx
-     * 2. Environment variable: HF_API_KEY
-     * 3. Local file: .hf_token in project root (gitignored)
-     */
-    private static String loadApiKey() {
-        // 1. JVM property
-        String key = System.getProperty("HF_API_KEY");
-        if (key != null && !key.isBlank()) return key.trim();
-
-        // 2. Environment variable
-        key = System.getenv("HF_API_KEY");
-        if (key != null && !key.isBlank()) return key.trim();
-
-        // 3. Local file .hf_token
-        try {
-            java.nio.file.Path tokenFile = java.nio.file.Path.of(".hf_token");
-            if (java.nio.file.Files.exists(tokenFile)) {
-                key = java.nio.file.Files.readString(tokenFile).trim();
-                if (!key.isBlank()) {
-                    System.out.println("[Chatbot] API key loaded from .hf_token");
-                    return key;
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("[Chatbot] Could not read .hf_token: " + e.getMessage());
-        }
-
-        System.err.println("[Chatbot] WARNING: No HF_API_KEY found! Create .hf_token file with your token.");
-        return "YOUR_HF_TOKEN_HERE";
-    }
-
-    /**
-     * Sends a message to the chatbot and returns the response asynchronously.
-     *
-     * @param userMessage The user's message
-     * @param conversationHistory Previous messages for context
-     * @return CompletableFuture<ChatResponse>
-     */
     public static CompletableFuture<ChatResponse> sendMessage(
             String userMessage,
-            java.util.List<ChatMessage> conversationHistory) {
+            List<ChatMessage> conversationHistory) {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Build messages array
+                // Build Ollama request
                 JsonArray messages = new JsonArray();
 
                 // System message
@@ -163,7 +72,7 @@ public class ChatbotService {
                 systemMsg.addProperty("content", SYSTEM_PROMPT);
                 messages.add(systemMsg);
 
-                // Add conversation history (last 6 messages for context)
+                // Last 6 messages for context
                 int start = Math.max(0, conversationHistory.size() - 6);
                 for (int i = start; i < conversationHistory.size(); i++) {
                     ChatMessage cm = conversationHistory.get(i);
@@ -173,49 +82,45 @@ public class ChatbotService {
                     messages.add(msg);
                 }
 
-                // Add current user message
+                // Current user message
                 JsonObject userMsg = new JsonObject();
                 userMsg.addProperty("role", "user");
                 userMsg.addProperty("content", userMessage);
                 messages.add(userMsg);
 
-                // Build request body
+                // Ollama request body
                 JsonObject body = new JsonObject();
-                body.addProperty("model", HF_MODEL);
+                body.addProperty("model", OLLAMA_MODEL);
                 body.add("messages", messages);
-                body.addProperty("max_tokens", 500);
-                body.addProperty("temperature", 0.3); // Low = more deterministic
                 body.addProperty("stream", false);
 
-                // Send request
+                // Options for deterministic output
+                JsonObject options = new JsonObject();
+                options.addProperty("temperature", 0.1);
+                options.addProperty("num_predict", 400);
+                body.add("options", options);
+
                 HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(HF_URL))
+                    .uri(URI.create(OLLAMA_URL))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + HF_API_KEY)
-                    .timeout(Duration.ofSeconds(30))
+                    .timeout(Duration.ofSeconds(60))
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
                 HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
-                System.out.println("[Chatbot] HTTP " + resp.statusCode());
+                System.out.println("[Chatbot] Ollama HTTP " + resp.statusCode());
 
                 if (resp.statusCode() == 200) {
-                    return parseHuggingFaceResponse(resp.body());
-                } else if (resp.statusCode() == 503) {
-                    // Model loading — retry after delay
-                    System.out.println("[Chatbot] Model loading, retrying...");
-                    Thread.sleep(3000);
-                    HttpResponse<String> retry = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
-                    if (retry.statusCode() == 200) {
-                        return parseHuggingFaceResponse(retry.body());
-                    }
-                    return new ChatResponse("CHAT", new JsonObject(),
-                        "Le modele IA est en cours de chargement. Reessayez dans quelques secondes.", false);
+                    return parseOllamaResponse(resp.body());
                 } else {
-                    System.err.println("[Chatbot] Error " + resp.statusCode() + ": " + resp.body());
+                    System.err.println("[Chatbot] Ollama error " + resp.statusCode() + ": " + resp.body());
                     return fallbackResponse(userMessage);
                 }
 
+            } catch (java.net.ConnectException e) {
+                System.err.println("[Chatbot] Ollama not running! Start it with: ollama serve");
+                return new ChatResponse("CHAT", new JsonObject(),
+                    "L assistant IA n est pas disponible. Assurez-vous qu Ollama est installe et demarre (ollama serve).", false);
             } catch (Exception e) {
                 System.err.println("[Chatbot] Error: " + e.getMessage());
                 return fallbackResponse(userMessage);
@@ -225,27 +130,27 @@ public class ChatbotService {
 
     // ── Response parsing ──────────────────────────────────────────────────────
 
-    private static ChatResponse parseHuggingFaceResponse(String responseBody) {
+    private static ChatResponse parseOllamaResponse(String responseBody) {
         try {
+            // Ollama response format: {"message": {"role": "assistant", "content": "..."}}
             JsonObject json = GSON.fromJson(responseBody, JsonObject.class);
             String content = json
-                .getAsJsonArray("choices")
-                .get(0).getAsJsonObject()
                 .getAsJsonObject("message")
                 .get("content").getAsString()
                 .trim();
 
-            System.out.println("[Chatbot] Raw response: " + content);
+            System.out.println("[Chatbot] Raw: " + content);
 
-            // Extract JSON from response (model might add extra text)
+            // Extract JSON from response
             String jsonStr = extractJson(content);
             if (jsonStr == null) {
+                // Model returned plain text, treat as CHAT
                 return new ChatResponse("CHAT", new JsonObject(), content, true);
             }
 
             JsonObject parsed = GSON.fromJson(jsonStr, JsonObject.class);
-            String intent = parsed.has("intent") ? parsed.get("intent").getAsString() : "CHAT";
-            JsonObject params = parsed.has("params") ? parsed.getAsJsonObject("params") : new JsonObject();
+            String intent  = parsed.has("intent")  ? parsed.get("intent").getAsString()  : "CHAT";
+            JsonObject params = parsed.has("params") ? parsed.getAsJsonObject("params")   : new JsonObject();
             String message = parsed.has("message") ? parsed.get("message").getAsString() : content;
 
             return new ChatResponse(intent, params, message, true);
@@ -253,66 +158,51 @@ public class ChatbotService {
         } catch (Exception e) {
             System.err.println("[Chatbot] Parse error: " + e.getMessage());
             return new ChatResponse("CHAT", new JsonObject(),
-                "Je n'ai pas compris votre demande. Pouvez-vous reformuler ?", false);
+                "Je n ai pas compris. Pouvez-vous reformuler ?", false);
         }
     }
 
-    /**
-     * Extracts JSON object from a string that might contain extra text.
-     */
     private static String extractJson(String text) {
         int start = text.indexOf('{');
-        int end = text.lastIndexOf('}');
-        if (start >= 0 && end > start) {
-            return text.substring(start, end + 1);
-        }
+        int end   = text.lastIndexOf('}');
+        if (start >= 0 && end > start) return text.substring(start, end + 1);
         return null;
     }
 
-    /**
-     * Fallback when API is unavailable — uses simple keyword matching.
-     */
+    // ── Fallback (keyword matching when Ollama is offline) ────────────────────
+
     private static ChatResponse fallbackResponse(String message) {
         String lower = message.toLowerCase();
-        JsonObject params = new JsonObject();
+        JsonObject p = new JsonObject();
 
-        if (lower.contains("cours") && (lower.contains("liste") || lower.contains("affiche") || lower.contains("montre"))) {
-            return new ChatResponse("LIST_COURS", params, "Voici la liste des cours :", true);
-        }
-        if (lower.contains("utilisateur") && (lower.contains("liste") || lower.contains("affiche"))) {
-            return new ChatResponse("LIST_USERS", params, "Voici la liste des utilisateurs :", true);
-        }
-        if (lower.contains("evenement") && (lower.contains("liste") || lower.contains("affiche"))) {
-            return new ChatResponse("LIST_EVENEMENTS", params, "Voici la liste des evenements :", true);
-        }
-        if (lower.contains("challenge") && (lower.contains("liste") || lower.contains("affiche"))) {
-            return new ChatResponse("LIST_CHALLENGES", params, "Voici la liste des challenges :", true);
-        }
-        if (lower.contains("cours")) {
-            return new ChatResponse("NAVIGATE_COURS", params, "Je vous emmene vers la page Cours.", true);
-        }
-        if (lower.contains("utilisateur") || lower.contains("etudiant")) {
-            return new ChatResponse("NAVIGATE_USERS", params, "Je vous emmene vers la page Utilisateurs.", true);
-        }
-        if (lower.contains("evenement")) {
-            return new ChatResponse("NAVIGATE_EVENEMENTS", params, "Je vous emmene vers la page Evenements.", true);
-        }
+        if (lower.contains("cours") && (lower.contains("liste") || lower.contains("affiche") || lower.contains("montre") || lower.contains("voir")))
+            return new ChatResponse("LIST_COURS", p, "Voici la liste des cours :", true);
+        if ((lower.contains("utilisateur") || lower.contains("etudiant")) && (lower.contains("liste") || lower.contains("affiche") || lower.contains("voir")))
+            return new ChatResponse("LIST_USERS", p, "Voici la liste des utilisateurs :", true);
+        if (lower.contains("evenement") && (lower.contains("liste") || lower.contains("affiche") || lower.contains("voir")))
+            return new ChatResponse("LIST_EVENEMENTS", p, "Voici la liste des evenements :", true);
+        if (lower.contains("challenge") && (lower.contains("liste") || lower.contains("affiche") || lower.contains("voir")))
+            return new ChatResponse("LIST_CHALLENGES", p, "Voici la liste des challenges :", true);
+        if (lower.contains("communaute") && (lower.contains("liste") || lower.contains("affiche") || lower.contains("voir")))
+            return new ChatResponse("LIST_COMMUNAUTES", p, "Voici la liste des communautes :", true);
+        if (lower.contains("cours"))
+            return new ChatResponse("NAVIGATE_COURS", p, "Navigation vers la page Cours.", true);
+        if (lower.contains("utilisateur") || lower.contains("etudiant"))
+            return new ChatResponse("NAVIGATE_USERS", p, "Navigation vers la page Utilisateurs.", true);
+        if (lower.contains("evenement"))
+            return new ChatResponse("NAVIGATE_EVENEMENTS", p, "Navigation vers la page Evenements.", true);
+        if (lower.contains("challenge"))
+            return new ChatResponse("NAVIGATE_CHALLENGES", p, "Navigation vers la page Challenges.", true);
+        if (lower.contains("dashboard") || lower.contains("accueil"))
+            return new ChatResponse("NAVIGATE_DASHBOARD", p, "Navigation vers le Dashboard.", true);
 
-        return new ChatResponse("CHAT", params,
-            "Je suis votre assistant AutoLearn. Je peux vous aider a gerer les cours, utilisateurs, evenements, challenges et communautes. Que souhaitez-vous faire ?", true);
+        return new ChatResponse("CHAT", p,
+            "Je suis votre assistant AutoLearn. Dites-moi ce que vous souhaitez faire !\n" +
+            "Exemples: \"liste les cours\", \"cree un evenement\", \"affiche les etudiants\"", true);
     }
 
-    // ── Data records ──────────────────────────────────────────────────────────
+    // ── Records ───────────────────────────────────────────────────────────────
 
-    public record ChatResponse(
-        String intent,
-        JsonObject params,
-        String message,
-        boolean success
-    ) {}
-
-    public record ChatMessage(
-        String role,    // "user" or "assistant"
-        String content
-    ) {}
+    public record ChatResponse(String intent, JsonObject params, String message, boolean success) {}
+    public record ChatMessage(String role, String content) {}
 }
