@@ -26,31 +26,29 @@ public class ChatbotService {
         .build();
 
     private static final String SYSTEM_PROMPT =
-        "You are AutoLearn AI assistant. You are smart, friendly, and helpful. " +
+        "You are AutoLearn AI assistant. You are smart, friendly, helpful and conversational. " +
         "You speak French or English depending on the user language. " +
-        "You help admins manage the AutoLearn platform. " +
-        "\n\n When user wants to CREATE something and provides ALL info in one message, extract the data and respond with JSON immediately. " +
-        "When user wants to CREATE but info is missing, ask for it conversationally. " +
-        "When user wants to LIST something, respond with JSON immediately. " +
-        "\n\nAlways respond with this JSON format when executing an action: " +
-        "{\"intent\": \"ACTION\", \"params\": {}, \"message\": \"friendly message\"} " +
-        "\n\nAvailable intents: " +
+        "You help admins manage the AutoLearn e-learning platform. " +
+        "You can answer ANY question about the platform data, give statistics, and perform actions. " +
+        "\n\nFor ACTIONS, respond ONLY with JSON: {\"intent\": \"ACTION\", \"params\": {}, \"message\": \"friendly message\"} " +
+        "\n\nAvailable action intents: " +
         "LIST_COURS, LIST_USERS, LIST_EVENEMENTS, LIST_CHALLENGES, LIST_COMMUNAUTES, " +
-        "CREATE_COURS(titre, matiere, niveau[DEBUTANT/INTERMEDIAIRE/AVANCE], duree[int hours], description), " +
+        "CREATE_COURS(titre, matiere, niveau[DEBUTANT/INTERMEDIAIRE/AVANCE], duree[int], description), " +
         "CREATE_EVENEMENT(titre, lieu, type[Conference/Atelier/Hackathon/Autre], nb_max[int], description), " +
         "CREATE_CHALLENGE(titre, niveau, duree[int minutes], description), " +
-        "CREATE_USER(prenom, nom, email, niveau[DEBUTANT/INTERMEDIAIRE/AVANCE], password[optional]), " +
+        "CREATE_USER(prenom, nom, email, niveau[DEBUTANT/INTERMEDIAIRE/AVANCE]), " +
         "CREATE_COMMUNAUTE(nom, description), " +
         "DELETE_COURS(id), DELETE_USER(id), DELETE_EVENEMENT(id), DELETE_CHALLENGE(id), " +
-        "NAVIGATE_COURS, NAVIGATE_USERS, NAVIGATE_EVENEMENTS, NAVIGATE_CHALLENGES, NAVIGATE_COMMUNAUTE, NAVIGATE_DASHBOARD, " +
-        "CHAT (for general conversation, greetings, questions). " +
-        "\n\nIMPORTANT RULES: " +
-        "1. If user provides data in any format (comma-separated, natural language, etc.), extract it intelligently. " +
-        "2. For CREATE_USER: prenom=first name, nom=last name, password field is optional. " +
-        "3. If user says 'creer etudiant rahma, ben ali, debutant, rahmabenali@gmail.com' - extract: prenom=rahma, nom=ben ali, niveau=DEBUTANT, email=rahmabenali@gmail.com. " +
-        "4. Respond ONLY with JSON when executing an action. " +
-        "5. Be conversational and helpful for CHAT intent. " +
-        "6. Never navigate when user wants to create - always create directly.";
+        "NAVIGATE_COURS, NAVIGATE_USERS, NAVIGATE_EVENEMENTS, NAVIGATE_CHALLENGES, NAVIGATE_COMMUNAUTE, NAVIGATE_DASHBOARD. " +
+        "\n\nFor QUESTIONS and ANALYTICS (statistics, who is most active, how many users, etc.), " +
+        "use intent CHAT and answer directly using the platform data provided in the context. " +
+        "\n\nRULES: " +
+        "1. For analytics questions (qui est le plus actif, combien d etudiants, etc.) -> use CHAT intent and answer from the data. " +
+        "2. For greetings, general questions -> use CHAT intent and respond naturally. " +
+        "3. For CREATE with all data provided -> extract and return JSON immediately. " +
+        "4. For CREATE with missing data -> ask conversationally (no JSON). " +
+        "5. For LIST -> return JSON immediately. " +
+        "6. NEVER say you cannot answer a question - always try to help.";
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -58,13 +56,16 @@ public class ChatbotService {
             String userMessage,
             List<ChatMessage> conversationHistory) {
 
+        // Build platform context snapshot for analytics
+        String platformContext = buildPlatformContext();
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 JsonArray messages = new JsonArray();
 
                 JsonObject systemMsg = new JsonObject();
                 systemMsg.addProperty("role", "system");
-                systemMsg.addProperty("content", SYSTEM_PROMPT);
+                systemMsg.addProperty("content", SYSTEM_PROMPT + platformContext);
                 messages.add(systemMsg);
 
                 int start = Math.max(0, conversationHistory.size() - 10);
@@ -173,6 +174,14 @@ public class ChatbotService {
             return new ChatResponse("CHAT", p,
                 "Bonjour ! Je suis votre assistant AutoLearn. Comment puis-je vous aider ?\n\n" +
                 "Je peux lister, créer, modifier ou supprimer des cours, événements, challenges, utilisateurs et communautés.", true);
+        }
+
+        // ── Analytics questions ────────────────────────────────────────────
+        if (lower.contains("plus actif") || lower.contains("most active") ||
+            lower.contains("combien") || lower.contains("how many") ||
+            lower.contains("statistique") || lower.contains("stats") ||
+            lower.contains("nombre") || lower.contains("total")) {
+            return buildAnalyticsResponse(lower, p);
         }
 
         // ── LIST ───────────────────────────────────────────────────────────
@@ -489,6 +498,117 @@ public class ChatbotService {
     private static String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
+    }
+
+    // ── Analytics fallback ────────────────────────────────────────────────────
+
+    private static ChatResponse buildAnalyticsResponse(String lower, JsonObject p) {
+        try {
+            tn.esprit.services.UserService userService = new tn.esprit.services.UserService();
+            tn.esprit.services.ServiceCours coursService = new tn.esprit.services.ServiceCours();
+            tn.esprit.services.EvenementService evenementService = new tn.esprit.services.EvenementService();
+            tn.esprit.services.ChallengeService challengeService = new tn.esprit.services.ChallengeService();
+
+            java.util.List<tn.esprit.entities.User> users = userService.afficher();
+            long etudiants = users.stream().filter(u -> "ETUDIANT".equals(u.getRole())).count();
+            long admins    = users.stream().filter(u -> "ADMIN".equals(u.getRole())).count();
+
+            // Most active student (most recent login)
+            if (lower.contains("actif") || lower.contains("active")) {
+                java.util.Optional<tn.esprit.entities.User> mostActive = users.stream()
+                    .filter(u -> "ETUDIANT".equals(u.getRole()) && u.getLastLoginAt() != null)
+                    .max(java.util.Comparator.comparing(tn.esprit.entities.User::getLastLoginAt));
+
+                if (mostActive.isPresent()) {
+                    tn.esprit.entities.User u = mostActive.get();
+                    return new ChatResponse("CHAT", p,
+                        "L'étudiant le plus actif est " + u.getPrenom() + " " + u.getNom() +
+                        " (" + u.getEmail() + ")\nDernière connexion : " + u.getLastLoginAt(), true);
+                }
+                return new ChatResponse("CHAT", p, "Aucune donnée de connexion disponible.", true);
+            }
+
+            // Statistics
+            if (lower.contains("combien") || lower.contains("how many") ||
+                lower.contains("nombre") || lower.contains("total") || lower.contains("statistique")) {
+
+                int nbCours      = coursService.consulter().size();
+                int nbEvents     = evenementService.getAll().size();
+                int nbChallenges = challengeService.getAll().size();
+
+                return new ChatResponse("CHAT", p,
+                    "Statistiques de la plateforme AutoLearn :\n\n" +
+                    "Utilisateurs : " + users.size() + " (" + etudiants + " étudiants, " + admins + " admins)\n" +
+                    "Cours : " + nbCours + "\n" +
+                    "Événements : " + nbEvents + "\n" +
+                    "Challenges : " + nbChallenges, true);
+            }
+
+        } catch (Exception e) {
+            System.err.println("[Chatbot] Analytics error: " + e.getMessage());
+        }
+
+        return new ChatResponse("CHAT", p,
+            "Je n'ai pas pu récupérer ces données. Essayez de relancer l'application.", true);
+    }
+
+    // ── Platform context for analytics ───────────────────────────────────────
+
+    /**
+     * Builds a real-time snapshot of platform data to inject into the AI context.
+     * This allows the AI to answer analytics questions like "who is the most active student".
+     */
+    private static String buildPlatformContext() {
+        try {
+            tn.esprit.services.UserService userService = new tn.esprit.services.UserService();
+            tn.esprit.services.ServiceCours coursService = new tn.esprit.services.ServiceCours();
+            tn.esprit.services.EvenementService evenementService = new tn.esprit.services.EvenementService();
+            tn.esprit.services.ChallengeService challengeService = new tn.esprit.services.ChallengeService();
+
+            java.util.List<tn.esprit.entities.User> users = userService.afficher();
+            java.util.List<tn.esprit.entities.Cours> cours = coursService.consulter();
+            java.util.List<tn.esprit.entities.Evenement> events = evenementService.getAll();
+            java.util.List<tn.esprit.entities.Challenge> challenges = challengeService.getAll();
+
+            long etudiants = users.stream().filter(u -> "ETUDIANT".equals(u.getRole())).count();
+            long admins    = users.stream().filter(u -> "ADMIN".equals(u.getRole())).count();
+
+            StringBuilder ctx = new StringBuilder("\n\n=== PLATFORM DATA (use this to answer analytics questions) ===\n");
+            ctx.append("Total users: ").append(users.size())
+               .append(" (").append(etudiants).append(" students, ").append(admins).append(" admins)\n");
+            ctx.append("Total courses: ").append(cours.size()).append("\n");
+            ctx.append("Total events: ").append(events.size()).append("\n");
+            ctx.append("Total challenges: ").append(challenges.size()).append("\n");
+
+            // List students with last login for "most active" queries
+            ctx.append("\nStudents list:\n");
+            users.stream()
+                .filter(u -> "ETUDIANT".equals(u.getRole()))
+                .limit(20)
+                .forEach(u -> ctx.append("- ").append(u.getPrenom()).append(" ").append(u.getNom())
+                    .append(" (").append(u.getEmail()).append(")")
+                    .append(u.getLastLoginAt() != null ? " last login: " + u.getLastLoginAt() : "")
+                    .append("\n"));
+
+            // List courses
+            ctx.append("\nCourses list:\n");
+            cours.stream().limit(10).forEach(c ->
+                ctx.append("- [ID:").append(c.getId()).append("] ").append(c.getTitre())
+                   .append(" (").append(c.getMatiere()).append(", ").append(c.getNiveau()).append(")\n"));
+
+            // List events
+            ctx.append("\nEvents list:\n");
+            events.stream().limit(10).forEach(e ->
+                ctx.append("- [ID:").append(e.getId()).append("] ").append(e.getTitre())
+                   .append(" (").append(e.getLieu()).append(", ").append(e.getType()).append(")\n"));
+
+            ctx.append("=== END PLATFORM DATA ===");
+            return ctx.toString();
+
+        } catch (Exception e) {
+            System.err.println("[Chatbot] Context build error: " + e.getMessage());
+            return "";
+        }
     }
 
     // ── Records ───────────────────────────────────────────────────────────────
