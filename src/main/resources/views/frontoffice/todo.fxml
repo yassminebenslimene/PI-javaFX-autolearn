@@ -61,6 +61,14 @@
                 </HBox>
             </VBox>
 
+            <!-- RECOMMANDATIONS -->
+            <VBox spacing="10"
+                  style="-fx-padding:0 36 0 36; -fx-background-color:#f0f2f8;">
+                <Label text="💡  Recommandations personnalisées"
+                       style="-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#4e3b9c;"/>
+                <VBox fx:id="recoContainer" spacing="8"/>
+            </VBox>
+
             <!-- COLONNES KANBAN -->
             <HBox spacing="18" alignment="TOP_LEFT"
                   style="-fx-padding:24 36 36 36; -fx-background-color:#f0f2f8;">

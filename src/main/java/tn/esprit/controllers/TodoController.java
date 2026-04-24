@@ -38,6 +38,7 @@ public class TodoController {
     @FXML private VBox  todoContainer;
     @FXML private VBox  inProgressContainer;
     @FXML private VBox  doneContainer;
+    @FXML private VBox  recoContainer;
 
     private final ServiceCours          serviceCours    = new ServiceCours();
     private final ServiceChapitre       serviceChapitre = new ServiceChapitre();
@@ -101,6 +102,9 @@ public class TodoController {
             if (fTodo == 0)       addEmpty(todoContainer,       "Aucun cours à commencer");
             if (fInProgress == 0) addEmpty(inProgressContainer, "Aucun cours en cours");
             if (fDone == 0)       addEmpty(doneContainer,       "Aucun cours terminé");
+
+            // Recommandations
+            buildRecommandations(userId, allCours);
         });
     }
 
@@ -233,5 +237,77 @@ public class TodoController {
         Label lbl = new Label(msg);
         lbl.setStyle("-fx-text-fill:#cbd5e1; -fx-font-size:12; -fx-padding:12 0 0 4;");
         container.getChildren().add(lbl);
+    }
+
+    private void buildRecommandations(int userId, List<Cours> allCours) {
+        if (recoContainer == null) return;
+        recoContainer.getChildren().clear();
+
+        List<HBox> recos = new ArrayList<>();
+
+        for (Cours cours : allCours) {
+            List<Chapitre> chapitres = serviceChapitre.consulterParCoursId(cours.getId());
+            Set<Integer> completedIds = new HashSet<>(
+                progressService.getCompletedChapitreIds(userId, cours.getId()));
+            int total = chapitres.size();
+            int completed = (int) chapitres.stream().filter(ch -> completedIds.contains(ch.getId())).count();
+
+            if (total == 0) continue;
+
+            if (completed > 0 && completed < total) {
+                // Cours en cours → suggérer le prochain chapitre
+                Chapitre next = progressService.getNextChapitre(userId, cours.getId());
+                if (next != null) {
+                    recos.add(buildRecoCard(
+                        "▶",  "#7a6ad8", "rgba(122,106,216,0.1)",
+                        "Continue " + cours.getTitre(),
+                        "Prochain : Chapitre " + next.getOrdre() + " — " + next.getTitre()
+                            + "  (" + completed + "/" + total + " complétés)"
+                    ));
+                }
+            } else if (completed == 0) {
+                // Cours non commencé → suggérer de commencer
+                Chapitre first = chapitres.isEmpty() ? null : chapitres.get(0);
+                if (first != null) {
+                    recos.add(buildRecoCard(
+                        "🚀", "#059669", "rgba(5,150,105,0.1)",
+                        "Commence " + cours.getTitre(),
+                        "Commence par : Chapitre 1 — " + first.getTitre()
+                    ));
+                }
+            }
+        }
+
+        if (recos.isEmpty()) {
+            Label lbl = new Label("🎉  Félicitations ! Tous vos cours sont terminés.");
+            lbl.setStyle("-fx-text-fill:#059669; -fx-font-size:13; -fx-font-weight:700;");
+            recoContainer.getChildren().add(lbl);
+        } else {
+            // Afficher max 3 recommandations
+            recos.stream().limit(3).forEach(r -> recoContainer.getChildren().add(r));
+        }
+    }
+
+    private HBox buildRecoCard(String icon, String accent, String bg, String titre, String detail) {
+        HBox card = new HBox(12);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setPadding(new Insets(12, 16, 12, 16));
+        card.setStyle("-fx-background-color:" + bg + "; -fx-background-radius:12;"
+            + "-fx-border-color:" + accent + "; -fx-border-radius:12; -fx-border-width:1;");
+
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size:20; -fx-min-width:28;");
+
+        VBox text = new VBox(3);
+        Label titreLabel = new Label(titre);
+        titreLabel.setStyle("-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#1e1e1e;");
+        Label detailLabel = new Label(detail);
+        detailLabel.setStyle("-fx-font-size:11; -fx-text-fill:#64748b;");
+        detailLabel.setWrapText(true);
+        text.getChildren().addAll(titreLabel, detailLabel);
+        HBox.setHgrow(text, Priority.ALWAYS);
+
+        card.getChildren().addAll(iconLbl, text);
+        return card;
     }
 }

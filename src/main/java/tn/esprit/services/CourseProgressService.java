@@ -217,6 +217,27 @@ public class CourseProgressService {
         return 0;
     }
 
+    // ── Recommandations ───────────────────────────────────────────────────────
+    /** Prochain chapitre non complété d'un cours (ordre croissant). */
+    public tn.esprit.entities.Chapitre getNextChapitre(int userId, int coursId) {
+        String sql = "SELECT c.* FROM chapitre c "
+            + "WHERE c.cours_id = ? "
+            + "AND c.id NOT IN (SELECT chapitre_id FROM chapter_progress WHERE user_id = ?) "
+            + "ORDER BY c.ordre ASC LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, coursId); ps.setInt(2, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new tn.esprit.entities.Chapitre(
+                    rs.getInt("id"), rs.getString("titre"), rs.getString("contenu"),
+                    rs.getInt("ordre"), rs.getString("ressources"), rs.getInt("cours_id"),
+                    rs.getString("ressource_type"), rs.getString("ressource_fichier"));
+            }
+        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        return null;
+    }
+
+    // ── Stats globales ────────────────────────────────────────────────────────
     public int getTotalCompletedChapitres(int userId) {
         try (PreparedStatement ps = connection.prepareStatement(
             "SELECT COUNT(*) FROM chapter_progress WHERE user_id = ? AND is_completed = 1")) {
