@@ -39,6 +39,15 @@ public class TodoController {
     @FXML private VBox  inProgressContainer;
     @FXML private VBox  doneContainer;
     @FXML private VBox  recoContainer;
+    // Dashboard gamification
+    @FXML private Label  labelPoints;
+    @FXML private Label  labelStreak;
+    @FXML private Label  labelChapCompletes;
+    @FXML private Label  labelCoursTermines;
+    @FXML private HBox   badgesContainer;
+    @FXML private Label  labelProgPct;
+    @FXML private Region globalProgressFill;
+    @FXML private Label  labelNextBadge;
 
     private final ServiceCours          serviceCours    = new ServiceCours();
     private final ServiceChapitre       serviceChapitre = new ServiceChapitre();
@@ -105,6 +114,8 @@ public class TodoController {
 
             // Recommandations
             buildRecommandations(userId, allCours);
+            // Dashboard gamification
+            buildDashboard(userId, allCours, fGlobal);
         });
     }
 
@@ -309,5 +320,62 @@ public class TodoController {
 
         card.getChildren().addAll(iconLbl, text);
         return card;
+    }
+
+    private void buildDashboard(int userId, List<Cours> allCours, int globalProgress) {
+        int points  = progressService.getTotalPoints(userId, allCours);
+        int streak  = progressService.getStreak(userId);
+        int chapDone = progressService.getTotalCompletedChapitres(userId);
+        long coursDone = allCours.stream()
+            .filter(c -> progressService.getCourseProgress(userId, c.getId()) >= 100).count();
+        List<String[]> badges = progressService.getBadges(userId, allCours);
+
+        if (labelPoints       != null) labelPoints.setText(String.valueOf(points));
+        if (labelStreak       != null) labelStreak.setText(String.valueOf(streak));
+        if (labelChapCompletes!= null) labelChapCompletes.setText(String.valueOf(chapDone));
+        if (labelCoursTermines!= null) labelCoursTermines.setText(String.valueOf(coursDone));
+
+        // Barre de progression globale
+        if (globalProgressFill != null) {
+            double ratio = Math.min(globalProgress, 100) / 100.0;
+            globalProgressFill.setPrefWidth(ratio * 900); // largeur max approximative
+        }
+        if (labelProgPct != null) labelProgPct.setText(globalProgress + "%");
+
+        // Prochain badge
+        if (labelNextBadge != null) {
+            if (chapDone < 1)       labelNextBadge.setText("💡 Complète 1 chapitre pour débloquer ⭐ Premier pas");
+            else if (chapDone < 5)  labelNextBadge.setText("💡 " + (5 - chapDone) + " chapitres restants pour débloquer 📚 Lecteur");
+            else if (chapDone < 10) labelNextBadge.setText("💡 " + (10 - chapDone) + " chapitres restants pour débloquer 🎓 Étudiant");
+            else if (streak < 3)    labelNextBadge.setText("💡 Étudie " + (3 - streak) + " jours de plus pour débloquer 🔥 En feu");
+            else if (streak < 7)    labelNextBadge.setText("💡 Étudie " + (7 - streak) + " jours de plus pour débloquer 💎 Invincible");
+            else                    labelNextBadge.setText("🎉 Tous les badges débloqués !");
+        }
+
+        // Badges
+        if (badgesContainer != null) {
+            badgesContainer.getChildren().clear();
+            if (badges.isEmpty()) {
+                Label none = new Label("Aucun badge encore — commence à étudier !");
+                none.setStyle("-fx-text-fill:#94a3b8; -fx-font-size:12;");
+                badgesContainer.getChildren().add(none);
+            } else {
+                for (String[] b : badges) {
+                    VBox badgeCard = new VBox(4);
+                    badgeCard.setAlignment(Pos.CENTER);
+                    badgeCard.setPadding(new Insets(10, 14, 10, 14));
+                    badgeCard.setStyle("-fx-background-color:#f5f3ff; -fx-background-radius:12;"
+                        + "-fx-border-color:#c4b5fd; -fx-border-radius:12;");
+                    Label iconLbl = new Label(b[0]);
+                    iconLbl.setStyle("-fx-font-size:24;");
+                    Label nameLbl = new Label(b[1]);
+                    nameLbl.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#4e3b9c;");
+                    Label descLbl = new Label(b[2]);
+                    descLbl.setStyle("-fx-font-size:9; -fx-text-fill:#94a3b8;");
+                    badgeCard.getChildren().addAll(iconLbl, nameLbl, descLbl);
+                    badgesContainer.getChildren().add(badgeCard);
+                }
+            }
+        }
     }
 }

@@ -10,137 +10,250 @@
     <content>
         <VBox spacing="0" style="-fx-background-color:#f0f2f8;">
 
-            <!-- HEADER BANNER -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <!-- HEADER                                                          -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
             <VBox spacing="14"
                   style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
-                         -fx-padding:32 60 32 60;">
+                         -fx-padding:28 48 28 48;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
-                    <Label text="📋" style="-fx-font-size:28;"/>
-                    <VBox spacing="3">
+                    <Label text="📋" style="-fx-font-size:26;"/>
+                    <VBox spacing="2">
                         <Label text="Ma Liste d'Apprentissage"
                                style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:900;"/>
-                        <Label text="Organisez et suivez votre progression cours par cours"
+                        <Label text="Suivez votre progression, débloquez des badges et atteignez vos objectifs"
                                style="-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:12;"/>
                     </VBox>
                 </HBox>
-
-                <!-- Stats -->
-                <HBox spacing="14">
-                    <VBox alignment="CENTER" spacing="3"
-                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:14;
-                                 -fx-padding:12 24 12 24; -fx-min-width:120;">
+                <!-- 4 stats rapides -->
+                <HBox spacing="12">
+                    <VBox alignment="CENTER" spacing="2" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-padding:12 0 12 0;">
                         <Label fx:id="labelProgGlobale" text="0%"
-                               style="-fx-text-fill:white; -fx-font-size:24; -fx-font-weight:900;"/>
-                        <Label text="Progression globale"
-                               style="-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:10;"/>
+                               style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:900;"/>
+                        <Label text="Progression" style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:10;"/>
                     </VBox>
-                    <VBox alignment="CENTER" spacing="3"
-                          style="-fx-background-color:rgba(52,211,153,0.25); -fx-background-radius:14;
-                                 -fx-padding:12 24 12 24; -fx-min-width:100;">
+                    <VBox alignment="CENTER" spacing="2" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:rgba(52,211,153,0.25); -fx-background-radius:12; -fx-padding:12 0 12 0;">
                         <Label fx:id="labelDoneCount" text="0"
-                               style="-fx-text-fill:#34d399; -fx-font-size:24; -fx-font-weight:900;"/>
-                        <Label text="Terminés"
-                               style="-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:10;"/>
+                               style="-fx-text-fill:#34d399; -fx-font-size:22; -fx-font-weight:900;"/>
+                        <Label text="Terminés" style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:10;"/>
                     </VBox>
-                    <VBox alignment="CENTER" spacing="3"
-                          style="-fx-background-color:rgba(251,191,36,0.25); -fx-background-radius:14;
-                                 -fx-padding:12 24 12 24; -fx-min-width:100;">
+                    <VBox alignment="CENTER" spacing="2" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:rgba(251,191,36,0.25); -fx-background-radius:12; -fx-padding:12 0 12 0;">
                         <Label fx:id="labelInProgressCount" text="0"
-                               style="-fx-text-fill:#fbbf24; -fx-font-size:24; -fx-font-weight:900;"/>
-                        <Label text="En cours"
-                               style="-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:10;"/>
+                               style="-fx-text-fill:#fbbf24; -fx-font-size:22; -fx-font-weight:900;"/>
+                        <Label text="En cours" style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:10;"/>
                     </VBox>
-                    <VBox alignment="CENTER" spacing="3"
-                          style="-fx-background-color:rgba(255,255,255,0.12); -fx-background-radius:14;
-                                 -fx-padding:12 24 12 24; -fx-min-width:100;">
+                    <VBox alignment="CENTER" spacing="2" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:rgba(255,255,255,0.12); -fx-background-radius:12; -fx-padding:12 0 12 0;">
                         <Label fx:id="labelTodoCount" text="0"
-                               style="-fx-text-fill:white; -fx-font-size:24; -fx-font-weight:900;"/>
-                        <Label text="À faire"
-                               style="-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:10;"/>
+                               style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:900;"/>
+                        <Label text="À faire" style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:10;"/>
                     </VBox>
                 </HBox>
             </VBox>
 
-            <!-- RECOMMANDATIONS -->
-            <VBox spacing="10"
-                  style="-fx-padding:0 36 0 36; -fx-background-color:#f0f2f8;">
-                <Label text="💡  Recommandations personnalisées"
-                       style="-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#4e3b9c;"/>
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <!-- SECTION 1 : MON TABLEAU DE BORD                                -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <VBox spacing="14" style="-fx-padding:24 48 0 48; -fx-background-color:#f0f2f8;">
+
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="📊" style="-fx-font-size:18;"/>
+                    <Label text="Mon Tableau de Bord"
+                           style="-fx-font-size:17; -fx-font-weight:900; -fx-text-fill:#1e1e1e;"/>
+                </HBox>
+
+                <!-- Points + Streak + Chapitres + Cours -->
+                <HBox spacing="12">
+                    <VBox alignment="CENTER" spacing="6" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:white; -fx-background-radius:14;
+                                 -fx-border-color:#e2e8f0; -fx-border-radius:14; -fx-padding:18;
+                                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),8,0,0,2);">
+                        <Label text="🏆" style="-fx-font-size:28;"/>
+                        <Label fx:id="labelPoints" text="0"
+                               style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:#7a6ad8;"/>
+                        <Label text="Points gagnés"
+                               style="-fx-font-size:11; -fx-text-fill:#94a3b8; -fx-font-weight:600;"/>
+                        <Label text="10 pts par chapitre · 50 pts par cours"
+                               style="-fx-font-size:9; -fx-text-fill:#cbd5e1;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="6" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:white; -fx-background-radius:14;
+                                 -fx-border-color:#fde68a; -fx-border-radius:14; -fx-padding:18;
+                                 -fx-effect:dropshadow(gaussian,rgba(245,158,11,0.1),8,0,0,2);">
+                        <Label text="🔥" style="-fx-font-size:28;"/>
+                        <Label fx:id="labelStreak" text="0"
+                               style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:#f59e0b;"/>
+                        <Label text="Jours consécutifs"
+                               style="-fx-font-size:11; -fx-text-fill:#94a3b8; -fx-font-weight:600;"/>
+                        <Label text="Étudie chaque jour pour garder ton streak"
+                               style="-fx-font-size:9; -fx-text-fill:#cbd5e1;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="6" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:white; -fx-background-radius:14;
+                                 -fx-border-color:#86efac; -fx-border-radius:14; -fx-padding:18;
+                                 -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.1),8,0,0,2);">
+                        <Label text="📖" style="-fx-font-size:28;"/>
+                        <Label fx:id="labelChapCompletes" text="0"
+                               style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:#059669;"/>
+                        <Label text="Chapitres complétés"
+                               style="-fx-font-size:11; -fx-text-fill:#94a3b8; -fx-font-weight:600;"/>
+                        <Label text="Quiz réussi = chapitre complété"
+                               style="-fx-font-size:9; -fx-text-fill:#cbd5e1;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="6" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:white; -fx-background-radius:14;
+                                 -fx-border-color:#fca5a5; -fx-border-radius:14; -fx-padding:18;
+                                 -fx-effect:dropshadow(gaussian,rgba(233,69,96,0.1),8,0,0,2);">
+                        <Label text="🎓" style="-fx-font-size:28;"/>
+                        <Label fx:id="labelCoursTermines" text="0"
+                               style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:#e94560;"/>
+                        <Label text="Cours terminés"
+                               style="-fx-font-size:11; -fx-text-fill:#94a3b8; -fx-font-weight:600;"/>
+                        <Label text="100% des chapitres complétés"
+                               style="-fx-font-size:9; -fx-text-fill:#cbd5e1;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Barre progression + Badges -->
+                <HBox spacing="12">
+                    <!-- Progression globale -->
+                    <VBox spacing="10" HBox.hgrow="ALWAYS"
+                          style="-fx-background-color:white; -fx-background-radius:14;
+                                 -fx-border-color:#e2e8f0; -fx-border-radius:14; -fx-padding:18;
+                                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),8,0,0,2);">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="📈  Progression globale"
+                                   style="-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="labelProgPct" text="0%"
+                                   style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#7a6ad8;"/>
+                        </HBox>
+                        <HBox fx:id="globalProgressBar" prefHeight="14"
+                              style="-fx-background-color:#f1f5f9; -fx-background-radius:7;">
+                            <Region fx:id="globalProgressFill" prefHeight="14"
+                                    style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                                           -fx-background-radius:7;"/>
+                        </HBox>
+                        <Label fx:id="labelNextBadge" text=""
+                               style="-fx-font-size:11; -fx-text-fill:#94a3b8;"/>
+                    </VBox>
+
+                    <!-- Mes Badges -->
+                    <VBox spacing="10" prefWidth="380"
+                          style="-fx-background-color:white; -fx-background-radius:14;
+                                 -fx-border-color:#e2e8f0; -fx-border-radius:14; -fx-padding:18;
+                                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),8,0,0,2);">
+                        <Label text="🎖️  Mes Badges débloqués"
+                               style="-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                        <HBox fx:id="badgesContainer" spacing="8" style="-fx-padding:2 0 0 0;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <!-- SECTION 2 : RECOMMANDATIONS                                    -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <VBox spacing="10" style="-fx-padding:20 48 0 48; -fx-background-color:#f0f2f8;">
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="💡" style="-fx-font-size:18;"/>
+                    <Label text="Recommandations — Que faire ensuite ?"
+                           style="-fx-font-size:17; -fx-font-weight:900; -fx-text-fill:#1e1e1e;"/>
+                </HBox>
                 <VBox fx:id="recoContainer" spacing="8"/>
             </VBox>
 
-            <!-- COLONNES KANBAN -->
-            <HBox spacing="18" alignment="TOP_LEFT"
-                  style="-fx-padding:24 36 36 36; -fx-background-color:#f0f2f8;">
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <!-- SECTION 3 : MES COURS (KANBAN)                                 -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <VBox spacing="14" style="-fx-padding:20 48 0 48; -fx-background-color:#f0f2f8;">
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="📚" style="-fx-font-size:18;"/>
+                    <Label text="Mes Cours — Avancement"
+                           style="-fx-font-size:17; -fx-font-weight:900; -fx-text-fill:#1e1e1e;"/>
+                    <Label text="(chaque cours affiche ses chapitres ✓ fait  ○ à faire)"
+                           style="-fx-font-size:11; -fx-text-fill:#94a3b8;"/>
+                </HBox>
+            </VBox>
+
+            <HBox spacing="16" alignment="TOP_LEFT"
+                  style="-fx-padding:12 48 40 48; -fx-background-color:#f0f2f8;">
 
                 <!-- TO DO -->
-                <VBox spacing="12" HBox.hgrow="ALWAYS"
+                <VBox spacing="10" HBox.hgrow="ALWAYS"
                       style="-fx-background-color:#f8fafc; -fx-background-radius:16;
                              -fx-border-color:#e2e8f0; -fx-border-radius:16;
                              -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
-                    <!-- Colonne header -->
                     <HBox alignment="CENTER_LEFT" spacing="10"
                           style="-fx-padding:14 16 12 16; -fx-background-color:#f1f5f9;
                                  -fx-background-radius:16 16 0 0;
-                                 -fx-border-color:transparent transparent #e2e8f0 transparent;
-                                 -fx-border-width:0 0 1 0;">
+                                 -fx-border-color:transparent transparent #e2e8f0 transparent; -fx-border-width:0 0 1 0;">
                         <Label text="○" style="-fx-font-size:18; -fx-text-fill:#94a3b8;"/>
-                        <Label text="À Faire"
-                               style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#475569;"/>
+                        <VBox spacing="1">
+                            <Label text="À Faire"
+                                   style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#475569;"/>
+                            <Label text="Pas encore commencé"
+                                   style="-fx-font-size:10; -fx-text-fill:#94a3b8;"/>
+                        </VBox>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="badgeTodo"
                                style="-fx-background-color:#e2e8f0; -fx-text-fill:#64748b;
                                       -fx-font-size:11; -fx-font-weight:700;
                                       -fx-padding:3 10 3 10; -fx-background-radius:999;"/>
                     </HBox>
-                    <VBox fx:id="todoContainer" spacing="10"
-                          style="-fx-padding:4 12 16 12;"/>
+                    <VBox fx:id="todoContainer" spacing="10" style="-fx-padding:4 12 16 12;"/>
                 </VBox>
 
                 <!-- IN PROGRESS -->
-                <VBox spacing="12" HBox.hgrow="ALWAYS"
+                <VBox spacing="10" HBox.hgrow="ALWAYS"
                       style="-fx-background-color:#fffdf5; -fx-background-radius:16;
                              -fx-border-color:#fde68a; -fx-border-radius:16;
                              -fx-effect:dropshadow(gaussian,rgba(245,158,11,0.1),10,0,0,2);">
                     <HBox alignment="CENTER_LEFT" spacing="10"
                           style="-fx-padding:14 16 12 16; -fx-background-color:#fffbeb;
                                  -fx-background-radius:16 16 0 0;
-                                 -fx-border-color:transparent transparent #fde68a transparent;
-                                 -fx-border-width:0 0 1 0;">
+                                 -fx-border-color:transparent transparent #fde68a transparent; -fx-border-width:0 0 1 0;">
                         <Label text="◑" style="-fx-font-size:18; -fx-text-fill:#f59e0b;"/>
-                        <Label text="En Cours"
-                               style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#92400e;"/>
+                        <VBox spacing="1">
+                            <Label text="En Cours"
+                                   style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#92400e;"/>
+                            <Label text="Quiz partiellement réussis"
+                                   style="-fx-font-size:10; -fx-text-fill:#94a3b8;"/>
+                        </VBox>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="badgeInProgress"
                                style="-fx-background-color:#fde68a; -fx-text-fill:#92400e;
                                       -fx-font-size:11; -fx-font-weight:700;
                                       -fx-padding:3 10 3 10; -fx-background-radius:999;"/>
                     </HBox>
-                    <VBox fx:id="inProgressContainer" spacing="10"
-                          style="-fx-padding:4 12 16 12;"/>
+                    <VBox fx:id="inProgressContainer" spacing="10" style="-fx-padding:4 12 16 12;"/>
                 </VBox>
 
                 <!-- DONE -->
-                <VBox spacing="12" HBox.hgrow="ALWAYS"
+                <VBox spacing="10" HBox.hgrow="ALWAYS"
                       style="-fx-background-color:#f0fdf4; -fx-background-radius:16;
                              -fx-border-color:#86efac; -fx-border-radius:16;
                              -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.1),10,0,0,2);">
                     <HBox alignment="CENTER_LEFT" spacing="10"
                           style="-fx-padding:14 16 12 16; -fx-background-color:#dcfce7;
                                  -fx-background-radius:16 16 0 0;
-                                 -fx-border-color:transparent transparent #86efac transparent;
-                                 -fx-border-width:0 0 1 0;">
+                                 -fx-border-color:transparent transparent #86efac transparent; -fx-border-width:0 0 1 0;">
                         <Label text="✓" style="-fx-font-size:18; -fx-text-fill:#059669;"/>
-                        <Label text="Terminé"
-                               style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#065f46;"/>
+                        <VBox spacing="1">
+                            <Label text="Terminé"
+                                   style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:#065f46;"/>
+                            <Label text="Tous les quiz réussis"
+                                   style="-fx-font-size:10; -fx-text-fill:#94a3b8;"/>
+                        </VBox>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="badgeDone"
                                style="-fx-background-color:#86efac; -fx-text-fill:#065f46;
                                       -fx-font-size:11; -fx-font-weight:700;
                                       -fx-padding:3 10 3 10; -fx-background-radius:999;"/>
                     </HBox>
-                    <VBox fx:id="doneContainer" spacing="10"
-                          style="-fx-padding:4 12 16 12;"/>
+                    <VBox fx:id="doneContainer" spacing="10" style="-fx-padding:4 12 16 12;"/>
                 </VBox>
 
             </HBox>

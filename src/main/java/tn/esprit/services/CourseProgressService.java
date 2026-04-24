@@ -251,4 +251,58 @@ public class CourseProgressService {
         }
         return 0;
     }
+
+    // ── GAMIFICATION ──────────────────────────────────────────────────────────
+
+    /** Points totaux : 10 pts par chapitre complété + 50 pts par cours terminé */
+    public int getTotalPoints(int userId, java.util.List<tn.esprit.entities.Cours> allCours) {
+        int points = getTotalCompletedChapitres(userId) * 10;
+        for (tn.esprit.entities.Cours cours : allCours) {
+            if (getCourseProgress(userId, cours.getId()) >= 100) points += 50;
+        }
+        return points;
+    }
+
+    /**
+     * Streak : nombre de jours consécutifs où l'étudiant a complété au moins un chapitre.
+     * Compte à rebours depuis aujourd'hui.
+     */
+    public int getStreak(int userId) {
+        String sql = "SELECT DATE(completed_at) as day FROM chapter_progress "
+            + "WHERE user_id = ? AND completed_at IS NOT NULL "
+            + "GROUP BY DATE(completed_at) ORDER BY day DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            int streak = 0;
+            java.time.LocalDate expected = java.time.LocalDate.now();
+            while (rs.next()) {
+                java.time.LocalDate day = rs.getDate("day").toLocalDate();
+                if (day.equals(expected) || day.equals(expected.minusDays(1))) {
+                    streak++;
+                    expected = day.minusDays(1);
+                } else break;
+            }
+            return streak;
+        } catch (SQLException e) { return 0; }
+    }
+
+    /** Badges débloqués selon les accomplissements */
+    public java.util.List<String[]> getBadges(int userId, java.util.List<tn.esprit.entities.Cours> allCours) {
+        java.util.List<String[]> badges = new java.util.ArrayList<>();
+        int totalChap = getTotalCompletedChapitres(userId);
+        int streak    = getStreak(userId);
+        long coursTermines = allCours.stream()
+            .filter(c -> getCourseProgress(userId, c.getId()) >= 100).count();
+
+        if (totalChap >= 1)   badges.add(new String[]{"⭐", "Premier pas",    "1er chapitre complété"});
+        if (totalChap >= 5)   badges.add(new String[]{"📚", "Lecteur",         "5 chapitres complétés"});
+        if (totalChap >= 10)  badges.add(new String[]{"🎓", "Étudiant",        "10 chapitres complétés"});
+        if (totalChap >= 20)  badges.add(new String[]{"🏅", "Expert",          "20 chapitres complétés"});
+        if (coursTermines >= 1) badges.add(new String[]{"🏆", "Diplômé",       "1 cours terminé"});
+        if (coursTermines >= 3) badges.add(new String[]{"👑", "Champion",      "3 cours terminés"});
+        if (streak >= 3)      badges.add(new String[]{"🔥", "En feu",          streak + " jours consécutifs"});
+        if (streak >= 7)      badges.add(new String[]{"💎", "Invincible",      "7 jours consécutifs"});
+        return badges;
+    }
 }
