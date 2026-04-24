@@ -30,15 +30,13 @@ public class ChatbotService {
 
     // ── Hugging Face config ───────────────────────────────────────────────────
 
-    // Free API key — get yours at https://huggingface.co/settings/tokens
-    // This is a read-only token, safe to include
-    private static final String HF_API_KEY = "hf_demo"; // Replace with your token
+    private static final String HF_API_KEY = System.getProperty("HF_API_KEY", System.getenv("HF_API_KEY") != null ? System.getenv("HF_API_KEY") : "YOUR_HF_TOKEN_HERE");
 
     private static final String HF_MODEL =
         "mistralai/Mistral-7B-Instruct-v0.3";
 
     private static final String HF_URL =
-        "https://api-inference.huggingface.co/models/" + HF_MODEL + "/v1/chat/completions";
+        "https://router.huggingface.co/hf-inference/models/" + HF_MODEL + "/v1/chat/completions";
 
     private static final Gson GSON = new Gson();
 
@@ -181,7 +179,7 @@ public class ChatbotService {
                     return new ChatResponse("CHAT", new JsonObject(),
                         "Le modele IA est en cours de chargement. Reessayez dans quelques secondes.", false);
                 } else {
-                    System.err.println("[Chatbot] Error: " + resp.body());
+                    System.err.println("[Chatbot] Error " + resp.statusCode() + ": " + resp.body());
                     return fallbackResponse(userMessage);
                 }
 
