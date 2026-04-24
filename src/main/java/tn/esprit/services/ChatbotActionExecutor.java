@@ -76,20 +76,33 @@ public class ChatbotActionExecutor {
 
     private ActionResult listCours() {
         List<Cours> list = coursService.consulter();
-        if (list.isEmpty()) return new ActionResult(true, "Aucun cours trouve.", list, null);
-        StringBuilder sb = new StringBuilder("Voici les " + list.size() + " cours :\n\n");
-        for (Cours c : list) {
-            sb.append("• ").append(c.getTitre())
-              .append(" (").append(c.getMatiere()).append(", ").append(c.getNiveau()).append(")\n");
+        if (list.isEmpty()) return new ActionResult(true, "Aucun cours n'a été trouvé pour le moment.", list, null);
+        StringBuilder sb = new StringBuilder(list.size() + " cours disponibles :\n\n");
+        for (int i = 0; i < list.size(); i++) {
+            Cours c = list.get(i);
+            sb.append(i + 1).append(". ").append(c.getTitre())
+              .append("  —  ").append(c.getMatiere())
+              .append("  |  ").append(c.getNiveau())
+              .append("  |  ").append(c.getDuree()).append("h\n");
         }
         return new ActionResult(true, sb.toString(), list, null);
     }
 
     private ActionResult createCours(JsonObject p) {
+        String titre = getString(p, "titre", null);
+        String mat   = getString(p, "matiere", null);
+
+        if (titre == null || titre.isBlank() || titre.equals("Nouveau Cours")) {
+            return new ActionResult(false,
+                "Quel est le titre du cours que vous souhaitez créer ?", null, null);
+        }
+        if (mat == null || mat.isBlank()) {
+            return new ActionResult(false,
+                "Quelle est la matière du cours \"" + titre + "\" ? (ex: Informatique, Mathématiques...)", null, null);
+        }
+
         try {
-            String titre = getString(p, "titre", "Nouveau Cours");
-            String desc  = getString(p, "description", "Description a completer");
-            String mat   = getString(p, "matiere", "Informatique");
+            String desc  = getString(p, "description", "À compléter");
             String niv   = getString(p, "niveau", "DEBUTANT");
             int duree    = getInt(p, "duree", 10);
 
@@ -106,9 +119,10 @@ public class ChatbotActionExecutor {
                 java.util.Map.of("titre", titre));
 
             return new ActionResult(true,
-                "Cours \"" + titre + "\" cree avec succes !", cours, null);
+                "Le cours \"" + titre + "\" a été créé avec succès !\n" +
+                "Matière : " + mat + " | Niveau : " + niv + " | Durée : " + duree + "h", cours, null);
         } catch (Exception e) {
-            return new ActionResult(false, "Erreur lors de la creation: " + e.getMessage(), null, null);
+            return new ActionResult(false, "Une erreur s'est produite. Veuillez réessayer.", null, null);
         }
     }
 
@@ -155,23 +169,37 @@ public class ChatbotActionExecutor {
 
     private ActionResult listUsers() {
         List<User> list = userService.afficher();
-        if (list.isEmpty()) return new ActionResult(true, "Aucun utilisateur trouve.", list, null);
-        StringBuilder sb = new StringBuilder("Voici les " + list.size() + " utilisateurs :\n\n");
-        for (User u : list) {
-            sb.append("• ").append(u.getPrenom()).append(" ").append(u.getNom())
-              .append(" (").append(u.getEmail()).append(", ").append(u.getRole()).append(")\n");
+        if (list.isEmpty()) return new ActionResult(true, "Aucun utilisateur trouvé pour le moment.", list, null);
+        long etudiants = list.stream().filter(u -> "ETUDIANT".equals(u.getRole())).count();
+        long admins    = list.stream().filter(u -> "ADMIN".equals(u.getRole())).count();
+        StringBuilder sb = new StringBuilder(list.size() + " utilisateurs (" + etudiants + " étudiants, " + admins + " admins) :\n\n");
+        for (int i = 0; i < list.size(); i++) {
+            User u = list.get(i);
+            sb.append(i + 1).append(". ").append(u.getPrenom()).append(" ").append(u.getNom())
+              .append("  —  ").append(u.getEmail())
+              .append("  |  ").append(u.getRole()).append("\n");
         }
         return new ActionResult(true, sb.toString(), list, null);
     }
 
     private ActionResult createUser(JsonObject p) {
-        try {
-            String nom    = getString(p, "nom", "Nom");
-            String prenom = getString(p, "prenom", "Prenom");
-            String email  = getString(p, "email", "");
-            String niveau = getString(p, "niveau", "DEBUTANT");
+        String email  = getString(p, "email", null);
+        String prenom = getString(p, "prenom", null);
+        String nom    = getString(p, "nom", null);
 
-            if (email.isEmpty()) return new ActionResult(false, "Email obligatoire pour creer un etudiant.", null, null);
+        if (prenom == null || prenom.isBlank()) {
+            return new ActionResult(false, "Quel est le prénom de l'étudiant ?", null, null);
+        }
+        if (nom == null || nom.isBlank()) {
+            return new ActionResult(false, "Quel est le nom de famille de " + prenom + " ?", null, null);
+        }
+        if (email == null || email.isBlank()) {
+            return new ActionResult(false, "Quelle est l'adresse email de " + prenom + " " + nom + " ?", null, null);
+        }
+
+        try {
+            String niveau = getString(p, "niveau", "DEBUTANT");
+            String pwd    = getString(p, "password", "AutoLearn2026!");
 
             Etudiant e = new Etudiant();
             e.setNom(nom);
@@ -179,16 +207,18 @@ public class ChatbotActionExecutor {
             e.setEmail(email);
             e.setNiveau(niveau);
             e.setRole("ETUDIANT");
-            e.setPassword(PasswordUtil.hash("AutoLearn2026!"));
+            e.setPassword(PasswordUtil.hash(pwd));
 
             userService.ajouter(e);
             ActivityApiClient.logAsync(currentUserId(), "admin.created_student",
-                java.util.Map.of("email", email, "nom", nom + " " + prenom));
+                java.util.Map.of("email", email, "nom", prenom + " " + nom));
 
             return new ActionResult(true,
-                "Etudiant " + prenom + " " + nom + " cree avec succes !\nMot de passe temporaire: AutoLearn2026!", e, null);
+                "L'étudiant " + prenom + " " + nom + " a été créé avec succès !\n" +
+                "Email : " + email + " | Niveau : " + niveau + "\n" +
+                "Mot de passe temporaire : " + pwd, e, null);
         } catch (Exception e) {
-            return new ActionResult(false, "Erreur: " + e.getMessage(), null, null);
+            return new ActionResult(false, "Une erreur s'est produite. Veuillez réessayer.", null, null);
         }
     }
 
@@ -211,21 +241,34 @@ public class ChatbotActionExecutor {
 
     private ActionResult listEvenements() {
         List<Evenement> list = evenementService.getAll();
-        if (list.isEmpty()) return new ActionResult(true, "Aucun evenement trouve.", list, null);
-        StringBuilder sb = new StringBuilder("Voici les " + list.size() + " evenements :\n\n");
-        for (Evenement ev : list) {
-            sb.append("• ").append(ev.getTitre())
-              .append(" — ").append(ev.getLieu())
-              .append(" (").append(ev.getType()).append(")\n");
+        if (list.isEmpty()) return new ActionResult(true, "Aucun événement trouvé pour le moment.", list, null);
+        StringBuilder sb = new StringBuilder(list.size() + " événements :\n\n");
+        for (int i = 0; i < list.size(); i++) {
+            Evenement ev = list.get(i);
+            sb.append(i + 1).append(". ").append(ev.getTitre())
+              .append("  —  ").append(ev.getLieu())
+              .append("  |  ").append(ev.getType())
+              .append("  |  ").append(ev.getNbMax()).append(" places\n");
         }
         return new ActionResult(true, sb.toString(), list, null);
     }
 
     private ActionResult createEvenement(JsonObject p) {
+        // Validate required fields — never create with placeholder data
+        String titre = getString(p, "titre", null);
+        String lieu  = getString(p, "lieu", null);
+
+        if (titre == null || titre.isBlank() || titre.equals("Nouvel Evenement") || titre.equals("Titre d'evenement")) {
+            return new ActionResult(false,
+                "Il me manque le titre de l'événement. Quel nom voulez-vous lui donner ?", null, null);
+        }
+        if (lieu == null || lieu.isBlank()) {
+            return new ActionResult(false,
+                "Où se déroulera l'événement \"" + titre + "\" ? (ville ou lieu)", null, null);
+        }
+
         try {
-            String titre = getString(p, "titre", "Nouvel Evenement");
-            String lieu  = getString(p, "lieu", "Tunis");
-            String desc  = getString(p, "description", "Description a completer");
+            String desc  = getString(p, "description", "À compléter");
             String type  = getString(p, "type", "Conférence");
             int nbMax    = getInt(p, "nb_max", 50);
 
@@ -246,9 +289,10 @@ public class ChatbotActionExecutor {
                 java.util.Map.of("titre", titre, "lieu", lieu));
 
             return new ActionResult(true,
-                "Evenement \"" + titre + "\" cree avec succes !", ev, null);
+                "L'événement \"" + titre + "\" a été créé avec succès !\n" +
+                "Lieu : " + lieu + " | Type : " + type + " | Max : " + nbMax + " participants", ev, null);
         } catch (Exception e) {
-            return new ActionResult(false, "Erreur: " + e.getMessage(), null, null);
+            return new ActionResult(false, "Une erreur s'est produite. Veuillez réessayer.", null, null);
         }
     }
 
@@ -267,19 +311,25 @@ public class ChatbotActionExecutor {
 
     private ActionResult listChallenges() {
         List<Challenge> list = challengeService.getAll();
-        if (list.isEmpty()) return new ActionResult(true, "Aucun challenge trouve.", list, null);
-        StringBuilder sb = new StringBuilder("Voici les " + list.size() + " challenges :\n\n");
-        for (Challenge c : list) {
-            sb.append("• ").append(c.getTitre())
-              .append(" (").append(c.getNiveau()).append(", ").append(c.getDuree()).append(" min)\n");
+        if (list.isEmpty()) return new ActionResult(true, "Aucun challenge trouvé pour le moment.", list, null);
+        StringBuilder sb = new StringBuilder(list.size() + " challenges :\n\n");
+        for (int i = 0; i < list.size(); i++) {
+            Challenge c = list.get(i);
+            sb.append(i + 1).append(". ").append(c.getTitre())
+              .append("  —  ").append(c.getNiveau())
+              .append("  |  ").append(c.getDuree()).append(" min\n");
         }
         return new ActionResult(true, sb.toString(), list, null);
     }
 
     private ActionResult createChallenge(JsonObject p) {
+        String titre = getString(p, "titre", null);
+        if (titre == null || titre.isBlank() || titre.equals("Nouveau Challenge")) {
+            return new ActionResult(false, "Quel est le titre du challenge ?", null, null);
+        }
+
         try {
-            String titre = getString(p, "titre", "Nouveau Challenge");
-            String desc  = getString(p, "description", "Description a completer");
+            String desc  = getString(p, "description", "À compléter");
             String niv   = getString(p, "niveau", "DEBUTANT");
             int duree    = getInt(p, "duree", 30);
 
@@ -297,9 +347,10 @@ public class ChatbotActionExecutor {
                 java.util.Map.of("titre", titre));
 
             return new ActionResult(true,
-                "Challenge \"" + titre + "\" cree avec succes !", c, null);
+                "Le challenge \"" + titre + "\" a été créé avec succès !\n" +
+                "Niveau : " + niv + " | Durée : " + duree + " minutes", c, null);
         } catch (Exception e) {
-            return new ActionResult(false, "Erreur: " + e.getMessage(), null, null);
+            return new ActionResult(false, "Une erreur s'est produite. Veuillez réessayer.", null, null);
         }
     }
 
