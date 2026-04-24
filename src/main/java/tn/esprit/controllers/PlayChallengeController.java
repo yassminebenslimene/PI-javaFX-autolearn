@@ -31,7 +31,8 @@ public class PlayChallengeController {
     @FXML private Button nextButton;
     @FXML private Button finishButton;
     @FXML private Label typeBadge;
-
+    @FXML private Label quoteLabel;
+    private QuoteService quoteService;
     private Challenge challenge;
     private List<Exercice> exercices;
     private List<Quiz> quizzes;
@@ -53,6 +54,7 @@ public class PlayChallengeController {
         System.out.println("PlayChallengeController initialisé");
         quizService = new ServiceQuiz();
         emailService = new EmailService();
+        quoteService = new QuoteService();
         exerciceAnswers = new HashMap<>();
         quizScores = new HashMap<>();
     }
@@ -93,9 +95,15 @@ public class PlayChallengeController {
         Platform.runLater(() -> {
             startTimer();
             displayChallenge();
+            displayMotivationalQuote();
         });
     }
-
+    private void displayMotivationalQuote() {
+        if (quoteLabel != null) {
+            String quote = quoteService.getMotivationalQuote();
+            quoteLabel.setText(quote);
+        }
+    }
     private void startTimer() {
         if (timerLabel == null) {
             System.err.println("ERREUR: timerLabel est null");
@@ -278,256 +286,171 @@ public class PlayChallengeController {
 
     private void generateAIAnalysis() {
         StringBuilder analysis = new StringBuilder();
-        analysis.append("╔════════════════════════════════════════════════════════════════════════════════════════╗\n");
-        analysis.append("║                         🤖 ANALYSE IA DE VOS RÉPONSES                                  ║\n");
-        analysis.append("╚════════════════════════════════════════════════════════════════════════════════════════╝\n\n");
+        analysis.append("╔══════════════════════════════════════════════════════════════════════╗\n");
+        analysis.append("║                    🤖 CORRECTION DÉTAILLÉE PAR L'IA                  ║\n");
+        analysis.append("╚══════════════════════════════════════════════════════════════════════╝\n\n");
 
         int questionNumber = 1;
+        int correctCount = 0;
+        int totalQuestions = exercices.size();
 
         for (Exercice e : exercices) {
             String userAnswer = exerciceAnswers.get(e.getId());
-            String theme = detectTheme(e.getQuestion());
+            String correctAnswer = e.getReponse();
+            boolean isCorrect = userAnswer != null && userAnswer.trim().equalsIgnoreCase(correctAnswer.trim());
 
-            analysis.append("┌────────────────────────────────────────────────────────────────────────────────────┐\n");
-            analysis.append("│ 📌 QUESTION N°").append(questionNumber).append(" - ").append(theme).append("\n");
-            analysis.append("├────────────────────────────────────────────────────────────────────────────────────┤\n");
+            if (isCorrect) correctCount++;
+
+            analysis.append("┌─────────────────────────────────────────────────────────────────┐\n");
+            analysis.append("│ 📌 QUESTION N°").append(questionNumber).append("\n");
+            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
             analysis.append("│ ❓ ").append(e.getQuestion()).append("\n");
-            analysis.append("├────────────────────────────────────────────────────────────────────────────────────┤\n");
+            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
             analysis.append("│ 📝 VOTRE RÉPONSE :\n");
             analysis.append("│ ").append(userAnswer != null && !userAnswer.isEmpty() ? userAnswer : "(non répondue)").append("\n");
-            analysis.append("├────────────────────────────────────────────────────────────────────────────────────┤\n");
+            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
+            analysis.append("│ ✅ RÉPONSE CORRECTE :\n");
+            analysis.append("│ ").append(correctAnswer).append("\n");
+            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
 
             if (userAnswer == null || userAnswer.trim().isEmpty()) {
-                analysis.append("│ ⚠️ ANALYSE : Aucune réponse fournie\n");
+                analysis.append("│ ❌ RÉSULTAT : Aucune réponse fournie\n");
                 analysis.append("│\n");
-                analysis.append("│ 💡 RECOMMANDATION : N'hésitez pas à exprimer votre compréhension du sujet.\n");
-                analysis.append("│    Même une réponse partielle est meilleure qu'une absence de réponse.\n");
+                analysis.append("│ 💡 ANALYSE DU PROFESSEUR :\n");
+                analysis.append("│   Vous n'avez pas répondu à cette question. Prenez le temps\n");
+                analysis.append("│   de lire attentivement chaque question et d'y répondre.\n");
+            } else if (isCorrect) {
+                analysis.append("│ ✅ RÉSULTAT : CORRECT !\n");
+                analysis.append("│ 🎉 Bravo ! Votre réponse est juste.\n");
+                analysis.append("│\n");
+                analysis.append("│ 📚 EXPLICATION :\n");
+                analysis.append("│   ").append(getPositiveFeedback(e.getQuestion())).append("\n");
             } else {
-                // Analyse IA professionnelle
-                analysis.append("│ 🧠 ANALYSE DE VOTRE RÉPONSE :\n");
+                analysis.append("│ ❌ RÉSULTAT : INCORRECT\n");
                 analysis.append("│\n");
-
-                // Analyse de la clarté
-                if (isAnswerClear(userAnswer)) {
-                    analysis.append("│   ✅ Clarté : Votre réponse est claire et facile à comprendre.\n");
-                } else {
-                    analysis.append("│   ⚠️ Clarté : Votre réponse manque de clarté. Essayez d'organiser vos idées.\n");
+                analysis.append("│ 🔍 ERREURS DÉTECTÉES :\n");
+                List<String> errors = detectSpecificErrors(userAnswer, correctAnswer, e.getQuestion());
+                for (String error : errors) {
+                    analysis.append("│   • ").append(error).append("\n");
                 }
-
-                // Analyse de la pertinence
-                if (isAnswerRelevantToQuestion(userAnswer, e.getQuestion())) {
-                    analysis.append("│   ✅ Pertinence : Votre réponse est pertinente par rapport à la question.\n");
-                } else {
-                    analysis.append("│   ⚠️ Pertinence : Votre réponse semble hors sujet. Relisez attentivement la question.\n");
-                }
-
-                // Analyse de la structure
-                if (hasGoodStructure(userAnswer)) {
-                    analysis.append("│   ✅ Structure : Bonne organisation avec des phrases bien construites.\n");
-                } else {
-                    analysis.append("│   ⚠️ Structure : Votre réponse manque de structure. Utilisez des phrases complètes.\n");
-                }
-
-                // Analyse de la profondeur
-                int depth = getAnswerDepth(userAnswer);
-                if (depth >= 3) {
-                    analysis.append("│   ✅ Profondeur : Réponse détaillée et complète.\n");
-                } else if (depth >= 2) {
-                    analysis.append("│   📘 Profondeur : Bonne réponse mais pourrait être plus développée.\n");
-                } else {
-                    analysis.append("│   ⚠️ Profondeur : Réponse trop superficielle. Développez davantage.\n");
-                }
-
-                // Analyse du vocabulaire technique
-                int technicalTerms = countTechnicalTermsInAnswer(userAnswer, theme);
-                if (technicalTerms > 2) {
-                    analysis.append("│   ✅ Vocabulaire technique : Bonne maîtrise des termes spécifiques.\n");
-                } else if (technicalTerms > 0) {
-                    analysis.append("│   📘 Vocabulaire technique : Quelques termes techniques utilisés, à enrichir.\n");
-                } else {
-                    analysis.append("│   ⚠️ Vocabulaire technique : Utilisez davantage de termes techniques.\n");
-                }
-
-                // Suggestions d'amélioration
                 analysis.append("│\n");
-                analysis.append("│ 💡 SUGGESTIONS D'AMÉLIORATION :\n");
-                List<String> suggestions = getImprovementSuggestions(userAnswer, theme);
-                for (String suggestion : suggestions) {
-                    analysis.append("│   • ").append(suggestion).append("\n");
+                analysis.append("│ 💡 EXPLICATION DU PROFESSEUR :\n");
+                analysis.append("│   ").append(getDetailedExplanation(e.getQuestion(), correctAnswer)).append("\n");
+                analysis.append("│\n");
+                analysis.append("│ 📚 RECOMMANDATIONS :\n");
+                List<String> recommendations = getRecommendationsForQuestion(e.getQuestion());
+                for (String rec : recommendations) {
+                    analysis.append("│   • ").append(rec).append("\n");
                 }
             }
-            analysis.append("└────────────────────────────────────────────────────────────────────────────────────┘\n\n");
+            analysis.append("└─────────────────────────────────────────────────────────────────┘\n\n");
             questionNumber++;
         }
 
-        // Analyse des quiz
-        for (Quiz q : quizzes) {
-            Integer quizScore = quizScores.get(q.getId());
-            String theme = detectTheme(q.getTitre());
-
-            analysis.append("┌────────────────────────────────────────────────────────────────────────────────────┐\n");
-            analysis.append("│ 📋 QUIZ : ").append(q.getTitre()).append("\n");
-            analysis.append("├────────────────────────────────────────────────────────────────────────────────────┤\n");
-            analysis.append("│ 📝 DESCRIPTION :\n");
-            analysis.append("│ ").append(q.getDescription()).append("\n");
-            analysis.append("├────────────────────────────────────────────────────────────────────────────────────┤\n");
-            analysis.append("│ 🎯 VOTRE SCORE : ").append(quizScore != null ? quizScore : 0).append("/100\n");
-            analysis.append("├────────────────────────────────────────────────────────────────────────────────────┤\n");
-
-            if (quizScore == null || quizScore < 50) {
-                analysis.append("│ ⚠️ ANALYSE : Score insuffisant (seuil requis: 50%)\n");
-                analysis.append("│\n");
-                analysis.append("│ 💡 RECOMMANDATIONS POUR PROGRESSER :\n");
-                analysis.append("│   • Révisez les concepts fondamentaux de ").append(theme).append("\n");
-                analysis.append("│   • Pratiquez avec des exercices similaires\n");
-                analysis.append("│   • Consultez des ressources supplémentaires sur le sujet\n");
-            } else if (quizScore >= 80) {
-                analysis.append("│ 🎉 ANALYSE : Excellent score ! Vous maîtrisez bien ce thème.\n");
-                analysis.append("│\n");
-                analysis.append("│ 🚀 POUR ALLER PLUS LOIN :\n");
-                analysis.append("│   • Explorez des concepts avancés de ").append(theme).append("\n");
-                analysis.append("│   • Partagez vos connaissances avec d'autres apprenants\n");
-            } else {
-                analysis.append("│ 📘 ANALYSE : Bon score ! Quelques points à améliorer.\n");
-                analysis.append("│\n");
-                analysis.append("│ 💡 POUR VOUS AMÉLIORER :\n");
-                analysis.append("│   • Identifiez vos points faibles dans ce thème\n");
-                analysis.append("│   • Refaites les questions où vous avez hésité\n");
-            }
-            analysis.append("└────────────────────────────────────────────────────────────────────────────────────┘\n\n");
-        }
-
         // Résumé final
-        int totalPoints = getTotalPoints();
-        int percentage = totalPoints > 0 ? (score * 100 / totalPoints) : 0;
+        int percentage = (correctCount * 100) / totalQuestions;
 
-        analysis.append("\n╔════════════════════════════════════════════════════════════════════════════════════════╗\n");
-        analysis.append("║                                     📊 RÉSUMÉ FINAL                                     ║\n");
-        analysis.append("╚════════════════════════════════════════════════════════════════════════════════════════╝\n");
+        analysis.append("\n╔══════════════════════════════════════════════════════════════════════╗\n");
+        analysis.append("║                         📊 RÉSUMÉ FINAL                               ║\n");
+        analysis.append("╚══════════════════════════════════════════════════════════════════════╝\n");
         analysis.append("\n");
-        analysis.append("   ╔══════════════════════════════════════════════════════════════════════════════════╗\n");
-        analysis.append("   ║                                                                                  ║\n");
-        analysis.append("   ║      🎯 Participation : ").append(String.format("%-4d", score)).append("/").append(totalPoints).append(" points                     ║\n");
-        analysis.append("   ║      📈 Taux de complétion : ").append(String.format("%-4d", percentage)).append("%                                   ║\n");
-        analysis.append("   ║                                                                                  ║\n");
+        analysis.append("   ┌─────────────────────────────────────────────────────────────────┐\n");
+        analysis.append("   │                                                                 │\n");
+        analysis.append("   │   📝 Questions totales : ").append(String.format("%-30d", totalQuestions)).append("│\n");
+        analysis.append("   │   ✅ Réponses correctes : ").append(String.format("%-30d", correctCount)).append("│\n");
+        analysis.append("   │   ❌ Réponses incorrectes : ").append(String.format("%-28d", (totalQuestions - correctCount))).append("│\n");
+        analysis.append("   │   📊 Pourcentage de réussite : ").append(String.format("%-25d", percentage)).append("%│\n");
+        analysis.append("   │                                                                 │\n");
 
         if (percentage >= 80) {
-            analysis.append("   ║      🎉 FÉLICITATIONS ! Excellent travail ! Vous avez bien participé.         ║\n");
+            analysis.append("   │   🎉 FÉLICITATIONS ! Excellent travail !                       │\n");
         } else if (percentage >= 60) {
-            analysis.append("   ║      👍 BON TRAVAIL ! Continuez vos efforts pour vous améliorer.              ║\n");
+            analysis.append("   │   👍 BON TRAVAIL ! Continuez comme ça !                         │\n");
         } else if (percentage >= 40) {
-            analysis.append("   ║      📚 ENCOURAGEMENT ! Plus de pratique vous aidera à progresser.            ║\n");
+            analysis.append("   │   📚 BON COURAGE ! Révisez les points faibles et réessayez !   │\n");
         } else {
-            analysis.append("   ║      💪 CONTINUEZ ! La pratique régulière est la clé du succès.               ║\n");
+            analysis.append("   │   💪 CONTINUEZ À VOUS ENTRAÎNER ! La pratique est la clé !     │\n");
         }
-
-        analysis.append("   ║                                                                                  ║\n");
-        analysis.append("   ╚══════════════════════════════════════════════════════════════════════════════════╝\n");
-
-        analysis.append("\n╔════════════════════════════════════════════════════════════════════════════════════════╗\n");
-        analysis.append("║                              📅 PLAN D'ACTION PERSONNALISÉ                             ║\n");
-        analysis.append("╚════════════════════════════════════════════════════════════════════════════════════════╝\n");
-        analysis.append("\n");
-        analysis.append("   ┌────────────────────────────────────────────────────────────────────────────────────┐\n");
-        analysis.append("   │ 1. 🔄 Refaites les exercices pour renforcer votre compréhension                    │\n");
-        analysis.append("   │ 2. 📖 Consultez les ressources pédagogiques recommandées                           │\n");
-        analysis.append("   │ 3. 💻 Pratiquez avec des cas concrets et des exemples réels                       │\n");
-        analysis.append("   │ 4. 🎯 Fixez-vous des objectifs d'apprentissage hebdomadaires                       │\n");
-        analysis.append("   │ 5. 👥 Échangez avec d'autres apprenants pour partager vos connaissances            │\n");
-        analysis.append("   └────────────────────────────────────────────────────────────────────────────────────┘\n");
+        analysis.append("   │                                                                 │\n");
+        analysis.append("   └─────────────────────────────────────────────────────────────────┘\n");
 
         this.aiAnalysis = analysis.toString();
     }
 
-    // ========== MÉTHODES D'ANALYSE IA SANS RÉPONSE CORRECTE ==========
+    private List<String> detectSpecificErrors(String userAnswer, String correctAnswer, String question) {
+        List<String> errors = new ArrayList<>();
+        String lowerUser = userAnswer.toLowerCase();
+        String lowerCorrect = correctAnswer.toLowerCase();
 
-    private String detectTheme(String text) {
-        String lowerText = text.toLowerCase();
-        if (lowerText.contains("java") || lowerText.contains("poo") || lowerText.contains("objet")) {
-            return "Programmation Java";
-        } else if (lowerText.contains("sql") || lowerText.contains("base de données") || lowerText.contains("mysql")) {
-            return "Base de données SQL";
-        } else if (lowerText.contains("html") || lowerText.contains("css") || lowerText.contains("javascript")) {
-            return "Développement Web";
-        } else if (lowerText.contains("spring") || lowerText.contains("boot")) {
-            return "Framework Spring";
+        if (!lowerUser.contains(lowerCorrect) && !lowerCorrect.contains(lowerUser)) {
+            errors.add("La réponse est différente de la réponse attendue");
+        }
+
+        if (userAnswer.length() < 10) {
+            errors.add("Réponse trop courte, manque de développement");
+        }
+
+        if (question.toLowerCase().contains("explique") && !userAnswer.contains("car") && !userAnswer.contains("parce que")) {
+            errors.add("Manque de justification ou d'explication");
+        }
+
+        return errors;
+    }
+
+    private String getDetailedExplanation(String question, String correctAnswer) {
+        String lowerQ = question.toLowerCase();
+
+        if (lowerQ.contains("java") || lowerQ.contains("programmation")) {
+            return "En programmation Java, la bonne réponse met en évidence les concepts clés. " +
+                    "La réponse correcte était : \"" + correctAnswer + "\". " +
+                    "Révisez les fondamentaux de la POO (classes, objets, héritage, polymorphisme).";
+        } else if (lowerQ.contains("sql") || lowerQ.contains("base de données")) {
+            return "En SQL, la syntaxe et la structure des requêtes sont essentielles. " +
+                    "La réponse attendue : \"" + correctAnswer + "\". " +
+                    "Entraînez-vous sur les requêtes SELECT, JOIN et GROUP BY.";
+        } else if (lowerQ.contains("html") || lowerQ.contains("css")) {
+            return "En développement web, la structure HTML/CSS est fondamentale. " +
+                    "La bonne réponse : \"" + correctAnswer + "\". " +
+                    "Révisez les balises HTML et les sélecteurs CSS.";
         } else {
-            return "Informatique générale";
+            return "La réponse correcte était : \"" + correctAnswer + "\". " +
+                    "Concentrez-vous sur les concepts clés de cette question.";
         }
     }
 
-    private boolean isAnswerClear(String answer) {
-        String[] sentences = answer.split("[.!?]");
-        return sentences.length >= 1 && answer.length() > 20;
+    private String getPositiveFeedback(String question) {
+        String lowerQ = question.toLowerCase();
+
+        if (lowerQ.contains("java")) {
+            return "Excellente compréhension des concepts Java ! Vous maîtrisez bien la POO.";
+        } else if (lowerQ.contains("sql")) {
+            return "Très bonne maîtrise des requêtes SQL ! Continuez ainsi.";
+        } else if (lowerQ.contains("html") || lowerQ.contains("css")) {
+            return "Bonnes connaissances en développement web !";
+        } else {
+            return "Très bonne réponse ! Vous avez bien compris le concept.";
+        }
     }
 
-    private boolean isAnswerRelevantToQuestion(String answer, String question) {
-        String lowerAnswer = answer.toLowerCase();
-        String lowerQuestion = question.toLowerCase();
-        String[] keyWords = lowerQuestion.split("\\s+");
-        int matches = 0;
-        for (String word : keyWords) {
-            if (word.length() > 3 && lowerAnswer.contains(word)) {
-                matches++;
-            }
-        }
-        return matches >= 1;
-    }
+    private List<String> getRecommendationsForQuestion(String question) {
+        List<String> recommendations = new ArrayList<>();
+        String lowerQ = question.toLowerCase();
 
-    private boolean hasGoodStructure(String answer) {
-        return answer.contains(".") && answer.split("\\.").length >= 2 && answer.length() > 30;
-    }
-
-    private int getAnswerDepth(String answer) {
-        int depth = 1;
-        if (answer.length() > 50) depth++;
-        if (answer.split("\\.").length >= 3) depth++;
-        if (answer.contains("par exemple") || answer.contains("exemple")) depth++;
-        if (answer.contains("car") || answer.contains("donc") || answer.contains("ainsi")) depth++;
-        return Math.min(depth, 4);
-    }
-
-    private int countTechnicalTermsInAnswer(String answer, String theme) {
-        String lowerAnswer = answer.toLowerCase();
-        int count = 0;
-        String[] javaTerms = {"classe", "objet", "méthode", "héritage", "polymorphisme", "encapsulation", "interface", "variable", "fonction"};
-        String[] sqlTerms = {"select", "from", "where", "join", "table", "colonne", "clé", "requête", "base"};
-        String[] webTerms = {"html", "css", "javascript", "dom", "balise", "sélecteur", "responsive", "api", "frontend"};
-
-        String[] termsToCheck;
-        if (theme.contains("Java")) termsToCheck = javaTerms;
-        else if (theme.contains("SQL")) termsToCheck = sqlTerms;
-        else if (theme.contains("Web")) termsToCheck = webTerms;
-        else termsToCheck = javaTerms;
-
-        for (String term : termsToCheck) {
-            if (lowerAnswer.contains(term)) count++;
-        }
-        return count;
-    }
-
-    private List<String> getImprovementSuggestions(String answer, String theme) {
-        List<String> suggestions = new ArrayList<>();
-
-        if (answer.length() < 30) {
-            suggestions.add("Développez davantage votre réponse avec plus de détails");
+        if (lowerQ.contains("java")) {
+            recommendations.add("Révisez les chapitres sur la programmation orientée objet");
+            recommendations.add("Pratiquez avec des exercices Java supplémentaires");
+        } else if (lowerQ.contains("sql")) {
+            recommendations.add("Entraînez-vous sur des plateformes comme LeetCode ou HackerRank");
+            recommendations.add("Révisez les différents types de jointures");
+        } else if (lowerQ.contains("html") || lowerQ.contains("css")) {
+            recommendations.add("Créez des mini-projets pour mettre en pratique");
+            recommendations.add("Révisez les balises HTML et les propriétés CSS");
+        } else {
+            recommendations.add("Relisez le cours correspondant à cette question");
+            recommendations.add("Faites des exercices similaires pour vous entraîner");
         }
 
-        if (!answer.contains("par exemple") && !answer.contains("exemple")) {
-            suggestions.add("Illustrez votre réponse avec des exemples concrets");
-        }
-
-        if (countTechnicalTermsInAnswer(answer, theme) < 2) {
-            suggestions.add("Utilisez le vocabulaire technique spécifique au domaine");
-        }
-
-        if (!answer.contains("car") && !answer.contains("donc") && !answer.contains("parce que")) {
-            suggestions.add("Justifiez vos arguments avec des explications logiques");
-        }
-
-        suggestions.add("Relisez votre réponse pour corriger les éventuelles fautes");
-
-        return suggestions;
+        return recommendations;
     }
 
     // ========== MÉTHODES UTILITAIRES ==========

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.ResultChallengeController"
             maxWidth="Infinity" maxHeight="Infinity"
-            style="-fx-background-color:#f5f5f5;">
+            style="-fx-background-color:#f8f9fa;">
 
     <top>
         <fx:include source="../components/navbar_front.fxml" fx:id="navbar"/>
@@ -14,13 +15,13 @@
 
     <center>
         <ScrollPane fitToWidth="true"
-                    style="-fx-background-color:#f5f5f5; -fx-background:transparent; -fx-border-width:0;">
+                    style="-fx-background-color:#f8f9fa; -fx-background:transparent; -fx-border-width:0;">
             <VBox alignment="TOP_CENTER" spacing="0"
-                  style="-fx-background-color:#f5f5f5;">
+                  style="-fx-background-color:#f8f9fa;">
 
                 <!-- Hero banner -->
                 <VBox alignment="CENTER" spacing="8" prefHeight="160"
-                      style="-fx-background-color:linear-gradient(to bottom right,rgba(158,159,245,0.9),rgba(122,106,216,0.85));
+                      style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c);
                              -fx-padding:40 80 40 80;">
                     <Label text="RÉSULTAT"
                            style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.8);
@@ -31,8 +32,8 @@
 
                 <!-- Main content -->
                 <VBox alignment="TOP_CENTER" spacing="24"
-                      style="-fx-padding:40 0 60 0; -fx-background-color:#f5f5f5;">
-                    <VBox spacing="24" prefWidth="700" maxWidth="700">
+                      style="-fx-padding:40 0 60 0; -fx-background-color:#f8f9fa;">
+                    <VBox spacing="24" prefWidth="750" maxWidth="750">
 
                         <!-- Carte de résultat -->
                         <VBox spacing="20"
@@ -41,6 +42,7 @@
                                      -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),44,0,0,0);
                                      -fx-padding:40 32 40 32;">
 
+                            <!-- Score -->
                             <VBox spacing="12" alignment="CENTER">
                                 <Label fx:id="scoreLabel" text="0/100"
                                        style="-fx-font-size:48; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"/>
@@ -50,12 +52,11 @@
 
                             <Separator style="-fx-background-color:#eeeeee;"/>
 
-                            <VBox spacing="8">
-                                <HBox spacing="10">
-                                    <Label text="⭐ Niveau" style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#777;" prefWidth="120"/>
-                                    <Label fx:id="niveauLabel" text="" style="-fx-font-size:14; -fx-text-fill:#1e1e1e;"/>
-                                </HBox>
-                            </VBox>
+                            <!-- Niveau -->
+                            <HBox spacing="10">
+                                <Label text="⭐ Niveau" style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#777;" prefWidth="120"/>
+                                <Label fx:id="niveauLabel" text="" style="-fx-font-size:14; -fx-text-fill:#1e1e1e;"/>
+                            </HBox>
 
                             <Separator style="-fx-background-color:#eeeeee;"/>
 
@@ -70,9 +71,27 @@
 
                             <Separator style="-fx-background-color:#eeeeee;"/>
 
-                            <!-- Section Analyse IA professionnelle -->
+                            <!-- Citation de félicitations -->
+                            <Label fx:id="congratsQuoteLabel" text=""
+                                   style="-fx-font-size:14; -fx-font-style:italic; -fx-text-fill:#7a6ad8;
+                                          -fx-background-color:rgba(122,106,216,0.08); -fx-background-radius:15;
+                                          -fx-padding:12 20 12 20; -fx-wrap-text:true; -fx-alignment:CENTER;"
+                                   wrapText="true" alignment="CENTER" visible="false" managed="false"/>
+
+                            <!-- Section GIF de réaction -->
+                            <VBox spacing="10" alignment="CENTER" style="-fx-padding:10 0 10 0;">
+                                <Label text="🎬 Votre réaction du jour :"
+                                       style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                                <ImageView fx:id="reactionGif" fitWidth="250" fitHeight="180" preserveRatio="true"
+                                           style="-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,2);"
+                                           visible="false" managed="false"/>
+                            </VBox>
+
+                            <Separator style="-fx-background-color:#eeeeee;"/>
+
+                            <!-- Section Analyse IA -->
                             <VBox spacing="15">
-                                <Label text="🤖 CORRECTION DÉTAILLÉE PAR L'INTELLIGENCE ARTIFICIELLE"
+                                <Label text="🤖 CORRECTION DÉTAILLÉE PAR L'IA"
                                        style="-fx-font-size:16; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
                                 <TextArea fx:id="aiAnalysisArea" editable="false" wrapText="true"
                                           style="-fx-background-color:#f8f9fa; -fx-border-color:#e0e0e0;

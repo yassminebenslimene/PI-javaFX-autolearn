@@ -10,7 +10,7 @@ import java.util.Properties;
 public class EmailService {
 
     private static final String FROM_EMAIL = "autolearn66@gmail.com";
-    private static final String FROM_PASSWORD = "ehop twnt zqwh dvwj".replace(" ", ""); // À configurer
+    private static final String FROM_PASSWORD = "ehoptwntzqwhdvwj";
 
     /**
      * Envoie un email avec les résultats du challenge à l'utilisateur connecté

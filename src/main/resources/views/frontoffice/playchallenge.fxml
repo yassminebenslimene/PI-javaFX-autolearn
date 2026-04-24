@@ -47,7 +47,14 @@
                     <ProgressBar fx:id="progressBar" prefWidth="600" progress="0.2"
                                  style="-fx-accent:#7a6ad8; -fx-background-color:#eeeeee; -fx-background-radius:10;"/>
                 </VBox>
-
+                <!-- Citation motivante -->
+                <VBox spacing="8" prefWidth="600" maxWidth="600" alignment="CENTER">
+                    <Label fx:id="quoteLabel" text=""
+                           style="-fx-font-size:14; -fx-font-style:italic; -fx-text-fill:#7a6ad8;
+                  -fx-background-color:rgba(122,106,216,0.08); -fx-background-radius:15;
+                  -fx-padding:12 20 12 20; -fx-wrap-text:true; -fx-alignment:CENTER;"
+                           wrapText="true" alignment="CENTER"/>
+                </VBox>
                 <!-- Type badge -->
                 <Label fx:id="typeBadge" text=""
                        style="-fx-font-size:12; -fx-font-weight:700; -fx-padding:4 12 4 12; -fx-background-radius:20;"/>
