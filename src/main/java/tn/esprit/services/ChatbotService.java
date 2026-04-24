@@ -30,7 +30,7 @@ public class ChatbotService {
 
     // ── Hugging Face config ───────────────────────────────────────────────────
 
-    private static final String HF_API_KEY = System.getProperty("HF_API_KEY", System.getenv("HF_API_KEY") != null ? System.getenv("HF_API_KEY") : "YOUR_HF_TOKEN_HERE");
+    private static final String HF_API_KEY = loadApiKey();
 
     private static final String HF_MODEL =
         "mistralai/Mistral-7B-Instruct-v0.3";
@@ -107,6 +107,39 @@ public class ChatbotService {
         """;
 
     // ── Public API ────────────────────────────────────────────────────────────
+
+    /**
+     * Loads the API key from multiple sources (priority order):
+     * 1. JVM property: -DHF_API_KEY=hf_xxx
+     * 2. Environment variable: HF_API_KEY
+     * 3. Local file: .hf_token in project root (gitignored)
+     */
+    private static String loadApiKey() {
+        // 1. JVM property
+        String key = System.getProperty("HF_API_KEY");
+        if (key != null && !key.isBlank()) return key.trim();
+
+        // 2. Environment variable
+        key = System.getenv("HF_API_KEY");
+        if (key != null && !key.isBlank()) return key.trim();
+
+        // 3. Local file .hf_token
+        try {
+            java.nio.file.Path tokenFile = java.nio.file.Path.of(".hf_token");
+            if (java.nio.file.Files.exists(tokenFile)) {
+                key = java.nio.file.Files.readString(tokenFile).trim();
+                if (!key.isBlank()) {
+                    System.out.println("[Chatbot] API key loaded from .hf_token");
+                    return key;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[Chatbot] Could not read .hf_token: " + e.getMessage());
+        }
+
+        System.err.println("[Chatbot] WARNING: No HF_API_KEY found! Create .hf_token file with your token.");
+        return "YOUR_HF_TOKEN_HERE";
+    }
 
     /**
      * Sends a message to the chatbot and returns the response asynchronously.
