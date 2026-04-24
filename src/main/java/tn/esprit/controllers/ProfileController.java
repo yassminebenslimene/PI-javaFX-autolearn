@@ -47,6 +47,9 @@ public class ProfileController {
     // Blockchain history (new)
     @FXML private VBox blockchainHistoryBox;
 
+    // Face ID button
+    @FXML private Button btnFaceId;
+
     // Form fields
     @FXML private TextField        fieldNom;
     @FXML private TextField        fieldPrenom;
@@ -86,6 +89,7 @@ public class ProfileController {
         loadBlockchainHistory(u.getId());
         updateSecurityPanel(u.getId());
         loadGeoLocation();
+        updateFaceIdButton(u.getId());
     }
 
     // ── Populate view ─────────────────────────────────────────────────────────
@@ -389,8 +393,27 @@ public class ProfileController {
     }
 
     @FXML
-    private void onBack() {
+    private void onFaceIdRegister() {
         try {
+            tn.esprit.MainApp.showFaceIdRegister();
+            // Refresh button after dialog closes
+            User u = SessionManager.getCurrentUser();
+            if (u != null) updateFaceIdButton(u.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateFaceIdButton(int userId) {
+        if (btnFaceId == null) return;
+        boolean registered = tn.esprit.services.FaceIdService.hasFaceRegistered(userId);
+        btnFaceId.setText(registered
+            ? "Face ID actif — Modifier"
+            : "Activer Face ID");
+    }
+
+    @FXML
+    private void onBack() {        try {
             User u = SessionManager.getCurrentUser();
             if (u == null) { MainApp.showLogin(); return; }
             if ("ADMIN".equals(u.getRole())) MainApp.showBackoffice();
