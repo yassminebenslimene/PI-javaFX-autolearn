@@ -360,6 +360,15 @@ public class LoginController {
         handleOAuthLogin("GitHub", GitHubOAuthService.authenticate());
     }
 
+    @FXML
+    private void onFaceIdLogin() {
+        try {
+            MainApp.showFaceIdLogin(fieldEmail.getText().trim());
+        } catch (Exception e) {
+            showError("Erreur Face ID: " + e.getMessage());
+        }
+    }
+
     private void handleOAuthLogin(String provider, CompletableFuture<Map<String, String>> authFuture) {
         errorLabel.setText("Connexion avec " + provider + " en cours...");
         errorLabel.setStyle("-fx-text-fill:#7a6ad8; -fx-font-size:12; -fx-background-color:#f3f0ff;" +

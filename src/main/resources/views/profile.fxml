@@ -242,6 +242,16 @@
                                        -fx-font-weight:700; -fx-padding:11 0 11 0;
                                        -fx-background-radius:10; -fx-cursor:hand;
                                        -fx-border-width:0;"/>
+
+                        <!-- Face ID Register Button -->
+                        <Button fx:id="btnFaceId" onAction="#onFaceIdRegister"
+                                maxWidth="Infinity"
+                                style="-fx-background-color:#f5f3ff;
+                                       -fx-text-fill:#7a6ad8; -fx-font-size:13;
+                                       -fx-font-weight:700; -fx-padding:11 0 11 0;
+                                       -fx-background-radius:10; -fx-cursor:hand;
+                                       -fx-border-width:1; -fx-border-color:#ddd6fe;
+                                       -fx-border-radius:10;"/>
                     </VBox>
 
                     <!-- RIGHT COLUMN -->

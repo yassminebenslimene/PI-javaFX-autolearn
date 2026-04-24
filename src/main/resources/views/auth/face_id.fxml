@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.controllers.FaceIdController"
+      alignment="CENTER" spacing="0"
+      style="-fx-background-color:white; -fx-background-radius:16;"
+      prefWidth="420" prefHeight="520">
+
+    <!-- Header -->
+    <VBox alignment="CENTER" spacing="8"
+          style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#5b4bc4);
+                 -fx-padding:28 24 24 24; -fx-background-radius:16 16 0 0;">
+        <Label text="Face ID"
+               style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:white;"/>
+        <Label fx:id="labelSubtitle" text="Authentification par reconnaissance faciale"
+               style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.75);"
+               wrapText="true" textAlignment="CENTER"/>
+    </VBox>
+
+    <!-- Camera preview area -->
+    <StackPane prefHeight="240"
+               style="-fx-background-color:#0f0f0f;">
+
+        <!-- Live camera feed -->
+        <javafx.scene.image.ImageView fx:id="cameraView"
+               fitWidth="420" fitHeight="240"
+               preserveRatio="false"/>
+
+        <!-- Face detection overlay circle -->
+        <Ellipse fx:id="faceOverlay"
+                 radiusX="90" radiusY="110"
+                 style="-fx-stroke:rgba(122,106,216,0.8); -fx-stroke-width:2.5;
+                        -fx-fill:transparent; -fx-stroke-dash-array:8 4;"
+                 visible="false"/>
+
+        <!-- Status overlay -->
+        <VBox fx:id="statusOverlay" alignment="CENTER" spacing="8"
+              style="-fx-background-color:rgba(0,0,0,0.55); -fx-padding:16 24 16 24;
+                     -fx-background-radius:12;"
+              maxWidth="280">
+            <Label fx:id="labelCameraStatus" text="Appuyez sur Demarrer"
+                   style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:white;"
+                   wrapText="true" textAlignment="CENTER"/>
+        </VBox>
+    </StackPane>
+
+    <!-- Progress bar (visible during capture) -->
+    <ProgressBar fx:id="progressBar" maxWidth="Infinity" prefHeight="4"
+                 progress="0"
+                 style="-fx-accent:#7a6ad8; -fx-background-color:#e5e7eb;"
+                 visible="false" managed="false"/>
+
+    <!-- Content -->
+    <VBox spacing="16" style="-fx-padding:20 24 24 24;" VBox.vgrow="ALWAYS">
+
+        <!-- Result message -->
+        <Label fx:id="labelResult" text="" wrapText="true"
+               style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#374151;
+                      -fx-background-color:#f9fafb; -fx-background-radius:8;
+                      -fx-padding:10 14 10 14; -fx-border-color:#e5e7eb;
+                      -fx-border-radius:8; -fx-border-width:1;"
+               visible="false" managed="false"/>
+
+        <!-- Email field (shown only for Face ID login) -->
+        <VBox fx:id="emailBox" spacing="6">
+            <Label text="Votre adresse email"
+                   style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#6b7280;"/>
+            <TextField fx:id="fieldEmail" promptText="exemple@domaine.com"
+                       style="-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb;
+                              -fx-border-radius:8; -fx-background-radius:8;
+                              -fx-padding:10 14 10 14; -fx-font-size:13;"/>
+        </VBox>
+
+        <!-- Buttons -->
+        <HBox spacing="10">
+            <Button fx:id="btnStart" text="Demarrer" onAction="#onStart"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                    style="-fx-background-color:#7a6ad8; -fx-text-fill:white;
+                           -fx-font-size:13; -fx-font-weight:700;
+                           -fx-padding:11 0 11 0; -fx-background-radius:10;
+                           -fx-cursor:hand; -fx-border-width:0;"/>
+            <Button fx:id="btnCancel" text="Annuler" onAction="#onCancel"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                    style="-fx-background-color:#f3f4f6; -fx-text-fill:#374151;
+                           -fx-font-size:13; -fx-font-weight:600;
+                           -fx-padding:11 0 11 0; -fx-background-radius:10;
+                           -fx-cursor:hand; -fx-border-width:0;"/>
+        </HBox>
+
+    </VBox>
+</VBox>
