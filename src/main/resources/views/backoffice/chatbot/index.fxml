@@ -5,95 +5,119 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.ChatbotController"
-            style="-fx-background-color:#0f1117;">
+            style="-fx-background-color:#0d1117;">
 
     <!-- Header -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="14"
-              style="-fx-background-color:#1a1d27;
-                     -fx-padding:16 24 16 24;
-                     -fx-border-color:rgba(255,255,255,0.08) transparent transparent transparent;
+        <HBox alignment="CENTER_LEFT" spacing="12"
+              style="-fx-background-color:#161b22;
+                     -fx-padding:14 20 14 20;
+                     -fx-border-color:#30363d transparent transparent transparent;
                      -fx-border-width:0 0 1 0;">
-            <VBox spacing="2">
+
+            <!-- AI Avatar -->
+            <StackPane minWidth="36" minHeight="36" prefWidth="36" prefHeight="36">
+                <javafx.scene.shape.Circle radius="18"
+                    style="-fx-fill:linear-gradient(to bottom right,#7a6ad8,#059669);"/>
+                <Label text="AI"
+                       style="-fx-font-size:11; -fx-font-weight:900; -fx-text-fill:white;"/>
+            </StackPane>
+
+            <VBox spacing="1">
                 <Label text="Assistant AutoLearn"
-                       style="-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:white;"/>
-                <Label fx:id="labelStatus" text="En ligne"
-                       style="-fx-font-size:11; -fx-text-fill:#10b981;"/>
+                       style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:white;"/>
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <javafx.scene.shape.Circle radius="4"
+                        style="-fx-fill:#10b981;"/>
+                    <Label fx:id="labelStatus" text="En ligne"
+                           style="-fx-font-size:11; -fx-text-fill:#10b981;"/>
+                </HBox>
             </VBox>
+
             <Region HBox.hgrow="ALWAYS"/>
+
             <Button text="Effacer" onAction="#onClear"
-                    style="-fx-background-color:rgba(255,255,255,0.08);
-                           -fx-text-fill:rgba(255,255,255,0.6); -fx-font-size:11;
-                           -fx-padding:6 14 6 14; -fx-background-radius:8;
-                           -fx-cursor:hand; -fx-border-width:0;"/>
+                    style="-fx-background-color:transparent;
+                           -fx-text-fill:#8b949e; -fx-font-size:12;
+                           -fx-padding:5 12 5 12; -fx-background-radius:6;
+                           -fx-cursor:hand; -fx-border-width:1;
+                           -fx-border-color:#30363d; -fx-border-radius:6;"/>
         </HBox>
     </top>
 
-    <!-- Messages area -->
+    <!-- Messages -->
     <center>
         <ScrollPane fx:id="scrollPane" fitToWidth="true"
-                    style="-fx-background-color:#0f1117;
+                    style="-fx-background-color:#0d1117;
                            -fx-background:transparent; -fx-border-width:0;"
-                    hbarPolicy="NEVER">
-            <VBox fx:id="messagesBox" spacing="12"
-                  style="-fx-padding:20 24 20 24; -fx-background-color:#0f1117;"/>
+                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <VBox fx:id="messagesBox" spacing="4"
+                  style="-fx-padding:16 20 16 20; -fx-background-color:#0d1117;"/>
         </ScrollPane>
     </center>
 
-    <!-- Input area -->
+    <!-- Input -->
     <bottom>
-        <VBox style="-fx-background-color:#1a1d27;
-                     -fx-border-color:rgba(255,255,255,0.08) transparent transparent transparent;
-                     -fx-border-width:1 0 0 0; -fx-padding:14 20 14 20;" spacing="10">
+        <VBox style="-fx-background-color:#161b22;
+                     -fx-border-color:#30363d transparent transparent transparent;
+                     -fx-border-width:1 0 0 0; -fx-padding:12 16 12 16;" spacing="10">
 
-            <!-- Suggestions -->
-            <HBox fx:id="suggestionsBox" spacing="8" alignment="CENTER_LEFT">
-                <Button text="Lister les cours" onAction="#onSuggestion"
-                        style="-fx-background-color:rgba(122,106,216,0.15);
-                               -fx-text-fill:#a5b4fc; -fx-font-size:11;
-                               -fx-padding:5 12 5 12; -fx-background-radius:20;
-                               -fx-cursor:hand; -fx-border-width:1;
-                               -fx-border-color:rgba(122,106,216,0.3);
-                               -fx-border-radius:20;"/>
-                <Button text="Lister les etudiants" onAction="#onSuggestion"
-                        style="-fx-background-color:rgba(122,106,216,0.15);
-                               -fx-text-fill:#a5b4fc; -fx-font-size:11;
-                               -fx-padding:5 12 5 12; -fx-background-radius:20;
-                               -fx-cursor:hand; -fx-border-width:1;
-                               -fx-border-color:rgba(122,106,216,0.3);
-                               -fx-border-radius:20;"/>
-                <Button text="Lister les evenements" onAction="#onSuggestion"
-                        style="-fx-background-color:rgba(122,106,216,0.15);
-                               -fx-text-fill:#a5b4fc; -fx-font-size:11;
-                               -fx-padding:5 12 5 12; -fx-background-radius:20;
-                               -fx-cursor:hand; -fx-border-width:1;
-                               -fx-border-color:rgba(122,106,216,0.3);
-                               -fx-border-radius:20;"/>
-                <Button text="Creer un cours" onAction="#onSuggestion"
-                        style="-fx-background-color:rgba(122,106,216,0.15);
-                               -fx-text-fill:#a5b4fc; -fx-font-size:11;
-                               -fx-padding:5 12 5 12; -fx-background-radius:20;
-                               -fx-cursor:hand; -fx-border-width:1;
-                               -fx-border-color:rgba(122,106,216,0.3);
-                               -fx-border-radius:20;"/>
-            </HBox>
+            <!-- Quick actions -->
+            <ScrollPane hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" fitToHeight="true"
+                        style="-fx-background-color:transparent; -fx-background:transparent;
+                               -fx-border-width:0; -fx-pref-height:34;">
+                <HBox fx:id="suggestionsBox" spacing="6" alignment="CENTER_LEFT">
+                    <Button text="Liste les cours" onAction="#onSuggestion"
+                            style="-fx-background-color:#21262d; -fx-text-fill:#8b949e;
+                                   -fx-font-size:11; -fx-padding:5 10 5 10;
+                                   -fx-background-radius:20; -fx-cursor:hand;
+                                   -fx-border-width:1; -fx-border-color:#30363d;
+                                   -fx-border-radius:20;"/>
+                    <Button text="Liste les etudiants" onAction="#onSuggestion"
+                            style="-fx-background-color:#21262d; -fx-text-fill:#8b949e;
+                                   -fx-font-size:11; -fx-padding:5 10 5 10;
+                                   -fx-background-radius:20; -fx-cursor:hand;
+                                   -fx-border-width:1; -fx-border-color:#30363d;
+                                   -fx-border-radius:20;"/>
+                    <Button text="Liste les evenements" onAction="#onSuggestion"
+                            style="-fx-background-color:#21262d; -fx-text-fill:#8b949e;
+                                   -fx-font-size:11; -fx-padding:5 10 5 10;
+                                   -fx-background-radius:20; -fx-cursor:hand;
+                                   -fx-border-width:1; -fx-border-color:#30363d;
+                                   -fx-border-radius:20;"/>
+                    <Button text="Creer un cours" onAction="#onSuggestion"
+                            style="-fx-background-color:#21262d; -fx-text-fill:#8b949e;
+                                   -fx-font-size:11; -fx-padding:5 10 5 10;
+                                   -fx-background-radius:20; -fx-cursor:hand;
+                                   -fx-border-width:1; -fx-border-color:#30363d;
+                                   -fx-border-radius:20;"/>
+                    <Button text="Creer un evenement" onAction="#onSuggestion"
+                            style="-fx-background-color:#21262d; -fx-text-fill:#8b949e;
+                                   -fx-font-size:11; -fx-padding:5 10 5 10;
+                                   -fx-background-radius:20; -fx-cursor:hand;
+                                   -fx-border-width:1; -fx-border-color:#30363d;
+                                   -fx-border-radius:20;"/>
+                </HBox>
+            </ScrollPane>
 
             <!-- Input row -->
-            <HBox spacing="10" alignment="CENTER">
+            <HBox spacing="8" alignment="CENTER">
                 <TextField fx:id="inputField"
-                           promptText="Ecrivez votre message... (ex: liste les cours, cree un evenement)"
+                           promptText="Ecrivez un message..."
                            onAction="#onSend"
                            HBox.hgrow="ALWAYS"
-                           style="-fx-background-color:rgba(255,255,255,0.07);
-                                  -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
-                                  -fx-border-color:rgba(255,255,255,0.12);
-                                  -fx-border-radius:12; -fx-background-radius:12;
-                                  -fx-padding:12 16 12 16; -fx-font-size:13;"/>
-                <Button fx:id="btnSend" text="Envoyer" onAction="#onSend"
+                           style="-fx-background-color:#21262d;
+                                  -fx-text-fill:#e6edf3;
+                                  -fx-prompt-text-fill:#484f58;
+                                  -fx-border-color:#30363d;
+                                  -fx-border-radius:10; -fx-background-radius:10;
+                                  -fx-padding:10 14 10 14; -fx-font-size:13;"/>
+                <Button fx:id="btnSend" text="↑" onAction="#onSend"
                         style="-fx-background-color:#7a6ad8; -fx-text-fill:white;
-                               -fx-font-size:13; -fx-font-weight:700;
-                               -fx-padding:12 20 12 20; -fx-background-radius:12;
-                               -fx-cursor:hand; -fx-border-width:0;"/>
+                               -fx-font-size:16; -fx-font-weight:900;
+                               -fx-min-width:40; -fx-min-height:40;
+                               -fx-background-radius:10; -fx-cursor:hand;
+                               -fx-border-width:0;"/>
             </HBox>
         </VBox>
     </bottom>

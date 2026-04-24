@@ -13,44 +13,44 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Chatbot Service using Ollama (local AI, no API key, no internet needed).
- *
- * Setup:
- *  1. Install Ollama: https://ollama.com
- *  2. Run: ollama pull mistral
- *  3. Ollama starts automatically at http://localhost:11434
+ * Chatbot Service - Ollama local AI + smart fallback parser.
  */
 public class ChatbotService {
 
     private static final String OLLAMA_URL   = "http://localhost:11434/api/chat";
     private static final String OLLAMA_MODEL = "mistral";
-
-    private static final Gson GSON = new Gson();
+    private static final Gson   GSON         = new Gson();
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(10))
         .build();
 
     private static final String SYSTEM_PROMPT =
-        "You are AutoLearn assistant. You help admins manage the platform. " +
-        "You speak French or English depending on the user. " +
-        "When user asks to CREATE something, ask for the required fields one by one in a friendly way. " +
-        "When you have ALL required fields, respond with ONLY a valid JSON: " +
-        "{\"intent\": \"ACTION\", \"params\": {field: value, ...}, \"message\": \"friendly confirmation message\"} " +
-        "Available intents and required fields: " +
-        "CREATE_COURS: titre, matiere, niveau(DEBUTANT/INTERMEDIAIRE/AVANCE), duree(hours), description. " +
-        "CREATE_EVENEMENT: titre, lieu, type(Conference/Atelier/Hackathon/Autre), nb_max(number), description. " +
-        "CREATE_CHALLENGE: titre, niveau(DEBUTANT/INTERMEDIAIRE/AVANCE), duree(minutes), description. " +
-        "CREATE_USER: prenom, nom, email, niveau(DEBUTANT/INTERMEDIAIRE/AVANCE). " +
-        "CREATE_COMMUNAUTE: nom, description. " +
-        "LIST_COURS, LIST_USERS, LIST_EVENEMENTS, LIST_CHALLENGES, LIST_COMMUNAUTES: no params needed. " +
-        "DELETE_COURS(id), DELETE_USER(id), DELETE_EVENEMENT(id), DELETE_CHALLENGE(id): ask for id. " +
-        "NAVIGATE_COURS, NAVIGATE_USERS, NAVIGATE_EVENEMENTS, NAVIGATE_CHALLENGES, NAVIGATE_COMMUNAUTE, NAVIGATE_DASHBOARD. " +
-        "CHAT: for general conversation. " +
-        "IMPORTANT: If user just says 'creer un evenement' or 'create an event' WITHOUT providing details, " +
-        "do NOT return JSON yet. Instead ask for the required fields in a friendly message. " +
-        "Only return JSON when you have all required fields. " +
-        "Respond ONLY with JSON when executing an action, otherwise respond normally.";
+        "You are AutoLearn AI assistant. You are smart, friendly, and helpful. " +
+        "You speak French or English depending on the user language. " +
+        "You help admins manage the AutoLearn platform. " +
+        "\n\n When user wants to CREATE something and provides ALL info in one message, extract the data and respond with JSON immediately. " +
+        "When user wants to CREATE but info is missing, ask for it conversationally. " +
+        "When user wants to LIST something, respond with JSON immediately. " +
+        "\n\nAlways respond with this JSON format when executing an action: " +
+        "{\"intent\": \"ACTION\", \"params\": {}, \"message\": \"friendly message\"} " +
+        "\n\nAvailable intents: " +
+        "LIST_COURS, LIST_USERS, LIST_EVENEMENTS, LIST_CHALLENGES, LIST_COMMUNAUTES, " +
+        "CREATE_COURS(titre, matiere, niveau[DEBUTANT/INTERMEDIAIRE/AVANCE], duree[int hours], description), " +
+        "CREATE_EVENEMENT(titre, lieu, type[Conference/Atelier/Hackathon/Autre], nb_max[int], description), " +
+        "CREATE_CHALLENGE(titre, niveau, duree[int minutes], description), " +
+        "CREATE_USER(prenom, nom, email, niveau[DEBUTANT/INTERMEDIAIRE/AVANCE], password[optional]), " +
+        "CREATE_COMMUNAUTE(nom, description), " +
+        "DELETE_COURS(id), DELETE_USER(id), DELETE_EVENEMENT(id), DELETE_CHALLENGE(id), " +
+        "NAVIGATE_COURS, NAVIGATE_USERS, NAVIGATE_EVENEMENTS, NAVIGATE_CHALLENGES, NAVIGATE_COMMUNAUTE, NAVIGATE_DASHBOARD, " +
+        "CHAT (for general conversation, greetings, questions). " +
+        "\n\nIMPORTANT RULES: " +
+        "1. If user provides data in any format (comma-separated, natural language, etc.), extract it intelligently. " +
+        "2. For CREATE_USER: prenom=first name, nom=last name, password field is optional. " +
+        "3. If user says 'creer etudiant rahma, ben ali, debutant, rahmabenali@gmail.com' - extract: prenom=rahma, nom=ben ali, niveau=DEBUTANT, email=rahmabenali@gmail.com. " +
+        "4. Respond ONLY with JSON when executing an action. " +
+        "5. Be conversational and helpful for CHAT intent. " +
+        "6. Never navigate when user wants to create - always create directly.";
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -67,7 +67,6 @@ public class ChatbotService {
                 systemMsg.addProperty("content", SYSTEM_PROMPT);
                 messages.add(systemMsg);
 
-                // Last 10 messages for context (important for multi-turn)
                 int start = Math.max(0, conversationHistory.size() - 10);
                 for (int i = start; i < conversationHistory.size(); i++) {
                     ChatMessage cm = conversationHistory.get(i);
@@ -88,14 +87,14 @@ public class ChatbotService {
                 body.addProperty("stream", false);
 
                 JsonObject options = new JsonObject();
-                options.addProperty("temperature", 0.2);
-                options.addProperty("num_predict", 500);
+                options.addProperty("temperature", 0.1);
+                options.addProperty("num_predict", 600);
                 body.add("options", options);
 
                 HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(OLLAMA_URL))
                     .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(120)) // 2 minutes for slow machines
+                    .timeout(Duration.ofSeconds(120))
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
@@ -105,23 +104,21 @@ public class ChatbotService {
                 if (resp.statusCode() == 200) {
                     return parseOllamaResponse(resp.body());
                 } else {
-                    System.err.println("[Chatbot] Error " + resp.statusCode() + ": " + resp.body());
-                    return fallbackResponse(userMessage);
+                    System.err.println("[Chatbot] Error " + resp.statusCode());
+                    return smartFallback(userMessage, conversationHistory);
                 }
 
             } catch (java.net.ConnectException e) {
-                System.err.println("[Chatbot] Ollama not running!");
-                return new ChatResponse("CHAT", new JsonObject(),
-                    "L assistant IA n est pas disponible. Assurez-vous qu Ollama est installe et demarre.", false);
+                System.err.println("[Chatbot] Ollama not running - using smart fallback");
+                return smartFallback(userMessage, conversationHistory);
             } catch (Exception e) {
                 System.err.println("[Chatbot] Error: " + e.getMessage());
-                // If timeout, use fallback
-                return fallbackResponse(userMessage);
+                return smartFallback(userMessage, conversationHistory);
             }
         });
     }
 
-    // ── Response parsing ──────────────────────────────────────────────────────
+    // ── Ollama response parsing ───────────────────────────────────────────────
 
     private static ChatResponse parseOllamaResponse(String responseBody) {
         try {
@@ -135,21 +132,19 @@ public class ChatbotService {
 
             String jsonStr = extractJson(content);
             if (jsonStr == null) {
-                // Model is asking for more info (multi-turn conversation)
                 return new ChatResponse("CHAT", new JsonObject(), content, true);
             }
 
             JsonObject parsed = GSON.fromJson(jsonStr, JsonObject.class);
-            String intent  = parsed.has("intent")  ? parsed.get("intent").getAsString()  : "CHAT";
-            JsonObject params = parsed.has("params") ? parsed.getAsJsonObject("params")   : new JsonObject();
-            String message = parsed.has("message") ? parsed.get("message").getAsString() : content;
+            String intent     = parsed.has("intent")  ? parsed.get("intent").getAsString()  : "CHAT";
+            JsonObject params = parsed.has("params")  ? parsed.getAsJsonObject("params")    : new JsonObject();
+            String message    = parsed.has("message") ? parsed.get("message").getAsString() : content;
 
             return new ChatResponse(intent, params, message, true);
 
         } catch (Exception e) {
             System.err.println("[Chatbot] Parse error: " + e.getMessage());
-            return new ChatResponse("CHAT", new JsonObject(),
-                "Je n ai pas compris. Pouvez-vous reformuler ?", false);
+            return new ChatResponse("CHAT", new JsonObject(), "Je n'ai pas compris. Pouvez-vous reformuler ?", false);
         }
     }
 
@@ -158,171 +153,342 @@ public class ChatbotService {
         int end   = text.lastIndexOf('}');
         if (start >= 0 && end > start) {
             String candidate = text.substring(start, end + 1);
-            // Verify it has "intent" key to avoid false positives
             if (candidate.contains("\"intent\"")) return candidate;
         }
         return null;
     }
 
-    // ── Fallback (when Ollama is offline or times out) ────────────────────────
-
-    private static ChatResponse fallbackResponse(String message) {
-        String lower = message.toLowerCase();
-        JsonObject p = new JsonObject();
-
-        // LIST actions (must check before create/navigate)
-        if ((lower.contains("liste") || lower.contains("affiche") || lower.contains("montre") || lower.contains("voir") || lower.contains("show") || lower.contains("list") || lower.contains("display")) ) {
-            if (lower.contains("cours") || lower.contains("course"))
-                return new ChatResponse("LIST_COURS", p, "Voici la liste des cours :", true);
-            if (lower.contains("utilisateur") || lower.contains("etudiant") || lower.contains("user") || lower.contains("student"))
-                return new ChatResponse("LIST_USERS", p, "Voici la liste des utilisateurs :", true);
-            if (lower.contains("evenement") || lower.contains("event"))
-                return new ChatResponse("LIST_EVENEMENTS", p, "Voici la liste des evenements :", true);
-            if (lower.contains("challenge"))
-                return new ChatResponse("LIST_CHALLENGES", p, "Voici la liste des challenges :", true);
-            if (lower.contains("communaute") || lower.contains("community"))
-                return new ChatResponse("LIST_COMMUNAUTES", p, "Voici la liste des communautes :", true);
-        }
-
-        // CREATE actions - ask for info instead of navigating
-        if (lower.contains("creer") || lower.contains("create") || lower.contains("ajouter") || lower.contains("add") || lower.contains("nouveau") || lower.contains("new")) {
-            if (lower.contains("evenement") || lower.contains("event"))
-                return new ChatResponse("CHAT", p,
-                    "Je vais creer un evenement ! J ai besoin des informations suivantes :\n\n" +
-                    "1. Titre de l evenement ?\n" +
-                    "2. Lieu ?\n" +
-                    "3. Type ? (Conference / Atelier / Hackathon / Autre)\n" +
-                    "4. Nombre maximum de participants ?\n" +
-                    "5. Description ?\n\n" +
-                    "Vous pouvez tout donner en une fois, par exemple :\n" +
-                    "\"Titre: Java Day, Lieu: Tunis, Type: Conference, Max: 100, Description: Journee Java\"", true);
-            if (lower.contains("cours") || lower.contains("course"))
-                return new ChatResponse("CHAT", p,
-                    "Je vais creer un cours ! J ai besoin de :\n\n" +
-                    "1. Titre ?\n" +
-                    "2. Matiere ?\n" +
-                    "3. Niveau ? (DEBUTANT / INTERMEDIAIRE / AVANCE)\n" +
-                    "4. Duree (en heures) ?\n" +
-                    "5. Description ?\n\n" +
-                    "Donnez-moi ces informations et je cree le cours immediatement !", true);
-            if (lower.contains("challenge"))
-                return new ChatResponse("CHAT", p,
-                    "Je vais creer un challenge ! J ai besoin de :\n\n" +
-                    "1. Titre ?\n" +
-                    "2. Niveau ? (DEBUTANT / INTERMEDIAIRE / AVANCE)\n" +
-                    "3. Duree (en minutes) ?\n" +
-                    "4. Description ?\n\n" +
-                    "Donnez-moi ces informations !", true);
-            if (lower.contains("utilisateur") || lower.contains("etudiant") || lower.contains("user") || lower.contains("student"))
-                return new ChatResponse("CHAT", p,
-                    "Je vais creer un etudiant ! J ai besoin de :\n\n" +
-                    "1. Prenom ?\n" +
-                    "2. Nom ?\n" +
-                    "3. Email ?\n" +
-                    "4. Niveau ? (DEBUTANT / INTERMEDIAIRE / AVANCE)\n\n" +
-                    "Donnez-moi ces informations !", true);
-            if (lower.contains("communaute") || lower.contains("community"))
-                return new ChatResponse("CHAT", p,
-                    "Je vais creer une communaute ! J ai besoin de :\n\n" +
-                    "1. Nom ?\n" +
-                    "2. Description ?\n\n" +
-                    "Donnez-moi ces informations !", true);
-        }
-
-        // Parse creation with provided fields
-        if (lower.contains("titre:") || lower.contains("title:") || lower.contains("nom:") || lower.contains("name:")) {
-            return parseInlineCreation(message, lower);
-        }
-
-        // NAVIGATE actions (only when no create/list keyword)
-        if (lower.contains("cours") || lower.contains("course"))
-            return new ChatResponse("NAVIGATE_COURS", p, "Navigation vers la page Cours.", true);
-        if (lower.contains("utilisateur") || lower.contains("etudiant") || lower.contains("user") || lower.contains("student"))
-            return new ChatResponse("NAVIGATE_USERS", p, "Navigation vers la page Utilisateurs.", true);
-        if (lower.contains("evenement") || lower.contains("event"))
-            return new ChatResponse("NAVIGATE_EVENEMENTS", p, "Navigation vers la page Evenements.", true);
-        if (lower.contains("challenge"))
-            return new ChatResponse("NAVIGATE_CHALLENGES", p, "Navigation vers la page Challenges.", true);
-        if (lower.contains("communaute") || lower.contains("community"))
-            return new ChatResponse("NAVIGATE_COMMUNAUTE", p, "Navigation vers la page Communaute.", true);
-        if (lower.contains("dashboard") || lower.contains("accueil") || lower.contains("home"))
-            return new ChatResponse("NAVIGATE_DASHBOARD", p, "Navigation vers le Dashboard.", true);
-
-        return new ChatResponse("CHAT", p,
-            "Bonjour ! Je suis votre assistant AutoLearn.\n\n" +
-            "Je peux vous aider a :\n" +
-            "• Lister les cours, etudiants, evenements, challenges\n" +
-            "• Creer des cours, evenements, challenges, etudiants\n" +
-            "• Naviguer dans l application\n\n" +
-            "Exemples : \"liste les cours\", \"cree un evenement\", \"affiche les etudiants\"", true);
-    }
+    // ── Smart fallback (no Ollama needed) ─────────────────────────────────────
 
     /**
-     * Parses inline creation like:
-     * "Titre: Java Day, Lieu: Tunis, Type: Conference, Max: 100, Description: Journee Java"
+     * Smart fallback that understands natural language without AI.
+     * Handles: "creer etudiant rahma, ben ali, debutant, rahmabenali@gmail.com"
      */
-    private static ChatResponse parseInlineCreation(String message, String lower) {
+    private static ChatResponse smartFallback(String message, List<ChatMessage> history) {
+        String lower = message.toLowerCase().trim();
         JsonObject p = new JsonObject();
 
-        // Extract key: value pairs
-        String[] parts = message.split(",");
-        for (String part : parts) {
-            String[] kv = part.split(":", 2);
-            if (kv.length == 2) {
-                String key = kv[0].trim().toLowerCase();
-                String val = kv[1].trim();
-                switch (key) {
-                    case "titre", "title"       -> p.addProperty("titre", val);
-                    case "lieu", "location"     -> p.addProperty("lieu", val);
-                    case "type"                 -> p.addProperty("type", val);
-                    case "max", "nb_max", "participants" -> {
-                        try { p.addProperty("nb_max", Integer.parseInt(val)); }
-                        catch (Exception e) { p.addProperty("nb_max", 50); }
-                    }
-                    case "description", "desc"  -> p.addProperty("description", val);
-                    case "matiere", "subject"   -> p.addProperty("matiere", val);
-                    case "niveau", "level"      -> p.addProperty("niveau", val.toUpperCase());
-                    case "duree", "duration"    -> {
-                        try { p.addProperty("duree", Integer.parseInt(val)); }
-                        catch (Exception e) { p.addProperty("duree", 10); }
-                    }
-                    case "prenom", "firstname"  -> p.addProperty("prenom", val);
-                    case "nom", "lastname"      -> p.addProperty("nom", val);
-                    case "email"                -> p.addProperty("email", val);
-                    case "nom communaute"       -> p.addProperty("nom", val);
+        // ── Greetings ──────────────────────────────────────────────────────
+        if (lower.matches("(hello|hi|bonjour|salut|hey|bonsoir|coucou).*")) {
+            return new ChatResponse("CHAT", p,
+                "Bonjour ! Je suis votre assistant AutoLearn. Comment puis-je vous aider ?\n\n" +
+                "Je peux lister, créer, modifier ou supprimer des cours, événements, challenges, utilisateurs et communautés.", true);
+        }
+
+        // ── LIST ───────────────────────────────────────────────────────────
+        boolean isList = lower.contains("liste") || lower.contains("lister") || lower.contains("affiche") ||
+                         lower.contains("montre") || lower.contains("voir") || lower.contains("show") ||
+                         lower.contains("list") || lower.contains("display") || lower.contains("all") ||
+                         lower.contains("tous") || lower.contains("toutes");
+
+        if (isList) {
+            if (lower.contains("cours") || lower.contains("course"))
+                return new ChatResponse("LIST_COURS", p, "Voici tous les cours disponibles :", true);
+            if (lower.contains("utilisateur") || lower.contains("etudiant") || lower.contains("user") || lower.contains("student") || lower.contains("eleve"))
+                return new ChatResponse("LIST_USERS", p, "Voici tous les utilisateurs :", true);
+            if (lower.contains("evenement") || lower.contains("event"))
+                return new ChatResponse("LIST_EVENEMENTS", p, "Voici tous les événements :", true);
+            if (lower.contains("challenge"))
+                return new ChatResponse("LIST_CHALLENGES", p, "Voici tous les challenges :", true);
+            if (lower.contains("communaute") || lower.contains("community"))
+                return new ChatResponse("LIST_COMMUNAUTES", p, "Voici toutes les communautés :", true);
+        }
+
+        // ── CREATE ─────────────────────────────────────────────────────────
+        boolean isCreate = lower.contains("creer") || lower.contains("créer") || lower.contains("create") ||
+                           lower.contains("ajouter") || lower.contains("add") || lower.contains("nouveau") ||
+                           lower.contains("nouvelle") || lower.contains("new") || lower.contains("inserer");
+
+        if (isCreate) {
+            // Detect entity type
+            boolean isEvent     = lower.contains("evenement") || lower.contains("event");
+            boolean isCours     = lower.contains("cours") || lower.contains("course");
+            boolean isUser      = lower.contains("etudiant") || lower.contains("utilisateur") || lower.contains("user") || lower.contains("student") || lower.contains("eleve");
+            boolean isChallenge = lower.contains("challenge");
+            boolean isCommunaute= lower.contains("communaute") || lower.contains("community");
+
+            // Try to extract inline data (comma-separated or natural language)
+            p = extractInlineData(message, lower);
+
+            if (isUser || p.has("email")) {
+                if (hasUserData(p)) {
+                    ensureUserDefaults(p);
+                    return new ChatResponse("CREATE_USER", p,
+                        "Parfait ! Je crée l'étudiant **" + p.get("prenom").getAsString() + " " + p.get("nom").getAsString() + "** maintenant...", true);
                 }
+                return new ChatResponse("CHAT", p,
+                    "Je vais créer un étudiant ! Donnez-moi :\n\n" +
+                    "• **Prénom** et **Nom**\n• **Email**\n• **Niveau** (DEBUTANT / INTERMEDIAIRE / AVANCE)\n\n" +
+                    "Exemple : `creer etudiant Rahma, Ben Ali, DEBUTANT, rahma@gmail.com`", true);
+            }
+
+            if (isEvent || p.has("lieu")) {
+                if (hasEventData(p)) {
+                    ensureEventDefaults(p);
+                    return new ChatResponse("CREATE_EVENEMENT", p,
+                        "Parfait ! Je crée l'événement **" + p.get("titre").getAsString() + "** maintenant...", true);
+                }
+                return new ChatResponse("CHAT", p,
+                    "Je vais créer un événement ! Donnez-moi :\n\n" +
+                    "• **Titre**\n• **Lieu**\n• **Type** (Conference / Atelier / Hackathon / Autre)\n• **Nombre max** de participants\n• **Description**\n\n" +
+                    "Exemple : `creer evenement Java Day, Tunis, Conference, 100, Journée Java`", true);
+            }
+
+            if (isCours || p.has("matiere")) {
+                if (hasCoursData(p)) {
+                    ensureCoursDefaults(p);
+                    return new ChatResponse("CREATE_COURS", p,
+                        "Parfait ! Je crée le cours **" + p.get("titre").getAsString() + "** maintenant...", true);
+                }
+                return new ChatResponse("CHAT", p,
+                    "Je vais créer un cours ! Donnez-moi :\n\n" +
+                    "• **Titre**\n• **Matière**\n• **Niveau** (DEBUTANT / INTERMEDIAIRE / AVANCE)\n• **Durée** (heures)\n• **Description**\n\n" +
+                    "Exemple : `creer cours Java, Informatique, DEBUTANT, 20, Cours Java complet`", true);
+            }
+
+            if (isChallenge) {
+                if (hasChallengeData(p)) {
+                    ensureChallengeDefaults(p);
+                    return new ChatResponse("CREATE_CHALLENGE", p,
+                        "Parfait ! Je crée le challenge **" + p.get("titre").getAsString() + "** maintenant...", true);
+                }
+                return new ChatResponse("CHAT", p,
+                    "Je vais créer un challenge ! Donnez-moi :\n\n" +
+                    "• **Titre**\n• **Niveau** (DEBUTANT / INTERMEDIAIRE / AVANCE)\n• **Durée** (minutes)\n• **Description**\n\n" +
+                    "Exemple : `creer challenge Algo Race, AVANCE, 60, Challenge algorithmique`", true);
+            }
+
+            if (isCommunaute) {
+                if (p.has("nom") && p.has("description")) {
+                    return new ChatResponse("CREATE_COMMUNAUTE", p,
+                        "Parfait ! Je crée la communauté **" + p.get("nom").getAsString() + "** maintenant...", true);
+                }
+                return new ChatResponse("CHAT", p,
+                    "Je vais créer une communauté ! Donnez-moi :\n\n" +
+                    "• **Nom**\n• **Description**\n\n" +
+                    "Exemple : `creer communaute Java Lovers, Communauté des passionnés Java`", true);
             }
         }
 
-        // Determine what to create based on context
-        if (p.has("lieu") || lower.contains("evenement") || lower.contains("event")) {
-            if (!p.has("titre")) p.addProperty("titre", "Nouvel Evenement");
-            if (!p.has("lieu")) p.addProperty("lieu", "Tunis");
-            if (!p.has("type")) p.addProperty("type", "Conference");
-            if (!p.has("nb_max")) p.addProperty("nb_max", 50);
-            if (!p.has("description")) p.addProperty("description", "A completer");
-            return new ChatResponse("CREATE_EVENEMENT", p,
-                "Parfait ! Je cree l evenement \"" + p.get("titre").getAsString() + "\" maintenant...", true);
-        }
-        if (p.has("matiere") || lower.contains("cours") || lower.contains("course")) {
-            if (!p.has("titre")) p.addProperty("titre", "Nouveau Cours");
-            if (!p.has("matiere")) p.addProperty("matiere", "Informatique");
-            if (!p.has("niveau")) p.addProperty("niveau", "DEBUTANT");
-            if (!p.has("duree")) p.addProperty("duree", 10);
-            if (!p.has("description")) p.addProperty("description", "A completer");
-            return new ChatResponse("CREATE_COURS", p,
-                "Parfait ! Je cree le cours \"" + p.get("titre").getAsString() + "\" maintenant...", true);
-        }
-        if (p.has("email")) {
-            if (!p.has("prenom")) p.addProperty("prenom", "Prenom");
-            if (!p.has("nom")) p.addProperty("nom", "Nom");
-            if (!p.has("niveau")) p.addProperty("niveau", "DEBUTANT");
-            return new ChatResponse("CREATE_USER", p,
-                "Parfait ! Je cree l etudiant maintenant...", true);
+        // ── DELETE ─────────────────────────────────────────────────────────
+        if (lower.contains("supprimer") || lower.contains("delete") || lower.contains("effacer") || lower.contains("remove")) {
+            // Try to extract ID
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(message);
+            if (m.find()) {
+                int id = Integer.parseInt(m.group());
+                p.addProperty("id", id);
+                if (lower.contains("cours") || lower.contains("course"))
+                    return new ChatResponse("DELETE_COURS", p, "Suppression du cours #" + id + "...", true);
+                if (lower.contains("evenement") || lower.contains("event"))
+                    return new ChatResponse("DELETE_EVENEMENT", p, "Suppression de l'événement #" + id + "...", true);
+                if (lower.contains("challenge"))
+                    return new ChatResponse("DELETE_CHALLENGE", p, "Suppression du challenge #" + id + "...", true);
+                if (lower.contains("utilisateur") || lower.contains("etudiant") || lower.contains("user"))
+                    return new ChatResponse("DELETE_USER", p, "Suppression de l'utilisateur #" + id + "...", true);
+            }
+            return new ChatResponse("CHAT", p, "Quel est l'ID de l'élément à supprimer ?", true);
         }
 
-        return new ChatResponse("CHAT", new JsonObject(),
-            "J ai recu vos informations. Pouvez-vous preciser ce que vous souhaitez creer ? (evenement, cours, etudiant, challenge)", true);
+        // ── NAVIGATE ───────────────────────────────────────────────────────
+        if (lower.contains("aller") || lower.contains("go to") || lower.contains("ouvrir") || lower.contains("open") || lower.contains("page")) {
+            if (lower.contains("cours") || lower.contains("course"))
+                return new ChatResponse("NAVIGATE_COURS", p, "Navigation vers Cours...", true);
+            if (lower.contains("utilisateur") || lower.contains("etudiant") || lower.contains("user"))
+                return new ChatResponse("NAVIGATE_USERS", p, "Navigation vers Utilisateurs...", true);
+            if (lower.contains("evenement") || lower.contains("event"))
+                return new ChatResponse("NAVIGATE_EVENEMENTS", p, "Navigation vers Événements...", true);
+            if (lower.contains("challenge"))
+                return new ChatResponse("NAVIGATE_CHALLENGES", p, "Navigation vers Challenges...", true);
+            if (lower.contains("communaute") || lower.contains("community"))
+                return new ChatResponse("NAVIGATE_COMMUNAUTE", p, "Navigation vers Communauté...", true);
+            if (lower.contains("dashboard") || lower.contains("accueil"))
+                return new ChatResponse("NAVIGATE_DASHBOARD", p, "Navigation vers Dashboard...", true);
+        }
+
+        // ── Default ────────────────────────────────────────────────────────
+        return new ChatResponse("CHAT", p,
+            "Je suis votre assistant AutoLearn. Voici ce que je peux faire :\n\n" +
+            "📋 **Lister** : `liste les cours`, `affiche les étudiants`, `voir les événements`\n" +
+            "➕ **Créer** : `creer cours Java, Informatique, DEBUTANT, 20, Description`\n" +
+            "🗑️ **Supprimer** : `supprimer cours 5`, `supprimer evenement 3`\n" +
+            "🔗 **Naviguer** : `aller aux cours`, `ouvrir les événements`\n\n" +
+            "Que souhaitez-vous faire ?", true);
+    }
+
+    // ── Smart data extraction ─────────────────────────────────────────────────
+
+    /**
+     * Extracts data from natural language or comma-separated input.
+     * Handles: "rahma, ben ali, debutant, rahmabenali@gmail.com, Rahma@2003"
+     */
+    private static JsonObject extractInlineData(String message, String lower) {
+        JsonObject p = new JsonObject();
+
+        // Try key:value format first
+        if (message.contains(":")) {
+            String[] parts = message.split(",");
+            for (String part : parts) {
+                String[] kv = part.split(":", 2);
+                if (kv.length == 2) {
+                    String key = kv[0].trim().toLowerCase().replaceAll("[^a-z_]", "");
+                    String val = kv[1].trim();
+                    mapField(p, key, val);
+                }
+            }
+            if (p.size() > 0) return p;
+        }
+
+        // Try positional comma-separated format
+        // Remove the action keywords to get just the data
+        String cleaned = lower
+            .replaceAll("creer|créer|create|ajouter|add|nouveau|nouvelle|new", "")
+            .replaceAll("etudiant|utilisateur|user|student|eleve", "")
+            .replaceAll("evenement|event|cours|course|challenge|communaute", "")
+            .trim();
+
+        if (cleaned.contains(",")) {
+            String[] parts = cleaned.split(",");
+            // Detect email
+            for (String part : parts) {
+                String v = part.trim();
+                if (v.contains("@") && v.contains(".")) {
+                    p.addProperty("email", v);
+                }
+            }
+
+            // Detect niveau
+            for (String part : parts) {
+                String v = part.trim().toUpperCase();
+                if (v.equals("DEBUTANT") || v.equals("INTERMEDIAIRE") || v.equals("AVANCE") ||
+                    v.equals("BEGINNER") || v.equals("INTERMEDIATE") || v.equals("ADVANCED")) {
+                    String niveau = v.replace("BEGINNER", "DEBUTANT")
+                                    .replace("INTERMEDIATE", "INTERMEDIAIRE")
+                                    .replace("ADVANCED", "AVANCE");
+                    p.addProperty("niveau", niveau);
+                }
+            }
+
+            // Detect numbers (duree, nb_max)
+            for (String part : parts) {
+                String v = part.trim();
+                try {
+                    int num = Integer.parseInt(v);
+                    if (!p.has("duree") && !p.has("nb_max")) {
+                        p.addProperty("duree", num);
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+
+            // Remaining non-special parts → name fields
+            java.util.List<String> nameparts = new java.util.ArrayList<>();
+            for (String part : parts) {
+                String v = part.trim();
+                if (v.isEmpty()) continue;
+                if (v.contains("@")) continue; // email
+                String vUp = v.toUpperCase();
+                if (vUp.equals("DEBUTANT") || vUp.equals("INTERMEDIAIRE") || vUp.equals("AVANCE") ||
+                    vUp.equals("BEGINNER") || vUp.equals("INTERMEDIATE") || vUp.equals("ADVANCED")) continue;
+                try { Integer.parseInt(v); continue; } catch (NumberFormatException ignored) {}
+                // Skip action keywords
+                if (v.matches("creer|créer|create|ajouter|add|nouveau|nouvelle|new|etudiant|utilisateur|user|student|eleve|evenement|event|cours|course|challenge|communaute")) continue;
+                nameparts.add(v);
+            }
+
+            // Assign name parts
+            if (nameparts.size() >= 2) {
+                // Check if it looks like user creation (has email)
+                if (p.has("email")) {
+                    p.addProperty("prenom", capitalize(nameparts.get(0)));
+                    p.addProperty("nom", capitalize(nameparts.get(1)));
+                    // Check for password (contains uppercase + digit + special)
+                    if (nameparts.size() >= 3) {
+                        String possiblePwd = nameparts.get(2);
+                        if (possiblePwd.matches(".*[A-Z].*") && possiblePwd.matches(".*\\d.*")) {
+                            p.addProperty("password", possiblePwd);
+                        }
+                    }
+                } else {
+                    // Could be event/cours: titre, lieu/matiere, ...
+                    p.addProperty("titre", capitalize(nameparts.get(0)));
+                    if (nameparts.size() >= 2) p.addProperty("lieu", capitalize(nameparts.get(1)));
+                    if (nameparts.size() >= 3) p.addProperty("type", capitalize(nameparts.get(2)));
+                    if (nameparts.size() >= 4) p.addProperty("description", capitalize(nameparts.get(3)));
+                }
+            } else if (nameparts.size() == 1) {
+                p.addProperty("titre", capitalize(nameparts.get(0)));
+            }
+        }
+
+        return p;
+    }
+
+    private static void mapField(JsonObject p, String key, String val) {
+        switch (key) {
+            case "titre", "title", "nom", "name" -> p.addProperty("titre", val);
+            case "lieu", "location", "place"     -> p.addProperty("lieu", val);
+            case "type"                          -> p.addProperty("type", val);
+            case "max", "nb_max", "participants" -> { try { p.addProperty("nb_max", Integer.parseInt(val)); } catch (Exception e) { p.addProperty("nb_max", 50); } }
+            case "description", "desc"           -> p.addProperty("description", val);
+            case "matiere", "subject", "matière" -> p.addProperty("matiere", val);
+            case "niveau", "level"               -> p.addProperty("niveau", val.toUpperCase());
+            case "duree", "duration", "durée"    -> { try { p.addProperty("duree", Integer.parseInt(val)); } catch (Exception e) { p.addProperty("duree", 10); } }
+            case "prenom", "firstname", "prénom" -> p.addProperty("prenom", val);
+            case "nom_famille", "lastname"       -> p.addProperty("nom", val);
+            case "email"                         -> p.addProperty("email", val);
+            case "password", "mdp", "motdepasse" -> p.addProperty("password", val);
+        }
+    }
+
+    // ── Validation helpers ────────────────────────────────────────────────────
+
+    private static boolean hasUserData(JsonObject p) {
+        return p.has("email") && (p.has("prenom") || p.has("nom"));
+    }
+
+    private static boolean hasEventData(JsonObject p) {
+        return p.has("titre") && p.has("lieu");
+    }
+
+    private static boolean hasCoursData(JsonObject p) {
+        return p.has("titre") && (p.has("matiere") || p.has("niveau"));
+    }
+
+    private static boolean hasChallengeData(JsonObject p) {
+        return p.has("titre");
+    }
+
+    private static void ensureUserDefaults(JsonObject p) {
+        if (!p.has("prenom")) p.addProperty("prenom", "Prenom");
+        if (!p.has("nom"))    p.addProperty("nom", "Nom");
+        if (!p.has("niveau")) p.addProperty("niveau", "DEBUTANT");
+    }
+
+    private static void ensureEventDefaults(JsonObject p) {
+        if (!p.has("titre"))       p.addProperty("titre", "Nouvel Evenement");
+        if (!p.has("lieu"))        p.addProperty("lieu", "Tunis");
+        if (!p.has("type"))        p.addProperty("type", "Conference");
+        if (!p.has("nb_max"))      p.addProperty("nb_max", 50);
+        if (!p.has("description")) p.addProperty("description", "A completer");
+    }
+
+    private static void ensureCoursDefaults(JsonObject p) {
+        if (!p.has("titre"))       p.addProperty("titre", "Nouveau Cours");
+        if (!p.has("matiere"))     p.addProperty("matiere", "Informatique");
+        if (!p.has("niveau"))      p.addProperty("niveau", "DEBUTANT");
+        if (!p.has("duree"))       p.addProperty("duree", 10);
+        if (!p.has("description")) p.addProperty("description", "A completer");
+    }
+
+    private static void ensureChallengeDefaults(JsonObject p) {
+        if (!p.has("titre"))       p.addProperty("titre", "Nouveau Challenge");
+        if (!p.has("niveau"))      p.addProperty("niveau", "DEBUTANT");
+        if (!p.has("duree"))       p.addProperty("duree", 30);
+        if (!p.has("description")) p.addProperty("description", "A completer");
+    }
+
+    private static String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
     }
 
     // ── Records ───────────────────────────────────────────────────────────────

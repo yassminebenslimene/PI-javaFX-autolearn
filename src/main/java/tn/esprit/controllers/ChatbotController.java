@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Circle;
 import tn.esprit.MainApp;
 import tn.esprit.services.ChatbotActionExecutor;
 import tn.esprit.services.ChatbotService;
@@ -13,15 +14,6 @@ import tn.esprit.session.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controller for the AI Chatbot interface.
- *
- * Handles:
- * - Sending messages to Hugging Face API
- * - Displaying chat bubbles
- * - Executing CRUD actions based on AI response
- * - Navigating to relevant pages
- */
 public class ChatbotController {
 
     @FXML private ScrollPane scrollPane;
@@ -38,24 +30,21 @@ public class ChatbotController {
 
     @FXML
     public void initialize() {
-        // Welcome message
-        String userName = "";
-        if (SessionManager.getCurrentUser() != null) {
-            userName = SessionManager.getCurrentUser().getPrenom();
-        }
+        String name = SessionManager.getCurrentUser() != null
+            ? SessionManager.getCurrentUser().getPrenom() : "";
 
         addBotMessage(
-            "Bonjour " + userName + " ! Je suis votre assistant AutoLearn.\n\n" +
-            "Je peux vous aider a :\n" +
-            "• Lister, creer, modifier ou supprimer des cours\n" +
-            "• Gerer les utilisateurs et etudiants\n" +
-            "• Creer des evenements et challenges\n" +
-            "• Naviguer dans l'application\n\n" +
+            "Bonjour **" + name + "** ! Je suis votre assistant AutoLearn.\n\n" +
+            "Je peux vous aider à :\n" +
+            "• **Lister** les cours, étudiants, événements, challenges\n" +
+            "• **Créer** des cours, événements, challenges, étudiants\n" +
+            "• **Supprimer** des éléments par ID\n" +
+            "• **Naviguer** dans l'application\n\n" +
             "Que souhaitez-vous faire ?"
         );
     }
 
-    // ── Send message ──────────────────────────────────────────────────────────
+    // ── Send ──────────────────────────────────────────────────────────────────
 
     @FXML
     private void onSend() {
@@ -64,34 +53,26 @@ public class ChatbotController {
 
         inputField.clear();
         btnSend.setDisable(true);
-        suggestionsBox.setVisible(false);
-        suggestionsBox.setManaged(false);
 
-        // Show user message
         addUserMessage(text);
-
-        // Show typing indicator
-        VBox typingBubble = addTypingIndicator();
-
-        // Add to history
         history.add(new ChatbotService.ChatMessage("user", text));
 
-        // Send to AI
+        // Show subtle loading indicator in status bar
+        Platform.runLater(() -> labelStatus.setText("En train de réfléchir..."));
+
         ChatbotService.sendMessage(text, history).thenAccept(response -> {
             Platform.runLater(() -> {
-                // Remove typing indicator
-                messagesBox.getChildren().remove(typingBubble);
+                labelStatus.setText("En ligne");
 
-                // Show AI message
+                // Show AI response
                 addBotMessage(response.message());
-
-                // Add to history
                 history.add(new ChatbotService.ChatMessage("assistant", response.message()));
 
-                // Execute action if needed
+                // Execute action
                 if (!"CHAT".equals(response.intent())) {
                     executeAction(response.intent(), response.params());
                 }
+
                 btnSend.setDisable(false);
                 scrollToBottom();
             });
@@ -100,8 +81,7 @@ public class ChatbotController {
 
     @FXML
     private void onSuggestion(javafx.event.ActionEvent e) {
-        Button btn = (Button) e.getSource();
-        inputField.setText(btn.getText());
+        inputField.setText(((Button) e.getSource()).getText());
         onSend();
     }
 
@@ -109,8 +89,6 @@ public class ChatbotController {
     private void onClear() {
         messagesBox.getChildren().clear();
         history.clear();
-        suggestionsBox.setVisible(true);
-        suggestionsBox.setManaged(true);
         initialize();
     }
 
@@ -119,28 +97,25 @@ public class ChatbotController {
     private void executeAction(String intent, com.google.gson.JsonObject params) {
         ChatbotActionExecutor.ActionResult result = executor.execute(intent, params);
 
-        // Navigate if needed
+        // Navigate
         if (result.navigateTo() != null && !result.navigateTo().isEmpty()) {
             try {
                 MainApp.showBackofficeView(result.navigateTo(), "");
             } catch (Exception e) {
-                System.err.println("[Chatbot] Navigation error: " + e.getMessage());
+                System.err.println("[Chatbot] Nav error: " + e.getMessage());
             }
         }
 
-        // Show action result
         if (!result.success()) {
-            // Error
             addErrorMessage(result.message());
         } else if (result.data() != null && result.navigateTo() == null) {
-            // LIST result — show the data
+            // LIST or CREATE result
             if (result.message() != null && !result.message().isEmpty()) {
                 addBotMessage(result.message());
                 history.add(new ChatbotService.ChatMessage("assistant", result.message()));
             }
         } else if (result.data() != null) {
-            // CREATE/UPDATE/DELETE success
-            addSuccessMessage(result.message() != null ? result.message() : "Action effectuee avec succes !");
+            addSuccessMessage(result.message() != null ? result.message() : "✓ Action effectuée avec succès !");
         }
     }
 
@@ -149,13 +124,16 @@ public class ChatbotController {
     private void addUserMessage(String text) {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_RIGHT);
+        row.setStyle("-fx-padding:2 0 2 60;");
 
         Label bubble = new Label(text);
         bubble.setWrapText(true);
-        bubble.setMaxWidth(420);
+        bubble.setMaxWidth(500);
         bubble.setStyle(
-            "-fx-background-color:#7a6ad8; -fx-text-fill:white;" +
-            "-fx-font-size:13; -fx-padding:10 16 10 16;" +
+            "-fx-background-color:#7a6ad8;" +
+            "-fx-text-fill:white;" +
+            "-fx-font-size:13;" +
+            "-fx-padding:10 14 10 14;" +
             "-fx-background-radius:18 18 4 18;"
         );
 
@@ -166,26 +144,31 @@ public class ChatbotController {
 
     private void addBotMessage(String text) {
         HBox row = new HBox(10);
-        row.setAlignment(Pos.CENTER_LEFT);
+        row.setAlignment(Pos.TOP_LEFT);
+        row.setStyle("-fx-padding:2 60 2 0;");
 
-        // Bot avatar
-        Label avatar = new Label("AI");
-        avatar.setStyle(
-            "-fx-background-color:#059669; -fx-text-fill:white;" +
-            "-fx-font-size:10; -fx-font-weight:700;" +
-            "-fx-background-radius:50%; -fx-padding:6 8 6 8;" +
-            "-fx-min-width:32; -fx-min-height:32;" +
-            "-fx-alignment:CENTER;"
-        );
+        // Avatar
+        StackPane avatar = new StackPane();
+        avatar.setMinWidth(32); avatar.setMinHeight(32);
+        avatar.setPrefWidth(32); avatar.setPrefHeight(32);
+        Circle circle = new Circle(16);
+        circle.setStyle("-fx-fill:linear-gradient(to bottom right,#7a6ad8,#059669);");
+        Label avatarLabel = new Label("AI");
+        avatarLabel.setStyle("-fx-font-size:9; -fx-font-weight:900; -fx-text-fill:white;");
+        avatar.getChildren().addAll(circle, avatarLabel);
 
-        Label bubble = new Label(text);
+        // Render markdown-like formatting
+        Label bubble = new Label(renderText(text));
         bubble.setWrapText(true);
-        bubble.setMaxWidth(460);
+        bubble.setMaxWidth(520);
         bubble.setStyle(
-            "-fx-background-color:#1e2130; -fx-text-fill:rgba(255,255,255,0.9);" +
-            "-fx-font-size:13; -fx-padding:10 16 10 16;" +
+            "-fx-background-color:#161b22;" +
+            "-fx-text-fill:#e6edf3;" +
+            "-fx-font-size:13;" +
+            "-fx-padding:10 14 10 14;" +
             "-fx-background-radius:4 18 18 18;" +
-            "-fx-border-color:rgba(255,255,255,0.08); -fx-border-width:1;" +
+            "-fx-border-color:#30363d;" +
+            "-fx-border-width:1;" +
             "-fx-border-radius:4 18 18 18;"
         );
 
@@ -197,13 +180,16 @@ public class ChatbotController {
     private void addSuccessMessage(String text) {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER);
+        row.setStyle("-fx-padding:4 0 4 0;");
 
         Label badge = new Label("✓  " + text);
         badge.setStyle(
-            "-fx-background-color:rgba(16,185,129,0.15);" +
-            "-fx-text-fill:#10b981; -fx-font-size:12; -fx-font-weight:700;" +
+            "-fx-background-color:rgba(16,185,129,0.12);" +
+            "-fx-text-fill:#10b981;" +
+            "-fx-font-size:12; -fx-font-weight:700;" +
             "-fx-padding:6 16 6 16; -fx-background-radius:20;" +
-            "-fx-border-color:rgba(16,185,129,0.3); -fx-border-width:1; -fx-border-radius:20;"
+            "-fx-border-color:rgba(16,185,129,0.25);" +
+            "-fx-border-width:1; -fx-border-radius:20;"
         );
 
         row.getChildren().add(badge);
@@ -214,13 +200,16 @@ public class ChatbotController {
     private void addErrorMessage(String text) {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER);
+        row.setStyle("-fx-padding:4 0 4 0;");
 
         Label badge = new Label("✗  " + text);
         badge.setStyle(
-            "-fx-background-color:rgba(239,68,68,0.15);" +
-            "-fx-text-fill:#ef4444; -fx-font-size:12; -fx-font-weight:700;" +
+            "-fx-background-color:rgba(239,68,68,0.12);" +
+            "-fx-text-fill:#f85149;" +
+            "-fx-font-size:12; -fx-font-weight:700;" +
             "-fx-padding:6 16 6 16; -fx-background-radius:20;" +
-            "-fx-border-color:rgba(239,68,68,0.3); -fx-border-width:1; -fx-border-radius:20;"
+            "-fx-border-color:rgba(239,68,68,0.25);" +
+            "-fx-border-width:1; -fx-border-radius:20;"
         );
 
         row.getChildren().add(badge);
@@ -228,46 +217,18 @@ public class ChatbotController {
         scrollToBottom();
     }
 
-    private VBox addTypingIndicator() {
-        HBox row = new HBox(10);
-        row.setAlignment(Pos.CENTER_LEFT);
+    // ── Text rendering ────────────────────────────────────────────────────────
 
-        Label avatar = new Label("AI");
-        avatar.setStyle(
-            "-fx-background-color:#059669; -fx-text-fill:white;" +
-            "-fx-font-size:10; -fx-font-weight:700;" +
-            "-fx-background-radius:50%; -fx-padding:6 8 6 8;" +
-            "-fx-min-width:32; -fx-min-height:32; -fx-alignment:CENTER;"
-        );
-
-        VBox dots = new VBox();
-        dots.setStyle(
-            "-fx-background-color:#1e2130; -fx-padding:14 20 14 20;" +
-            "-fx-background-radius:4 18 18 18;" +
-            "-fx-border-color:rgba(255,255,255,0.08); -fx-border-width:1;" +
-            "-fx-border-radius:4 18 18 18;"
-        );
-
-        Label typing = new Label("En train d'ecrire...");
-        typing.setStyle("-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:12;");
-        dots.getChildren().add(typing);
-
-        // Animate dots
-        javafx.animation.Timeline timeline = new javafx.animation.Timeline(
-            new javafx.animation.KeyFrame(javafx.util.Duration.millis(500), e -> {
-                String t = typing.getText();
-                if (t.endsWith("...")) typing.setText("En train d'ecrire");
-                else typing.setText(t + ".");
-            })
-        );
-        timeline.setCycleCount(javafx.animation.Timeline.INDEFINITE);
-        timeline.play();
-        dots.setUserData(timeline);
-
-        row.getChildren().addAll(avatar, dots);
-        messagesBox.getChildren().add(row);
-        scrollToBottom();
-        return dots;
+    /**
+     * Converts **bold** markdown to plain text (JavaFX Label doesn't support HTML).
+     * Keeps the text readable without ugly asterisks.
+     */
+    private String renderText(String text) {
+        if (text == null) return "";
+        // Remove **bold** markers but keep the text
+        return text.replaceAll("\\*\\*(.+?)\\*\\*", "$1")
+                   .replaceAll("\\*(.+?)\\*", "$1")
+                   .replaceAll("`(.+?)`", "$1");
     }
 
     private void scrollToBottom() {
