@@ -107,7 +107,11 @@ public class ChatbotController {
         }
 
         if (!result.success()) {
-            addErrorMessage(result.message());
+            // Asking for missing info → show as bot message (conversational)
+            if (result.message() != null && !result.message().isEmpty()) {
+                addBotMessage(result.message());
+                history.add(new ChatbotService.ChatMessage("assistant", result.message()));
+            }
         } else if (result.data() != null && result.navigateTo() == null) {
             // LIST or CREATE result
             if (result.message() != null && !result.message().isEmpty()) {
@@ -115,7 +119,7 @@ public class ChatbotController {
                 history.add(new ChatbotService.ChatMessage("assistant", result.message()));
             }
         } else if (result.data() != null) {
-            addSuccessMessage(result.message() != null ? result.message() : "✓ Action effectuée avec succès !");
+            addSuccessMessage(result.message() != null ? result.message() : "Action effectuée avec succès !");
         }
     }
 
