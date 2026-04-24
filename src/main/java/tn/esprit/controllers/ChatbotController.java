@@ -92,7 +92,6 @@ public class ChatbotController {
                 if (!"CHAT".equals(response.intent())) {
                     executeAction(response.intent(), response.params());
                 }
-
                 btnSend.setDisable(false);
                 scrollToBottom();
             });
@@ -120,11 +119,6 @@ public class ChatbotController {
     private void executeAction(String intent, com.google.gson.JsonObject params) {
         ChatbotActionExecutor.ActionResult result = executor.execute(intent, params);
 
-        // If there's additional data to show (list result)
-        if (result.data() != null && result.message() != null && !result.message().isEmpty()) {
-            // Message already shown by addBotMessage above
-        }
-
         // Navigate if needed
         if (result.navigateTo() != null && !result.navigateTo().isEmpty()) {
             try {
@@ -134,12 +128,19 @@ public class ChatbotController {
             }
         }
 
-        // Show action result if different from AI message
+        // Show action result
         if (!result.success()) {
+            // Error
             addErrorMessage(result.message());
+        } else if (result.data() != null && result.navigateTo() == null) {
+            // LIST result — show the data
+            if (result.message() != null && !result.message().isEmpty()) {
+                addBotMessage(result.message());
+                history.add(new ChatbotService.ChatMessage("assistant", result.message()));
+            }
         } else if (result.data() != null) {
-            // Show success confirmation
-            addSuccessMessage("Action effectuee avec succes !");
+            // CREATE/UPDATE/DELETE success
+            addSuccessMessage(result.message() != null ? result.message() : "Action effectuee avec succes !");
         }
     }
 
