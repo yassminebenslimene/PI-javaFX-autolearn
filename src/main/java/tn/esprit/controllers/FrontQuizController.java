@@ -525,9 +525,83 @@ public class FrontQuizController {
      * Met à jour : en-tête, progression, texte de la question, points,
      * compteur de réponses, timer et liste des options.
      */
+    // ══════════════════════════════════════════════════════════════════════════
+    // DÉCORATIONS — Cercles translucides sur le fond de la page question
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /** Indique si les décorations ont déjà été ajoutées (évite les doublons). */
+    private boolean decorationsAjoutees = false;
+
+    /**
+     * Ajoute des cercles et formes translucides sur le BorderPane de la page question.
+     * Appelée une seule fois lors du premier affichage d'une question.
+     */
+    private void ajouterDecorationsQuestionPage() {
+        if (decorationsAjoutees || labelQuestion == null) return;
+        try {
+            // Remonter jusqu'au BorderPane de question.fxml
+            javafx.scene.Node node = labelQuestion;
+            while (node != null && !(node instanceof javafx.scene.layout.BorderPane)) {
+                node = node.getParent();
+            }
+            if (!(node instanceof javafx.scene.layout.BorderPane bp)) return;
+
+            // Créer un StackPane de décorations en arrière-plan
+            javafx.scene.layout.StackPane decoPane = new javafx.scene.layout.StackPane();
+            decoPane.setMouseTransparent(true);
+            decoPane.setStyle("-fx-background-color:transparent;");
+
+            double[][] cercles = {
+                {160, -380, -180, 0.05}, {110, 380, -140, 0.07},
+                {75,  -350,  200, 0.06}, {130, 360,  190, 0.04},
+                {45,   150, -220, 0.08}, {30, -260,   60, 0.10},
+                {6,   -200, -240, 0.20}, {4,   250,  -90, 0.15},
+                {5,   -150,  180, 0.18}, {7,   200,  230, 0.12},
+                {4,    100, -260, 0.20}, {3,   380,   40, 0.25},
+            };
+
+            for (double[] c : cercles) {
+                javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(c[0]);
+                circle.setFill(javafx.scene.paint.Color.rgb(255, 255, 255, c[3]));
+                circle.setTranslateX(c[1]);
+                circle.setTranslateY(c[2]);
+                circle.setMouseTransparent(true);
+                decoPane.getChildren().add(circle);
+            }
+
+            // Rectangles inclinés
+            javafx.scene.shape.Rectangle r1 = new javafx.scene.shape.Rectangle(80, 80);
+            r1.setArcWidth(20); r1.setArcHeight(20);
+            r1.setFill(javafx.scene.paint.Color.rgb(255, 255, 255, 0.05));
+            r1.setRotate(30); r1.setTranslateX(-300); r1.setTranslateY(-100);
+            r1.setMouseTransparent(true);
+
+            javafx.scene.shape.Rectangle r2 = new javafx.scene.shape.Rectangle(60, 60);
+            r2.setArcWidth(14); r2.setArcHeight(14);
+            r2.setFill(javafx.scene.paint.Color.rgb(255, 255, 255, 0.06));
+            r2.setRotate(45); r2.setTranslateX(310); r2.setTranslateY(150);
+            r2.setMouseTransparent(true);
+
+            decoPane.getChildren().addAll(r1, r2);
+
+            // Injecter le decoPane comme fond du BorderPane
+            bp.getChildren().add(0, decoPane);
+            decoPane.prefWidthProperty().bind(bp.widthProperty());
+            decoPane.prefHeightProperty().bind(bp.heightProperty());
+
+            decorationsAjoutees = true;
+        } catch (Exception e) {
+            System.err.println("Décorations non ajoutées : " + e.getMessage());
+        }
+    }
+
     private void afficherQuestion() {
         if (questions == null || questions.isEmpty() || labelQuestion == null) return;
-        
+
+        // ── Décorations de fond (cercles translucides) ──
+        // Ajoutées une seule fois sur le BorderPane racine
+        ajouterDecorationsQuestionPage();
+
         Question q = questions.get(indexQuestion);
         labelTitreHeader.setText("Quiz - " + quiz.getTitre());
         labelProgress.setText("Question " + (indexQuestion + 1) + " / " + questions.size());
@@ -705,7 +779,7 @@ public class FrontQuizController {
                 btn.setPadding(new Insets(14, 20, 14, 20));
                 boolean sel = dejaChoisi != null && dejaChoisi == opt.getId();
                 btn.setStyle(sel
-                    ? "-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:700;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:0;"
+                    ? "-fx-background-color:linear-gradient(to right,#9333ea,#7c3aed);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:700;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:0;"
                     : "-fx-background-color:rgba(255,255,255,0.15);-fx-text-fill:white;-fx-font-size:14;-fx-font-weight:600;-fx-background-radius:12;-fx-cursor:hand;-fx-border-width:2;-fx-border-color:rgba(255,255,255,0.3);-fx-border-radius:12;"
                 );
                 btn.setOnAction(e -> {
@@ -1166,6 +1240,10 @@ public class FrontQuizController {
             region.prefWidthProperty().unbind();
             region.setMaxHeight(Double.MAX_VALUE);
             region.setMaxWidth(Double.MAX_VALUE);
+            // Force la vue à occuper tout l'espace disponible du BorderPane
+            BorderPane.setAlignment(region, javafx.geometry.Pos.TOP_LEFT);
+            region.prefHeightProperty().bind(root.heightProperty().subtract(root.getTop() != null ? 64 : 0));
+            region.prefWidthProperty().bind(root.widthProperty());
         }
         root.setCenter(view);
     }

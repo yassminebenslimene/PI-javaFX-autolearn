@@ -14,7 +14,7 @@
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="tn.esprit.controllers.FrontQuizController"
             maxHeight="Infinity" maxWidth="Infinity"
-            style="-fx-background-color: linear-gradient(to bottom right, #46178F, #764ba2);">
+            style="-fx-background-color: linear-gradient(to bottom right, #7c3aed, #a78bfa);">
 
     <!-- ================= TOP ================= -->
     <top>
@@ -42,9 +42,8 @@
     <!-- ================= CENTER ================= -->
     <center>
         <VBox alignment="CENTER" spacing="25"
-              style="-fx-padding:0 40 0 40;">
+              style="-fx-padding:0 40 0 40; -fx-background-color:transparent;">
 
-            <!-- Spacer TOP (limité pour monter le contenu) -->
             <Region VBox.vgrow="ALWAYS" maxHeight="80"/>
 
             <!-- Carte Question -->
@@ -65,7 +64,7 @@
                        style="-fx-font-size:13; -fx-text-fill:#f59e0b; -fx-font-weight:700;"/>
             </VBox>
 
-            <!-- Options (plus grandes) -->
+            <!-- Options grille 2x2 -->
             <GridPane fx:id="optionsGrid"
                       hgap="18" vgap="18"
                       alignment="CENTER"
@@ -77,10 +76,9 @@
                 </columnConstraints>
             </GridPane>
 
-            <!-- fallback -->
+            <!-- Fallback liste verticale -->
             <VBox fx:id="optionsContainer" spacing="12" visible="false" managed="false"/>
 
-            <!-- Spacer BOTTOM -->
             <Region VBox.vgrow="ALWAYS"/>
 
         </VBox>
@@ -88,9 +86,9 @@
 
     <!-- ================= BOTTOM ================= -->
     <bottom>
-        <VBox spacing="0" style="-fx-padding:0 0 20 0;">
+        <VBox spacing="0">
 
-            <!-- Progress bar -->
+            <!-- Barre de progression -->
             <StackPane prefHeight="10">
                 <Region style="-fx-background-color:rgba(255,255,255,0.15); -fx-pref-height:10;"/>
                 <ProgressBar fx:id="progressBar" progress="0.0"
@@ -98,7 +96,7 @@
                              style="-fx-accent:#22c55e; -fx-background-color:transparent;"/>
             </StackPane>
 
-            <!-- Navigation -->
+            <!-- Boutons navigation -->
             <HBox alignment="CENTER" spacing="16"
                   style="-fx-padding:12 28 12 28; -fx-background-color:rgba(0,0,0,0.35); -fx-min-height:70;">
 
@@ -138,4 +136,4 @@
         </VBox>
     </bottom>
 
-    </BorderPane>
+</BorderPane>

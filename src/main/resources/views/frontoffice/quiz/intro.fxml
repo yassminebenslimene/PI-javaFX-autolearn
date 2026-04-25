@@ -1,101 +1,119 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-    ============================================================
-    intro.fxml — Écran d'introduction du quiz (front-office)
-    ============================================================
-
-    Rôle :
-      Présente le quiz à l'étudiant avant qu'il ne commence.
-      Affiche le titre, la description, les statistiques clés
-      (nombre de questions, total de points, durée) et propose
-      deux actions : commencer le quiz ou retourner aux chapitres.
-
-    Contrôleur associé : FrontQuizController
-      - onCommencer() : lance l'écran de chargement puis les questions
-      - onRetour()     : exécute le callback de retour aux chapitres
-
-    Structure de la vue :
-      StackPane (fond violet)
-      ├── VBox (bouton retour en haut à gauche)
-      └── VBox (carte blanche centrale)
-          ├── Icône rouge (emoji 📱)
-          ├── Titre du quiz (labelTitreQuiz)
-          ├── Description du quiz (labelDescQuiz)
-          ├── Bande de statistiques (HBox)
-          │   ├── Nombre de questions (labelNbQuestions)
-          │   ├── Total de points (labelTotalPoints)
-          │   └── Durée en minutes (labelDuree)
-          └── Bouton "Commencer le quiz"
--->
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.shape.Ellipse?>
 
-<!-- Conteneur racine : fond violet dégradé (harmonisé avec loading.fxml), occupe tout l'espace disponible -->
+<!-- Conteneur racine : fond violet dégradé -->
 <StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="tn.esprit.controllers.FrontQuizController"
-           style="-fx-background-color: linear-gradient(to bottom right, #46178F, #764ba2);">
+           style="-fx-background-color: linear-gradient(to bottom right, #7c3aed, #a78bfa);">
 
-    <!-- Couche de fond : contient uniquement le bouton "Retour" en haut à gauche -->
-    <!-- Fond violet avec effet diagonal (simulé par des rectangles) -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- COUCHE 1 : Éléments décoratifs de fond (cercles + formes)  -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <!-- Grand cercle en haut à gauche -->
+    <Circle radius="160" fill="rgba(255,255,255,0.06)"
+            translateX="-340" translateY="-200"/>
+
+    <!-- Cercle moyen en haut à droite -->
+    <Circle radius="110" fill="rgba(255,255,255,0.08)"
+            translateX="340" translateY="-180"/>
+
+    <!-- Petit cercle en bas à gauche -->
+    <Circle radius="70" fill="rgba(255,255,255,0.07)"
+            translateX="-380" translateY="220"/>
+
+    <!-- Cercle en bas à droite -->
+    <Circle radius="130" fill="rgba(255,255,255,0.05)"
+            translateX="360" translateY="210"/>
+
+    <!-- Cercle central haut (derrière la carte) -->
+    <Circle radius="50" fill="rgba(255,255,255,0.06)"
+            translateX="180" translateY="-230"/>
+
+    <!-- Petit cercle décoratif gauche milieu -->
+    <Circle radius="30" fill="rgba(255,255,255,0.10)"
+            translateX="-280" translateY="60"/>
+
+    <!-- Rectangle incliné haut gauche -->
+    <Rectangle width="80" height="80" arcWidth="20" arcHeight="20"
+               fill="rgba(255,255,255,0.06)" rotate="30"
+               translateX="-300" translateY="-120"/>
+
+    <!-- Rectangle incliné bas droite -->
+    <Rectangle width="60" height="60" arcWidth="14" arcHeight="14"
+               fill="rgba(255,255,255,0.07)" rotate="45"
+               translateX="310" translateY="170"/>
+
+    <!-- Ellipse décorative bas centre -->
+    <Ellipse radiusX="200" radiusY="60" fill="rgba(255,255,255,0.04)"
+             translateX="0" translateY="280"/>
+
+    <!-- Points décoratifs (petits cercles) dispersés -->
+    <Circle radius="6" fill="rgba(255,255,255,0.20)" translateX="-200" translateY="-260"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.15)" translateX="250" translateY="-100"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.18)" translateX="-150" translateY="200"/>
+    <Circle radius="7" fill="rgba(255,255,255,0.12)" translateX="200" translateY="250"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.20)" translateX="100" translateY="-280"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.15)" translateX="-320" translateY="150"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.25)" translateX="380" translateY="50"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.12)" translateX="-80" translateY="270"/>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- COUCHE 2 : Bouton retour en haut à gauche                  -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
     <VBox alignment="TOP_LEFT" style="-fx-background-color:transparent;">
-        <!-- Bouton retour en haut à gauche -->
-        <!-- Navigation : déclenche onRetour() → exécute le callback vers la liste des chapitres -->
         <HBox style="-fx-padding:18 0 0 18;">
             <Button text="← Retour aux chapitres" onAction="#onRetour"
                     style="-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;
                            -fx-font-size:13; -fx-font-weight:700; -fx-padding:9 18 9 18;
-                           -fx-background-radius:22; -fx-cursor:hand; -fx-border-width:0;"/>
+                           -fx-background-radius:22; -fx-cursor:hand; -fx-border-width:0;
+                           -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,2);"/>
         </HBox>
     </VBox>
 
-    <!-- Carte centrale blanche : contient toutes les informations du quiz -->
-    <!-- maxWidth/maxHeight limitent la taille de la carte pour un rendu centré -->
-    <!-- Card centrale -->
-    <VBox alignment="CENTER" spacing="0" maxWidth="460" maxHeight="420"
-          style="-fx-background-color:white; -fx-background-radius:20;
-                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.35),32,0,0,10);">
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- COUCHE 3 : Carte blanche centrale                          -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <VBox alignment="CENTER" spacing="0" maxWidth="460" maxHeight="440"
+          style="-fx-background-color:white; -fx-background-radius:24;
+                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.30),40,0,0,12);">
         <padding><Insets top="36" right="36" bottom="36" left="36"/></padding>
 
         <!-- Icône décorative rouge en haut de la carte -->
-        <!-- Icône rouge -->
         <HBox alignment="CENTER" style="-fx-padding:0 0 16 0;">
             <Label text="📱"
                    style="-fx-font-size:36; -fx-background-color:#e53935;
                           -fx-background-radius:16; -fx-padding:14 16 14 16;
-                          -fx-text-fill:white;"/>
+                          -fx-text-fill:white;
+                          -fx-effect:dropshadow(gaussian,rgba(229,57,53,0.4),12,0,0,4);"/>
         </HBox>
 
-        <!-- Titre du quiz : rempli dynamiquement par afficherIntro() -->
-        <!-- Format : "Quiz - [titre du quiz]" -->
-        <!-- Titre -->
+        <!-- Titre du quiz -->
         <Label fx:id="labelTitreQuiz" text="Quiz"
                style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#0f172a;
                       -fx-text-alignment:CENTER;"
                wrapText="true" maxWidth="380"/>
 
-        <!-- Description du quiz : remplie depuis quiz.getDescription() -->
-        <!-- Vide si la description est null -->
-        <!-- Description -->
+        <!-- Description du quiz -->
         <Label fx:id="labelDescQuiz" text=""
                style="-fx-font-size:13; -fx-text-fill:#7c3aed; -fx-text-alignment:CENTER;
                       -fx-padding:6 0 20 0;"
                wrapText="true" maxWidth="380"/>
 
-        <!-- Bande de statistiques : 3 colonnes (questions, points, durée) -->
-        <!-- Fond gris clair avec bordure, coins arrondis -->
-        <!-- Stats -->
+        <!-- Bande de statistiques : 3 colonnes -->
         <HBox spacing="0" alignment="CENTER"
-              style="-fx-background-color:#f8fafc; -fx-background-radius:12;
-                     -fx-border-color:#e2e8f0; -fx-border-radius:12;
+              style="-fx-background-color:#f8fafc; -fx-background-radius:14;
+                     -fx-border-color:#e2e8f0; -fx-border-radius:14;
                      -fx-padding:18 0 18 0; -fx-min-width:360;">
 
-            <!-- Colonne 1 : Nombre de questions -->
-            <!-- labelNbQuestions : rempli avec questions.size() -->
             <!-- Questions -->
             <VBox alignment="CENTER" spacing="6" prefWidth="120">
                 <Label text="❓"
@@ -107,8 +125,6 @@
                        style="-fx-font-size:10; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
             </VBox>
 
-            <!-- Colonne 2 : Total des points du quiz -->
-            <!-- labelTotalPoints : somme des points de toutes les questions -->
             <!-- Points -->
             <VBox alignment="CENTER" spacing="6" prefWidth="120">
                 <Label text="⭐"
@@ -120,8 +136,6 @@
                        style="-fx-font-size:10; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
             </VBox>
 
-            <!-- Colonne 3 : Durée maximale en minutes -->
-            <!-- labelDuree : affiche quiz.getDureeMaxMinutes() ou "—" si illimitée -->
             <!-- Minutes -->
             <VBox alignment="CENTER" spacing="6" prefWidth="120">
                 <Label text="⏱"
@@ -134,8 +148,6 @@
             </VBox>
         </HBox>
 
-        <!-- Bouton principal : lance le quiz -->
-        <!-- Navigation : onCommencer() → charge loading.fxml → puis question.fxml -->
         <!-- Bouton commencer -->
         <Button text="▶   Commencer le quiz" onAction="#onCommencer"
                 maxWidth="Infinity"
@@ -143,10 +155,9 @@
                        -fx-text-fill:white; -fx-font-size:15; -fx-font-weight:800;
                        -fx-padding:14 0 14 0; -fx-background-radius:30;
                        -fx-cursor:hand; -fx-border-width:0;
-                       -fx-effect:dropshadow(gaussian,rgba(34,197,94,0.5),12,0,0,4);">
+                       -fx-effect:dropshadow(gaussian,rgba(34,197,94,0.5),14,0,0,5);">
             <VBox.margin><Insets top="22"/></VBox.margin>
         </Button>
     </VBox>
 
 </StackPane>
-
