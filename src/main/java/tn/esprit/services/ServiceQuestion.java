@@ -134,6 +134,23 @@ public class ServiceQuestion {
         return questions;
     }
 
+    /**
+     * Retourne les questions d'un quiz dans un ordre aléatoire.
+     * Chaque passage du quiz sera différent.
+     *
+     * @param quizId ID du quiz
+     * @param maxQuestions nombre max de questions à retourner (0 = toutes)
+     * @return liste mélangée de questions
+     */
+    public java.util.List<Question> findByQuizIdAleatoire(int quizId, int maxQuestions) {
+        java.util.List<Question> questions = findByQuizId(quizId);
+        java.util.Collections.shuffle(questions);
+        if (maxQuestions > 0 && maxQuestions < questions.size()) {
+            return questions.subList(0, maxQuestions);
+        }
+        return questions;
+    }
+
     // ── Méthode privée : convertit une ligne SQL en objet Question ────────────
     private Question mapQuestion(ResultSet rs) throws SQLException {
         Timestamp updatedAt = rs.getTimestamp("updated_at");

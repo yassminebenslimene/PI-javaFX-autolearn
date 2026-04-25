@@ -334,8 +334,9 @@ public class FrontQuizController {
      */
     public void setQuiz(Quiz quiz) {
         this.quiz = quiz;
-        // Chargement de toutes les questions du quiz depuis la base de données
-        this.questions = serviceQuestion.findByQuizId(quiz.getId());
+        // Chargement des questions en ordre ALÉATOIRE
+        // Chaque passage du quiz sera différent — les options sont aussi mélangées
+        this.questions = serviceQuestion.findByQuizIdAleatoire(quiz.getId(), 0);
         // Calcul du total des points (somme des points de chaque question)
         this.totalPoints = questions.stream().mapToInt(Question::getPoint).sum();
         javafx.application.Platform.runLater(() -> { 
@@ -726,7 +727,12 @@ public class FrontQuizController {
      * @param q la question dont on affiche les options
      */
     private void afficherOptions(Question q) {
-        List<Option> opts = optionsParQuestion.computeIfAbsent(q.getId(), id -> serviceOption.findByQuestionId(id));
+        List<Option> opts = optionsParQuestion.computeIfAbsent(q.getId(), id -> {
+            // Charger les options et les mélanger aléatoirement
+            List<Option> loaded = serviceOption.findByQuestionId(id);
+            java.util.Collections.shuffle(loaded);
+            return loaded;
+        });
         optionsQuestionCourante = opts;
         Integer dejaChoisi = reponsesChoisies.get(q.getId());
 
