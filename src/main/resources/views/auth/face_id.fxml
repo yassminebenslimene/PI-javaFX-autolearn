@@ -8,12 +8,12 @@
       fx:controller="tn.esprit.controllers.FaceIdController"
       alignment="CENTER" spacing="0"
       style="-fx-background-color:#0d1117; -fx-background-radius:16;"
-      prefWidth="460" prefHeight="580">
+      prefWidth="420" prefHeight="500">
 
     <!-- Header -->
     <VBox alignment="CENTER" spacing="6"
           style="-fx-background-color:#161b22;
-                 -fx-padding:18 24 14 24;
+                 -fx-padding:20 24 16 24;
                  -fx-border-color:transparent transparent #30363d transparent;
                  -fx-border-width:0 0 1 0;">
         <HBox alignment="CENTER" spacing="10">
@@ -29,29 +29,35 @@
                wrapText="true" textAlignment="CENTER"/>
     </VBox>
 
-    <!-- Camera preview — OpenCV draws the guide circle directly on the frame -->
-    <StackPane prefHeight="280"
+    <!-- Status area (replaces camera preview) -->
+    <StackPane prefHeight="200"
                style="-fx-background-color:#010409;">
 
-        <javafx.scene.image.ImageView fx:id="cameraView"
-               fitWidth="460" fitHeight="280"
-               preserveRatio="false"/>
+        <!-- Hidden elements kept for FXML binding -->
+        <javafx.scene.image.ImageView fx:id="cameraView" visible="false"/>
+        <Ellipse fx:id="faceOverlay" radiusX="1" radiusY="1"
+                 style="-fx-stroke:transparent; -fx-fill:transparent;" visible="false"/>
 
-        <!-- Invisible ellipse (kept for FXML binding, actual guide drawn by OpenCV) -->
-        <Ellipse fx:id="faceOverlay"
-                 radiusX="1" radiusY="1"
-                 style="-fx-stroke:transparent; -fx-fill:transparent;"
-                 visible="false"/>
+        <!-- Status display -->
+        <VBox fx:id="statusOverlay" alignment="CENTER" spacing="16"
+              style="-fx-background-color:#010409; -fx-padding:20;"
+              maxWidth="420">
 
-        <!-- Status overlay — shown only when camera is not started -->
-        <VBox fx:id="statusOverlay" alignment="CENTER" spacing="8"
-              style="-fx-background-color:rgba(1,4,9,0.85);
-                     -fx-padding:20; -fx-pref-height:280;"
-              maxWidth="460">            <Label fx:id="labelCameraStatus" text="Appuyez sur Ouvrir la camera"
-                   style="-fx-font-size:13; -fx-font-weight:600;
-                          -fx-text-fill:#8b949e;"
+            <!-- Face icon animation area -->
+            <StackPane minWidth="80" minHeight="80">
+                <Circle radius="40"
+                        style="-fx-fill:rgba(5,150,105,0.1);
+                               -fx-stroke:rgba(5,150,105,0.4);
+                               -fx-stroke-width:2;"/>
+                <Label text="Face ID"
+                       style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#34d399;"/>
+            </StackPane>
+
+            <Label fx:id="labelCameraStatus" text="Appuyez sur Demarrer"
+                   style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#8b949e;"
                    wrapText="true" textAlignment="CENTER"/>
-            <Label text="Assurez-vous d etre dans un endroit bien eclaire"
+
+            <Label text="La camera s ouvre dans une fenetre separee"
                    style="-fx-font-size:11; -fx-text-fill:#484f58;"
                    wrapText="true" textAlignment="CENTER"/>
         </VBox>
@@ -64,7 +70,7 @@
                  visible="false" managed="false"/>
 
     <!-- Content -->
-    <VBox spacing="12" style="-fx-padding:14 20 18 20;" VBox.vgrow="ALWAYS">
+    <VBox spacing="12" style="-fx-padding:16 20 20 20;" VBox.vgrow="ALWAYS">
 
         <!-- Result message -->
         <Label fx:id="labelResult" text="" wrapText="true"
@@ -73,15 +79,17 @@
                       -fx-border-radius:8; -fx-border-width:1;"
                visible="false" managed="false"/>
 
-        <!-- Tips (shown before camera starts) -->
-        <VBox spacing="4" style="-fx-padding:0 0 4 0;">
-            <Label text="Conseils pour un bon enregistrement :"
+        <!-- Tips -->
+        <VBox spacing="4">
+            <Label text="Comment ca marche :"
                    style="-fx-font-size:11; -fx-font-weight:600; -fx-text-fill:#8b949e;"/>
-            <Label text="  Eclairage face a vous (pas de contre-jour)"
+            <Label text="  1. Cliquez Demarrer"
                    style="-fx-font-size:11; -fx-text-fill:#484f58;"/>
-            <Label text="  Centrez votre visage dans le cercle"
+            <Label text="  2. La camera s ouvre automatiquement"
                    style="-fx-font-size:11; -fx-text-fill:#484f58;"/>
-            <Label text="  Restez immobile quand le cercle devient vert"
+            <Label text="  3. Placez votre visage face a la camera"
+                   style="-fx-font-size:11; -fx-text-fill:#484f58;"/>
+            <Label text="  4. Restez immobile quelques secondes"
                    style="-fx-font-size:11; -fx-text-fill:#484f58;"/>
         </VBox>
 
@@ -100,7 +108,7 @@
 
         <!-- Buttons -->
         <HBox spacing="10">
-            <Button fx:id="btnStart" text="Ouvrir la camera" onAction="#onStart"
+            <Button fx:id="btnStart" text="Demarrer" onAction="#onStart"
                     HBox.hgrow="ALWAYS" maxWidth="Infinity"
                     style="-fx-background-color:#059669; -fx-text-fill:white;
                            -fx-font-size:13; -fx-font-weight:700;
