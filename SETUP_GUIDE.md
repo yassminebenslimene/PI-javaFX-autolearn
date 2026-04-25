@@ -111,7 +111,38 @@ private static final String APP_SECRET = "YOUR_FACEBOOK_APP_SECRET";
 
 ---
 
-## ÉTAPE 6 — Configuration Discord Webhook (Alertes admin)
+## ÉTAPE 5.5 — Face ID (Reconnaissance faciale)
+
+### Ce qui est inclus automatiquement ✅
+- **OpenCV 4.7** — dans `pom.xml`, Maven le télécharge automatiquement
+- **haarcascade_frontalface_default.xml** — dans `src/main/resources/`, inclus dans le projet
+
+### Ce qui est nécessaire sur la machine
+- **Une webcam** — intégrée ou externe (USB)
+  - Sans webcam → le bouton Face ID affiche "Impossible d'accéder à la webcam"
+  - L'app fonctionne quand même, juste le Face ID est désactivé
+
+### Comment ça marche
+1. **Enregistrer son visage** : Profil → bouton "Activer Face ID" → regarder la webcam
+2. **Se connecter** : Page Login → bouton "Face ID" → entrer son email → regarder la webcam
+3. Les photos sont sauvegardées localement dans :
+   - Windows : `C:\Users\{ton_nom}\.autolearn\faces\user_{id}\`
+   - Linux/Mac : `~/.autolearn/faces/user_{id}/`
+
+### Problèmes fréquents Face ID
+
+| Erreur | Cause | Solution |
+|---|---|---|
+| "Detecteur non disponible" | Fichier cascade manquant | Vérifier que `haarcascade_frontalface_default.xml` est dans `src/main/resources/` |
+| "Impossible d'accéder à la webcam" | Pas de webcam ou accès refusé | Brancher une webcam ou autoriser l'accès |
+| "Aucun visage détecté" | Mauvais éclairage | S'assurer d'être bien éclairé face à la caméra |
+| "Visage non reconnu" | Enregistrement insuffisant | Re-enregistrer son visage dans de meilleures conditions |
+| OpenCV ne charge pas | Problème de drivers | Mettre à jour les drivers de la webcam |
+
+### Note importante
+Les données Face ID sont **locales** — elles ne sont pas dans la base de données et ne sont pas partagées. Chaque utilisateur doit enregistrer son propre visage sur sa propre machine.
+
+---
 
 Fichier : `src/main/java/tn/esprit/services/ApiService.java`
 
@@ -170,6 +201,7 @@ mvn clean javafx:run
 | Maven | ✅ OUI | L'app ne compile pas |
 | MySQL + `autolearn_db` | ✅ OUI | L'app crashe au démarrage |
 | Mot de passe MySQL | ✅ Si ton MySQL en a un | Erreur de connexion DB |
+| Webcam | ⚠️ Pour Face ID | Face ID désactivé, app fonctionne |
 | Ollama + gemma3:4b | ⚠️ RECOMMANDÉ | Chatbot en mode basique (sans IA) |
 | Email Gmail | ⚠️ OPTIONNEL | Les emails ne s'envoient pas |
 | Symfony | ⚠️ OPTIONNEL | Tracking d'activités désactivé |
