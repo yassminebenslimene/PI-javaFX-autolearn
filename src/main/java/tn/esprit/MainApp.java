@@ -39,20 +39,36 @@ public class MainApp extends Application {
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
-        // Démarrer le serveur web embarqué pour les QR codes de participation
+        primaryStage.setMaximized(true);
+        // Démarrer le serveur web embarqué pour les QR codes de participation (module Evenement)
         ParticipationWebServer.start();
-        showLogin();
+        showLanding();
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() {
+        ParticipationWebServer.stop();
+    }
+
+    // ── Module User — navigation ──────────────────────────────────────────────
+
+    public static void showLanding() throws Exception {
+        load("/views/landing.fxml");
+        primaryStage.setTitle("AutoLearn — Bienvenue");
+        primaryStage.setMaximized(true);
     }
 
     public static void showRegister() throws Exception {
         load("/views/auth/register.fxml");
         primaryStage.setTitle("AutoLearn — Inscription");
+        primaryStage.setMaximized(true);
     }
 
     public static void showLogin() throws Exception {
         load("/views/auth/login.fxml");
         primaryStage.setTitle("AutoLearn — Connexion");
+        primaryStage.setMaximized(true);
     }
 
     public static void showResetPassword() throws Exception {
@@ -78,7 +94,47 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Mon Profil");
     }
 
-    /** Stub — GestionEvenement module fills this in */
+    /**
+     * Opens Face ID login dialog as a modal popup (module User).
+     */
+    public static void showFaceIdLogin(String prefillEmail) throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+            MainApp.class.getResource("/views/auth/face_id.fxml"));
+        javafx.scene.Parent root = loader.load();
+        tn.esprit.controllers.FaceIdController ctrl = loader.getController();
+        ctrl.setMode(tn.esprit.controllers.FaceIdController.Mode.LOGIN);
+        if (prefillEmail != null && !prefillEmail.isEmpty()) {
+            ctrl.prefillEmail(prefillEmail);
+        }
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(primaryStage);
+        dialog.setTitle("Face ID — Connexion");
+        dialog.setResizable(false);
+        dialog.setScene(new Scene(root));
+        dialog.show();
+    }
+
+    /**
+     * Opens Face ID register dialog as a modal popup (module User).
+     */
+    public static void showFaceIdRegister() throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+            MainApp.class.getResource("/views/auth/face_id.fxml"));
+        javafx.scene.Parent root = loader.load();
+        tn.esprit.controllers.FaceIdController ctrl = loader.getController();
+        ctrl.setMode(tn.esprit.controllers.FaceIdController.Mode.REGISTER);
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(primaryStage);
+        dialog.setTitle("Face ID — Enregistrement");
+        dialog.setResizable(false);
+        dialog.setScene(new Scene(root));
+        dialog.show();
+    }
+
+    // ── Module Evenement — navigation ─────────────────────────────────────────
+
     public static void showEvenements() throws Exception {
         load("/views/frontoffice/evenements.fxml");
         primaryStage.setMaximized(true);
@@ -159,18 +215,6 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Choisir un evenement");
     }
 
-    public static void showChallengesFront() throws Exception {
-        load("/views/frontoffice/showchallenges.fxml");
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — Challenges");
-    }
-
-    public static void showCommunauteFront() throws Exception {
-        load("/views/frontoffice/communaute/index.fxml");
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — Communauté");
-    }
-
     public static void showFeedback(Participation p, Evenement ev) throws Exception {
         FXMLLoader loader = getLoader("/views/frontoffice/feedback.fxml");
         setScene(loader);
@@ -185,14 +229,29 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Calendrier des Événements");
     }
 
-    public static void showSalleReservation(tn.esprit.entities.Evenement ev,
-                                             tn.esprit.entities.Equipe eq) throws Exception {
+    public static void showSalleReservation(Evenement ev, Equipe eq) throws Exception {
         FXMLLoader loader = getLoader("/views/frontoffice/salle_reservation.fxml");
         setScene(loader);
         tn.esprit.controllers.evenement.front.SalleReservationController ctrl = loader.getController();
         ctrl.setData(ev, eq);
         primaryStage.setTitle("AutoLearn — Plan de la Salle");
     }
+
+    // ── Autres modules ────────────────────────────────────────────────────────
+
+    public static void showChallengesFront() throws Exception {
+        load("/views/frontoffice/showchallenges.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Challenges");
+    }
+
+    public static void showCommunauteFront() throws Exception {
+        load("/views/frontoffice/communaute/index.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Communauté");
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static FXMLLoader getLoader(String fxml) throws Exception {
         java.net.URL resource = MainApp.class.getResource(fxml);
@@ -209,11 +268,9 @@ public class MainApp extends Application {
     }
 
     private static void load(String fxml) throws Exception {
-        // Use screen size so the scene always fills the window
         javafx.geometry.Rectangle2D screen = Screen.getPrimary().getVisualBounds();
         java.net.URL resource = MainApp.class.getResource(fxml);
         if (resource == null) {
-            // fallback: try without leading slash
             resource = MainApp.class.getResource(fxml.startsWith("/") ? fxml.substring(1) : fxml);
         }
         if (resource == null) throw new Exception("FXML not found: " + fxml);
@@ -224,9 +281,4 @@ public class MainApp extends Application {
     public static Stage getPrimaryStage() { return primaryStage; }
 
     public static void main(String[] args) { launch(args); }
-
-    @Override
-    public void stop() {
-        ParticipationWebServer.stop();
-    }
 }

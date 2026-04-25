@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
@@ -8,164 +7,367 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.ProfileController"
             maxWidth="Infinity" maxHeight="Infinity"
-            style="-fx-background-color:#f8f9fa;">
+            stylesheets="@styles/app.css"
+            style="-fx-background-color:#f0f2f5;">
+
+    <!-- TOP NAV -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="0"
-              style="-fx-background-color:rgba(122,106,216,0.96); -fx-min-height:64; -fx-max-height:64;
-                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
-            <padding><Insets left="36" right="36"/></padding>
-            <Label text="🎓" style="-fx-font-size:22;"/>
-            <Label text="  AutoLearn" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;"/>
+        <HBox alignment="CENTER_LEFT"
+              style="-fx-background-color:#7a6ad8;
+                     -fx-min-height:56; -fx-max-height:56;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,2);">
+            <padding><Insets left="32" right="32"/></padding>
+            <Label text="AutoLearn"
+                   style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="← Retour" onAction="#onBack"
-                    style="-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;
-                           -fx-font-size:12; -fx-font-weight:600; -fx-cursor:hand;
-                           -fx-border-width:0; -fx-padding:8 20 8 20; -fx-background-radius:20;"/>
+            <Button text="&lt; Retour" onAction="#onBack"
+                    style="-fx-background-color:rgba(255,255,255,0.2);
+                           -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:600;
+                           -fx-cursor:hand; -fx-border-width:0;
+                           -fx-padding:7 18 7 18; -fx-background-radius:20;"/>
         </HBox>
     </top>
+
     <center>
         <ScrollPane fitToWidth="true"
-                    style="-fx-background-color:#f8f9fa; -fx-background:transparent; -fx-border-width:0;">
-            <VBox alignment="TOP_CENTER" spacing="0" style="-fx-background-color:#f8f9fa;">
+                    style="-fx-background-color:#f0f2f5;
+                           -fx-background:transparent; -fx-border-width:0;">
+            <VBox spacing="0" style="-fx-background-color:#f0f2f5;">
 
-                <!-- Hero compact -->
-                <HBox alignment="CENTER_LEFT" spacing="28"
-                      style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
-                             -fx-padding:32 80 32 80;">
-                    <StackPane minWidth="90" minHeight="90" prefWidth="90" prefHeight="90">
-                        <Circle radius="45"
+                <!-- HERO BANNER -->
+                <HBox alignment="CENTER_LEFT" spacing="20"
+                      style="-fx-background-color:linear-gradient(to right,#7a6ad8,#5b4bc4);
+                             -fx-padding:28 40 28 40;">
+
+                    <!-- Avatar -->
+                    <StackPane minWidth="80" minHeight="80" prefWidth="80" prefHeight="80">
+                        <Circle radius="40"
                                 style="-fx-fill:rgba(255,255,255,0.2);
-                                       -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,0);"/>
+                                       -fx-stroke:rgba(255,255,255,0.5);
+                                       -fx-stroke-width:2;"/>
                         <Label fx:id="labelInitials" text=""
-                               style="-fx-text-fill:white; -fx-font-size:28; -fx-font-weight:800;"/>
+                               style="-fx-text-fill:white; -fx-font-size:26;
+                                      -fx-font-weight:900;"/>
+                        <javafx.scene.image.ImageView fx:id="avatarImageView"
+                               fitWidth="80" fitHeight="80"
+                               preserveRatio="false" visible="false" managed="false">
+                            <clip><Circle radius="40" centerX="40" centerY="40"/></clip>
+                        </javafx.scene.image.ImageView>
                     </StackPane>
+
+                    <!-- Name + email + badges -->
                     <VBox spacing="6" HBox.hgrow="ALWAYS">
                         <Label fx:id="labelFullName" text=""
-                               style="-fx-font-size:26; -fx-font-weight:800; -fx-text-fill:white;"/>
+                               style="-fx-font-size:22; -fx-font-weight:800;
+                                      -fx-text-fill:white;"/>
                         <Label fx:id="labelEmailHeader" text=""
-                               style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.75);"/>
-                        <HBox spacing="8">
+                               style="-fx-font-size:12;
+                                      -fx-text-fill:rgba(255,255,255,0.75);"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
                             <Label fx:id="labelRole" text=""
-                                   style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
-                                          -fx-background-radius:20; -fx-padding:3 12 3 12;
-                                          -fx-font-size:11; -fx-font-weight:700;"/>
+                                   style="-fx-background-color:rgba(255,255,255,0.22);
+                                          -fx-text-fill:white; -fx-background-radius:20;
+                                          -fx-padding:3 12 3 12; -fx-font-size:11;
+                                          -fx-font-weight:700;"/>
                             <Label fx:id="labelNiveauBadge" text=""
-                                   style="-fx-background-color:rgba(251,191,36,0.3); -fx-text-fill:#fef3c7;
-                                          -fx-background-radius:20; -fx-padding:3 12 3 12;
-                                          -fx-font-size:11; -fx-font-weight:700;"
+                                   style="-fx-background-color:rgba(251,191,36,0.3);
+                                          -fx-text-fill:#fef3c7; -fx-background-radius:20;
+                                          -fx-padding:3 12 3 12; -fx-font-size:11;
+                                          -fx-font-weight:700;"
                                    visible="false" managed="false"/>
                         </HBox>
                     </VBox>
+
+                    <!-- Security score pill -->
+                    <VBox alignment="CENTER" spacing="2"
+                          style="-fx-background-color:rgba(255,255,255,0.15);
+                                 -fx-background-radius:14; -fx-padding:14 22 14 22;">
+                        <Label fx:id="labelSecurityScore" text="—"
+                               style="-fx-font-size:26; -fx-font-weight:900;
+                                      -fx-text-fill:white;"/>
+                        <Label text="Score securite"
+                               style="-fx-font-size:10; -fx-text-fill:rgba(255,255,255,0.7);"/>
+                        <Label fx:id="labelSecurityText" text=""
+                               style="-fx-font-size:10; -fx-font-weight:700;
+                                      -fx-text-fill:rgba(255,255,255,0.9);"/>
+                    </VBox>
                 </HBox>
 
-                <!-- Form -->
-                <VBox alignment="TOP_CENTER" spacing="16" style="-fx-padding:28 80 40 80;">
-                    <VBox spacing="16" prefWidth="800" maxWidth="800">
+                <!-- MAIN CONTENT: 2 columns -->
+                <HBox spacing="16" alignment="TOP_CENTER"
+                      style="-fx-padding:20 40 32 40; -fx-background-color:#f0f2f5;">
 
-                        <!-- Success -->
+                    <!-- LEFT COLUMN -->
+                    <VBox spacing="14" HBox.hgrow="ALWAYS" maxWidth="480">
+
+                        <!-- Success label -->
                         <Label fx:id="successLabel" text="" wrapText="true"
-                               style="-fx-background-color:#d1fae5; -fx-border-color:#059669;
-                                      -fx-border-width:0 0 0 4; -fx-border-radius:6; -fx-background-radius:6;
-                                      -fx-text-fill:#065f46; -fx-font-size:13; -fx-font-weight:700;
-                                      -fx-padding:12 18 12 18;"
+                               style="-fx-background-color:#d1fae5;
+                                      -fx-border-color:#059669; -fx-border-width:0 0 0 4;
+                                      -fx-border-radius:6; -fx-background-radius:6;
+                                      -fx-text-fill:#065f46; -fx-font-size:12;
+                                      -fx-font-weight:700; -fx-padding:10 14 10 14;"
                                visible="false" managed="false"/>
 
-                        <!-- Infos Personnelles -->
+                        <!-- Personal Info Card -->
                         <VBox spacing="0"
-                              style="-fx-background-color:white; -fx-background-radius:14;
-                                     -fx-border-color:#e8e8e8; -fx-border-radius:14;
-                                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),12,0,0,3);">
-                            <HBox alignment="CENTER_LEFT"
-                                  style="-fx-padding:16 22 12 22;
-                                         -fx-border-color:transparent transparent #f0f0f0 transparent;
+                              style="-fx-background-color:white; -fx-background-radius:12;
+                                     -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                                     -fx-border-width:1;
+                                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2);">
+                            <HBox style="-fx-padding:14 18 10 18;
+                                         -fx-border-color:transparent transparent #f3f4f6 transparent;
                                          -fx-border-width:0 0 1 0;">
-                                <Label text="Informations Personnelles"
-                                       style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                                <Label text="Mes informations"
+                                       style="-fx-font-size:13; -fx-font-weight:700;
+                                              -fx-text-fill:#111827;"/>
                             </HBox>
-                            <VBox spacing="14" style="-fx-padding:18 22 22 22;">
-                                <HBox spacing="16">
-                                    <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                        <Label text="Prénom" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                        <TextField fx:id="fieldPrenom" promptText="Votre prénom"
-                                                   style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
-                                                          -fx-border-radius:8; -fx-background-radius:8;
-                                                          -fx-padding:10 14 10 14; -fx-font-size:13;"/>
-                                        <Label fx:id="errorPrenom" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="12"/>
+                            <VBox spacing="12" style="-fx-padding:14 18 18 18;">
+                                <HBox spacing="12">
+                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                        <Label text="Prenom"
+                                               style="-fx-font-size:11; -fx-font-weight:600;
+                                                      -fx-text-fill:#6b7280;"/>
+                                        <TextField fx:id="fieldPrenom"
+                                                   style="-fx-background-color:#f9fafb;
+                                                          -fx-border-color:#e5e7eb;
+                                                          -fx-border-radius:8;
+                                                          -fx-background-radius:8;
+                                                          -fx-padding:8 12 8 12;
+                                                          -fx-font-size:13;"/>
+                                        <Label fx:id="errorPrenom"
+                                               style="-fx-text-fill:#ef4444;
+                                                      -fx-font-size:10;" minHeight="10"/>
                                     </VBox>
-                                    <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                        <Label text="Nom" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                        <TextField fx:id="fieldNom" promptText="Votre nom"
-                                                   style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
-                                                          -fx-border-radius:8; -fx-background-radius:8;
-                                                          -fx-padding:10 14 10 14; -fx-font-size:13;"/>
-                                        <Label fx:id="errorNom" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="12"/>
-                                    </VBox>
-                                </HBox>
-                                <HBox spacing="16">
-                                    <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                        <Label text="Email" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                        <TextField fx:id="fieldEmail" promptText="votre@email.com"
-                                                   style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
-                                                          -fx-border-radius:8; -fx-background-radius:8;
-                                                          -fx-padding:10 14 10 14; -fx-font-size:13;"/>
-                                        <Label fx:id="errorEmail" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="12"/>
-                                    </VBox>
-                                    <VBox fx:id="labelNiveauRow" spacing="5" HBox.hgrow="ALWAYS"
-                                          visible="false" managed="false">
-                                        <Label text="Niveau" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                        <ComboBox fx:id="comboNiveau" maxWidth="Infinity"
-                                                  style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
-                                                         -fx-border-radius:8; -fx-background-radius:8; -fx-font-size:13;"/>
+                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                        <Label text="Nom"
+                                               style="-fx-font-size:11; -fx-font-weight:600;
+                                                      -fx-text-fill:#6b7280;"/>
+                                        <TextField fx:id="fieldNom"
+                                                   style="-fx-background-color:#f9fafb;
+                                                          -fx-border-color:#e5e7eb;
+                                                          -fx-border-radius:8;
+                                                          -fx-background-radius:8;
+                                                          -fx-padding:8 12 8 12;
+                                                          -fx-font-size:13;"/>
+                                        <Label fx:id="errorNom"
+                                               style="-fx-text-fill:#ef4444;
+                                                      -fx-font-size:10;" minHeight="10"/>
                                     </VBox>
                                 </HBox>
+                                <VBox spacing="4">
+                                    <Label text="Adresse email"
+                                           style="-fx-font-size:11; -fx-font-weight:600;
+                                                  -fx-text-fill:#6b7280;"/>
+                                    <TextField fx:id="fieldEmail"
+                                               style="-fx-background-color:#f9fafb;
+                                                      -fx-border-color:#e5e7eb;
+                                                      -fx-border-radius:8;
+                                                      -fx-background-radius:8;
+                                                      -fx-padding:8 12 8 12;
+                                                      -fx-font-size:13;"/>
+                                    <Label fx:id="errorEmail"
+                                           style="-fx-text-fill:#ef4444;
+                                                  -fx-font-size:10;" minHeight="10"/>
+                                </VBox>
+                                <VBox fx:id="labelNiveauRow" spacing="4"
+                                      visible="false" managed="false">
+                                    <Label text="Niveau"
+                                           style="-fx-font-size:11; -fx-font-weight:600;
+                                                  -fx-text-fill:#6b7280;"/>
+                                    <ComboBox fx:id="comboNiveau" maxWidth="Infinity"
+                                              style="-fx-background-color:#f9fafb;
+                                                     -fx-border-color:#e5e7eb;
+                                                     -fx-border-radius:8;
+                                                     -fx-background-radius:8;
+                                                     -fx-font-size:13;"/>
+                                </VBox>
                             </VBox>
                         </VBox>
 
-                        <!-- Sécurité -->
+                        <!-- Password Card -->
                         <VBox spacing="0"
-                              style="-fx-background-color:white; -fx-background-radius:14;
-                                     -fx-border-color:#e8e8e8; -fx-border-radius:14;
-                                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),12,0,0,3);">
-                            <HBox alignment="CENTER_LEFT"
-                                  style="-fx-padding:16 22 12 22;
-                                         -fx-border-color:transparent transparent #f0f0f0 transparent;
+                              style="-fx-background-color:white; -fx-background-radius:12;
+                                     -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                                     -fx-border-width:1;
+                                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2);">
+                            <HBox style="-fx-padding:14 18 10 18;
+                                         -fx-border-color:transparent transparent #f3f4f6 transparent;
                                          -fx-border-width:0 0 1 0;">
                                 <Label text="Changer le mot de passe"
-                                       style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
+                                       style="-fx-font-size:13; -fx-font-weight:700;
+                                              -fx-text-fill:#111827;"/>
                             </HBox>
-                            <HBox spacing="16" style="-fx-padding:18 22 22 22;">
-                                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                    <Label text="Nouveau mot de passe" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                    <PasswordField fx:id="fieldPassword" promptText="••••••••"
-                                                   style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
-                                                          -fx-border-radius:8; -fx-background-radius:8;
-                                                          -fx-padding:10 14 10 14; -fx-font-size:13;"/>
-                                    <Label text="Laissez vide pour ne pas changer"
-                                           style="-fx-text-fill:#aaa; -fx-font-size:11;"/>
-                                    <Label fx:id="errorPassword" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="12"/>
+                            <VBox spacing="12" style="-fx-padding:14 18 18 18;">
+                                <VBox spacing="4">
+                                    <Label text="Nouveau mot de passe"
+                                           style="-fx-font-size:11; -fx-font-weight:600;
+                                                  -fx-text-fill:#6b7280;"/>
+                                    <PasswordField fx:id="fieldPassword"
+                                                   promptText="Laisser vide pour ne pas changer"
+                                                   style="-fx-background-color:#f9fafb;
+                                                          -fx-border-color:#e5e7eb;
+                                                          -fx-border-radius:8;
+                                                          -fx-background-radius:8;
+                                                          -fx-padding:8 12 8 12;
+                                                          -fx-font-size:13;"/>
+                                    <Label fx:id="errorPassword"
+                                           style="-fx-text-fill:#ef4444;
+                                                  -fx-font-size:10;" minHeight="10"/>
                                 </VBox>
-                                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                    <Label text="Confirmer" style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#555;"/>
-                                    <PasswordField fx:id="fieldConfirmPassword" promptText="••••••••"
-                                                   style="-fx-background-color:#f9f9f9; -fx-border-color:#e0e0e0;
-                                                          -fx-border-radius:8; -fx-background-radius:8;
-                                                          -fx-padding:10 14 10 14; -fx-font-size:13;"/>
-                                    <Label fx:id="errorConfirmPassword" style="-fx-text-fill:#e74c3c; -fx-font-size:11;" minHeight="12"/>
+                                <VBox spacing="4">
+                                    <Label text="Confirmer le mot de passe"
+                                           style="-fx-font-size:11; -fx-font-weight:600;
+                                                  -fx-text-fill:#6b7280;"/>
+                                    <PasswordField fx:id="fieldConfirmPassword"
+                                                   promptText="Confirmer"
+                                                   style="-fx-background-color:#f9fafb;
+                                                          -fx-border-color:#e5e7eb;
+                                                          -fx-border-radius:8;
+                                                          -fx-background-radius:8;
+                                                          -fx-padding:8 12 8 12;
+                                                          -fx-font-size:13;"/>
+                                    <Label fx:id="errorConfirmPassword"
+                                           style="-fx-text-fill:#ef4444;
+                                                  -fx-font-size:10;" minHeight="10"/>
                                 </VBox>
-                            </HBox>
+                            </VBox>
                         </VBox>
 
-                        <!-- Save -->
-                        <HBox alignment="CENTER_RIGHT">
-                            <Button text="Sauvegarder les modifications" onAction="#onSave"
-                                    style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
-                                           -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;
-                                           -fx-padding:12 36 12 36; -fx-background-radius:12;
-                                           -fx-cursor:hand; -fx-border-width:0;
-                                           -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.35),10,0,0,3);"/>
-                        </HBox>
+                        <!-- Save Button -->
+                        <Button text="Enregistrer les modifications" onAction="#onSave"
+                                maxWidth="Infinity"
+                                style="-fx-background-color:#7a6ad8;
+                                       -fx-text-fill:white; -fx-font-size:13;
+                                       -fx-font-weight:700; -fx-padding:11 0 11 0;
+                                       -fx-background-radius:10; -fx-cursor:hand;
+                                       -fx-border-width:0;"/>
+
+                        <!-- Face ID Register Button -->
+                        <Button fx:id="btnFaceId" onAction="#onFaceIdRegister"
+                                maxWidth="Infinity"
+                                style="-fx-background-color:#f5f3ff;
+                                       -fx-text-fill:#7a6ad8; -fx-font-size:13;
+                                       -fx-font-weight:700; -fx-padding:11 0 11 0;
+                                       -fx-background-radius:10; -fx-cursor:hand;
+                                       -fx-border-width:1; -fx-border-color:#ddd6fe;
+                                       -fx-border-radius:10;"/>
                     </VBox>
-                </VBox>
+
+                    <!-- RIGHT COLUMN -->
+                    <VBox spacing="14" prefWidth="340" minWidth="300" maxWidth="360">
+
+                        <!-- Security Card -->
+                        <VBox spacing="0"
+                              style="-fx-background-color:white; -fx-background-radius:12;
+                                     -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                                     -fx-border-width:1;
+                                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2);">
+                            <HBox style="-fx-padding:14 18 10 18;
+                                         -fx-border-color:transparent transparent #f3f4f6 transparent;
+                                         -fx-border-width:0 0 1 0;">
+                                <Label text="Securite du compte"
+                                       style="-fx-font-size:13; -fx-font-weight:700;
+                                              -fx-text-fill:#111827;"/>
+                            </HBox>
+                            <VBox spacing="10" style="-fx-padding:14 18 18 18;">
+                                <Label fx:id="labelChainStatus" text=""
+                                       style="-fx-font-size:12; -fx-font-weight:600;
+                                              -fx-text-fill:#16a34a;" wrapText="true"/>
+                                <Label text="Vos modifications sont protegees et verifiables."
+                                       style="-fx-font-size:11; -fx-text-fill:#9ca3af;"
+                                       wrapText="true"/>
+                                <!-- Tips -->
+                                <VBox spacing="6" style="-fx-padding:10 0 0 0;">
+                                    <Label text="Conseils pour ameliorer votre securite :"
+                                           style="-fx-font-size:11; -fx-font-weight:600;
+                                                  -fx-text-fill:#374151;"/>
+                                    <Label text="  Changez votre mot de passe regulierement"
+                                           style="-fx-font-size:11; -fx-text-fill:#6b7280;"/>
+                                    <Label text="  Utilisez un email valide et accessible"
+                                           style="-fx-font-size:11; -fx-text-fill:#6b7280;"/>
+                                    <Label text="  Completez toutes vos informations"
+                                           style="-fx-font-size:11; -fx-text-fill:#6b7280;"/>
+                                </VBox>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Geo Location Card -->
+                        <VBox spacing="0"
+                              style="-fx-background-color:white; -fx-background-radius:12;
+                                     -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                                     -fx-border-width:1;
+                                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2);">
+                            <HBox style="-fx-padding:14 18 10 18;
+                                         -fx-border-color:transparent transparent #f3f4f6 transparent;
+                                         -fx-border-width:0 0 1 0;">
+                                <Label text="Lieu de connexion actuel"
+                                       style="-fx-font-size:13; -fx-font-weight:700;
+                                              -fx-text-fill:#111827;"/>
+                            </HBox>
+                            <VBox spacing="10" style="-fx-padding:14 18 18 18;">
+                                <Label fx:id="labelGeoLoading" text="Localisation en cours..."
+                                       style="-fx-font-size:12; -fx-text-fill:#9ca3af;"/>
+                                <VBox fx:id="geoInfoBox" spacing="10"
+                                      visible="false" managed="false">
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="Ville"
+                                               style="-fx-font-size:11; -fx-font-weight:600;
+                                                      -fx-text-fill:#6b7280; -fx-min-width:65;"/>
+                                        <Label fx:id="labelGeoCity" text=""
+                                               style="-fx-font-size:13; -fx-font-weight:700;
+                                                      -fx-text-fill:#111827;"/>
+                                    </HBox>
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="Pays"
+                                               style="-fx-font-size:11; -fx-font-weight:600;
+                                                      -fx-text-fill:#6b7280; -fx-min-width:65;"/>
+                                        <Label fx:id="labelGeoCountry" text=""
+                                               style="-fx-font-size:13; -fx-font-weight:700;
+                                                      -fx-text-fill:#111827;"/>
+                                    </HBox>
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="Adresse IP"
+                                               style="-fx-font-size:11; -fx-font-weight:600;
+                                                      -fx-text-fill:#6b7280; -fx-min-width:65;"/>
+                                        <Label fx:id="labelGeoIp" text=""
+                                               style="-fx-font-size:12; -fx-text-fill:#6b7280;
+                                                      -fx-font-family:monospace;"/>
+                                    </HBox>
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="Reseau"
+                                               style="-fx-font-size:11; -fx-font-weight:600;
+                                                      -fx-text-fill:#6b7280; -fx-min-width:65;"/>
+                                        <Label fx:id="labelGeoIsp" text=""
+                                               style="-fx-font-size:11; -fx-text-fill:#9ca3af;"
+                                               wrapText="true"/>
+                                    </HBox>
+                                </VBox>
+                                <Label fx:id="labelGeoError" text=""
+                                       style="-fx-font-size:11; -fx-text-fill:#9ca3af;"
+                                       visible="false" managed="false" wrapText="true"/>
+                            </VBox>
+                        </VBox>
+
+                        <!-- History Card -->
+                        <VBox spacing="0"
+                              style="-fx-background-color:white; -fx-background-radius:12;
+                                     -fx-border-color:#e5e7eb; -fx-border-radius:12;
+                                     -fx-border-width:1;
+                                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),8,0,0,2);">
+                            <HBox style="-fx-padding:14 18 10 18;
+                                         -fx-border-color:transparent transparent #f3f4f6 transparent;
+                                         -fx-border-width:0 0 1 0;">
+                                <Label text="Historique des modifications"
+                                       style="-fx-font-size:13; -fx-font-weight:700;
+                                              -fx-text-fill:#111827;"/>
+                            </HBox>
+                            <VBox fx:id="blockchainHistoryBox" spacing="8"
+                                  style="-fx-padding:12 18 16 18;"/>
+                        </VBox>
+
+                    </VBox>
+                </HBox>
             </VBox>
         </ScrollPane>
     </center>

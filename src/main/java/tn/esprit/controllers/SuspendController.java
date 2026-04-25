@@ -5,6 +5,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import tn.esprit.entities.User;
+import tn.esprit.services.ActivityApiClient;
+import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
 
@@ -95,6 +97,29 @@ public class SuspendController {
         }
 
         service.modifier(user);
+
+        // ── Log under ADMIN's ID ──────────────────────────────────────────────
+        var admin = SessionManager.getCurrentUser();
+        int logId = (admin != null) ? admin.getId() : user.getId();
+        if (user.isIsSuspended()) {
+            ActivityApiClient.logAsync(logId, "admin.suspended_student",
+                java.util.Map.of("student_email", user.getEmail(),
+                                 "student_name", user.getPrenom() + " " + user.getNom(),
+                                 "reason", user.getSuspensionReason() != null ? user.getSuspensionReason() : ""));
+        } else {
+            ActivityApiClient.logAsync(logId, "admin.reactivated_student",
+                java.util.Map.of("student_email", user.getEmail(),
+                                 "student_name", user.getPrenom() + " " + user.getNom()));
+        }
+
+        // Send email notification (async)
+        if (user.isIsSuspended()) {
+            EmailService.sendSuspensionNotification(user.getEmail(), user.getPrenom(),
+                user.getSuspensionReason() != null ? user.getSuspensionReason() : "Non précisée");
+        } else {
+            EmailService.sendReactivationNotification(user.getEmail(), user.getPrenom());
+        }
+
         ((Stage) btnAction.getScene().getWindow()).close();
     }
 
