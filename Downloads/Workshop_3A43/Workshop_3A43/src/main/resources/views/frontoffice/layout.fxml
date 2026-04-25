@@ -41,6 +41,9 @@
                 <Button text="Communauté" onAction="#onCommunaute"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="💻 GitHub" onAction="#onGitHubExamples"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
+                               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
             </HBox>
 
             <Region HBox.hgrow="ALWAYS"/>

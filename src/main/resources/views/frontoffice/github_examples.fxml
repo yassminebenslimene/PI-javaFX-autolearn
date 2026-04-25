@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="tn.esprit.controllers.GitHubExamplesController"
+      spacing="0" style="-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);">
+
+    <!-- Header avec gradient -->
+    <HBox alignment="CENTER_LEFT" spacing="15" 
+          style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-padding: 25 30;">
+        <Label text="💻" style="-fx-font-size: 32px;"/>
+        <VBox spacing="3">
+            <Label text="GitHub Code Explorer" 
+                   style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Label text="Découvrez des milliers d'exemples de code open source" 
+                   style="-fx-font-size: 13px; -fx-text-fill: rgba(255,255,255,0.9);"/>
+        </VBox>
+    </HBox>
+
+    <!-- Search Section avec style moderne -->
+    <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 25 30; 
+                              -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+        
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <VBox spacing="8" prefWidth="200">
+                <Label text="Langage de programmation" 
+                       style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #495057;"/>
+                <ComboBox fx:id="languageComboBox" prefWidth="200"
+                         style="-fx-background-color: white; -fx-border-color: #ced4da; 
+                                -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;"/>
+            </VBox>
+
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Rechercher des repositories" 
+                       style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #495057;"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <TextField fx:id="searchField" 
+                              promptText="Ex: machine learning, web framework, game engine..." 
+                              HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: white; -fx-border-color: #ced4da; 
+                                     -fx-border-radius: 8; -fx-background-radius: 8; 
+                                     -fx-padding: 10 15; -fx-font-size: 13px;"/>
+                    <Button fx:id="searchButton" text="🔍 Rechercher" 
+                           style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); 
+                                  -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;
+                                  -fx-padding: 10 25; -fx-background-radius: 8; -fx-cursor: hand;
+                                  -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 8, 0, 0, 2);"/>
+                </HBox>
+            </VBox>
+        </HBox>
+
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label fx:id="statusLabel" 
+                   style="-fx-text-fill: #6c757d; -fx-font-size: 12px; -fx-font-style: italic;"/>
+        </HBox>
+    </VBox>
+
+    <!-- Results Section avec design amélioré -->
+    <HBox spacing="20" VBox.vgrow="ALWAYS" style="-fx-padding: 20 30;">
+        
+        <!-- Liste des résultats avec style carte -->
+        <VBox spacing="10" prefWidth="380" 
+              style="-fx-background-color: white; -fx-background-radius: 12; 
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 3);">
+            <VBox spacing="8" style="-fx-padding: 20 20 10 20; 
+                                     -fx-background-color: #f8f9fa; 
+                                     -fx-background-radius: 12 12 0 0;">
+                <Label text="📦 Repositories trouvés" 
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #212529;"/>
+                <Label text="Cliquez sur un repository pour voir les détails" 
+                       style="-fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
+            </VBox>
+            
+            <ListView fx:id="resultsListView" VBox.vgrow="ALWAYS"
+                     style="-fx-background-color: transparent; -fx-border-width: 0; 
+                            -fx-background-insets: 0; -fx-padding: 0 10 10 10;
+                            -fx-fixed-cell-size: -1;"/>
+        </VBox>
+
+        <!-- Aperçu du code avec coloration syntaxique -->
+        <VBox spacing="0" HBox.hgrow="ALWAYS" 
+              style="-fx-background-color: white; -fx-background-radius: 12;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 3);">
+            
+            <!-- Header de la zone de code -->
+            <HBox alignment="CENTER_LEFT" spacing="15" 
+                  style="-fx-padding: 18 20; -fx-background-color: #2d3748; 
+                         -fx-background-radius: 12 12 0 0;">
+                <HBox spacing="6">
+                    <Label text="●" style="-fx-text-fill: #ff5f56; -fx-font-size: 14px;"/>
+                    <Label text="●" style="-fx-text-fill: #ffbd2e; -fx-font-size: 14px;"/>
+                    <Label text="●" style="-fx-text-fill: #27c93f; -fx-font-size: 14px;"/>
+                </HBox>
+                <Label text="📄 Détails du Repository" 
+                       style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: white;" 
+                       HBox.hgrow="ALWAYS"/>
+                <Button fx:id="openInBrowserButton" text="🌐 Ouvrir sur GitHub" 
+                       style="-fx-background-color: #667eea; -fx-text-fill: white; 
+                              -fx-font-size: 11px; -fx-font-weight: bold;
+                              -fx-padding: 6 15; -fx-background-radius: 6; -fx-cursor: hand;"/>
+            </HBox>
+
+            <!-- Zone de code avec style IDE -->
+            <TextArea fx:id="codePreviewArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS"
+                     style="-fx-control-inner-background: #1e1e1e; 
+                            -fx-text-fill: #d4d4d4; 
+                            -fx-font-family: 'Consolas', 'Monaco', 'Courier New', monospace; 
+                            -fx-font-size: 13px;
+                            -fx-background-color: #1e1e1e;
+                            -fx-background-radius: 0 0 12 12;
+                            -fx-padding: 15;
+                            -fx-border-width: 0;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Footer avec info -->
+    <HBox alignment="CENTER" spacing="10" 
+          style="-fx-background-color: #f8f9fa; -fx-padding: 15 30; 
+                 -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;">
+        <Label text="💡" style="-fx-font-size: 16px;"/>
+        <Label text="Astuce: Créez un token GitHub pour accéder à plus de fonctionnalités (5000 requêtes/heure au lieu de 60)"
+              style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" wrapText="true"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Hyperlink text="Obtenir un token →" 
+                  style="-fx-text-fill: #667eea; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+    </HBox>
+
+</VBox>

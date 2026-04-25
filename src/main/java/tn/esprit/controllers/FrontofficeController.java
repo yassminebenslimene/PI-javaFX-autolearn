@@ -43,6 +43,7 @@ public class FrontofficeController {
     @FXML private Button btnNavChallenges;
     @FXML private Button btnNavEvenements;
     @FXML private Button btnNavCommunaute;
+    @FXML private Button btnNavGitHub;
     @FXML private Button btnNavTodo;
 
     // Sections
@@ -62,7 +63,7 @@ public class FrontofficeController {
         "-fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
 
     private void setActiveNav(Button active) {
-        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavEvenements, btnNavCommunaute, btnNavTodo}) {
+        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavEvenements, btnNavCommunaute, btnNavGitHub, btnNavTodo}) {
             if (b != null) b.setStyle(b == active ? NAV_ACTIVE : NAV_INACTIVE);
         }
     }
@@ -678,6 +679,24 @@ public class FrontofficeController {
         } catch (Exception e) {
             e.printStackTrace();
             try { MainApp.showCommunauteFront(); } catch (Exception ex) { ex.printStackTrace(); }
+        }
+    }
+
+    @FXML public void onGitHubExamples() {
+        if (!requireLogin()) return;
+        setActiveNav(btnNavGitHub);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/github_examples.fxml"));
+            Parent root = loader.load();
+            setCenter(root);
+        } catch (Exception e) {
+            e.printStackTrace();
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setHeaderText("Impossible de charger les exemples GitHub");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
         }
     }
 

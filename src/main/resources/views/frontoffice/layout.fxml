@@ -29,6 +29,9 @@
                 <Button fx:id="btnNavCommunaute" text="Communaute" onAction="#onCommunaute"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button fx:id="btnNavGitHub" text="💻 GitHub" onAction="#onGitHubExamples"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
                 <Button fx:id="btnNavTodo" text="📋 Ma Liste" onAction="#onTodo"
                         style="-fx-background-color:rgba(255,255,255,0.12); -fx-text-fill:white; -fx-font-size:13;
                                -fx-font-weight:600; -fx-cursor:hand; -fx-padding:7 16 7 16;
