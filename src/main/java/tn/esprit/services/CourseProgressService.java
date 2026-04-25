@@ -65,47 +65,33 @@ public class CourseProgressService {
         }
     }
 
-    public void markChapterViewed(int userId, int chapitreId, int coursId) {
-        String sql = "INSERT INTO chapter_progress "
-            + "(user_id, chapitre_id, cours_id, quiz_score, completed_at) "
-            + "VALUES (?, ?, ?, NULL, ?) "
-            + "ON DUPLICATE KEY UPDATE "
-            + "cours_id = IFNULL(cours_id, ?), "
-            + "completed_at = IFNULL(completed_at, ?)";        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-            ps.setInt(1, userId);
-            ps.setInt(2, chapitreId);
-            ps.setInt(3, coursId);
-            ps.setTimestamp(4, now);
-            ps.setInt(5, coursId);
-            ps.setTimestamp(6, now);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println(">>> ERREUR markChapterViewed: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
     public void markChapterCompleted(int userId, int chapitreId, int coursId, int quizScore) {
+        // Marquer comme complété SEULEMENT si le score est >= 50%
+        boolean isCompleted = quizScore >= 50;
+        
         String sql = "INSERT INTO chapter_progress "
-            + "(user_id, chapitre_id, cours_id, quiz_score, completed_at) "
-            + "VALUES (?, ?, ?, ?, ?) "
+            + "(user_id, chapitre_id, cours_id, quiz_score, is_completed, completed_at) "
+            + "VALUES (?, ?, ?, ?, ?, ?) "
             + "ON DUPLICATE KEY UPDATE "
             + "cours_id = IFNULL(cours_id, ?), "
             + "quiz_score = GREATEST(IFNULL(quiz_score, 0), ?), "
-            + "completed_at = ?";
+            + "is_completed = IF(GREATEST(IFNULL(quiz_score, 0), ?) >= 50, 1, 0), "
+            + "completed_at = IF(GREATEST(IFNULL(quiz_score, 0), ?) >= 50, ?, completed_at)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             Timestamp now = Timestamp.valueOf(LocalDateTime.now());
             ps.setInt(1, userId);
             ps.setInt(2, chapitreId);
             ps.setInt(3, coursId);
             ps.setInt(4, quizScore);
-            ps.setTimestamp(5, now);
-            ps.setInt(6, coursId);
-            ps.setInt(7, quizScore);
-            ps.setTimestamp(8, now);
+            ps.setBoolean(5, isCompleted);
+            ps.setTimestamp(6, isCompleted ? now : null);
+            ps.setInt(7, coursId);
+            ps.setInt(8, quizScore);
+            ps.setInt(9, quizScore);
+            ps.setInt(10, quizScore);
+            ps.setTimestamp(11, now);
             int rows = ps.executeUpdate();
-            System.out.println(">>> INSERT chapter_progress: " + rows + " ligne(s)");
+            System.out.println(">>> INSERT chapter_progress: " + rows + " ligne(s) - Score: " + quizScore + "% - Complété: " + isCompleted);
         } catch (SQLException e) {
             System.err.println(">>> ERREUR markChapterCompleted: " + e.getMessage());
             e.printStackTrace();

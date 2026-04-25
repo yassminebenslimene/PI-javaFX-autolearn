@@ -77,14 +77,9 @@ public class FrontChapitreDetailController {
     }
 
     private void afficher(Chapitre chapitre) {
-        if (SessionManager.getCurrentUser() != null) {
-            progressService.markChapterViewed(
-                SessionManager.getCurrentUser().getId(),
-                chapitre.getId(),
-                cours.getId()
-            );
-        }
-
+        // Ne plus marquer comme vu automatiquement
+        // La progression augmentera seulement après réussite du quiz
+        
         labelBadge.setText("📌  Chapitre " + chapitre.getOrdre());
         labelCours.setText("🎓  " + cours.getTitre()
             + "   •   " + cours.getMatiere()
