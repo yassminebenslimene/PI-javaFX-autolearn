@@ -21,7 +21,7 @@ public class FaceIdService {
     private static final Path STORAGE_DIR =
         Path.of(System.getProperty("user.home"), ".autolearn", "faces");
 
-    private static final double AUTH_THRESHOLD = 0.65;
+    private static final double AUTH_THRESHOLD = 0.55;
     private static final int TRAINING_SAMPLES  = 30;
     private static final int FACE_SIZE         = 100;
     private static final int AUTH_ATTEMPTS     = 3;
