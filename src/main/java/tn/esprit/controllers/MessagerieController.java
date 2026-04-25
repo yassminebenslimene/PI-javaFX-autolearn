@@ -49,6 +49,7 @@ public class MessagerieController {
     @FXML private VBox      containerMessages;
     @FXML private TextField champMessage;
     @FXML private Button    btnEnvoyer;
+    @FXML private Button    btnEmoji;
     @FXML private HBox      indicateurEcriture;
     @FXML private Label     labelEcriture;
     @FXML private HBox      barreRechercheMsg;
@@ -509,6 +510,100 @@ public class MessagerieController {
         scrollMessages.setStyle("-fx-background-color:" + bg + "; -fx-background:" + bg + "; -fx-border-width:0;");
         panneauChat.setStyle("-fx-background-color:" + bg + ";");
         panneauVide.setStyle("-fx-background-color:" + bg + ";");
+    }
+
+    // ── Emoji Picker ──────────────────────────────────────────────────────────
+
+    /** Emojis organisés par catégorie. */
+    private static final String[][] EMOJIS = {
+        // Visages
+        {"😊","😂","😍","🥰","😎","😢","😡","🤔","😴","🤩","😇","🥳","😅","🤣","😆"},
+        // Gestes
+        {"👍","👎","👏","🙌","🤝","✌️","🤞","👋","🙏","💪","🤜","🤛","👊","✊","🖐"},
+        // Cœurs
+        {"❤️","🧡","💛","💚","💙","💜","🖤","🤍","💕","💞","💓","💗","💖","💝","💘"},
+        // Objets
+        {"🎉","🎊","🎁","🏆","⭐","🔥","💡","📚","💻","📱","🎮","🎵","🎶","🌟","✨"},
+        // Nature
+        {"🌸","🌺","🌻","🌹","🍀","🌈","☀️","🌙","⭐","🌊","🏔️","🌴","🦋","🐶","🐱"},
+    };
+
+    private javafx.stage.Popup emojiPopup;
+
+    @FXML
+    private void onOuvrirEmojis() {
+        if (emojiPopup != null && emojiPopup.isShowing()) {
+            emojiPopup.hide();
+            return;
+        }
+
+        emojiPopup = new javafx.stage.Popup();
+        emojiPopup.setAutoHide(true);
+
+        // Conteneur principal du picker
+        VBox picker = new VBox(8);
+        picker.setStyle(
+            "-fx-background-color:white; -fx-background-radius:16;" +
+            "-fx-border-color:#E5E7EB; -fx-border-radius:16; -fx-border-width:1;" +
+            "-fx-padding:12; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),20,0,0,6);"
+        );
+        picker.setPrefWidth(320);
+
+        // Titre
+        Label titre = new Label("😊  Emojis");
+        titre.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#374151; -fx-padding:0 0 4 0;");
+        picker.getChildren().add(titre);
+
+        // Grille d'emojis par catégorie
+        String[] categories = {"Visages", "Gestes", "Cœurs", "Objets", "Nature"};
+        for (int cat = 0; cat < EMOJIS.length; cat++) {
+            Label catLabel = new Label(categories[cat]);
+            catLabel.setStyle("-fx-font-size:10; -fx-text-fill:#9CA3AF; -fx-font-weight:700; -fx-padding:4 0 2 0;");
+            picker.getChildren().add(catLabel);
+
+            javafx.scene.layout.FlowPane grille = new javafx.scene.layout.FlowPane();
+            grille.setHgap(2); grille.setVgap(2);
+            grille.setPrefWrapLength(300);
+
+            for (String emoji : EMOJIS[cat]) {
+                Button btnE = new Button(emoji);
+                btnE.setStyle(
+                    "-fx-background-color:transparent; -fx-font-size:20;" +
+                    "-fx-cursor:hand; -fx-border-width:0; -fx-padding:4 5 4 5;" +
+                    "-fx-background-radius:8;"
+                );
+                // Hover
+                btnE.setOnMouseEntered(e ->
+                    btnE.setStyle("-fx-background-color:#F3F0FF; -fx-font-size:20;" +
+                                  "-fx-cursor:hand; -fx-border-width:0; -fx-padding:4 5 4 5;" +
+                                  "-fx-background-radius:8;"));
+                btnE.setOnMouseExited(e ->
+                    btnE.setStyle("-fx-background-color:transparent; -fx-font-size:20;" +
+                                  "-fx-cursor:hand; -fx-border-width:0; -fx-padding:4 5 4 5;" +
+                                  "-fx-background-radius:8;"));
+                // Clic → insérer l'emoji dans le champ
+                btnE.setOnAction(e -> {
+                    int pos = champMessage.getCaretPosition();
+                    String current = champMessage.getText();
+                    champMessage.setText(current.substring(0, pos) + emoji + current.substring(pos));
+                    champMessage.positionCaret(pos + emoji.length());
+                    champMessage.requestFocus();
+                    emojiPopup.hide();
+                });
+                grille.getChildren().add(btnE);
+            }
+            picker.getChildren().add(grille);
+        }
+
+        emojiPopup.getContent().add(picker);
+
+        // Positionner le popup au-dessus du bouton emoji
+        javafx.geometry.Bounds bounds = btnEmoji.localToScreen(btnEmoji.getBoundsInLocal());
+        emojiPopup.show(
+            btnEmoji.getScene().getWindow(),
+            bounds.getMinX() - 10,
+            bounds.getMinY() - picker.getPrefHeight() - 340
+        );
     }
 
     // ── Notifications ─────────────────────────────────────────────────────────
