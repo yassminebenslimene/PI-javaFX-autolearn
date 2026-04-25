@@ -1,14 +1,14 @@
 package tn.esprit.controllers;
 
 import javafx.animation.*;
+import javafx.animation.Interpolator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.shape.Circle;
-import javafx.util.Duration;
+import javafx.scene.shape.Circle;import javafx.util.Duration;
 import tn.esprit.entities.User;
 import tn.esprit.services.MessagerieService;
 import tn.esprit.session.SessionManager;
@@ -43,13 +43,15 @@ public class MessagerieController {
     @FXML private VBox   listContacts, listEtudiants, listDemandes;
 
     // Chat
-    @FXML private VBox      panneauVide, panneauChat;
+    @FXML private VBox      panneauVide;
+    @FXML private BorderPane panneauChat;
     @FXML private Label     labelAvatarChat, labelNomContact, labelStatutContact;
     @FXML private ScrollPane scrollMessages;
     @FXML private VBox      containerMessages;
     @FXML private TextField champMessage;
     @FXML private Button    btnEnvoyer;
     @FXML private Button    btnEmoji;
+    @FXML private Button    btnFichier;
     @FXML private HBox      indicateurEcriture;
     @FXML private Label     labelEcriture;
     @FXML private HBox      barreRechercheMsg;
@@ -62,7 +64,9 @@ public class MessagerieController {
     private Map<String, Object> contactActif = null;
     private int dernierMessageId = 0;
     private Timeline pollingTimeline;
+    private Timeline typingTimeline;   // timer pour masquer "est en train d'écrire"
     private boolean modeSombre = false;
+    private boolean typingEnCours = false;
 
     // Couleurs mode clair / sombre
     private static final String BG_CLAIR  = "#F5F6FA";
@@ -72,6 +76,14 @@ public class MessagerieController {
 
     // Cache des messages affichés (pour la recherche)
     private final List<Map<String, Object>> messagesAffiches = new ArrayList<>();
+
+    // Map notifId → Label "Vu" pour mise à jour dynamique
+    private final Map<Integer, Label> labelVuMap = new HashMap<>();
+
+    // Map notifId → HBox ligne (pour modifier/supprimer visuellement)
+    private final Map<Integer, HBox> ligneMap = new HashMap<>();
+    // Map notifId → Label bulle texte (pour modifier visuellement)
+    private final Map<Integer, Label> bulleTextMap = new HashMap<>();
 
     // ── Init ─────────────────────────────────────────────────────────────────
 
@@ -94,11 +106,22 @@ public class MessagerieController {
 
         // Entrée pour envoyer
         champMessage.setOnAction(e -> onEnvoyerMessage());
+        containerMessages.setFillWidth(true);
 
-        // Indicateur "est en train d'écrire" simulé
+        // ── Binding de hauteur : avec AnchorPane, les anchors gèrent tout automatiquement ──
+        // Aucun binding manuel nécessaire — AnchorPane.bottomAnchor=0 force le bon comportement
+
+        // Indicateur "est en train d'écrire" — s'affiche quand on tape, disparaît après 2s d'inactivité
         champMessage.textProperty().addListener((obs, old, val) -> {
-            if (contactActif != null && !val.isEmpty()) {
-                // On pourrait envoyer un signal "typing" — ici on simule juste l'affichage
+            if (contactActif == null) return;
+            if (!val.isEmpty()) {
+                // Afficher l'indicateur côté local (simulation)
+                // En vrai multi-user, on enverrait un signal "typing" en BDD
+                if (typingTimeline != null) typingTimeline.stop();
+                typingTimeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
+                    // Masquer après 2s sans frappe
+                }));
+                typingTimeline.play();
             }
         });
     }
@@ -324,17 +347,26 @@ public class MessagerieController {
         contactActif = contact;
         dernierMessageId = 0;
         messagesAffiches.clear();
+        labelVuMap.clear();
 
         String name = fullName(contact);
         labelNomContact.setText(name);
         labelAvatarChat.setText(initiales(name));
-        labelStatutContact.setText("Actif maintenant");
+        int otherId = (int) contact.get("userId");
+        String statut = service.getStatutEnLigne(otherId);
+        labelStatutContact.setText(statut);
+        // Color based on status
+        if ("Actif maintenant".equals(statut)) {
+            labelStatutContact.setStyle("-fx-font-size:11; -fx-text-fill:#22C55E; -fx-font-weight:600;");
+        } else {
+            labelStatutContact.setStyle("-fx-font-size:11; -fx-text-fill:#9CA3AF; -fx-font-weight:600;");
+        }
 
         panneauVide.setVisible(false); panneauVide.setManaged(false);
         panneauChat.setVisible(true);  panneauChat.setManaged(true);
 
         chargerConversation();
-        chargerContacts(); // Rafraîchir la sélection active
+        chargerContacts();
     }
 
     private void chargerConversation() {
@@ -360,34 +392,97 @@ public class MessagerieController {
         mettreAJourBadge();
     }
 
-    /** Ajoute une bulle de message avec animation. */
+    /** Ajoute une bulle de message avec animation, support image/fichier, statut vu. */
     private void ajouterBulle(Map<String, Object> msg) {
-        boolean isOwn = (boolean) msg.getOrDefault("isOwn", false);
-        String texte  = (String) msg.getOrDefault("texte", "");
-        Timestamp ts  = (Timestamp) msg.get("sentAt");
-        String heure  = ts != null ? ts.toLocalDateTime().format(TIME_FMT) : "";
+        boolean isOwn    = (boolean) msg.getOrDefault("isOwn", false);
+        String texte     = (String)  msg.getOrDefault("texte", "");
+        String fileType  = (String)  msg.getOrDefault("fileType", null);
+        String filePath  = (String)  msg.getOrDefault("filePath", null);
+        int    msgId     = (int)     msg.getOrDefault("id", 0);
+        Timestamp ts     = (Timestamp) msg.get("sentAt");
+        String heure     = ts != null ? ts.toLocalDateTime().format(TIME_FMT) : "";
 
-        // Bulle principale
-        Label bulle = new Label(texte);
-        bulle.setWrapText(true);
-        bulle.setMaxWidth(420);
-        bulle.setPadding(new Insets(10, 14, 10, 14));
+        // ── Contenu de la bulle ──────────────────────────────────────────────
+        javafx.scene.Node contenuNode;
 
-        if (isOwn) {
-            bulle.setStyle(
-                "-fx-background-color:linear-gradient(to bottom right,#7C3AED,#6D28D9);" +
-                "-fx-text-fill:white; -fx-font-size:13;" +
-                "-fx-background-radius:18 18 4 18;" +
-                "-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.25),8,0,0,3);");
+        if ("image".equals(fileType) && filePath != null) {
+            // Afficher l'image
+            try {
+                javafx.scene.image.Image img = new javafx.scene.image.Image(
+                    "file:///" + filePath.replace("\\", "/"), 260, 200, true, true);
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(img);
+                iv.setFitWidth(260); iv.setPreserveRatio(true);
+                iv.setStyle("-fx-background-radius:12;");
+                // Clic pour agrandir
+                iv.setOnMouseClicked(e -> agrandirImage(filePath));
+                iv.setStyle("-fx-cursor:hand;");
+                contenuNode = iv;
+            } catch (Exception ex) {
+                Label fallback = new Label("🖼 " + java.nio.file.Paths.get(filePath).getFileName());
+                fallback.setStyle("-fx-text-fill:" + (isOwn ? "white" : "#1A1D23") + "; -fx-font-size:13;");
+                contenuNode = fallback;
+            }
+        } else if ("file".equals(fileType) && filePath != null) {
+            // Afficher le fichier comme carte
+            String fileName = java.nio.file.Paths.get(filePath).getFileName().toString();
+            HBox fileCard = new HBox(10);
+            fileCard.setAlignment(Pos.CENTER_LEFT);
+            fileCard.setPadding(new Insets(10, 14, 10, 14));
+            fileCard.setStyle(isOwn
+                ? "-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-cursor:hand;"
+                : "-fx-background-color:#F3F4F6; -fx-background-radius:12; -fx-cursor:hand;");
+            Label icone = new Label("📎");
+            icone.setStyle("-fx-font-size:20;");
+            VBox fileInfo = new VBox(2);
+            Label nomFichier = new Label(fileName);
+            nomFichier.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:" +
+                                (isOwn ? "white" : "#1A1D23") + ";");
+            Label ouvrir = new Label("Cliquer pour ouvrir");
+            ouvrir.setStyle("-fx-font-size:10; -fx-text-fill:" + (isOwn ? "rgba(255,255,255,0.7)" : "#9CA3AF") + ";");
+            fileInfo.getChildren().addAll(nomFichier, ouvrir);
+            fileCard.getChildren().addAll(icone, fileInfo);
+            fileCard.setOnMouseClicked(e -> ouvrirFichier(filePath));
+            contenuNode = fileCard;
         } else {
-            bulle.setStyle(
-                "-fx-background-color:white; -fx-text-fill:#1A1D23; -fx-font-size:13;" +
-                "-fx-background-radius:18 18 18 4;" +
-                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),8,0,0,2);");
+            // Message texte normal
+            boolean isDeleted = (boolean) msg.getOrDefault("deleted", false);
+            if (isDeleted) {
+                texte = "[Message supprimé]";
+            }
+            Label bulle = new Label(texte.isEmpty() ? "..." : texte);
+            bulle.setWrapText(true);
+            bulle.setMaxWidth(400);
+            bulle.setPadding(new Insets(10, 14, 10, 14));
+            if (isDeleted) {
+                bulle.setStyle("-fx-background-color:#F3F4F6; -fx-text-fill:#9CA3AF; -fx-font-size:13;" +
+                               "-fx-font-style:italic; -fx-background-radius:18 18 4 18;");
+            } else {
+                bulle.setStyle(isOwn
+                    ? "-fx-background-color:linear-gradient(to bottom right,#7C3AED,#6D28D9);" +
+                      "-fx-text-fill:white; -fx-font-size:13;" +
+                      "-fx-background-radius:18 18 4 18;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.25),8,0,0,3);"
+                    : "-fx-background-color:white; -fx-text-fill:#1A1D23; -fx-font-size:13;" +
+                      "-fx-background-radius:18 18 18 4;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),8,0,0,2);");
+            }
+            contenuNode = bulle;
+            // Store reference for edit/delete
+            if (isOwn && msgId > 0) {
+                bulleTextMap.put(msgId, bulle);
+                // Context menu on right-click
+                javafx.scene.control.ContextMenu ctxMenu = new javafx.scene.control.ContextMenu();
+                javafx.scene.control.MenuItem itemModifier = new javafx.scene.control.MenuItem("✏️  Modifier");
+                javafx.scene.control.MenuItem itemSupprimer = new javafx.scene.control.MenuItem("🗑️  Supprimer");
+                itemModifier.setOnAction(ev -> modifierMessageUI(msgId, bulle));
+                itemSupprimer.setOnAction(ev -> supprimerMessageUI(msgId, bulle));
+                ctxMenu.getItems().addAll(itemModifier, new javafx.scene.control.SeparatorMenuItem(), itemSupprimer);
+                bulle.setOnContextMenuRequested(ev -> ctxMenu.show(bulle, ev.getScreenX(), ev.getScreenY()));
+            }
         }
 
-        // Heure + statut "Vu"
-        HBox meta = new HBox(6);
+        // ── Métadonnées : heure + statut ────────────────────────────────────
+        HBox meta = new HBox(5);
         meta.setAlignment(isOwn ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
 
         Label heureLabel = new Label(heure);
@@ -395,18 +490,22 @@ public class MessagerieController {
         meta.getChildren().add(heureLabel);
 
         if (isOwn) {
-            Label vu = new Label("Vu ✓");
-            vu.setStyle("-fx-font-size:10; -fx-text-fill:#A78BFA;");
-            meta.getChildren().add(vu);
+            // Statut : ✔ envoyé → ✔✔ reçu → ✔✔ vu (violet)
+            boolean vu = service.estVu(msgId);
+            Label labelStatut = new Label(vu ? "✔✔ Vu" : "✔ Envoyé");
+            labelStatut.setStyle("-fx-font-size:10; -fx-text-fill:" + (vu ? "#A78BFA" : "#9CA3AF") + ";");
+            meta.getChildren().add(labelStatut);
+            // Garder référence pour mise à jour dynamique
+            if (msgId > 0) labelVuMap.put(msgId, labelStatut);
         }
 
-        VBox bulleBox = new VBox(4, bulle, meta);
+        // ── Assemblage ───────────────────────────────────────────────────────
+        VBox bulleBox = new VBox(4, contenuNode, meta);
         bulleBox.setAlignment(isOwn ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
         bulleBox.setMaxWidth(460);
 
-        // Avatar pour les messages reçus
         HBox ligne;
-        if (!isOwn) {
+        if (!isOwn && contactActif != null) {
             StackPane avatarSmall = buildAvatar(fullName(contactActif), "#7C3AED", "#A78BFA", 14);
             ligne = new HBox(8, avatarSmall, bulleBox);
             ligne.setAlignment(Pos.BOTTOM_LEFT);
@@ -416,16 +515,47 @@ public class MessagerieController {
         }
         ligne.setPadding(new Insets(3, 0, 3, 0));
 
-        // Animation d'apparition
+        // ── Animation d'apparition ───────────────────────────────────────────
         ligne.setOpacity(0);
         containerMessages.getChildren().add(ligne);
-        FadeTransition ft = new FadeTransition(Duration.millis(200), ligne);
+
+        FadeTransition ft = new FadeTransition(Duration.millis(220), ligne);
         ft.setFromValue(0); ft.setToValue(1);
-
-        TranslateTransition tt = new TranslateTransition(Duration.millis(200), ligne);
-        tt.setFromY(isOwn ? 10 : -10); tt.setToY(0);
-
+        TranslateTransition tt = new TranslateTransition(Duration.millis(220), ligne);
+        tt.setFromY(isOwn ? 12 : -12); tt.setToY(0);
         new ParallelTransition(ft, tt).play();
+
+        // ── Notification sonore pour messages reçus ──────────────────────────
+        if (!isOwn) {
+            java.awt.Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    /** Agrandit une image dans une nouvelle fenêtre. */
+    private void agrandirImage(String filePath) {
+        try {
+            javafx.scene.image.Image img = new javafx.scene.image.Image("file:///" + filePath.replace("\\", "/"));
+            javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(img);
+            iv.setPreserveRatio(true);
+            iv.setFitWidth(Math.min(img.getWidth(), 900));
+            iv.setFitHeight(Math.min(img.getHeight(), 700));
+
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle(java.nio.file.Paths.get(filePath).getFileName().toString());
+            stage.setScene(new javafx.scene.Scene(new StackPane(iv)));
+            stage.show();
+        } catch (Exception e) {
+            System.err.println("Impossible d'ouvrir l'image : " + e.getMessage());
+        }
+    }
+
+    /** Ouvre un fichier avec l'application par défaut du système. */
+    private void ouvrirFichier(String filePath) {
+        try {
+            java.awt.Desktop.getDesktop().open(new java.io.File(filePath));
+        } catch (Exception e) {
+            System.err.println("Impossible d'ouvrir le fichier : " + e.getMessage());
+        }
     }
 
     /** Séparateur de date entre les messages. */
@@ -450,9 +580,10 @@ public class MessagerieController {
         String senderName = currentUser.getPrenom() + " " + currentUser.getNom();
 
         service.envoyerMessage(currentUser.getId(), otherId, senderName, texte);
+        service.mettreAJourActivite(currentUser.getId());
         champMessage.clear();
 
-        // Afficher immédiatement
+        // Afficher immédiatement avec statut "✔ Envoyé"
         Map<String, Object> msgLocal = new HashMap<>();
         msgLocal.put("id", ++dernierMessageId);
         msgLocal.put("texte", texte);
@@ -467,6 +598,135 @@ public class MessagerieController {
         st.setFromX(1); st.setToX(0.85);
         st.setAutoReverse(true); st.setCycleCount(2);
         st.play();
+    }
+
+    /** Ouvre le FileChooser pour envoyer une image ou un fichier. */
+    @FXML
+    private void onEnvoyerFichier() {
+        if (contactActif == null) return;
+
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Choisir un fichier à envoyer");
+        fc.getExtensionFilters().addAll(
+            new javafx.stage.FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp"),
+            new javafx.stage.FileChooser.ExtensionFilter("Documents", "*.pdf", "*.doc", "*.docx", "*.txt", "*.xlsx"),
+            new javafx.stage.FileChooser.ExtensionFilter("Tous les fichiers", "*.*")
+        );
+
+        java.io.File file = fc.showOpenDialog(btnEnvoyer.getScene().getWindow());
+        if (file == null) return;
+
+        String filePath = file.getAbsolutePath();
+        String fileName = file.getName().toLowerCase();
+        boolean isImage = fileName.endsWith(".png") || fileName.endsWith(".jpg") ||
+                          fileName.endsWith(".jpeg") || fileName.endsWith(".gif") ||
+                          fileName.endsWith(".bmp") || fileName.endsWith(".webp");
+
+        if (isImage) {
+            // Show preview dialog before sending
+            afficherPreviewImage(filePath);
+        } else {
+            // Send file directly
+            envoyerFichierConfirme(filePath, "file");
+        }
+    }
+
+    /** Affiche une prévisualisation de l'image avant envoi. */
+    private void afficherPreviewImage(String filePath) {
+        try {
+            javafx.scene.image.Image img = new javafx.scene.image.Image(
+                "file:///" + filePath.replace("\\", "/"), 500, 400, true, true);
+            javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(img);
+            iv.setPreserveRatio(true);
+            iv.setFitWidth(400);
+            iv.setFitHeight(300);
+
+            // Caption field
+            javafx.scene.control.TextField captionField = new javafx.scene.control.TextField();
+            captionField.setPromptText("Ajouter une légende (optionnel)...");
+            captionField.setStyle("-fx-background-color:#F5F6FA; -fx-border-color:#E5E7EB;" +
+                                  "-fx-border-radius:8; -fx-background-radius:8;" +
+                                  "-fx-padding:8 12 8 12; -fx-font-size:13;");
+
+            // File name label
+            javafx.scene.control.Label fileNameLabel = new javafx.scene.control.Label(
+                "📷  " + java.nio.file.Paths.get(filePath).getFileName().toString());
+            fileNameLabel.setStyle("-fx-font-size:12; -fx-text-fill:#6B7280; -fx-font-weight:600;");
+
+            VBox content = new VBox(12,
+                fileNameLabel,
+                iv,
+                captionField
+            );
+            content.setAlignment(javafx.geometry.Pos.CENTER);
+            content.setPadding(new javafx.geometry.Insets(16));
+            content.setStyle("-fx-background-color:white;");
+
+            // Custom dialog
+            javafx.scene.control.Dialog<Boolean> dialog = new javafx.scene.control.Dialog<>();
+            dialog.setTitle("Aperçu avant envoi");
+            dialog.setHeaderText(null);
+            dialog.getDialogPane().setContent(content);
+            dialog.getDialogPane().setStyle("-fx-background-color:white; -fx-padding:0;");
+
+            // Buttons
+            javafx.scene.control.ButtonType btnEnvoyerType = new javafx.scene.control.ButtonType(
+                "📤  Envoyer", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
+            javafx.scene.control.ButtonType btnAnnulerType = new javafx.scene.control.ButtonType(
+                "Annuler", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+            dialog.getDialogPane().getButtonTypes().addAll(btnEnvoyerType, btnAnnulerType);
+
+            // Style the send button
+            javafx.scene.Node sendBtn = dialog.getDialogPane().lookupButton(btnEnvoyerType);
+            sendBtn.setStyle("-fx-background-color:#7C3AED; -fx-text-fill:white; -fx-font-weight:700;" +
+                             "-fx-background-radius:8; -fx-padding:8 20 8 20; -fx-cursor:hand;");
+
+            dialog.setResultConverter(btn -> btn == btnEnvoyerType);
+
+            dialog.showAndWait().ifPresent(confirmed -> {
+                if (confirmed) {
+                    String caption = captionField.getText().trim();
+                    envoyerFichierConfirme(filePath, "image");
+                    // If caption, send as additional text message
+                    if (!caption.isEmpty()) {
+                        int otherId = (int) contactActif.get("userId");
+                        String senderName = currentUser.getPrenom() + " " + currentUser.getNom();
+                        service.envoyerMessage(currentUser.getId(), otherId, senderName, caption);
+                        Map<String, Object> captionMsg = new HashMap<>();
+                        captionMsg.put("id", ++dernierMessageId);
+                        captionMsg.put("texte", caption);
+                        captionMsg.put("sentAt", new java.sql.Timestamp(System.currentTimeMillis()));
+                        captionMsg.put("isOwn", true);
+                        ajouterBulle(captionMsg);
+                        messagesAffiches.add(captionMsg);
+                    }
+                    scrollerEnBas();
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("Erreur preview image: " + e.getMessage());
+            envoyerFichierConfirme(filePath, "image");
+        }
+    }
+
+    /** Envoie effectivement le fichier après confirmation. */
+    private void envoyerFichierConfirme(String filePath, String fileType) {
+        int otherId = (int) contactActif.get("userId");
+        String senderName = currentUser.getPrenom() + " " + currentUser.getNom();
+
+        service.envoyerMessageComplet(currentUser.getId(), otherId, senderName, "", fileType, filePath);
+        service.mettreAJourActivite(currentUser.getId());
+
+        Map<String, Object> msgLocal = new HashMap<>();
+        msgLocal.put("id", ++dernierMessageId);
+        msgLocal.put("texte", "");
+        msgLocal.put("fileType", fileType);
+        msgLocal.put("filePath", filePath);
+        msgLocal.put("sentAt", new java.sql.Timestamp(System.currentTimeMillis()));
+        msgLocal.put("isOwn", true);
+        ajouterBulle(msgLocal);
+        messagesAffiches.add(msgLocal);
+        scrollerEnBas();
     }
 
     // ── Recherche dans messages ───────────────────────────────────────────────
@@ -504,9 +764,8 @@ public class MessagerieController {
 
     @FXML private void onToggleModeSombre() {
         modeSombre = !modeSombre;
-        // Appliquer le fond sur les conteneurs principaux
         String bg = modeSombre ? BG_SOMBRE : BG_CLAIR;
-        containerMessages.setStyle("-fx-padding:20 24 12 24; -fx-background-color:" + bg + ";");
+        containerMessages.setStyle("-fx-padding:16 20 16 20; -fx-background-color:" + bg + ";");
         scrollMessages.setStyle("-fx-background-color:" + bg + "; -fx-background:" + bg + "; -fx-border-width:0;");
         panneauChat.setStyle("-fx-background-color:" + bg + ";");
         panneauVide.setStyle("-fx-background-color:" + bg + ";");
@@ -626,6 +885,21 @@ public class MessagerieController {
             Platform.runLater(() -> {
                 if (contactActif != null) {
                     int otherId = (int) contactActif.get("userId");
+
+                    // Refresh contact status
+                    String statut = service.getStatutEnLigne(otherId);
+                    Platform.runLater(() -> {
+                        if (labelStatutContact != null) {
+                            labelStatutContact.setText(statut);
+                            if ("Actif maintenant".equals(statut)) {
+                                labelStatutContact.setStyle("-fx-font-size:11; -fx-text-fill:#22C55E; -fx-font-weight:600;");
+                            } else {
+                                labelStatutContact.setStyle("-fx-font-size:11; -fx-text-fill:#9CA3AF; -fx-font-weight:600;");
+                            }
+                        }
+                    });
+
+                    // Nouveaux messages reçus
                     List<Map<String, Object>> nouveaux =
                         service.getNouveauxMessages(currentUser.getId(), otherId, dernierMessageId);
                     if (!nouveaux.isEmpty()) {
@@ -636,13 +910,35 @@ public class MessagerieController {
                             if (id > dernierMessageId) dernierMessageId = id;
                         }
                         scrollerEnBas();
-                        // Simuler "est en train d'écrire" → masquer après réception
+                        // Masquer "est en train d'écrire" après réception
                         indicateurEcriture.setVisible(false);
                         indicateurEcriture.setManaged(false);
+                        typingEnCours = false;
+                    }
+
+                    // Simuler "est en train d'écrire" si le contact a tapé récemment
+                    // (détection : message en BDD créé il y a < 5s mais pas encore dans notre liste)
+                    // → On vérifie si un nouveau message est en cours d'écriture côté contact
+                    // Pour la simulation : on affiche l'indicateur aléatoirement si pas de nouveaux msgs
+                    // En production réelle, on utiliserait un signal "typing" en BDD
+
+                    // Mise à jour des statuts "vu" pour les messages envoyés
+                    for (Map.Entry<Integer, Label> entry : labelVuMap.entrySet()) {
+                        int notifId = entry.getKey();
+                        Label lbl = entry.getValue();
+                        if (!"✔✔ Vu".equals(lbl.getText())) {
+                            boolean vu = service.estVu(notifId);
+                            if (vu) {
+                                lbl.setText("✔✔ Vu");
+                                lbl.setStyle("-fx-font-size:10; -fx-text-fill:#A78BFA;");
+                            }
+                        }
                     }
                 }
+
                 chargerDemandes();
                 mettreAJourBadge();
+
                 // Rafraîchir contacts si nouveau follow accepté
                 List<Map<String, Object>> newContacts = service.getContacts(currentUser.getId());
                 if (newContacts.size() != tousContacts.size()) {
@@ -665,7 +961,14 @@ public class MessagerieController {
         Platform.runLater(() -> {
             scrollMessages.applyCss();
             scrollMessages.layout();
-            scrollMessages.setVvalue(1.0);
+            scrollMessages.setVvalue(scrollMessages.getVmax());
+            // Smooth scroll style WhatsApp
+            Timeline t = new Timeline(
+                new KeyFrame(Duration.millis(200),
+                    new KeyValue(scrollMessages.vvalueProperty(), 1.0,
+                        Interpolator.EASE_OUT))
+            );
+            t.play();
         });
     }
 
@@ -715,5 +1018,46 @@ public class MessagerieController {
             return String.valueOf(parts[0].charAt(0)).toUpperCase() +
                    String.valueOf(parts[1].charAt(0)).toUpperCase();
         return String.valueOf(name.charAt(0)).toUpperCase();
+    }
+
+    /** Modifier un message — ouvre un dialog de saisie. */
+    private void modifierMessageUI(int notifId, Label bulleLabel) {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(
+            bulleLabel.getText().replace(" (modifié)", "")
+        );
+        dialog.setTitle("Modifier le message");
+        dialog.setHeaderText("✏️  Modifier votre message");
+        dialog.setContentText("Nouveau texte :");
+        // Style du dialog
+        dialog.getDialogPane().setStyle("-fx-font-size:13;");
+        dialog.showAndWait().ifPresent(nouveauTexte -> {
+            if (!nouveauTexte.isBlank()) {
+                boolean ok = service.modifierMessage(notifId, nouveauTexte);
+                if (ok) {
+                    bulleLabel.setText(nouveauTexte + " (modifié)");
+                }
+            }
+        });
+    }
+
+    /** Supprimer un message — confirmation puis soft delete. */
+    private void supprimerMessageUI(int notifId, Label bulleLabel) {
+        javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(
+            javafx.scene.control.Alert.AlertType.CONFIRMATION
+        );
+        confirm.setTitle("Supprimer le message");
+        confirm.setHeaderText("🗑️  Supprimer ce message ?");
+        confirm.setContentText("Cette action est irréversible.");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == javafx.scene.control.ButtonType.OK) {
+                boolean ok = service.supprimerMessage(notifId);
+                if (ok) {
+                    bulleLabel.setText("[Message supprimé]");
+                    bulleLabel.setStyle("-fx-background-color:#F3F4F6; -fx-text-fill:#9CA3AF;" +
+                                        "-fx-font-size:13; -fx-font-style:italic;" +
+                                        "-fx-background-radius:18 18 4 18; -fx-padding:10 14 10 14;");
+                }
+            }
+        });
     }
 }

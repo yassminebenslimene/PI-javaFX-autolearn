@@ -264,16 +264,56 @@ public class MessagerieService {
      * @param texte      Contenu du message
      */
     public void envoyerMessage(int senderId, int receiverId, String senderName, String texte) {
+        envoyerMessageComplet(senderId, receiverId, senderName, texte, null, null);
+    }
+
+    /**
+     * Envoie un message avec fichier ou image joint.
+     */
+    public void envoyerMessageComplet(int senderId, int receiverId, String senderName,
+                                       String texte, String fileType, String filePath) {
+        String json = buildChatJsonFull(senderId, senderName,
+            texte.isEmpty() && filePath != null ? "[fichier]" : texte,
+            receiverId, fileType, filePath);
+        String title = senderName + (filePath != null ? " vous a envoyé un fichier" : " vous a envoyé un message");
         String sql = "INSERT INTO notification (type, title, message, is_read, created_at, user_id) " +
                      "VALUES ('chat_message', ?, ?, 0, NOW(), ?)";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, senderName + " vous a envoyé un message");
-            ps.setString(2, buildChatJson(senderId, senderName, texte, receiverId));
+        try (PreparedStatement ps = conn().prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, title);
+            ps.setString(2, json);
             ps.setInt(3, receiverId);
             ps.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("[Messagerie] envoyerMessage: " + e.getMessage());
+            System.err.println("[Messagerie] envoyerMessageComplet: " + e.getMessage());
         }
+    }
+
+    /**
+     * Marque un message spécifique comme "vu" (is_read=1).
+     */
+    public void marquerVu(int notifId) {
+        String sql = "UPDATE notification SET is_read=1, read_at=NOW() WHERE id=?";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setInt(1, notifId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("[Messagerie] marquerVu: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Vérifie si un message a été vu (is_read=1).
+     */
+    public boolean estVu(int notifId) {
+        String sql = "SELECT is_read FROM notification WHERE id=?";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setInt(1, notifId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getBoolean("is_read");
+        } catch (SQLException e) {
+            System.err.println("[Messagerie] estVu: " + e.getMessage());
+        }
+        return false;
     }
 
     /**
@@ -442,10 +482,27 @@ public class MessagerieService {
     }
 
     private String buildChatJson(int senderId, String senderName, String texte, int conversationWith) {
-        return "{\"senderId\":" + senderId +
-               ",\"senderName\":\"" + senderName.replace("\"", "'") + "\"" +
-               ",\"text\":\"" + texte.replace("\"", "'").replace("\n", " ") + "\"" +
-               ",\"conversationWith\":" + conversationWith + "}";
+        return buildChatJsonFull(senderId, senderName, texte, conversationWith, null, null);
+    }
+
+    /**
+     * Construit le JSON d'un message avec support fichier/image.
+     * @param fileType  "image" | "file" | null
+     * @param filePath  chemin absolu du fichier, ou null
+     */
+    public String buildChatJsonFull(int senderId, String senderName, String texte,
+                                     int conversationWith, String fileType, String filePath) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"senderId\":").append(senderId)
+          .append(",\"senderName\":\"").append(senderName.replace("\"", "'")).append("\"")
+          .append(",\"text\":\"").append(texte.replace("\"", "'").replace("\n", " ")).append("\"")
+          .append(",\"conversationWith\":").append(conversationWith);
+        if (fileType != null && filePath != null) {
+            sb.append(",\"fileType\":\"").append(fileType).append("\"");
+            sb.append(",\"filePath\":\"").append(filePath.replace("\\", "/").replace("\"", "'")).append("\"");
+        }
+        sb.append("}");
+        return sb.toString();
     }
 
     private void parseFollowJson(String json, Map<String, Object> out) {
@@ -460,6 +517,94 @@ public class MessagerieService {
         out.put("senderId",   extractInt(json, "senderId"));
         out.put("senderName", extractStr(json, "senderName"));
         out.put("texte",      extractStr(json, "text"));
+        String ft = extractStr(json, "fileType");
+        String fp = extractStr(json, "filePath");
+        if (!ft.isEmpty()) out.put("fileType", ft);
+        if (!fp.isEmpty()) out.put("filePath", fp);
+        // Detect deleted flag
+        if (json.contains("\"deleted\":true")) out.put("deleted", true);
+    }
+
+    /** Modifie le texte d'un message existant (ajoute " (modifié)" dans le JSON). */
+    public boolean modifierMessage(int notifId, String nouveauTexte) {
+        // Récupérer le message actuel
+        String sql = "SELECT message FROM notification WHERE id=? AND type='chat_message'";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setInt(1, notifId);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) return false;
+            String json = rs.getString("message");
+            // Remplacer le texte dans le JSON
+            // Le champ "text" est entre "text":" et le prochain "
+            String newJson = json.replaceAll("\"text\":\"[^\"]*\"",
+                "\"text\":\"" + nouveauTexte.replace("\"","'") + " (modifié)\"");
+            String upd = "UPDATE notification SET message=? WHERE id=?";
+            try (PreparedStatement ps2 = conn().prepareStatement(upd)) {
+                ps2.setString(1, newJson);
+                ps2.setInt(2, notifId);
+                return ps2.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("[Messagerie] modifierMessage: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /** Supprime un message (soft delete : remplace le texte par "[Message supprimé]"). */
+    public boolean supprimerMessage(int notifId) {
+        String sql = "SELECT message FROM notification WHERE id=? AND type='chat_message'";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setInt(1, notifId);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) return false;
+            String json = rs.getString("message");
+            String newJson = json.replaceAll("\"text\":\"[^\"]*\"", "\"text\":\"[Message supprimé]\"");
+            // Ajouter un flag deleted
+            newJson = newJson.replace("}", ",\"deleted\":true}");
+            String upd = "UPDATE notification SET message=? WHERE id=?";
+            try (PreparedStatement ps2 = conn().prepareStatement(upd)) {
+                ps2.setString(1, newJson);
+                ps2.setInt(2, notifId);
+                return ps2.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("[Messagerie] supprimerMessage: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /** Récupère la dernière activité d'un utilisateur (lastActivityAt). */
+    public String getStatutEnLigne(int userId) {
+        String sql = "SELECT lastActivityAt FROM user WHERE userId=?";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                java.sql.Timestamp last = rs.getTimestamp("lastActivityAt");
+                if (last == null) return "Hors ligne";
+                long diffMs = System.currentTimeMillis() - last.getTime();
+                long diffMin = diffMs / 60000;
+                if (diffMin < 2)  return "Actif maintenant";
+                if (diffMin < 60) return "Il y a " + diffMin + " min";
+                long diffH = diffMin / 60;
+                if (diffH < 24)   return "Il y a " + diffH + "h";
+                return "Il y a " + (diffH / 24) + "j";
+            }
+        } catch (SQLException e) {
+            System.err.println("[Messagerie] getStatutEnLigne: " + e.getMessage());
+        }
+        return "Hors ligne";
+    }
+
+    /** Met à jour lastActivityAt de l'utilisateur courant. */
+    public void mettreAJourActivite(int userId) {
+        String sql = "UPDATE user SET lastActivityAt=NOW() WHERE userId=?";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("[Messagerie] mettreAJourActivite: " + e.getMessage());
+        }
     }
 
     private int extractInt(String json, String key) {

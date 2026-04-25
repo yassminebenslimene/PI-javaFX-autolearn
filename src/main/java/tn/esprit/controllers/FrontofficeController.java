@@ -709,15 +709,15 @@ public class FrontofficeController {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/views/frontoffice/messagerie/chat.fxml"));
             Parent view = loader.load();
-            // Arrêter le polling si on revient sur une autre vue
-            MessagerieController ctrl = loader.getController();
             BorderPane root = (BorderPane) labelCurrentUser.getScene().getRoot();
-            // Remplacer le center (sans ScrollPane pour que le chat prenne toute la hauteur)
+            // Détacher tout binding précédent et laisser le BorderPane gérer la taille
             if (view instanceof javafx.scene.layout.Region region) {
+                region.prefHeightProperty().unbind();
+                region.prefWidthProperty().unbind();
                 region.setMaxHeight(Double.MAX_VALUE);
                 region.setMaxWidth(Double.MAX_VALUE);
-                region.prefHeightProperty().bind(root.heightProperty().subtract(64));
-                region.prefWidthProperty().bind(root.widthProperty());
+                region.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+                region.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
             }
             root.setCenter(view);
         } catch (Exception e) {
