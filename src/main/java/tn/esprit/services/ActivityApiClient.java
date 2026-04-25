@@ -18,16 +18,10 @@ import java.util.concurrent.Executors;
 
 /**
  * HTTP client that calls the Symfony ActivityApiController.
- *
- * Base URL: http://localhost:8000  (change to your Symfony server URL)
- * Auth:     X-App-Token header (shared secret)
- *
- * All calls are async — the UI never blocks.
  */
 public class ActivityApiClient {
 
-    private static final String BASE_URL   = "http://localhost:8000";
-    private static final String APP_TOKEN  = "autolearn-javafx-2026";
+    private static final String BASE_URL = "http://localhost:8000";
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(4))
@@ -40,7 +34,7 @@ public class ActivityApiClient {
         return t;
     });
 
-    // ── Activity record (returned by GET endpoints) ───────────────────────────
+    // Activity record returned by GET endpoints
 
     public record ActivityEntry(
         int    id,
@@ -55,7 +49,7 @@ public class ActivityApiClient {
         String createdAt,
         Map<String, Object> metadata
     ) {
-        /** Human-readable action label */
+
         public String actionLabel() {
             return switch (action) {
                 case "user.login"                -> "Connexion";
@@ -104,7 +98,7 @@ public class ActivityApiClient {
             };
         }
 
-        /** Emoji icon per action */
+
         public String actionIcon() {
             return switch (action) {
                 case "user.login"                -> "🔑";
@@ -166,7 +160,7 @@ public class ActivityApiClient {
     public static void logAsync(int userId, String action, Map<String, Object> metadata) {
         POOL.submit(() -> {
             try {
-                // Fetch geo info (may be null if offline)
+                // Fetch geo info may be null if offline
                 ApiService.GeoInfo geo = ApiService.getMyGeoInfo();
 
                 JsonObject body = new JsonObject();
@@ -191,10 +185,17 @@ public class ActivityApiClient {
                 }
                 body.add("metadata", meta);
 
+                // Get JWT token from JwtManager
+                String jwtToken = tn.esprit.session.JwtManager.getToken();
+                if (jwtToken == null) {
+                    System.err.println("[ActivityAPI] No JWT token available - user not logged in");
+                    return;
+                }
+                
                 HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/api/activity/log"))
                     .header("Content-Type", "application/json")
-                    .header("X-App-Token", APP_TOKEN)
+                    .header("Authorization", "Bearer " + jwtToken)
                     .timeout(Duration.ofSeconds(5))
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
@@ -222,9 +223,16 @@ public class ActivityApiClient {
     public static CompletableFuture<List<ActivityEntry>> fetchRecentActivities(int limit) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                // Get JWT token
+                String jwtToken = tn.esprit.session.JwtManager.getToken();
+                if (jwtToken == null) {
+                    System.err.println("[ActivityAPI] No JWT token - cannot fetch activities");
+                    return List.of();
+                }
+                
                 HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/api/activity/recent?limit=" + limit))
-                    .header("X-App-Token", APP_TOKEN)
+                    .header("Authorization", "Bearer " + jwtToken)
                     .timeout(Duration.ofSeconds(6))
                     .GET()
                     .build();
@@ -253,9 +261,15 @@ public class ActivityApiClient {
     public static CompletableFuture<List<ActivityEntry>> fetchUserActivities(int userId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                // Get JWT token
+                String jwtToken = tn.esprit.session.JwtManager.getToken();
+                if (jwtToken == null) {
+                    return List.of();
+                }
+                
                 HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/api/activity/user/" + userId))
-                    .header("X-App-Token", APP_TOKEN)
+                    .header("Authorization", "Bearer " + jwtToken)
                     .timeout(Duration.ofSeconds(6))
                     .GET()
                     .build();

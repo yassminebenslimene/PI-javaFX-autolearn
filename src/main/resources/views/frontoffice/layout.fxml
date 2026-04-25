@@ -6,6 +6,7 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.FrontofficeController"
             prefWidth="1200" prefHeight="760"
+            stylesheets="@../styles/app.css"
             style="-fx-background-color:#fdf8f0;">
     <top>
         <HBox alignment="CENTER_LEFT" spacing="0"
@@ -40,14 +41,22 @@
                     <Label fx:id="labelNiveauUser" text="" style="-fx-text-fill:rgba(255,255,255,0.65); -fx-font-size:10;"/>
                 </VBox>
                 <MenuButton fx:id="menuUser" text=""
-                            style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white; -fx-font-size:12;
-                                   -fx-padding:7 12 7 12; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;">
+                            style="-fx-background-color:rgba(255,255,255,0.18);
+                                   -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:600;
+                                   -fx-padding:7 14 7 14; -fx-background-radius:22;
+                                   -fx-cursor:hand; -fx-border-width:1;
+                                   -fx-border-color:rgba(255,255,255,0.3);
+                                   -fx-border-radius:22;">
                     <items>
-                        <MenuItem text="Mon Profil" onAction="#onProfile"/>
-                        <MenuItem text="Mes Participations" onAction="#onMesParticipations"/>
-                        <MenuItem text="Mes Equipes" onAction="#onMesEquipes"/>
+                        <MenuItem text="  Mon Profil" onAction="#onProfile"
+                                  style="-fx-font-size:13; -fx-padding:8 16 8 16;"/>
+                        <MenuItem text="  Mes Participations" onAction="#onMesParticipations"
+                                  style="-fx-font-size:13; -fx-padding:8 16 8 16;"/>
+                        <MenuItem text="  Mes Equipes" onAction="#onMesEquipes"
+                                  style="-fx-font-size:13; -fx-padding:8 16 8 16;"/>
                         <SeparatorMenuItem/>
-                        <MenuItem text="Deconnexion" onAction="#onLogout"/>
+                        <MenuItem text="  Deconnexion" onAction="#onLogout"
+                                  style="-fx-font-size:13; -fx-padding:8 16 8 16; -fx-text-fill:#e74c3c;"/>
                     </items>
                 </MenuButton>
             </HBox>

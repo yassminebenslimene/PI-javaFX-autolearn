@@ -27,6 +27,7 @@ public class BackofficeController {
     @FXML private Button btnChallenges;
     @FXML private Button btnCommunaute;
     @FXML private Button btnProfile;
+    @FXML private Button btnChatbot;
 
     private static final String ACTIVE_STYLE =
         "-fx-background-color:rgba(122,106,216,0.25); -fx-text-fill:#a5b4fc;" +
@@ -56,7 +57,7 @@ public class BackofficeController {
 
     private void setActive(Button active) {
         for (Button b : new Button[]{btnDashboard, btnUsers, btnActivites, btnQuiz, btnCours, btnEvenements,
-                                      btnExercices, btnChallenges, btnCommunaute, btnProfile}) {
+                                      btnExercices, btnChallenges, btnCommunaute, btnProfile, btnChatbot}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }
@@ -134,6 +135,13 @@ public class BackofficeController {
         if (labelPageTitle != null) labelPageTitle.setText("Gestion de la Communauté");
         logNav("communaute");
         loadView("/views/backoffice/communaute/index.fxml");
+    }
+
+    @FXML public void navigateToChatbot() {
+        setActive(btnChatbot);
+        if (labelPageTitle != null) labelPageTitle.setText("Assistant IA");
+        logNav("chatbot");
+        loadView("/views/backoffice/chatbot/index.fxml");
     }
 
     @FXML public void navigateToProfile() {

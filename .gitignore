@@ -50,3 +50,7 @@ session3.md
 
 ### Duplicate nested folder (artifact from GestionUser merge) ###
 Downloads/
+
+### Local secrets (never commit these) ###
+.hf_token
+*.env.local

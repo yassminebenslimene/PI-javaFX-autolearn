@@ -117,14 +117,29 @@ public class ApiService {
      * @return GeoInfo record, or null if the request fails
      */
     public static GeoInfo getMyGeoInfo() {
+        // Try ip-api.com first (HTTP - free, no key)
+        GeoInfo result = tryIpApi();
+        if (result != null) return result;
+        
+        // Fallback: ipinfo.io (HTTPS - free, no key)
+        result = tryIpInfo();
+        if (result != null) return result;
+        
+        System.err.println("[GeoIP] All geo APIs failed");
+        return null;
+    }
+
+    private static GeoInfo tryIpApi() {
         try {
             HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create("http://ip-api.com/json/?fields=status,country,city,isp,query"))
-                .timeout(Duration.ofSeconds(5))
+                .timeout(Duration.ofSeconds(6))
                 .GET()
                 .build();
 
             HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+            System.out.println("[GeoIP] ip-api.com status: " + resp.statusCode());
+            
             if (resp.statusCode() != 200) return null;
 
             JsonObject json = GSON.fromJson(resp.body(), JsonObject.class);
@@ -137,7 +152,35 @@ public class ApiService {
                 json.get("isp").getAsString()
             );
         } catch (Exception e) {
-            System.err.println("[GeoIP] Failed: " + e.getMessage());
+            System.err.println("[GeoIP] ip-api.com failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static GeoInfo tryIpInfo() {
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("https://ipinfo.io/json"))
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(6))
+                .GET()
+                .build();
+
+            HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+            System.out.println("[GeoIP] ipinfo.io status: " + resp.statusCode());
+            
+            if (resp.statusCode() != 200) return null;
+
+            JsonObject json = GSON.fromJson(resp.body(), JsonObject.class);
+
+            String ip      = json.has("ip")     ? json.get("ip").getAsString()     : "—";
+            String country = json.has("country") ? json.get("country").getAsString() : "—";
+            String city    = json.has("city")    ? json.get("city").getAsString()    : "—";
+            String org     = json.has("org")     ? json.get("org").getAsString()     : "—";
+
+            return new GeoInfo(ip, country, city, org);
+        } catch (Exception e) {
+            System.err.println("[GeoIP] ipinfo.io failed: " + e.getMessage());
             return null;
         }
     }
