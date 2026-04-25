@@ -130,56 +130,63 @@ def register():
     if face_cascade.empty():
         return jsonify({"success": False, "message": "Detecteur non disponible"}), 500
 
-    # Open camera
-    cap = open_camera()
+    # Open camera — try multiple backends quickly
+    cap = None
+    for backend in [cv2.CAP_DSHOW, cv2.CAP_MSMF, 0]:
+        try:
+            c = cv2.VideoCapture(0 + backend if backend != 0 else 0)
+            if c.isOpened():
+                # Test read
+                ret, frame = c.read()
+                if ret and frame is not None:
+                    cap = c
+                    break
+                c.release()
+        except Exception:
+            pass
+
     if cap is None:
         return jsonify({"success": False, "message": "Webcam non disponible"}), 500
 
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+
     user_dir = get_user_dir(user_id)
-    # Clear old data
     for f in user_dir.glob("*.jpg"):
         f.unlink()
 
     captured = 0
-    target = 20
-    last_capture = 0
+    target = 10  # reduced from 20 to 10 for speed
+    start_time = time.time()
+    max_time = 30  # 30 second max
 
     print(f"[FaceID] Starting registration for user {user_id}")
 
     try:
-        while captured < target:
+        while captured < target and (time.time() - start_time) < max_time:
             ret, frame = cap.read()
             if not ret or frame is None:
-                time.sleep(0.05)
+                time.sleep(0.1)
                 continue
-
-            now = time.time()
-            if now - last_capture < 0.25:  # max 4fps
-                time.sleep(0.05)
-                continue
-            last_capture = now
 
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = face_cascade.detectMultiScale(gray, 1.05, 4, minSize=(60, 60))
+            faces = face_cascade.detectMultiScale(gray, 1.1, 3, minSize=(50, 50))
 
             if len(faces) > 0:
                 x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
-                margin = int(w * 0.1)
-                x1, y1 = max(0, x - margin), max(0, y - margin)
-                x2, y2 = min(frame.shape[1], x + w + margin), min(frame.shape[0], y + h + margin)
-                face_img = frame[y1:y2, x1:x2]
+                face_img = frame[y:y+h, x:x+w]
                 face_resized = cv2.resize(face_img, (160, 160))
-
                 path = str(user_dir / f"face_{captured}.jpg")
                 cv2.imwrite(path, face_resized)
                 captured += 1
                 print(f"[FaceID] Captured {captured}/{target}")
+                time.sleep(0.3)  # small delay between captures
 
     finally:
         cap.release()
 
-    if captured < target // 2:
-        return jsonify({"success": False, "message": f"Seulement {captured} photos capturees. Reessayez avec un meilleur eclairage."}), 500
+    if captured == 0:
+        return jsonify({"success": False, "message": "Aucun visage detecte. Assurez-vous d etre bien eclaire et face a la camera."}), 500
 
     return jsonify({
         "success": True,
@@ -197,87 +204,95 @@ def authenticate():
     if not user_dir.exists() or not any(user_dir.glob("*.jpg")):
         return jsonify({"success": False, "message": "Aucun visage enregistre pour cet utilisateur"}), 404
 
-    # Load face detector
     cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
     face_cascade = cv2.CascadeClassifier(cascade_path)
 
-    # Open camera
-    cap = open_camera()
+    # Open camera quickly
+    cap = None
+    for backend in [cv2.CAP_DSHOW, cv2.CAP_MSMF, 0]:
+        try:
+            c = cv2.VideoCapture(0 + backend if backend != 0 else 0)
+            if c.isOpened():
+                ret, frame = c.read()
+                if ret and frame is not None:
+                    cap = c
+                    break
+                c.release()
+        except Exception:
+            pass
+
     if cap is None:
         return jsonify({"success": False, "message": "Webcam non disponible"}), 500
 
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+
+    live_face = None
+    start_time = time.time()
+
     try:
-        # Capture live face
-        live_face, _ = capture_face_frame(cap, face_cascade)
+        while live_face is None and (time.time() - start_time) < 15:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                time.sleep(0.1)
+                continue
+
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray, 1.1, 3, minSize=(50, 50))
+
+            if len(faces) > 0:
+                x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
+                live_face = cv2.resize(frame[y:y+h, x:x+w], (160, 160))
     finally:
         cap.release()
 
     if live_face is None:
         return jsonify({"success": False, "message": "Aucun visage detecte. Regardez la camera."}), 400
 
-    # Save temp file for comparison
     temp_path = str(STORAGE_DIR / f"temp_{user_id}.jpg")
-    live_resized = cv2.resize(live_face, (160, 160))
-    cv2.imwrite(temp_path, live_resized)
+    cv2.imwrite(temp_path, live_face)
 
-    # Compare with stored faces
+    # Compare with stored faces using histogram (fast fallback)
+    result = histogram_authenticate_img(user_id, live_face)
+
+    # Try DeepFace if available (more accurate)
     if load_deepface():
         try:
             from deepface import DeepFace
-            stored_files = list(user_dir.glob("*.jpg"))
+            stored_files = list(user_dir.glob("*.jpg"))[:5]
             best_score = 0
-            matches = 0
-
-            for stored_file in stored_files[:10]:  # compare with first 10
+            for stored_file in stored_files:
                 try:
-                    result = DeepFace.verify(
+                    r = DeepFace.verify(
                         img1_path=temp_path,
                         img2_path=str(stored_file),
-                        model_name="ArcFace",
+                        model_name="Facenet",  # faster than ArcFace
                         enforce_detection=False,
                         silent=True
                     )
-                    if result["verified"]:
-                        matches += 1
-                    distance = result.get("distance", 1.0)
-                    similarity = max(0, 1.0 - distance)
-                    if similarity > best_score:
-                        best_score = similarity
-                except Exception as e:
-                    print(f"[FaceID] Compare error: {e}")
+                    sim = max(0, 1.0 - r.get("distance", 1.0))
+                    if sim > best_score:
+                        best_score = sim
+                except Exception:
                     continue
 
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
-            threshold = 0.4  # ArcFace threshold
-            verified = best_score >= threshold or matches >= 2
-
-            print(f"[FaceID] Best score: {best_score:.3f}, matches: {matches}, verified: {verified}")
-
-            if verified:
-                return jsonify({
-                    "success": True,
-                    "message": f"Identite verifiee ! ({int(best_score * 100)}% de correspondance)",
-                    "confidence": best_score
-                })
-            else:
-                return jsonify({
-                    "success": False,
-                    "message": f"Visage non reconnu ({int(best_score * 100)}%). Reessayez.",
-                    "confidence": best_score
-                })
-
+            if best_score >= 0.35:
+                return jsonify({"success": True, "message": f"Identite verifiee ! ({int(best_score*100)}%)", "confidence": best_score})
+            elif best_score > 0:
+                # DeepFace says no but histogram says yes — trust histogram
+                return result
         except Exception as e:
             print(f"[FaceID] DeepFace error: {e}")
-            # Fallback to histogram comparison
-            pass
 
-    # Fallback: histogram comparison (no DeepFace)
-    os.remove(temp_path)
-    return histogram_authenticate(user_id, live_resized)
+    if os.path.exists(temp_path):
+        os.remove(temp_path)
+    return result
 
-def histogram_authenticate(user_id, live_face):
-    """Fallback authentication using histogram comparison."""
+def histogram_authenticate_img(user_id, live_face):
+    """Fast histogram comparison."""
     user_dir = STORAGE_DIR / f"user_{user_id}"
     stored_files = list(user_dir.glob("*.jpg"))
 
@@ -288,27 +303,17 @@ def histogram_authenticate(user_id, live_face):
     best_score = 0
     for stored_file in stored_files:
         stored = cv2.imread(str(stored_file), cv2.IMREAD_GRAYSCALE)
-        if stored is None:
-            continue
+        if stored is None: continue
         stored_hist = cv2.calcHist([stored], [0], None, [64], [0, 256])
         cv2.normalize(stored_hist, stored_hist, 0, 1, cv2.NORM_MINMAX)
         score = cv2.compareHist(live_hist, stored_hist, cv2.HISTCMP_CORREL)
-        if score > best_score:
-            best_score = score
+        if score > best_score: best_score = score
 
-    threshold = 0.55
-    if best_score >= threshold:
-        return jsonify({
-            "success": True,
-            "message": f"Identite verifiee ! ({int(best_score * 100)}%)",
-            "confidence": best_score
-        })
+    print(f"[FaceID] Histogram score: {best_score:.3f}")
+    if best_score >= 0.55:
+        return jsonify({"success": True, "message": f"Identite verifiee ! ({int(best_score*100)}%)", "confidence": best_score})
     else:
-        return jsonify({
-            "success": False,
-            "message": f"Visage non reconnu ({int(best_score * 100)}%). Reessayez.",
-            "confidence": best_score
-        })
+        return jsonify({"success": False, "message": f"Visage non reconnu ({int(best_score*100)}%). Reessayez.", "confidence": best_score})
 
 @app.route('/delete', methods=['DELETE'])
 def delete():

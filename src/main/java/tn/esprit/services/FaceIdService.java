@@ -60,7 +60,7 @@ public class FaceIdService {
             }
             HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(SERVER_URL + "/register?userId=" + userId))
-                .timeout(Duration.ofSeconds(60))
+                .timeout(Duration.ofSeconds(90))
                 .POST(HttpRequest.BodyPublishers.noBody()).build();
             HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
             JsonObject json = GSON.fromJson(resp.body(), JsonObject.class);
