@@ -320,16 +320,24 @@ public class FaceIdController {
     private void showResult(String message, boolean success) {
         Platform.runLater(() -> {
             labelResult.setText(message);
-            labelResult.setStyle(
-                "-fx-font-size:13; -fx-font-weight:600; -fx-background-radius:8;" +
-                "-fx-padding:10 14 10 14; -fx-border-radius:8; -fx-border-width:1;" +
-                (success
-                    ? "-fx-text-fill:#065f46; -fx-background-color:#d1fae5; -fx-border-color:#86efac;"
-                    : "-fx-text-fill:#991b1b; -fx-background-color:#fee2e2; -fx-border-color:#fca5a5;")
-            );
+            if (success) {
+                labelResult.setStyle(
+                    "-fx-font-size:12; -fx-font-weight:600; -fx-background-radius:8;" +
+                    "-fx-padding:10 14 10 14; -fx-border-radius:8; -fx-border-width:1;" +
+                    "-fx-text-fill:#34d399; -fx-background-color:rgba(5,150,105,0.15);" +
+                    "-fx-border-color:rgba(5,150,105,0.3);"
+                );
+            } else {
+                labelResult.setStyle(
+                    "-fx-font-size:12; -fx-font-weight:600; -fx-background-radius:8;" +
+                    "-fx-padding:10 14 10 14; -fx-border-radius:8; -fx-border-width:1;" +
+                    "-fx-text-fill:#f85149; -fx-background-color:rgba(248,81,73,0.12);" +
+                    "-fx-border-color:rgba(248,81,73,0.3);"
+                );
+            }
             labelResult.setVisible(true);
             labelResult.setManaged(true);
-            setStatus(success ? "Authentification reussie !" : "Echec de l'authentification");
+            setStatus(success ? "Authentification reussie !" : "Echec — reessayez");
         });
     }
 
