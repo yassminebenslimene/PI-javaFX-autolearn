@@ -27,6 +27,18 @@ public class ConfigLoader {
         return token;
     }
 
+    public static String getGroqApiKey() {
+        String key = properties.getProperty("groq.api.key", "");
+        if (key.isEmpty() || key.equals("METS_TA_CLE_GROQ_ICI")) {
+            return null;
+        }
+        return key;
+    }
+
+    public static String getGroqModel() {
+        return properties.getProperty("groq.model", "llama-3.3-70b-versatile");
+    }
+
     public static String getProperty(String key) {
         return properties.getProperty(key);
     }

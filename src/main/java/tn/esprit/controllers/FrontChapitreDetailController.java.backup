@@ -129,9 +129,7 @@ public class FrontChapitreDetailController {
         boolean isHtml = contenu.contains("<") && contenu.contains(">");
         String body = isHtml ? contenu : "<p>" + contenu.replace("\n", "</p><p>") + "</p>";
 
-        return "<!DOCTYPE html><html><head>"
-            + "<meta charset='UTF-8'>"
-            + "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>"
+        return "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
             + "<style>"
             + "body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px;"
             + " color: #333; line-height: 1.8; padding: 28px 32px; margin:0; background: white; }"
@@ -388,56 +386,41 @@ public class FrontChapitreDetailController {
             }
         }
     }
+}
 
     // ========== MÉTHODES DE TRADUCTION ==========
     
     @FXML
     public void onTranslateFrench() {
-        System.out.println(">>> onTranslateFrench() appelée");
-        System.out.println(">>> currentLanguage = " + currentLanguage);
-        // Ne pas retraduire si déjà en français
-        if (currentLanguage.equals("Français")) {
-            System.out.println(">>> Déjà en français, annulation");
-            return;
-        }
         translateContent("Français");
     }
     
     @FXML
     public void onTranslateEnglish() {
-        System.out.println(">>> onTranslateEnglish() appelée");
-        System.out.println(">>> currentLanguage = " + currentLanguage);
-        // Ne pas retraduire si déjà en anglais
-        if (currentLanguage.equals("English")) {
-            System.out.println(">>> Déjà en anglais, annulation");
-            return;
-        }
         translateContent("English");
+    }
+    
+    @FXML
+    public void onTranslateArabic() {
+        translateContent("العربية (Arabic)");
     }
     
     @FXML
     public void onShowOriginal() {
         if (originalContent != null) {
-            webContent.getEngine().loadContent(buildHtml(originalContent), "text/html; charset=UTF-8");
+            webContent.getEngine().loadContent(buildHtml(originalContent));
             currentLanguage = "original";
             btnTranslate.setText("🌐 Traduire");
         }
     }
     
     private void translateContent(String targetLanguage) {
-        System.out.println("=== DÉBUT TRADUCTION ===");
-        System.out.println("Langue cible: " + targetLanguage);
-        System.out.println("Langue actuelle: " + currentLanguage);
-        
         // Initialiser le service de traduction si nécessaire
         if (translationService == null) {
             String apiKey = ConfigLoader.getGroqApiKey();
             String model = ConfigLoader.getGroqModel();
             
-            System.out.println("API Key présente: " + (apiKey != null && !apiKey.isEmpty()));
-            System.out.println("Modèle: " + model);
-            
-            if (apiKey == null || apiKey.isEmpty()) {
+            if (apiKey == null) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Clé API manquante");
                 alert.setHeaderText("Configuration requise");
@@ -450,52 +433,28 @@ public class FrontChapitreDetailController {
             translationService = new GroqTranslationService(apiKey, model);
         }
         
-        // Sauvegarder le contenu original UNIQUEMENT la première fois
+        // Sauvegarder le contenu original si c'est la première traduction
         if (originalContent == null) {
             Chapitre currentChapter = chapitres.get(currentIndex);
             originalContent = currentChapter.getContenu();
-            System.out.println("Contenu original sauvegardé (longueur: " + originalContent.length() + ")");
         }
-        
-        System.out.println("Texte à traduire (premiers 100 chars): " + 
-            originalContent.substring(0, Math.min(100, originalContent.length())));
         
         // Afficher un indicateur de chargement
         btnTranslate.setText("⏳ Traduction...");
         btnTranslate.setDisable(true);
         
-        // IMPORTANT: Toujours traduire depuis le texte ORIGINAL, pas depuis la dernière traduction
-        final String textToTranslate = originalContent;
-        
         // Traduire dans un thread séparé
         new Thread(() -> {
             try {
-                System.out.println("Appel API Groq...");
-                String translatedText = translationService.translate(textToTranslate, targetLanguage);
-                System.out.println("Traduction reçue (longueur: " + translatedText.length() + ")");
-                System.out.println("Traduction (premiers 200 chars): " + 
-                    translatedText.substring(0, Math.min(200, translatedText.length())));
-                
-                // Vérifier si la traduction contient bien des caractères français
-                boolean hasFrenchChars = translatedText.contains("é") || translatedText.contains("è") || 
-                                        translatedText.contains("à") || translatedText.contains("ç");
-                System.out.println("Contient des caractères français: " + hasFrenchChars);
+                String translatedText = translationService.translate(originalContent, targetLanguage);
                 
                 javafx.application.Platform.runLater(() -> {
-                    // Charger avec l'encodage UTF-8 explicite
-                    // Utiliser data URI pour forcer l'encodage UTF-8
-                    String htmlContent = buildHtml(translatedText);
-                    webContent.getEngine().loadContent(htmlContent, "text/html");
-                    
+                    webContent.getEngine().loadContent(buildHtml(translatedText));
                     currentLanguage = targetLanguage;
                     btnTranslate.setText("🌐 " + getLanguageFlag(targetLanguage));
                     btnTranslate.setDisable(false);
-                    System.out.println("=== TRADUCTION TERMINÉE ===");
                 });
             } catch (Exception e) {
-                System.err.println("ERREUR DE TRADUCTION: " + e.getMessage());
-                e.printStackTrace();
-                
                 javafx.application.Platform.runLater(() -> {
                     btnTranslate.setText("🌐 Traduire");
                     btnTranslate.setDisable(false);
@@ -513,6 +472,7 @@ public class FrontChapitreDetailController {
     private String getLanguageFlag(String language) {
         if (language.contains("Français")) return "🇫🇷 FR";
         if (language.contains("English")) return "🇬🇧 EN";
+        if (language.contains("Arabic") || language.contains("العربية")) return "🇸🇦 AR";
         return "Traduire";
     }
 
