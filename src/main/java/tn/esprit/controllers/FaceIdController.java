@@ -100,8 +100,17 @@ public class FaceIdController {
             return;
         }
         btnStart.setDisable(true);
-        if (mode == Mode.LOGIN) startLogin();
-        else startRegisterGuided();
+        setStatus("Ouverture de la camera...");
+
+        // Run camera init in background to avoid UI freeze
+        CompletableFuture.runAsync(() -> {
+            if (mode == Mode.LOGIN) {
+                // Validate email first on UI thread
+                Platform.runLater(() -> startLogin());
+            } else {
+                Platform.runLater(() -> startRegisterGuided());
+            }
+        });
     }
 
     // ── LOGIN flow ────────────────────────────────────────────────────────────
@@ -132,10 +141,10 @@ public class FaceIdController {
         }
 
         setStatus("Regardez la camera...");
-        startCameraPreview(false);
 
         final User finalUser = user;
         CompletableFuture.runAsync(() -> {
+            startCameraPreview(false); // opens camera in background
             FaceIdService.FaceResult result = FaceIdService.authenticateFace(finalUser.getId());
             Platform.runLater(() -> {
                 stopCameraPreview();
@@ -172,12 +181,17 @@ public class FaceIdController {
         faceDetected.set(false);
         capturing.set(false);
 
-        // Step 1: Open camera with guidance
-        setStatus("Placez votre visage dans le cercle blanc");
-        startCameraPreview(true); // true = show face detection guidance
+        setStatus("Ouverture de la camera...");
 
-        // Step 2: Monitor face detection and start countdown when face is stable
-        monitorFaceForRegistration(user);
+        // Open camera in background thread
+        CompletableFuture.runAsync(() -> {
+            startCameraPreview(true);
+            // Start monitoring after camera is ready
+            Platform.runLater(() -> {
+                setStatus("Placez votre visage dans le cercle blanc");
+                monitorFaceForRegistration(user);
+            });
+        });
     }
 
     /**
@@ -291,19 +305,54 @@ public class FaceIdController {
 
     private void startCameraPreview(boolean withGuidance) {
         try {
+            // Hide the status overlay once camera starts
+            Platform.runLater(() -> {
+                if (statusOverlay != null) {
+                    statusOverlay.setVisible(false);
+                    statusOverlay.setManaged(false);
+                }
+            });
+
             camera = new VideoCapture(0);
+
+            // Wait up to 3 seconds for camera to initialize
+            int waitMs = 0;
+            while (!camera.isOpened() && waitMs < 3000) {
+                Thread.sleep(200);
+                waitMs += 200;
+                if (!camera.isOpened()) {
+                    camera.release();
+                    camera = new VideoCapture(0);
+                }
+            }
+
             if (!camera.isOpened()) {
-                setStatus("Webcam non disponible");
+                setStatus("Webcam non disponible — verifiez qu elle n est pas utilisee par une autre application");
+                Platform.runLater(() -> {
+                    if (statusOverlay != null) {
+                        statusOverlay.setVisible(true);
+                        statusOverlay.setManaged(true);
+                    }
+                    btnStart.setDisable(false);
+                });
                 return;
             }
+
             camera.set(3, 640);
             camera.set(4, 480);
 
-            faceOverlay.setVisible(true);
+            // Warm up — read a few frames before showing
+            Mat warmup = new Mat();
+            for (int i = 0; i < 5; i++) {
+                camera.read(warmup);
+                Thread.sleep(100);
+            }
+
+            faceOverlay.setVisible(false); // we draw circle in OpenCV
 
             CascadeClassifier det = withGuidance ? FaceIdService.getDetector() : null;
 
-            cameraTimeline = new Timeline(new KeyFrame(Duration.millis(66), e -> { // ~15fps
+            cameraTimeline = new Timeline(new KeyFrame(Duration.millis(66), e -> {
                 if (camera != null && camera.isOpened()) {
                     Mat frame = new Mat();
                     if (camera.read(frame) && !frame.empty()) {
@@ -320,6 +369,8 @@ public class FaceIdController {
 
         } catch (Exception e) {
             System.err.println("[FaceID] Camera error: " + e.getMessage());
+            setStatus("Erreur camera: " + e.getMessage());
+            Platform.runLater(() -> btnStart.setDisable(false));
         }
     }
 
