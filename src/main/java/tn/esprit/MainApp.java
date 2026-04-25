@@ -10,6 +10,7 @@ import tn.esprit.controllers.evenement.front.*;
 import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Evenement;
 import tn.esprit.entities.Participation;
+import tn.esprit.services.ParticipationWebServer;
 
 public class MainApp extends Application {
 
@@ -38,6 +39,8 @@ public class MainApp extends Application {
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
+        // Démarrer le serveur web embarqué pour les QR codes de participation
+        ParticipationWebServer.start();
         showLogin();
         primaryStage.show();
     }
@@ -182,6 +185,15 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Calendrier des Événements");
     }
 
+    public static void showSalleReservation(tn.esprit.entities.Evenement ev,
+                                             tn.esprit.entities.Equipe eq) throws Exception {
+        FXMLLoader loader = getLoader("/views/frontoffice/salle_reservation.fxml");
+        setScene(loader);
+        tn.esprit.controllers.evenement.front.SalleReservationController ctrl = loader.getController();
+        ctrl.setData(ev, eq);
+        primaryStage.setTitle("AutoLearn — Plan de la Salle");
+    }
+
     private static FXMLLoader getLoader(String fxml) throws Exception {
         java.net.URL resource = MainApp.class.getResource(fxml);
         if (resource == null) throw new Exception("FXML not found: " + fxml);
@@ -212,4 +224,9 @@ public class MainApp extends Application {
     public static Stage getPrimaryStage() { return primaryStage; }
 
     public static void main(String[] args) { launch(args); }
+
+    @Override
+    public void stop() {
+        ParticipationWebServer.stop();
+    }
 }

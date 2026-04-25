@@ -10,6 +10,7 @@ import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.Evenement;
 import tn.esprit.entities.Participation;
 import tn.esprit.services.EquipeService;
+import tn.esprit.services.ParticipationConfirmationService;
 import tn.esprit.services.ParticipationService;
 
 import java.util.List;
@@ -90,11 +91,44 @@ public class TeamDetailsController {
 
     @FXML
     private void onParticipate() {
-        Participation p = new Participation(equipe.getId(), evenement.getId());
-        p.setStatut("Accepté");
-        participationService.ajouter(p);
-        FrontNavHelper.goMesParticipations("✓ Participation acceptée avec succès ! Votre équipe \""
-                + equipe.getNom() + "\" est inscrite à l'événement \"" + evenement.getTitre() + "\".");
+        // Vérifier si une participation existe déjà pour éviter les doublons
+        tn.esprit.entities.Participation existing =
+                participationService.getByEquipeAndEvenement(equipe.getId(), evenement.getId());
+
+        int participationId;
+        if (existing == null) {
+            Participation p = new Participation(equipe.getId(), evenement.getId());
+            p.setStatut("Accepté");
+            participationId = participationService.ajouterEtRetournerId(p);
+            // Envoyer les emails de confirmation à tous les membres (asynchrone)
+            if (participationId > 0) {
+                new ParticipationConfirmationService().sendConfirmationToTeam(equipe, evenement, participationId);
+            }
+        } else {
+            participationId = existing.getId();
+        }
+
+        // Naviguer vers la salle 3D
+        try {
+            MainApp.showSalleReservation(evenement, equipe);
+        } catch (Exception e) {
+            e.printStackTrace();
+            FrontNavHelper.goMesParticipations("Participation acceptée pour l'événement \""
+                    + evenement.getTitre() + "\". Un email de confirmation a été envoyé.");
+        }
+    }
+
+    @FXML
+    private void onVoirSalle() {
+        try {
+            MainApp.showSalleReservation(evenement, equipe);
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR,
+                    "Erreur salle 3D: " + e.getMessage()
+                    + (e.getCause() != null ? "\n" + e.getCause().getMessage() : ""))
+                    .showAndWait();
+        }
     }
 
     @FXML

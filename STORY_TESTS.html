@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Story Tests — Module Gestion des Événements</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; color: #1e1e1e; }
+
+  .header {
+    background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 60%, #7c3aed 100%);
+    color: white; padding: 44px 48px; text-align: center;
+  }
+  .header h1 { font-size: 2em; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .header p { opacity: 0.85; font-size: 0.97em; margin: 3px 0; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 36px 32px 60px; }
+
+  .intro-box {
+    background: white; border-radius: 14px; padding: 22px 28px;
+    border-left: 5px solid #7c3aed; margin-bottom: 36px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    font-size: 0.93em; color: #444; line-height: 1.7;
+  }
+  .intro-box strong { color: #4c1d95; }
+
+  /* US block */
+  .us-block { margin-bottom: 48px; }
+  .us-label {
+    display: inline-block; background: #4c1d95; color: white;
+    font-size: 0.78em; font-weight: 700; padding: 4px 14px;
+    border-radius: 20px; margin-bottom: 10px; letter-spacing: 0.04em;
+  }
+  .us-title {
+    font-size: 1.13em; font-weight: 800; color: #1e1b4b;
+    margin-bottom: 20px; padding-bottom: 10px;
+    border-bottom: 2px solid #ede9fe;
+  }
+
+  /* Story test table */
+  .st-table { width: 100%; border-collapse: collapse; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+  .st-table thead tr th { padding: 0; }
+
+  .col-us   { width: 22%; }
+  .col-acc  { width: 39%; }
+  .col-ref  { width: 39%; }
+
+  .th-us   { background: #1e1b4b; color: white; padding: 16px 20px; font-size: 0.88em; font-weight: 700; text-align: left; }
+  .th-acc  { background: #059669; color: white; padding: 16px 20px; font-size: 0.88em; font-weight: 700; text-align: left; }
+  .th-ref  { background: #dc2626; color: white; padding: 16px 20px; font-size: 0.88em; font-weight: 700; text-align: left; }
+
+  .st-table tbody tr td { padding: 22px 20px; vertical-align: top; border-bottom: 1px solid #f0f0f0; }
+  .st-table tbody tr:last-child td { border-bottom: none; }
+  .st-table tbody tr:nth-child(even) td { background: #fafafa; }
+
+  .td-us { background: #f5f3ff !important; font-style: italic; font-weight: 600;
+    color: #3730a3; font-size: 0.95em; line-height: 1.6; border-right: 2px solid #ede9fe; }
+
+  .kw { font-weight: 800; padding: 2px 0; display: inline-block; }
+  .kw-given { color: #7c3aed; }
+  .kw-when  { color: #0369a1; }
+  .kw-then  { color: #059669; }
+  .kw-then-ref { color: #dc2626; }
+
+  .step { margin-bottom: 10px; line-height: 1.65; font-size: 0.92em; }
+  .step:last-child { margin-bottom: 0; }
+
+  .acc-col { background: #f0fdf4; }
+  .ref-col { background: #fff1f2; }
+
+  .badge-acc { display:inline-block; background:#d1fae5; color:#065f46;
+    font-size:0.75em; font-weight:700; padding:3px 10px; border-radius:20px; margin-bottom:10px; }
+  .badge-ref { display:inline-block; background:#fee2e2; color:#991b1b;
+    font-size:0.75em; font-weight:700; padding:3px 10px; border-radius:20px; margin-bottom:10px; }
+
+  .note-tech {
+    background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 8px;
+    padding: 12px 16px; margin-top: 16px; font-size: 0.83em; color: #1e40af; line-height: 1.6;
+  }
+  .note-tech strong { color: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 Tableau des Story Tests</h1>
+  <p>Module Gestion des Événements — Application JavaFX (IntelliJ)</p>
+  <p>2 User Stories × 2 Story Tests (1 cas d'acceptation + 1 cas de refus)</p>
+</div>
+
+<div class="container">
+
+  <div class="intro-box">
+    Les deux User Stories sélectionnées sont les plus riches en logique métier et en règles de validation du module :
+    <br><br>
+    <strong>US-5.9 (Priorité 96)</strong> — Création d'équipe avec validation 4-6 membres, doublon événement et conflit horaire.<br>
+    <strong>US-5.10 (Priorité 98)</strong> — Inscription d'une équipe à un événement avec vérification capacité maximale et doublon étudiant.
+    <br><br>
+    Chaque Story Test suit le format <strong>Étant donné / Quand / Alors</strong> (Given / When / Then).
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- US-5.9 : Créer une équipe                                     -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="us-block">
+    <div class="us-label">US-5.9 — Priorité : 96</div>
+    <div class="us-title">
+      En tant qu'Étudiant, je souhaite créer une équipe afin de participer à un événement.
+    </div>
+
+    <table class="st-table">
+      <thead>
+        <tr>
+          <th class="th-us col-us">User Story</th>
+          <th class="th-acc col-acc">✓ Story Test d'Acceptation</th>
+          <th class="th-ref col-ref">✗ Story Test de Refus</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-us">
+            En tant qu'Étudiant, je souhaite créer une équipe afin de participer à un événement.
+          </td>
+
+          <!-- CAS D'ACCEPTATION -->
+          <td class="acc-col">
+            <div class="badge-acc">✓ Cas de réussite</div>
+
+            <div class="step">
+              <span class="kw kw-given">Étant donné</span> que l'étudiant 'Ali Ben Salah' est connecté
+              et qu'il souhaite participer à l'événement 'Hackathon ESPRIT 2025'
+              ayant encore <strong>3 places disponibles sur 10</strong>,
+              et que les étudiants 'Sarra', 'Mohamed', 'Ines' et 'Youssef'
+              ne sont inscrits dans <strong>aucune équipe</strong> pour cet événement,
+              et qu'aucun d'eux n'a de <strong>conflit horaire</strong> avec cet événement
+            </div>
+
+            <div class="step">
+              <span class="kw kw-when">Quand</span> l'étudiant 'Ali' saisit le nom d'équipe <strong>'Team Alpha'</strong>
+              et sélectionne les 5 membres : Ali, Sarra, Mohamed, Ines, Youssef,
+              puis clique sur <strong>"Créer l'équipe"</strong>
+            </div>
+
+            <div class="step">
+              <span class="kw kw-then">Alors</span> l'équipe <strong>'Team Alpha'</strong> est créée avec succès en base de données,
+              les 5 membres sont associés à l'équipe,
+              et l'application navigue vers la vue <strong>Détails de l'équipe</strong>
+              affichant la bannière de succès <em>"Équipe créée avec succès !"</em>
+            </div>
+
+            <div class="note-tech">
+              <strong>Règles métier vérifiées :</strong><br>
+              • 5 membres ∈ [4, 6] → validation OK<br>
+              • <code>etudiantDejaInscritEvenement()</code> → false pour tous<br>
+              • <code>etudiantConflitHoraire()</code> → false pour tous<br>
+              • <code>ajouterEtRetournerId()</code> → ID généré et retourné<br>
+              • Navigation vers <code>TeamDetailsController</code> avec showSuccess=true
+            </div>
+          </td>
+
+          <!-- CAS DE REFUS -->
+          <td class="ref-col">
+            <div class="badge-ref">✗ Cas d'échec</div>
+
+            <div class="step">
+              <span class="kw kw-given">Étant donné</span> que l'étudiant 'Ali Ben Salah' est connecté
+              et qu'il souhaite participer à l'événement 'Hackathon ESPRIT 2025',
+              et que l'étudiant <strong>'Mohamed Trabelsi'</strong> est <strong>déjà inscrit</strong>
+              dans l'équipe 'Team Beta' pour ce même événement
+            </div>
+
+            <div class="step">
+              <span class="kw kw-when">Quand</span> l'étudiant 'Ali' saisit le nom d'équipe <strong>'Team Alpha'</strong>
+              et sélectionne 5 membres incluant <strong>'Mohamed Trabelsi'</strong>,
+              puis clique sur <strong>"Créer l'équipe"</strong>
+            </div>
+
+            <div class="step">
+              <span class="kw kw-then-ref">Alors</span> la création est <strong>refusée</strong>,
+              aucune équipe n'est enregistrée en base de données,
+              et un message d'erreur est affiché :
+              <em>"Mohamed Trabelsi participe déjà à cet événement avec une autre équipe."</em>
+            </div>
+
+            <div class="note-tech">
+              <strong>Règles métier vérifiées :</strong><br>
+              • <code>etudiantDejaInscritEvenement(mohamedId, evenementId)</code> → true<br>
+              • Arrêt immédiat de la création → aucun INSERT en base<br>
+              • <code>labelError.setText(...)</code> affiché dans l'interface<br>
+              • L'utilisateur reste sur la vue <code>CreateTeamController</code>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- US-5.10 : Inscrire mon équipe à un événement                  -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="us-block">
+    <div class="us-label">US-5.10 — Priorité : 98</div>
+    <div class="us-title">
+      En tant qu'Étudiant, je souhaite inscrire mon équipe à un événement afin de participer à la compétition.
+    </div>
+
+    <table class="st-table">
+      <thead>
+        <tr>
+          <th class="th-us col-us">User Story</th>
+          <th class="th-acc col-acc">✓ Story Test d'Acceptation</th>
+          <th class="th-ref col-ref">✗ Story Test de Refus</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-us">
+            En tant qu'Étudiant, je souhaite inscrire mon équipe à un événement afin de participer à la compétition.
+          </td>
+
+          <!-- CAS D'ACCEPTATION -->
+          <td class="acc-col">
+            <div class="badge-acc">✓ Cas de réussite</div>
+
+            <div class="step">
+              <span class="kw kw-given">Étant donné</span> que l'étudiant 'Sarra Mansouri' est connectée,
+              que l'événement <strong>'Workshop IA 2025'</strong> est en statut <strong>'Plannifié'</strong>
+              (non annulé, non terminé),
+              que cet événement a un maximum de <strong>10 équipes</strong>
+              et que seulement <strong>7 équipes</strong> sont déjà inscrites,
+              et que l'équipe <strong>'Team Innovators'</strong> dont Sarra est membre
+              n'est pas encore inscrite à cet événement
+            </div>
+
+            <div class="step">
+              <span class="kw kw-when">Quand</span> Sarra clique sur le bouton
+              <strong>"Participer à cet événement"</strong> depuis la vue Détails de l'équipe
+            </div>
+
+            <div class="step">
+              <span class="kw kw-then">Alors</span> une participation est créée en base de données
+              avec le statut <strong>'Accepté'</strong>,
+              l'application navigue vers <strong>"Mes Participations"</strong>
+              et affiche la bannière de succès :
+              <em>"✓ Participation acceptée avec succès ! Votre équipe 'Team Innovators' est inscrite à l'événement 'Workshop IA 2025'."</em>
+            </div>
+
+            <div class="note-tech">
+              <strong>Règles métier vérifiées :</strong><br>
+              • <code>countByEvenement(evenementId)</code> = 7 &lt; nbMax (10) → places disponibles<br>
+              • Événement non annulé (<code>isIsCanceled = false</code>)<br>
+              • Événement non terminé (<code>dateFin</code> dans le futur)<br>
+              • <code>ParticipationService.ajouter(p)</code> avec statut = "Accepté"<br>
+              • Navigation vers <code>MesParticipationsController</code> avec message succès
+            </div>
+          </td>
+
+          <!-- CAS DE REFUS -->
+          <td class="ref-col">
+            <div class="badge-ref">✗ Cas d'échec</div>
+
+            <div class="step">
+              <span class="kw kw-given">Étant donné</span> que l'étudiant 'Sarra Mansouri' est connectée,
+              que l'événement <strong>'Workshop IA 2025'</strong> est en statut <strong>'Plannifié'</strong>,
+              mais que cet événement a atteint sa <strong>capacité maximale</strong> :
+              <strong>10 équipes inscrites sur 10</strong> (nbMax = 10, nbEquipes = 10),
+              et que l'équipe <strong>'Team Innovators'</strong> souhaite s'inscrire
+            </div>
+
+            <div class="step">
+              <span class="kw kw-when">Quand</span> Sarra consulte la page de l'événement
+              <strong>'Workshop IA 2025'</strong> dans la liste des événements disponibles
+            </div>
+
+            <div class="step">
+              <span class="kw kw-then-ref">Alors</span> le bouton <strong>"Participer à cet événement"</strong>
+              est <strong>masqué</strong> (non affiché),
+              et le panneau détails affiche uniquement :
+              <em>"0 places restantes sur 10 au total"</em>,
+              aucune participation n'est créée en base de données
+            </div>
+
+            <div class="note-tech">
+              <strong>Règles métier vérifiées :</strong><br>
+              • <code>countByEvenement(evenementId)</code> = 10 = nbMax → spots = 0<br>
+              • Condition <code>spots &gt; 0</code> → false → bouton Participer non rendu<br>
+              • Aucun appel à <code>ParticipationService.ajouter()</code><br>
+              • Affichage du label <em>"0 places restantes sur 10 au total"</em>
+              dans <code>EvenementFrontController.buildDetails()</code>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- end container -->
+</body>
+</html>

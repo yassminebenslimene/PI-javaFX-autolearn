@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Salle 3D — Réservation</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a12;overflow:hidden;font-family:'Segoe UI',sans-serif;color:#fff;}
+#canvas{display:block;width:100vw;height:100vh;}
+#ui-top{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;
+  background:rgba(10,10,20,0.85);backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(120,80,255,0.3);padding:6px 16px;gap:12px;}
+#ui-top .info{font-size:11px;color:rgba(200,180,255,0.7);flex:1;text-align:center;}
+#room-btns{position:fixed;top:48px;left:12px;z-index:10;display:flex;flex-direction:column;gap:6px;}
+.room-btn{background:rgba(80,50,200,0.25);border:1px solid rgba(120,80,255,0.5);
+  color:#c8b4ff;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;
+  font-weight:600;transition:all .2s;white-space:nowrap;}
+.room-btn:hover,.room-btn.active{background:rgba(120,80,255,0.5);border-color:#a070ff;color:#fff;}
+#nav-btns{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;
+  display:grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px;gap:4px;}
+.nav-btn{background:rgba(80,50,200,0.4);border:1px solid rgba(120,80,255,0.6);
+  color:#fff;border-radius:8px;cursor:pointer;font-size:18px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none;}
+.nav-btn:hover{background:rgba(120,80,255,0.7);}
+.nav-btn:active{transform:scale(0.92);}
+#nav-up{grid-column:2;grid-row:1;}
+#nav-left{grid-column:1;grid-row:2;}
+#nav-down{grid-column:2;grid-row:2;}
+#nav-right{grid-column:3;grid-row:2;}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:20;
+  background:rgba(20,10,40,0.95);border:1px solid rgba(120,80,255,0.6);
+  color:#e0d0ff;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;
+  opacity:0;transition:opacity .3s;pointer-events:none;max-width:400px;text-align:center;}
+#toast.show{opacity:1;}
+#legend{position:fixed;top:48px;right:12px;z-index:10;
+  background:rgba(10,10,20,0.85);border:1px solid rgba(120,80,255,0.3);
+  border-radius:10px;padding:10px 14px;font-size:11px;}
+#legend h4{color:#a070ff;margin-bottom:6px;font-size:12px;}
+.leg-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+.leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="ui-top">
+  <span style="font-size:13px;font-weight:700;color:#c8b4ff;">&#9670; NeonSpace 3D</span>
+  <span class="info">&#8593;&#8595;&#8592;&#8594; ou touches clavier &mdash; Cliquer sur une table pour réserver</span>
+  <span id="room-label" style="font-size:12px;color:#a070ff;font-weight:600;">Couloir Principal</span>
+</div>
+<div id="room-btns">
+  <button class="room-btn active" onclick="goRoom(0)">&#127968; Couloir</button>
+  <button class="room-btn" onclick="goRoom(1)">&#128187; Salle A — Hackathon</button>
+  <button class="room-btn" onclick="goRoom(2)">&#128218; Salle B — Workshop</button>
+  <button class="room-btn" onclick="goRoom(3)">&#127918; Salle C — Gaming</button>
+</div>
+<div id="legend">
+  <h4>Légende tables</h4>
+  <div class="leg-row"><div class="leg-dot" style="background:#22c55e;"></div><span>Disponible</span></div>
+  <div class="leg-row"><div class="leg-dot" style="background:#3b82f6;"></div><span>Ma réservation</span></div>
+  <div class="leg-row"><div class="leg-dot" style="background:#ef4444;"></div><span>Occupée</span></div>
+</div>
+<div id="nav-btns">
+  <button class="nav-btn" id="nav-up" onmousedown="startMove('fwd')" onmouseup="stopMove()" ontouchstart="startMove('fwd')" ontouchend="stopMove()">&#8593;</button>
+  <button class="nav-btn" id="nav-left" onmousedown="startMove('left')" onmouseup="stopMove()" ontouchstart="startMove('left')" ontouchend="stopMove()">&#8592;</button>
+  <button class="nav-btn" id="nav-down" onmousedown="startMove('back')" onmouseup="stopMove()" ontouchstart="startMove('back')" ontouchend="stopMove()">&#8595;</button>
+  <button class="nav-btn" id="nav-right" onmousedown="startMove('right')" onmouseup="stopMove()" ontouchstart="startMove('right')" ontouchend="stopMove()">&#8594;</button>
+</div>
+<div id="toast"></div>
+<script src="three.min.js"></script>
+<script>
+var reservations={},myEquipeId=null,currentRoom=0,selectedTableKey=null,moveDir=null,moveInterval=null;
+function setReservations(json){try{reservations=(typeof json==='string')?JSON.parse(json):json;rebuildRoom(currentRoom);}catch(e){}}
+function setMyEquipe(id){myEquipeId=id;rebuildRoom(currentRoom);}
+function confirmReservation(key,equipeId){reservations[key]=equipeId;rebuildRoom(currentRoom);showToast('Réservation confirmée !','#22c55e');}
+var renderer=new THREE.WebGLRenderer({canvas:document.getElementById('canvas'),antialias:true});
+renderer.setPixelRatio(window.devicePixelRatio);renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=0.9;
+var scene=new THREE.Scene();scene.background=new THREE.Color(0x050508);scene.fog=new THREE.Fog(0x050508,400,1800);
+var camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,1,3000);camera.position.set(0,-40,600);
+window.addEventListener('resize',function(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
+var camYaw=0,camSpeed=55;
+function updateCamera(){camera.rotation.set(0,camYaw,0,'YXZ');}
+function moveCamera(dir){var dx=Math.sin(camYaw),dz=Math.cos(camYaw);
+  if(dir==='fwd'){camera.position.x+=dx*camSpeed;camera.position.z-=dz*camSpeed;}
+  if(dir==='back'){camera.position.x-=dx*camSpeed;camera.position.z+=dz*camSpeed;}
+  if(dir==='left'){camYaw+=0.18;updateCamera();}
+  if(dir==='right'){camYaw-=0.18;updateCamera();}}
+function startMove(dir){moveDir=dir;if(moveInterval)clearInterval(moveInterval);moveInterval=setInterval(function(){if(moveDir)moveCamera(moveDir);},50);}
+function stopMove(){moveDir=null;if(moveInterval){clearInterval(moveInterval);moveInterval=null;}}
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowUp'||e.key==='w')moveCamera('fwd');
+  if(e.key==='ArrowDown'||e.key==='s')moveCamera('back');
+  if(e.key==='ArrowLeft'||e.key==='a')moveCamera('left');
+  if(e.key==='ArrowRight'||e.key==='d')moveCamera('right');});
+var raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2(),clickables=[];
+renderer.domElement.addEventListener('click',function(e){
+  mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  var hits=raycaster.intersectObjects(clickables,false);
+  if(!hits.length)return;var ud=hits[0].object.userData;
+  if(ud.type==='door')goRoom(ud.roomIdx);
+  else if(ud.type==='table')onTableClick(ud);
+  else if(ud.type==='back')goRoom(0);});
+function showToast(msg,color){var t=document.getElementById('toast');t.textContent=msg;t.style.borderColor=color||'rgba(120,80,255,0.6)';t.style.color=color||'#e0d0ff';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3000);}
+function getTableColor(key){if(reservations[key]!==undefined){if(myEquipeId!==null&&reservations[key]==myEquipeId)return 0x3b82f6;return 0xef4444;}return 0x22c55e;}
+function onTableClick(ud){var key=ud.key;if(reservations[key]!==undefined){if(myEquipeId!==null&&reservations[key]==myEquipeId)showToast('Table '+(ud.tableNum+1)+' — Votre réservation','#3b82f6');else showToast('Table '+(ud.tableNum+1)+' — Occupée','#ef4444');}else{showToast('Table '+(ud.tableNum+1)+' disponible — Réservation...','#22c55e');if(window.javaBridge)window.javaBridge.onTableSelected(ud.salleIdx,ud.tableNum,key);}}
+function mat(c,e,ei,r,m){return new THREE.MeshStandardMaterial({color:c||0xffffff,emissive:e||0,emissiveIntensity:ei||0,roughness:r!==undefined?r:0.7,metalness:m!==undefined?m:0.1});}
+function B(w,h,d,material){var o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.castShadow=true;o.receiveShadow=true;return o;}
+function CY(rt,rb,h,s,material){var o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,s||12),material);o.castShadow=true;return o;}
+function SP(r,material){var o=new THREE.Mesh(new THREE.SphereGeometry(r,16,16),material);o.castShadow=true;return o;}
+function PL(parent,x,y,z,c,i,d){var l=new THREE.PointLight(c,i||1,d||400);l.position.set(x,y,z);parent.add(l);return l;}
+function NS(parent,x,y,z,w,h,d,c,i){var m=B(w,h,d,mat(c,c,i||2.5,0.2,0));m.position.set(x,y,z);parent.add(m);PL(parent,x,y,z,c,0.8,200);return m;}
+var roomGroup=null;
+function goRoom(idx){currentRoom=idx;rebuildRoom(idx);var names=['Couloir Principal','Salle A — Hackathon','Salle B — Workshop','Salle C — Gaming'];document.getElementById('room-label').textContent=names[idx];document.querySelectorAll('.room-btn').forEach(function(b,i){b.classList.toggle('active',i===idx);});if(idx===0){camera.position.set(0,-40,600);camYaw=0;}else{camera.position.set(0,-40,350);camYaw=0;}updateCamera();}
+function rebuildRoom(idx){if(roomGroup)scene.remove(roomGroup);clickables=[];roomGroup=new THREE.Group();scene.add(roomGroup);if(idx===0)buildCorridor(roomGroup);else if(idx===1)buildSalleA(roomGroup);else if(idx===2)buildSalleB(roomGroup);else if(idx===3)buildSalleC(roomGroup);}
+</script>
+<script>
+function buildFloor(p,W,D,y){for(var r=0;r<16;r++)for(var c=0;c<10;c++){var tw=W/10,td=D/16,dark=(r+c)%2===0,tile=B(tw-1,4,td-1,mat(dark?0x111118:0x18181f,0,0,0.9,0.05));tile.position.set(-W/2+c*tw+tw/2,y,-D/2+r*td+td/2);p.add(tile);}NS(p,-W/4,y+2,0,4,3,D-40,0x8b5cf6,1.5);NS(p,W/4,y+2,0,4,3,D-40,0x3b82f6,1.5);}
+function buildCeiling(p,W,D,y){var ceil=B(W,6,D,mat(0x0a0a14,0,0,1,0));ceil.position.set(0,y,0);p.add(ceil);NS(p,-W/4,y-4,0,4,3,D-40,0x8b5cf6,2);NS(p,W/4,y-4,0,4,3,D-40,0x06b6d4,2);for(var i=0;i<5;i++){var lz=-D/2+D/10+i*(D/5),panel=B(W*0.6,3,30,mat(0xffffff,0xffffff,1.5,0.5,0));panel.position.set(0,y-4,lz);p.add(panel);PL(p,0,y-20,lz,0xfff0e0,0.6,350);}}
+function buildWalls(p,W,H,D,fy,cy){var wl=B(8,H,D,mat(0x0e0e1a,0,0,0.95,0));wl.position.set(-W/2,(fy+cy)/2,0);p.add(wl);var wr=B(8,H,D,mat(0x0e0e1a,0,0,0.95,0));wr.position.set(W/2,(fy+cy)/2,0);p.add(wr);NS(p,-W/2+6,fy+8,0,5,5,D-20,0x8b5cf6,1.2);NS(p,W/2-6,fy+8,0,5,5,D-20,0x3b82f6,1.2);NS(p,-W/2+6,cy-8,0,5,5,D-20,0x8b5cf6,1.2);NS(p,W/2-6,cy-8,0,5,5,D-20,0x3b82f6,1.2);}
+function buildDoor(p,x,y,z,ry,roomIdx,nc){var g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=ry;var frame=B(110,220,14,mat(nc,nc,1.5,0.3,0.5));g.add(frame);var panel=B(92,202,8,mat(0x0d0d1f,nc,0.3,0.6,0.2));panel.userData={type:'door',roomIdx:roomIdx};g.add(panel);clickables.push(panel);var glass=B(70,70,4,mat(0x0a1a3a,0x3b82f6,0.8,0.1,0.1));glass.position.set(0,30,-3);glass.userData={type:'door',roomIdx:roomIdx};g.add(glass);clickables.push(glass);var handle=CY(3,3,28,8,mat(0xc0c0c0,0xffffff,0.3,0.2,0.8));handle.rotation.z=Math.PI/2;handle.position.set(32,-10,-6);g.add(handle);var sign=B(88,22,8,mat(nc,nc,2.5,0.2,0));sign.position.set(0,122,0);g.add(sign);var sl=new THREE.PointLight(nc,1.2,150);sl.position.set(0,122,10);g.add(sl);p.add(g);}
+function addPlant(p,x,y,z){var pot=B(22,30,22,mat(0x3a2010,0,0,0.9,0.1));pot.position.set(x,y+15,z);p.add(pot);var stem=CY(2,3,25,6,mat(0x1a4010,0,0,0.9,0));stem.position.set(x,y+42,z);p.add(stem);var leaves=SP(22,mat(0x1a5020,0x22c55e,0.15,0.8,0));leaves.position.set(x,y+60,z);p.add(leaves);}
+function addBench(p,x,y,z){var seat=B(140,8,40,mat(0x5a3a20,0,0,0.8,0.05));seat.position.set(x,y,z);p.add(seat);var back=B(140,40,6,mat(0x4a2e18,0,0,0.8,0.05));back.position.set(x,y-24,z+22);p.add(back);[-55,55].forEach(function(px){var leg=CY(4,4,30,8,mat(0x444455,0,0,0.5,0.6));leg.position.set(x+px,y+15,z);p.add(leg);});}
+function addVending(p,x,y,z){var body=B(50,160,40,mat(0x0a1525,0x3b82f6,0.4,0.4,0.3));body.position.set(x,y+80,z);p.add(body);var glass=B(36,100,6,mat(0x0a2040,0x3b82f6,0.9,0.1,0.1));glass.position.set(x,y+90,z-18);p.add(glass);var frame=B(52,162,42,mat(0x3b82f6,0x3b82f6,1.8,0.2,0));frame.position.set(x,y+80,z);p.add(frame);var pc=[0xff4444,0x44ff88,0x4488ff,0xffaa00,0xff44aa,0x44ffff];for(var r=0;r<3;r++)for(var c=0;c<3;c++){var prod=B(8,10,4,mat(pc[(r*3+c)%6],pc[(r*3+c)%6],0.5,0.5,0));prod.position.set(x-8+c*8,y+70+r*28,z-16);p.add(prod);}var scr=B(30,20,4,mat(0x001a00,0x00ff44,1.5,0.3,0));scr.position.set(x,y+140,z-18);p.add(scr);PL(p,x,y+80,z-25,0x3b82f6,1.5,120);}
+function addBar(p,x,y,z){var counter=B(280,30,60,mat(0x1a0a30,0x8b5cf6,0.3,0.4,0.3));counter.position.set(x,y+15,z);p.add(counter);var top=B(290,6,66,mat(0x2a1a40,0x8b5cf6,0.5,0.2,0.5));top.position.set(x,y+31,z);p.add(top);NS(p,x,y+2,z-28,270,4,4,0x8b5cf6,2);var s1=B(200,6,20,mat(0x1a1a2a,0,0,0.7,0.2));s1.position.set(x,y+80,z-20);p.add(s1);var s2=B(200,6,20,mat(0x1a1a2a,0,0,0.7,0.2));s2.position.set(x,y+120,z-20);p.add(s2);var bc=[0x8b5cf6,0x3b82f6,0x06b6d4,0xf59e0b,0xef4444,0x22c55e];for(var i=0;i<6;i++){var b1=CY(4,5,30,8,mat(bc[i],bc[i],0.6,0.2,0.3));b1.position.set(x-100+i*40,y+98,z-20);p.add(b1);var b2=CY(4,5,30,8,mat(bc[(i+3)%6],bc[(i+3)%6],0.6,0.2,0.3));b2.position.set(x-100+i*40,y+138,z-20);p.add(b2);}for(var s=0;s<4;s++){var st=CY(14,14,8,12,mat(0x2a1a40,0x8b5cf6,0.3,0.4,0.3));st.position.set(x-120+s*80,y+8,z+50);p.add(st);var sl=CY(3,3,40,8,mat(0x444455,0,0,0.4,0.7));sl.position.set(x-120+s*80,y+28,z+50);p.add(sl);}PL(p,x,y+60,z,0x8b5cf6,1.5,250);}
+function addGameCorner(p,x,y,z){var sf=B(160,100,10,mat(0x111122,0x06b6d4,0.5,0.4,0.3));sf.position.set(x,y+50,z);p.add(sf);var sc=B(148,88,6,mat(0x000a1a,0x06b6d4,1.2,0.2,0.1));sc.position.set(x,y+50,z-3);p.add(sc);PL(p,x,y+50,z-20,0x06b6d4,1.2,200);var bc=[0x8b5cf6,0xef4444,0x22c55e];for(var i=0;i<3;i++){var bag=SP(22,mat(bc[i],bc[i],0.2,0.9,0));bag.scale.set(1,0.7,1);bag.position.set(x-60+i*60,y+16,z+80);p.add(bag);}var cc=[0xff4444,0xffffff,0x3b82f6,0x22c55e,0xf59e0b,0xff8800];for(var cx=0;cx<3;cx++)for(var cy=0;cy<3;cy++)for(var cz=0;cz<3;cz++){var cube=B(17,17,17,mat(cc[(cx+cy+cz)%6],0,0,0.5,0.1));cube.position.set(x+120+cx*18,y+9+cy*18,z+60+cz*18);p.add(cube);}}
+function buildTableSet(p,salleIdx,positions,places){positions.forEach(function(pos,i){var key=salleIdx+'_'+i,color=getTableColor(key),tw=places>=6?200:160;var top=B(tw,8,80,mat(0x6b4c2a,0,0,0.8,0.05));top.position.set(pos[0],pos[1],pos[2]);p.add(top);var tag=B(tw*0.3,6,6,mat(color,color,1.5,0.3,0));tag.position.set(pos[0],pos[1]+1,pos[2]-43);p.add(tag);PL(p,pos[0],pos[1]+5,pos[2]-43,color,0.5,60);[[-tw/2+10,-30],[-tw/2+10,30],[tw/2-10,-30],[tw/2-10,30]].forEach(function(lp){var leg=CY(4,4,60,8,mat(0x444455,0,0,0.4,0.7));leg.position.set(pos[0]+lp[0],pos[1]+34,pos[2]+lp[1]);p.add(leg);});var ne=Math.min(Math.floor(places/2),3);for(var e=0;e<ne;e++){var ex=pos[0]-tw/2+(e+1)*tw/(ne+1);var mb=CY(2,2,20,6,mat(0x333344,0,0,0.5,0.6));mb.position.set(ex,pos[1]-24,pos[2]);p.add(mb);var mon=B(28,18,3,mat(0x050510,0x3b82f6,0.8,0.3,0.1));mon.position.set(ex,pos[1]-38,pos[2]);p.add(mon);}var cps=Math.floor(places/2);for(var c=0;c<cps;c++){var cx=pos[0]-tw/2+(c+1)*tw/(cps+1);var s1=B(36,5,34,mat(0x1a1a2a,0x8b5cf6,0.1,0.7,0.1));s1.position.set(cx,pos[1]+28,pos[2]-58);p.add(s1);var s2=B(36,5,34,mat(0x1a1a2a,0x8b5cf6,0.1,0.7,0.1));s2.position.set(cx,pos[1]+28,pos[2]+58);p.add(s2);}var hb=B(tw+4,12,84,new THREE.MeshBasicMaterial({transparent:true,opacity:0}));hb.position.set(pos[0],pos[1],pos[2]);hb.userData={type:'table',key:key,salleIdx:salleIdx,tableNum:i};p.add(hb);clickables.push(hb);});}
+function addBackBtn(p,x,y,z){var btn=B(100,18,18,mat(0x8b5cf6,0x8b5cf6,1.5,0.3,0));btn.position.set(x,y,z);btn.userData={type:'back'};p.add(btn);clickables.push(btn);PL(p,x,y+10,z,0x8b5cf6,0.8,80);}
+</script>
+<script>
+function buildCorridor(p){
+  var W=700,D=1400,fy=120,cy=-200,H=fy-cy;
+  buildFloor(p,W,D,fy);buildCeiling(p,W,D,cy);buildWalls(p,W,H,D,fy,cy);
+  var bw=B(W,H,10,mat(0x0a0a18,0,0,0.95,0));bw.position.set(0,(fy+cy)/2,-D/2);p.add(bw);
+  NS(p,0,cy+8,-D/2+6,W-20,5,5,0x8b5cf6,2);NS(p,0,fy-8,-D/2+6,W-20,5,5,0x3b82f6,2);
+  var fw=B(W,H,10,mat(0x0a0a18,0,0,0.95,0));fw.position.set(0,(fy+cy)/2,D/2);p.add(fw);
+  // DOORS ON SIDE WALLS
+  buildDoor(p,-W/2+7,fy-110,-200,Math.PI/2,1,0x8b5cf6);
+  buildDoor(p, W/2-7,fy-110,   0,-Math.PI/2,2,0x3b82f6);
+  buildDoor(p,-W/2+7,fy-110, 200,Math.PI/2,3,0x06b6d4);
+  // BAR at end
+  addBar(p,0,fy,-D/2+120);
+  // VENDING right
+  addVending(p,W/2-60,fy,350);
+  // GAME CORNER left
+  addGameCorner(p,-W/2+120,fy,300);
+  // BENCHES
+  addBench(p,-180,fy,100);addBench(p,180,fy,100);addBench(p,-180,fy,-400);addBench(p,180,fy,-400);
+  // PLANTS
+  addPlant(p,-W/2+50,fy,-D/2+80);addPlant(p,W/2-50,fy,-D/2+80);addPlant(p,-W/2+50,fy,D/2-80);addPlant(p,W/2-50,fy,D/2-80);
+  p.add(new THREE.AmbientLight(0x1a1030,1.5));
+  PL(p,0,cy+30,0,0xfff0e0,0.4,600);PL(p,0,cy+30,-500,0xfff0e0,0.4,500);PL(p,0,cy+30,500,0xfff0e0,0.4,500);
+}
+function buildSalleA(p){
+  var W=800,D=700,fy=120,cy=-200,H=fy-cy;
+  buildFloor(p,W,D,fy);buildCeiling(p,W,D,cy);buildWalls(p,W,H,D,fy,cy);
+  var bw=B(W,H,10,mat(0x080814,0,0,0.95,0));bw.position.set(0,(fy+cy)/2,-D/2);p.add(bw);
+  [[-200,-100,0],[0,-100,0],[200,-100,0],[-100,-100,-150],[100,-100,-150],[-100,-100,150],[100,-100,150]].forEach(function(hp){
+    var hex=new THREE.Mesh(new THREE.CylinderGeometry(30,30,4,6),mat(0x8b5cf6,0x8b5cf6,3,0.2,0));
+    hex.position.set(hp[0],cy+4,hp[2]);p.add(hex);PL(p,hp[0],cy+10,hp[2],0x8b5cf6,1.2,200);});
+  var ewL=B(W/2-80,H,10,mat(0x080814,0,0,0.95,0));ewL.position.set(-W/4-40,(fy+cy)/2,D/2);p.add(ewL);
+  var ewR=B(W/2-80,H,10,mat(0x080814,0,0,0.95,0));ewR.position.set(W/4+40,(fy+cy)/2,D/2);p.add(ewR);
+  var ewT=B(160,60,10,mat(0x080814,0,0,0.95,0));ewT.position.set(0,cy+30,D/2);p.add(ewT);
+  buildTableSet(p,1,[[-200,fy-4,-100],[-200,fy-4,100],[200,fy-4,-100],[200,fy-4,100]],6);
+  var wb=B(300,160,6,mat(0xf0f0f0,0xffffff,0.1,0.9,0));wb.position.set(0,fy-120,-D/2+8);p.add(wb);
+  addPlant(p,-W/2+50,fy,-D/2+60);addPlant(p,W/2-50,fy,-D/2+60);
+  addBackBtn(p,0,fy-9,D/2-30);
+  p.add(new THREE.AmbientLight(0x100820,2));PL(p,0,cy+30,0,0xd0b0ff,0.5,600);
+}
+function buildSalleB(p){
+  var W=900,D=750,fy=120,cy=-200,H=fy-cy;
+  buildFloor(p,W,D,fy);buildCeiling(p,W,D,cy);buildWalls(p,W,H,D,fy,cy);
+  var bw=B(W,H,10,mat(0x080814,0,0,0.95,0));bw.position.set(0,(fy+cy)/2,-D/2);p.add(bw);
+  for(var i=0;i<4;i++){var panel=B(W*0.7,4,40,mat(0x3b82f6,0x3b82f6,2.5,0.2,0));panel.position.set(0,cy+4,-D/2+80+i*180);p.add(panel);PL(p,0,cy+20,-D/2+80+i*180,0x3b82f6,0.8,250);}
+  var ewL=B(W/2-80,H,10,mat(0x080814,0,0,0.95,0));ewL.position.set(-W/4-40,(fy+cy)/2,D/2);p.add(ewL);
+  var ewR=B(W/2-80,H,10,mat(0x080814,0,0,0.95,0));ewR.position.set(W/4+40,(fy+cy)/2,D/2);p.add(ewR);
+  var ewT=B(160,60,10,mat(0x080814,0,0,0.95,0));ewT.position.set(0,cy+30,D/2);p.add(ewT);
+  var tpos=[];for(var r=0;r<3;r++)for(var c=0;c<2;c++)tpos.push([-200+c*400,fy-4,-200+r*200]);
+  buildTableSet(p,2,tpos,4);
+  var wb1=B(6,140,260,mat(0xf0f0f0,0xffffff,0.1,0.9,0));wb1.position.set(-W/2+8,fy-110,-100);p.add(wb1);
+  var wb2=B(6,140,260,mat(0xf0f0f0,0xffffff,0.1,0.9,0));wb2.position.set(W/2-8,fy-110,-100);p.add(wb2);
+  var scr=B(400,200,6,mat(0xf8f8ff,0x3b82f6,0.2,0.9,0));scr.position.set(0,fy-130,-D/2+8);p.add(scr);
+  addPlant(p,-W/2+50,fy,-D/2+60);addPlant(p,W/2-50,fy,-D/2+60);
+  addBackBtn(p,0,fy-9,D/2-30);
+  p.add(new THREE.AmbientLight(0x081020,2));PL(p,0,cy+30,0,0xa0c8ff,0.5,700);
+}
+function buildSalleC(p){
+  var W=800,D=700,fy=120,cy=-200,H=fy-cy;
+  buildFloor(p,W,D,fy);buildCeiling(p,W,D,cy);buildWalls(p,W,H,D,fy,cy);
+  var bw=B(W,H,10,mat(0x080814,0,0,0.95,0));bw.position.set(0,(fy+cy)/2,-D/2);p.add(bw);
+  var nc=[0xef4444,0xf59e0b,0x22c55e,0x3b82f6,0x8b5cf6,0x06b6d4];
+  for(var i=0;i<6;i++){var strip=B(W-60,4,12,mat(nc[i],nc[i],3,0.2,0));strip.position.set(0,cy+4,-D/2+60+i*110);p.add(strip);PL(p,0,cy+15,-D/2+60+i*110,nc[i],0.7,180);}
+  var ewL=B(W/2-80,H,10,mat(0x080814,0,0,0.95,0));ewL.position.set(-W/4-40,(fy+cy)/2,D/2);p.add(ewL);
+  var ewR=B(W/2-80,H,10,mat(0x080814,0,0,0.95,0));ewR.position.set(W/4+40,(fy+cy)/2,D/2);p.add(ewR);
+  var ewT=B(160,60,10,mat(0x080814,0,0,0.95,0));ewT.position.set(0,cy+30,D/2);p.add(ewT);
+  buildTableSet(p,3,[[-250,fy-4,-100],[0,fy-4,-100],[250,fy-4,-100]],6);
+  addGameCorner(p,0,fy,200);
+  var bs=B(500,220,8,mat(0x000510,0x06b6d4,1.5,0.2,0.1));bs.position.set(0,fy-140,-D/2+8);p.add(bs);PL(p,0,fy-140,-D/2+30,0x06b6d4,1.5,300);
+  addPlant(p,-W/2+50,fy,-D/2+60);addPlant(p,W/2-50,fy,-D/2+60);
+  addBackBtn(p,0,fy-9,D/2-30);
+  p.add(new THREE.AmbientLight(0x100810,2));PL(p,0,cy+30,0,0xffd0ff,0.4,700);
+}
+goRoom(0);
+var clock=new THREE.Clock();
+function animate(){requestAnimationFrame(animate);camera.position.y=-40+Math.sin(clock.getElapsedTime()*1.2)*1.5;renderer.render(scene,camera);}
+animate();
+</script>
+</body>
+</html>

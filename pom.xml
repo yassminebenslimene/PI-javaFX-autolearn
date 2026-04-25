@@ -36,6 +36,12 @@
             <artifactId>javafx-web</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+        <!-- JavaFX 3D support -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
         <!-- BCrypt password hashing -->
         <dependency>
             <groupId>org.mindrot</groupId>
@@ -59,6 +65,23 @@
             <artifactId>httpclient5</artifactId>
             <version>5.3.1</version>
         </dependency>
+        <!-- ZXing QR Code generation -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <!-- JavaMail for fallback SMTP (optional) -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -72,7 +95,9 @@
                     <mainClass>tn.esprit.MainApp</mainClass>
                     <options>
                         <option>--add-modules</option>
-                        <option>javafx.controls,javafx.fxml,javafx.graphics</option>
+                        <option>javafx.controls,javafx.fxml,javafx.graphics,javafx.web</option>
+                        <option>--add-opens</option>
+                        <option>java.base/sun.net.www.protocol.http=ALL-UNNAMED</option>
                     </options>
                 </configuration>
                 <executions>

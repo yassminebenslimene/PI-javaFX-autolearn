@@ -189,6 +189,93 @@ public class ParticipationService implements IService<Participation> {
         p.setEvenementId(rs.getInt("evenement_id"));
         p.setStatut(rs.getString("statut"));
         p.setFeedbacks(rs.getString("feedbacks"));
+        // table_numero peut être NULL ou absent (compatible Symfony)
+        try {
+            int tn = rs.getInt("table_numero");
+            if (!rs.wasNull()) p.setTableNumero(tn);
+        } catch (SQLException ignored) {
+            // colonne absente = pas de réservation
+        }
         return p;
+    }
+
+    // ── Méthodes salle 3D ────────────────────────────────────────
+
+    /**
+     * Réserve une table pour une équipe dans un événement.
+     * Utilise la colonne table_numero (NULL par défaut, compatible Symfony).
+     * @return true si succès, false si table déjà prise
+     */
+    public boolean reserverTable(int evenementId, int equipeId, int tableNumero) {
+        // Vérifier que la table n'est pas déjà prise par une autre équipe
+        String check = "SELECT COUNT(*) FROM participation WHERE evenement_id=? AND table_numero=?";
+        try (PreparedStatement ps = connection.prepareStatement(check)) {
+            ps.setInt(1, evenementId);
+            ps.setInt(2, tableNumero);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) return false; // déjà prise
+        } catch (SQLException ex) {
+            System.err.println("Erreur check table: " + ex.getMessage());
+            return false;
+        }
+        // Mettre à jour la participation existante de cette équipe
+        String req = "UPDATE participation SET table_numero=? WHERE equipe_id=? AND evenement_id=?";
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setInt(1, tableNumero);
+            ps.setInt(2, equipeId);
+            ps.setInt(3, evenementId);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException ex) {
+            System.err.println("Erreur reserverTable: " + ex.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Libère la réservation de table d'une équipe (remet table_numero à NULL).
+     */
+    public void libererTable(int evenementId, int equipeId) {
+        String req = "UPDATE participation SET table_numero=NULL WHERE equipe_id=? AND evenement_id=?";
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setInt(1, equipeId);
+            ps.setInt(2, evenementId);
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            System.err.println("Erreur libererTable: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Retourne la map tableNumero → equipeId pour un événement.
+     * Utilisé pour colorier les tables dans la salle 3D.
+     */
+    public java.util.Map<Integer, Integer> getReservationsTable(int evenementId) {
+        java.util.Map<Integer, Integer> map = new java.util.HashMap<>();
+        String req = "SELECT equipe_id, table_numero FROM participation WHERE evenement_id=? AND table_numero IS NOT NULL";
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setInt(1, evenementId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) map.put(rs.getInt("table_numero"), rs.getInt("equipe_id"));
+        } catch (SQLException ex) {
+            System.err.println("Erreur getReservationsTable: " + ex.getMessage());
+        }
+        return map;
+    }
+
+    /**
+     * Retourne le numéro de table réservé par une équipe, ou -1 si aucune.
+     */
+    public int getTableByEquipe(int evenementId, int equipeId) {
+        String req = "SELECT table_numero FROM participation WHERE evenement_id=? AND equipe_id=? AND table_numero IS NOT NULL";
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setInt(1, evenementId);
+            ps.setInt(2, equipeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt("table_numero");
+        } catch (SQLException ex) {
+            System.err.println("Erreur getTableByEquipe: " + ex.getMessage());
+        }
+        return -1;
     }
 }
