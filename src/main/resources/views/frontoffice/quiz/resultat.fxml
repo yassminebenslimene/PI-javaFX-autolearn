@@ -66,25 +66,65 @@
            style="-fx-background-color: linear-gradient(to bottom right, #7c3aed, #a78bfa);">
 
     <!-- ── Éléments décoratifs de fond ── -->
-    <Circle radius="180" fill="rgba(255,255,255,0.05)" translateX="-380" translateY="-200"/>
-    <Circle radius="120" fill="rgba(255,255,255,0.07)" translateX="380" translateY="-160"/>
-    <Circle radius="80"  fill="rgba(255,255,255,0.06)" translateX="-360" translateY="230"/>
-    <Circle radius="140" fill="rgba(255,255,255,0.04)" translateX="370" translateY="220"/>
-    <Circle radius="50"  fill="rgba(255,255,255,0.08)" translateX="160" translateY="-260"/>
-    <Circle radius="35"  fill="rgba(255,255,255,0.10)" translateX="-260" translateY="80"/>
+    <!-- Grands cercles pleins -->
+    <Circle radius="200" fill="rgba(255,255,255,0.06)" translateX="-380" translateY="-200"/>
+    <Circle radius="170" fill="rgba(255,255,255,0.05)" translateX="380"  translateY="-190"/>
+    <Circle radius="150" fill="rgba(255,255,255,0.07)" translateX="-370" translateY="230"/>
+    <Circle radius="180" fill="rgba(255,255,255,0.04)" translateX="370"  translateY="220"/>
+    <Circle radius="130" fill="rgba(255,255,255,0.06)" translateX="0"    translateY="-270"/>
+    <Circle radius="100" fill="rgba(255,255,255,0.05)" translateX="-100" translateY="290"/>
+    <Circle radius="110" fill="rgba(255,255,255,0.06)" translateX="200"  translateY="270"/>
+    <!-- Cercles moyens -->
+    <Circle radius="75"  fill="rgba(255,255,255,0.08)" translateX="180"  translateY="-240"/>
+    <Circle radius="65"  fill="rgba(255,255,255,0.09)" translateX="-280" translateY="70"/>
+    <Circle radius="60"  fill="rgba(255,255,255,0.07)" translateX="280"  translateY="110"/>
+    <Circle radius="55"  fill="rgba(255,255,255,0.08)" translateX="-180" translateY="-110"/>
+    <Circle radius="50"  fill="rgba(255,255,255,0.07)" translateX="150"  translateY="240"/>
+    <Circle radius="45"  fill="rgba(255,255,255,0.09)" translateX="-350" translateY="-60"/>
+    <Circle radius="40"  fill="rgba(255,255,255,0.08)" translateX="350"  translateY="-60"/>
+    <Circle radius="35"  fill="rgba(255,255,255,0.10)" translateX="0"    translateY="210"/>
+    <Circle radius="30"  fill="rgba(255,255,255,0.09)" translateX="-150" translateY="-210"/>
+    <Circle radius="28"  fill="rgba(255,255,255,0.08)" translateX="320"  translateY="-230"/>
+    <!-- Anneaux -->
+    <Circle radius="120" fill="transparent" stroke="rgba(255,255,255,0.10)" strokeWidth="2"
+            translateX="-250" translateY="190"/>
+    <Circle radius="90"  fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="2"
+            translateX="260"  translateY="-160"/>
+    <Circle radius="70"  fill="transparent" stroke="rgba(255,255,255,0.09)" strokeWidth="1.5"
+            translateX="-100" translateY="-230"/>
+    <Circle radius="55"  fill="transparent" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5"
+            translateX="320"  translateY="160"/>
+    <Circle radius="40"  fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="1"
+            translateX="80"   translateY="280"/>
+    <!-- Rectangles -->
     <Rectangle width="90" height="90" arcWidth="22" arcHeight="22"
                fill="rgba(255,255,255,0.05)" rotate="30" translateX="-310" translateY="-130"/>
-    <Rectangle width="65" height="65" arcWidth="16" arcHeight="16"
-               fill="rgba(255,255,255,0.06)" rotate="45" translateX="320" translateY="180"/>
-    <Ellipse radiusX="220" radiusY="65" fill="rgba(255,255,255,0.04)" translateX="0" translateY="300"/>
+    <Rectangle width="70" height="70" arcWidth="16" arcHeight="16"
+               fill="rgba(255,255,255,0.06)" rotate="45" translateX="320"  translateY="180"/>
+    <Rectangle width="55" height="55" arcWidth="12" arcHeight="12"
+               fill="rgba(255,255,255,0.06)" rotate="20" translateX="200"  translateY="-190"/>
+    <Rectangle width="40" height="40" arcWidth="10" arcHeight="10"
+               fill="rgba(255,255,255,0.08)" rotate="60" translateX="-200" translateY="230"/>
+    <!-- Ellipses -->
+    <Ellipse radiusX="220" radiusY="65" fill="rgba(255,255,255,0.04)" translateX="0"    translateY="300"/>
+    <Ellipse radiusX="150" radiusY="50" fill="rgba(255,255,255,0.05)" translateX="-150" translateY="-280"/>
+    <Ellipse radiusX="110" radiusY="38" fill="rgba(255,255,255,0.06)" translateX="300"  translateY="270"/>
     <!-- Points lumineux -->
-    <Circle radius="6" fill="rgba(255,255,255,0.22)" translateX="-210" translateY="-270"/>
-    <Circle radius="4" fill="rgba(255,255,255,0.16)" translateX="260" translateY="-110"/>
-    <Circle radius="5" fill="rgba(255,255,255,0.18)" translateX="-160" translateY="210"/>
-    <Circle radius="7" fill="rgba(255,255,255,0.12)" translateX="210" translateY="260"/>
-    <Circle radius="4" fill="rgba(255,255,255,0.20)" translateX="110" translateY="-290"/>
-    <Circle radius="5" fill="rgba(255,255,255,0.14)" translateX="-330" translateY="160"/>
-    <Circle radius="3" fill="rgba(255,255,255,0.25)" translateX="390" translateY="60"/>
+    <Circle radius="7" fill="rgba(255,255,255,0.28)" translateX="-210" translateY="-270"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.22)" translateX="260"  translateY="-110"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.25)" translateX="-160" translateY="210"/>
+    <Circle radius="8" fill="rgba(255,255,255,0.20)" translateX="210"  translateY="260"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.28)" translateX="110"  translateY="-290"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.22)" translateX="-330" translateY="160"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.35)" translateX="390"  translateY="60"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.25)" translateX="-80"  translateY="280"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="320"  translateY="-270"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.40)" translateX="60"   translateY="-300"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="-60"  translateY="300"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.25)" translateX="240"  translateY="190"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.35)" translateX="-240" translateY="-190"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.28)" translateX="160"  translateY="-170"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.38)" translateX="340"  translateY="110"/>
 
     <!-- Contenu principal centré, largeur maximale 680 px -->
     <VBox alignment="CENTER" spacing="20" maxWidth="680">

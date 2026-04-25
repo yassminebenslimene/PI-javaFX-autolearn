@@ -18,53 +18,80 @@
     <!-- COUCHE 1 : Éléments décoratifs de fond (cercles + formes)  -->
     <!-- ═══════════════════════════════════════════════════════════ -->
 
-    <!-- Grand cercle en haut à gauche -->
-    <Circle radius="160" fill="rgba(255,255,255,0.06)"
-            translateX="-340" translateY="-200"/>
+    <!-- ── Grands cercles pleins ── -->
+    <Circle radius="200" fill="rgba(255,255,255,0.06)" translateX="-340" translateY="-200"/>
+    <Circle radius="170" fill="rgba(255,255,255,0.05)" translateX="360"  translateY="-190"/>
+    <Circle radius="150" fill="rgba(255,255,255,0.07)" translateX="-380" translateY="230"/>
+    <Circle radius="180" fill="rgba(255,255,255,0.04)" translateX="370"  translateY="220"/>
+    <Circle radius="130" fill="rgba(255,255,255,0.06)" translateX="0"    translateY="-260"/>
+    <Circle radius="100" fill="rgba(255,255,255,0.05)" translateX="-100" translateY="280"/>
+    <Circle radius="110" fill="rgba(255,255,255,0.06)" translateX="200"  translateY="260"/>
 
-    <!-- Cercle moyen en haut à droite -->
-    <Circle radius="110" fill="rgba(255,255,255,0.08)"
-            translateX="340" translateY="-180"/>
+    <!-- ── Cercles moyens ── -->
+    <Circle radius="75"  fill="rgba(255,255,255,0.08)" translateX="180"  translateY="-230"/>
+    <Circle radius="65"  fill="rgba(255,255,255,0.09)" translateX="-280" translateY="60"/>
+    <Circle radius="60"  fill="rgba(255,255,255,0.07)" translateX="280"  translateY="100"/>
+    <Circle radius="55"  fill="rgba(255,255,255,0.08)" translateX="-180" translateY="-100"/>
+    <Circle radius="50"  fill="rgba(255,255,255,0.07)" translateX="150"  translateY="230"/>
+    <Circle radius="45"  fill="rgba(255,255,255,0.09)" translateX="-350" translateY="-50"/>
+    <Circle radius="40"  fill="rgba(255,255,255,0.08)" translateX="350"  translateY="-50"/>
+    <Circle radius="35"  fill="rgba(255,255,255,0.10)" translateX="0"    translateY="200"/>
+    <Circle radius="30"  fill="rgba(255,255,255,0.09)" translateX="-150" translateY="-200"/>
+    <Circle radius="28"  fill="rgba(255,255,255,0.08)" translateX="320"  translateY="-220"/>
 
-    <!-- Petit cercle en bas à gauche -->
-    <Circle radius="70" fill="rgba(255,255,255,0.07)"
-            translateX="-380" translateY="220"/>
+    <!-- ── Anneaux (cercles vides avec contour) ── -->
+    <Circle radius="120" fill="transparent" stroke="rgba(255,255,255,0.10)" strokeWidth="2"
+            translateX="-250" translateY="180"/>
+    <Circle radius="90"  fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="2"
+            translateX="260"  translateY="-150"/>
+    <Circle radius="70"  fill="transparent" stroke="rgba(255,255,255,0.09)" strokeWidth="1.5"
+            translateX="-100" translateY="-220"/>
+    <Circle radius="55"  fill="transparent" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5"
+            translateX="320"  translateY="150"/>
+    <Circle radius="40"  fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="1"
+            translateX="80"   translateY="270"/>
+    <Circle radius="35"  fill="transparent" stroke="rgba(255,255,255,0.10)" strokeWidth="1"
+            translateX="-300" translateY="-240"/>
 
-    <!-- Cercle en bas à droite -->
-    <Circle radius="130" fill="rgba(255,255,255,0.05)"
-            translateX="360" translateY="210"/>
+    <!-- ── Rectangles arrondis inclinés ── -->
+    <Rectangle width="90"  height="90"  arcWidth="22" arcHeight="22"
+               fill="rgba(255,255,255,0.06)" rotate="30"  translateX="-300" translateY="-120"/>
+    <Rectangle width="70"  height="70"  arcWidth="16" arcHeight="16"
+               fill="rgba(255,255,255,0.07)" rotate="45"  translateX="310"  translateY="170"/>
+    <Rectangle width="55"  height="55"  arcWidth="12" arcHeight="12"
+               fill="rgba(255,255,255,0.06)" rotate="20"  translateX="200"  translateY="-180"/>
+    <Rectangle width="45"  height="45"  arcWidth="10" arcHeight="10"
+               fill="rgba(255,255,255,0.08)" rotate="60"  translateX="-200" translateY="220"/>
+    <Rectangle width="35"  height="35"  arcWidth="8"  arcHeight="8"
+               fill="rgba(255,255,255,0.09)" rotate="15"  translateX="100"  translateY="260"/>
+    <Rectangle width="30"  height="30"  arcWidth="7"  arcHeight="7"
+               fill="rgba(255,255,255,0.07)" rotate="75"  translateX="-350" translateY="200"/>
 
-    <!-- Cercle central haut (derrière la carte) -->
-    <Circle radius="50" fill="rgba(255,255,255,0.06)"
-            translateX="180" translateY="-230"/>
+    <!-- ── Ellipses ── -->
+    <Ellipse radiusX="220" radiusY="65" fill="rgba(255,255,255,0.04)" translateX="0"    translateY="290"/>
+    <Ellipse radiusX="150" radiusY="50" fill="rgba(255,255,255,0.05)" translateX="-150" translateY="-270"/>
+    <Ellipse radiusX="110" radiusY="38" fill="rgba(255,255,255,0.06)" translateX="300"  translateY="260"/>
+    <Ellipse radiusX="80"  radiusY="30" fill="rgba(255,255,255,0.07)" translateX="-320" translateY="100"/>
 
-    <!-- Petit cercle décoratif gauche milieu -->
-    <Circle radius="30" fill="rgba(255,255,255,0.10)"
-            translateX="-280" translateY="60"/>
-
-    <!-- Rectangle incliné haut gauche -->
-    <Rectangle width="80" height="80" arcWidth="20" arcHeight="20"
-               fill="rgba(255,255,255,0.06)" rotate="30"
-               translateX="-300" translateY="-120"/>
-
-    <!-- Rectangle incliné bas droite -->
-    <Rectangle width="60" height="60" arcWidth="14" arcHeight="14"
-               fill="rgba(255,255,255,0.07)" rotate="45"
-               translateX="310" translateY="170"/>
-
-    <!-- Ellipse décorative bas centre -->
-    <Ellipse radiusX="200" radiusY="60" fill="rgba(255,255,255,0.04)"
-             translateX="0" translateY="280"/>
-
-    <!-- Points décoratifs (petits cercles) dispersés -->
-    <Circle radius="6" fill="rgba(255,255,255,0.20)" translateX="-200" translateY="-260"/>
-    <Circle radius="4" fill="rgba(255,255,255,0.15)" translateX="250" translateY="-100"/>
-    <Circle radius="5" fill="rgba(255,255,255,0.18)" translateX="-150" translateY="200"/>
-    <Circle radius="7" fill="rgba(255,255,255,0.12)" translateX="200" translateY="250"/>
-    <Circle radius="4" fill="rgba(255,255,255,0.20)" translateX="100" translateY="-280"/>
-    <Circle radius="5" fill="rgba(255,255,255,0.15)" translateX="-320" translateY="150"/>
-    <Circle radius="3" fill="rgba(255,255,255,0.25)" translateX="380" translateY="50"/>
-    <Circle radius="6" fill="rgba(255,255,255,0.12)" translateX="-80" translateY="270"/>
+    <!-- ── Points lumineux dispersés ── -->
+    <Circle radius="7" fill="rgba(255,255,255,0.28)" translateX="-200" translateY="-260"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.22)" translateX="250"  translateY="-100"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.25)" translateX="-150" translateY="200"/>
+    <Circle radius="8" fill="rgba(255,255,255,0.20)" translateX="200"  translateY="250"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.28)" translateX="100"  translateY="-280"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.22)" translateX="-320" translateY="150"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.35)" translateX="380"  translateY="50"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.25)" translateX="-80"  translateY="270"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="320"  translateY="-260"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.22)" translateX="-340" translateY="-260"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.40)" translateX="60"   translateY="-290"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="-60"  translateY="290"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.25)" translateX="240"  translateY="180"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.35)" translateX="-240" translateY="-180"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.28)" translateX="160"  translateY="-160"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.22)" translateX="-160" translateY="160"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.38)" translateX="340"  translateY="100"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="-340" translateY="-100"/>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- COUCHE 2 : Bouton retour en haut à gauche                  -->

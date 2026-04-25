@@ -552,12 +552,26 @@ public class FrontQuizController {
             decoPane.setStyle("-fx-background-color:transparent;");
 
             double[][] cercles = {
-                {160, -380, -180, 0.05}, {110, 380, -140, 0.07},
-                {75,  -350,  200, 0.06}, {130, 360,  190, 0.04},
-                {45,   150, -220, 0.08}, {30, -260,   60, 0.10},
-                {6,   -200, -240, 0.20}, {4,   250,  -90, 0.15},
-                {5,   -150,  180, 0.18}, {7,   200,  230, 0.12},
-                {4,    100, -260, 0.20}, {3,   380,   40, 0.25},
+                // Grands cercles pleins
+                {200, -380, -200, 0.06}, {170, 380,  -190, 0.05},
+                {150, -370,  230, 0.07}, {180, 370,   220, 0.04},
+                {130,    0, -260, 0.06}, {100, -100,  280, 0.05},
+                {110,  200,  260, 0.06},
+                // Cercles moyens
+                {75,  180, -230, 0.08}, {65, -280,   60, 0.09},
+                {60,  280,  100, 0.07}, {55, -180, -100, 0.08},
+                {50,  150,  230, 0.07}, {45, -350,  -50, 0.09},
+                {40,  350,  -50, 0.08}, {35,    0,  200, 0.10},
+                {30, -150, -200, 0.09}, {28,  320, -220, 0.08},
+                // Points lumineux
+                {7,  -200, -240, 0.28}, {5,   250,  -90, 0.22},
+                {6,  -150,  180, 0.25}, {8,   200,  230, 0.20},
+                {5,   100, -260, 0.28}, {6,  -320,  150, 0.22},
+                {4,   380,   40, 0.35}, {5,   -80,  270, 0.25},
+                {4,   320, -260, 0.30}, {3,    60, -290, 0.40},
+                {4,   -60,  290, 0.30}, {5,   240,  180, 0.25},
+                {3,  -240, -180, 0.35}, {4,   160, -160, 0.28},
+                {3,   340,  100, 0.38}, {4,  -340, -100, 0.30},
             };
 
             for (double[] c : cercles) {
@@ -582,7 +596,51 @@ public class FrontQuizController {
             r2.setRotate(45); r2.setTranslateX(310); r2.setTranslateY(150);
             r2.setMouseTransparent(true);
 
-            decoPane.getChildren().addAll(r1, r2);
+            // Rectangles inclinés
+            double[][] rects = {
+                {90, 22, 30, -300, -100, 0.05}, {70, 16, 45,  310,  150, 0.06},
+                {55, 12, 20,  200, -180, 0.06}, {45, 10, 60, -200,  220, 0.08},
+                {35,  8, 15,  100,  260, 0.09}, {30,  7, 75, -350,  200, 0.07},
+            };
+            for (double[] r : rects) {
+                javafx.scene.shape.Rectangle rect = new javafx.scene.shape.Rectangle(r[0], r[0]);
+                rect.setArcWidth(r[1]); rect.setArcHeight(r[1]);
+                rect.setFill(javafx.scene.paint.Color.rgb(255, 255, 255, r[5]));
+                rect.setRotate(r[2]); rect.setTranslateX(r[3]); rect.setTranslateY(r[4]);
+                rect.setMouseTransparent(true);
+                decoPane.getChildren().add(rect);
+            }
+
+            // Anneaux (cercles vides avec contour)
+            double[][] anneaux = {
+                {120, -250, 180, 0.10, 2.0}, {90, 260, -150, 0.12, 2.0},
+                {70, -100, -220, 0.09, 1.5}, {55, 320,  150, 0.14, 1.5},
+                {40,   80,  270, 0.12, 1.0}, {35, -300, -240, 0.10, 1.0},
+            };
+            for (double[] a : anneaux) {
+                javafx.scene.shape.Circle anneau = new javafx.scene.shape.Circle(a[0]);
+                anneau.setFill(javafx.scene.paint.Color.TRANSPARENT);
+                anneau.setStroke(javafx.scene.paint.Color.rgb(255, 255, 255, a[3]));
+                anneau.setStrokeWidth(a[4]);
+                anneau.setTranslateX(a[1]); anneau.setTranslateY(a[2]);
+                anneau.setMouseTransparent(true);
+                decoPane.getChildren().add(anneau);
+            }
+
+            // Ellipses
+            double[][] ellipses = {
+                {220, 65, 0, 290, 0.04}, {150, 50, -150, -270, 0.05},
+                {110, 38, 300, 260, 0.06}, {80, 30, -320, 100, 0.07},
+            };
+            for (double[] e : ellipses) {
+                javafx.scene.shape.Ellipse ellipse = new javafx.scene.shape.Ellipse(e[0], e[1]);
+                ellipse.setFill(javafx.scene.paint.Color.rgb(255, 255, 255, e[4]));
+                ellipse.setTranslateX(e[2]); ellipse.setTranslateY(e[3]);
+                ellipse.setMouseTransparent(true);
+                decoPane.getChildren().add(ellipse);
+            }
+
+            decoPane.getChildren(); // flush
 
             // Injecter le decoPane comme fond du BorderPane
             bp.getChildren().add(0, decoPane);
