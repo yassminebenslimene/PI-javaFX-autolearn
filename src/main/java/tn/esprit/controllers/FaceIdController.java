@@ -228,13 +228,18 @@ public class FaceIdController {
                 return;
             }
 
+            camera.set(3, 640);
+            camera.set(4, 480);
+
             faceOverlay.setVisible(true);
 
-            cameraTimeline = new Timeline(new KeyFrame(Duration.millis(50), e -> {
+            cameraTimeline = new Timeline(new KeyFrame(Duration.millis(40), e -> {
                 if (camera != null && camera.isOpened()) {
                     Mat frame = new Mat();
                     if (camera.read(frame) && !frame.empty()) {
-                        Platform.runLater(() -> cameraView.setImage(matToImage(frame)));
+                        // Draw face detection rectangle on preview
+                        Mat display = drawFaceOverlay(frame);
+                        Platform.runLater(() -> cameraView.setImage(matToImage(display)));
                     }
                 }
             }));
@@ -245,6 +250,38 @@ public class FaceIdController {
         } catch (Exception e) {
             System.err.println("[FaceID] Camera preview error: " + e.getMessage());
         }
+    }
+
+    /** Draw green rectangle around detected face in preview */
+    private Mat drawFaceOverlay(Mat frame) {
+        try {
+            Mat gray = new Mat();
+            org.opencv.imgproc.Imgproc.cvtColor(frame, gray, org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY);
+            org.opencv.imgproc.Imgproc.equalizeHist(gray, gray);
+
+            org.opencv.objdetect.CascadeClassifier det = FaceIdService.getDetector();
+            if (det != null && !det.empty()) {
+                MatOfRect faces = new MatOfRect();
+                det.detectMultiScale(gray, faces, 1.05, 4, 0,
+                    new Size(60, 60), new Size(400, 400));
+
+                Mat display = frame.clone();
+                for (Rect r : faces.toArray()) {
+                    // Green rectangle around face
+                    org.opencv.imgproc.Imgproc.rectangle(display,
+                        new Point(r.x, r.y),
+                        new Point(r.x + r.width, r.y + r.height),
+                        new Scalar(0, 255, 0), 2);
+                    // Label
+                    org.opencv.imgproc.Imgproc.putText(display, "Visage detecte",
+                        new Point(r.x, r.y - 8),
+                        org.opencv.imgproc.Imgproc.FONT_HERSHEY_SIMPLEX,
+                        0.5, new Scalar(0, 255, 0), 1);
+                }
+                return display;
+            }
+        } catch (Exception ignored) {}
+        return frame;
     }
 
     private void stopCameraPreview() {
