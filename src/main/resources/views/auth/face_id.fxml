@@ -47,8 +47,7 @@
         <VBox fx:id="statusOverlay" alignment="CENTER" spacing="8"
               style="-fx-background-color:rgba(1,4,9,0.85);
                      -fx-padding:20; -fx-pref-height:280;"
-              maxWidth="460">
-            <Label fx:id="labelCameraStatus" text="Appuyez sur Ouvrir la camera"
+              maxWidth="460">            <Label fx:id="labelCameraStatus" text="Appuyez sur Ouvrir la camera"
                    style="-fx-font-size:13; -fx-font-weight:600;
                           -fx-text-fill:#8b949e;"
                    wrapText="true" textAlignment="CENTER"/>
