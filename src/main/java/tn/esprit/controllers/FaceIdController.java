@@ -45,12 +45,12 @@ public class FaceIdController {
     private Mode mode = Mode.LOGIN;
     private VideoCapture camera;
     private Timeline cameraTimeline;
+    private Timeline monitorTimeline;
     private final UserService userService = new UserService();
 
-    private final AtomicBoolean faceDetected   = new AtomicBoolean(false);
-    private final AtomicBoolean capturing      = new AtomicBoolean(false);
-    private final AtomicInteger countdownValue = new AtomicInteger(0);
-    private Timeline monitorTimeline;
+    private final AtomicBoolean faceDetected = new AtomicBoolean(false);
+    private final AtomicBoolean capturing    = new AtomicBoolean(false);
+    private final AtomicInteger countdown    = new AtomicInteger(0);
 
     // ── Setup ─────────────────────────────────────────────────────────────────
 
@@ -86,42 +86,111 @@ public class FaceIdController {
         btnStart.setDisable(true);
         setStatus("Ouverture de la camera...");
 
-        if (mode == Mode.LOGIN) {
-            startLogin();
-        } else {
-            startRegisterGuided();
+        // Open camera in background, then start preview on FX thread
+        CompletableFuture.runAsync(() -> {
+            boolean opened = openCameraBackground();
+            Platform.runLater(() -> {
+                if (!opened) {
+                    setStatus("Webcam non disponible");
+                    btnStart.setDisable(false);
+                    return;
+                }
+                // Hide status overlay, show camera
+                if (statusOverlay != null) {
+                    statusOverlay.setVisible(false);
+                    statusOverlay.setManaged(false);
+                }
+                // Start preview timeline on FX thread
+                startPreviewTimeline();
+                // Start mode-specific logic
+                if (mode == Mode.LOGIN) {
+                    doLogin();
+                } else {
+                    setStatus("Placez votre visage dans le cercle blanc");
+                    monitorFaceForRegistration();
+                }
+            });
+        });
+    }
+
+    // ── Camera open (background thread) ──────────────────────────────────────
+
+    private boolean openCameraBackground() {
+        try {
+            // Try DirectShow first (avoids MSMF shutdown issues on Windows)
+            camera = new VideoCapture(0 + Videoio.CAP_DSHOW);
+            if (!camera.isOpened()) {
+                camera.release();
+                camera = new VideoCapture(0);
+            }
+            if (!camera.isOpened()) return false;
+
+            camera.set(Videoio.CAP_PROP_FRAME_WIDTH, 640);
+            camera.set(Videoio.CAP_PROP_FRAME_HEIGHT, 480);
+            Thread.sleep(400); // let camera stabilize
+            return true;
+        } catch (Exception e) {
+            System.err.println("[FaceID] Camera open error: " + e.getMessage());
+            return false;
         }
+    }
+
+    // ── Preview timeline (FX thread) ──────────────────────────────────────────
+
+    private CascadeClassifier previewDetector;
+
+    private void startPreviewTimeline() {
+        previewDetector = (mode == Mode.REGISTER) ? FaceIdService.getDetector() : null;
+
+        cameraTimeline = new Timeline(new KeyFrame(Duration.millis(80), e -> {
+            if (camera == null || !camera.isOpened()) return;
+            Mat frame = new Mat();
+            if (!camera.read(frame) || frame.empty()) return;
+
+            Mat display = (mode == Mode.REGISTER)
+                ? drawGuidedOverlay(frame, previewDetector)
+                : drawSimpleOverlay(frame, previewDetector);
+
+            Image img = matToImage(display);
+            if (img != null) cameraView.setImage(img);
+        }));
+        cameraTimeline.setCycleCount(Timeline.INDEFINITE);
+        cameraTimeline.play();
     }
 
     // ── LOGIN ─────────────────────────────────────────────────────────────────
 
-    private void startLogin() {
+    private void doLogin() {
         String email = fieldEmail.getText().trim();
         if (email.isEmpty()) {
             showResult("Veuillez entrer votre adresse email.", false);
+            stopCamera();
             btnStart.setDisable(false);
             return;
         }
         User user = userService.trouverParEmail(email);
         if (user == null) {
             showResult("Aucun compte trouve avec cet email.", false);
+            stopCamera();
             btnStart.setDisable(false);
             return;
         }
         if (!FaceIdService.hasFaceRegistered(user.getId())) {
             showResult("Aucun visage enregistre. Activez Face ID dans votre profil.", false);
+            stopCamera();
             btnStart.setDisable(false);
             return;
         }
         if (user.isIsSuspended()) {
             showResult("Compte suspendu.", false);
+            stopCamera();
             btnStart.setDisable(false);
             return;
         }
 
+        setStatus("Regardez la camera...");
         final User finalUser = user;
         CompletableFuture.runAsync(() -> {
-            openCamera(false);
             FaceIdService.FaceResult result = FaceIdService.authenticateFace(finalUser.getId());
             Platform.runLater(() -> {
                 stopCamera();
@@ -130,7 +199,7 @@ public class FaceIdController {
                     SessionManager.login(finalUser);
                     ActivityApiClient.logAsync(finalUser.getId(), "user.login",
                         java.util.Map.of("method", "face_id", "email", finalUser.getEmail()));
-                    new Timeline(new KeyFrame(Duration.millis(1500), e -> {
+                    new Timeline(new KeyFrame(Duration.millis(1500), ev -> {
                         closeDialog();
                         try {
                             if ("ADMIN".equals(finalUser.getRole())) MainApp.showBackoffice();
@@ -147,27 +216,7 @@ public class FaceIdController {
 
     // ── REGISTER ──────────────────────────────────────────────────────────────
 
-    private void startRegisterGuided() {
-        User user = SessionManager.getCurrentUser();
-        if (user == null) {
-            showResult("Vous devez etre connecte.", false);
-            btnStart.setDisable(false);
-            return;
-        }
-
-        faceDetected.set(false);
-        capturing.set(false);
-
-        CompletableFuture.runAsync(() -> {
-            openCamera(true);
-            Platform.runLater(() -> {
-                setStatus("Placez votre visage dans le cercle blanc");
-                monitorFaceForRegistration(user);
-            });
-        });
-    }
-
-    private void monitorFaceForRegistration(User user) {
+    private void monitorFaceForRegistration() {
         AtomicInteger stableFrames = new AtomicInteger(0);
         AtomicBoolean countdownStarted = new AtomicBoolean(false);
 
@@ -178,7 +227,7 @@ public class FaceIdController {
                 int stable = stableFrames.incrementAndGet();
                 if (stable >= 5 && !countdownStarted.get()) {
                     countdownStarted.set(true);
-                    startCountdown(user);
+                    runCountdown();
                 }
             } else {
                 stableFrames.set(0);
@@ -194,53 +243,46 @@ public class FaceIdController {
         monitorTimeline.play();
     }
 
-    private void startCountdown(User user) {
-        countdownValue.set(3);
+    private void runCountdown() {
+        countdown.set(3);
         setStatus("Restez immobile... 3");
-
-        Timeline countdown = new Timeline(
-            new KeyFrame(Duration.millis(1000), e -> {
-                int val = countdownValue.decrementAndGet();
-                if (val > 0) {
-                    setStatus("Restez immobile... " + val);
-                } else {
-                    if (faceDetected.get()) {
-                        startCapture(user);
-                    } else {
-                        setStatus("Visage perdu - replacez-vous dans le cercle");
-                    }
-                }
-            })
-        );
-        countdown.setCycleCount(3);
-        countdown.play();
+        Timeline t = new Timeline(new KeyFrame(Duration.millis(1000), e -> {
+            int v = countdown.decrementAndGet();
+            if (v > 0) {
+                setStatus("Restez immobile... " + v);
+            } else {
+                if (faceDetected.get()) doCapture();
+                else setStatus("Visage perdu - replacez-vous dans le cercle");
+            }
+        }));
+        t.setCycleCount(3);
+        t.play();
     }
 
-    private void startCapture(User user) {
+    private void doCapture() {
         capturing.set(true);
-        if (monitorTimeline != null) monitorTimeline.stop();
+        if (monitorTimeline != null) { monitorTimeline.stop(); monitorTimeline = null; }
 
-        Platform.runLater(() -> {
-            progressBar.setVisible(true);
-            progressBar.setManaged(true);
-            progressBar.setProgress(0);
-            setStatus("Enregistrement en cours...");
-        });
+        progressBar.setVisible(true);
+        progressBar.setManaged(true);
+        progressBar.setProgress(0);
+        setStatus("Enregistrement en cours...");
+
+        User user = SessionManager.getCurrentUser();
+        if (user == null) { showResult("Session perdue.", false); return; }
 
         CompletableFuture.runAsync(() -> {
             FaceIdService.FaceResult result = FaceIdService.registerFace(
                 user.getId(),
-                progress -> Platform.runLater(() -> {
-                    progressBar.setProgress(progress / 100.0);
-                    setStatus("Enregistrement... " + progress + "%");
+                pct -> Platform.runLater(() -> {
+                    progressBar.setProgress(pct / 100.0);
+                    setStatus("Enregistrement... " + pct + "%");
                 })
             );
-
             Platform.runLater(() -> {
                 stopCamera();
                 progressBar.setVisible(false);
                 progressBar.setManaged(false);
-
                 if (result.success()) {
                     showResult("Face ID active avec succes !\nVous pouvez maintenant vous connecter avec votre visage.", true);
                     btnStart.setText("Fermer");
@@ -255,116 +297,42 @@ public class FaceIdController {
         });
     }
 
-    // ── Camera ────────────────────────────────────────────────────────────────
-
-    private void openCamera(boolean withGuidance) {
-        try {
-            // Hide status overlay
-            Platform.runLater(() -> {
-                if (statusOverlay != null) {
-                    statusOverlay.setVisible(false);
-                    statusOverlay.setManaged(false);
-                }
-            });
-
-            // Try DirectShow first (more reliable on Windows, avoids MSMF issues)
-            camera = new VideoCapture(0 + Videoio.CAP_DSHOW);
-            if (!camera.isOpened()) {
-                camera.release();
-                camera = new VideoCapture(0);
-            }
-
-            if (!camera.isOpened()) {
-                setStatus("Webcam non disponible");
-                Platform.runLater(() -> {
-                    if (statusOverlay != null) {
-                        statusOverlay.setVisible(true);
-                        statusOverlay.setManaged(true);
-                    }
-                    btnStart.setDisable(false);
-                });
-                return;
-            }
-
-            camera.set(Videoio.CAP_PROP_FRAME_WIDTH, 640);
-            camera.set(Videoio.CAP_PROP_FRAME_HEIGHT, 480);
-
-            // Small stabilization delay
-            Thread.sleep(300);
-
-            CascadeClassifier det = withGuidance ? FaceIdService.getDetector() : null;
-
-            // Start preview on JavaFX timeline
-            Platform.runLater(() -> {
-                cameraTimeline = new Timeline(new KeyFrame(Duration.millis(66), e -> {
-                    if (camera != null && camera.isOpened()) {
-                        Mat frame = new Mat();
-                        if (camera.read(frame) && !frame.empty()) {
-                            Mat display = withGuidance
-                                ? drawGuidedOverlay(frame, det)
-                                : drawSimpleOverlay(frame, det);
-                            Image img = matToImage(display);
-                            if (img != null) cameraView.setImage(img);
-                        }
-                    }
-                }));
-                cameraTimeline.setCycleCount(Timeline.INDEFINITE);
-                cameraTimeline.play();
-            });
-
-        } catch (Exception e) {
-            System.err.println("[FaceID] Camera error: " + e.getMessage());
-            setStatus("Erreur camera: " + e.getMessage());
-            Platform.runLater(() -> btnStart.setDisable(false));
-        }
-    }
+    // ── Overlay drawing ───────────────────────────────────────────────────────
 
     private Mat drawGuidedOverlay(Mat frame, CascadeClassifier det) {
         try {
             Mat display = frame.clone();
             int cx = frame.cols() / 2;
             int cy = frame.rows() / 2;
-            int rx = 110;
-            int ry = 135;
+            int rx = 110, ry = 135;
 
             boolean detected = false;
-
             if (det != null && !det.empty()) {
                 Mat gray = new Mat();
                 Imgproc.cvtColor(frame, gray, Imgproc.COLOR_BGR2GRAY);
                 MatOfRect faces = new MatOfRect();
                 det.detectMultiScale(gray, faces, 1.05, 4, 0, new Size(60, 60), new Size(400, 400));
-
                 for (Rect r : faces.toArray()) {
-                    int faceCx = r.x + r.width / 2;
-                    int faceCy = r.y + r.height / 2;
-                    double dx = (double)(faceCx - cx) / rx;
-                    double dy = (double)(faceCy - cy) / ry;
+                    int fcx = r.x + r.width / 2, fcy = r.y + r.height / 2;
+                    double dx = (double)(fcx - cx) / rx, dy = (double)(fcy - cy) / ry;
                     if (dx * dx + dy * dy <= 1.0) {
                         detected = true;
-                        Imgproc.rectangle(display,
-                            new Point(r.x, r.y),
-                            new Point(r.x + r.width, r.y + r.height),
-                            new Scalar(0, 220, 100), 2);
+                        Imgproc.rectangle(display, new Point(r.x, r.y),
+                            new Point(r.x + r.width, r.y + r.height), new Scalar(0, 220, 100), 2);
                     }
                 }
             }
-
             faceDetected.set(detected);
 
-            // Draw guide ellipse
             Scalar color = detected ? new Scalar(0, 220, 100) : new Scalar(200, 200, 200);
             Imgproc.ellipse(display, new Point(cx, cy), new Size(rx, ry), 0, 0, 360, color, 2);
 
-            // Instruction text at bottom
             String msg = detected
                 ? (capturing.get() ? "Enregistrement..." : "Parfait ! Restez immobile")
                 : "Centrez votre visage dans le cercle";
-
-            int textY = frame.rows() - 12;
-            Imgproc.rectangle(display, new Point(0, textY - 22), new Point(frame.cols(), frame.rows()), new Scalar(0, 0, 0), -1);
-            Imgproc.putText(display, msg, new Point(10, textY), Imgproc.FONT_HERSHEY_SIMPLEX, 0.55, color, 1);
-
+            int ty = frame.rows() - 12;
+            Imgproc.rectangle(display, new Point(0, ty - 22), new Point(frame.cols(), frame.rows()), new Scalar(0, 0, 0), -1);
+            Imgproc.putText(display, msg, new Point(10, ty), Imgproc.FONT_HERSHEY_SIMPLEX, 0.55, color, 1);
             return display;
         } catch (Exception e) { return frame; }
     }
@@ -377,16 +345,18 @@ public class FaceIdController {
             Imgproc.cvtColor(frame, gray, Imgproc.COLOR_BGR2GRAY);
             MatOfRect faces = new MatOfRect();
             det.detectMultiScale(gray, faces, 1.05, 4, 0, new Size(60, 60), new Size(400, 400));
-            for (Rect r : faces.toArray()) {
-                Imgproc.rectangle(display, new Point(r.x, r.y), new Point(r.x + r.width, r.y + r.height), new Scalar(0, 220, 100), 2);
-            }
+            for (Rect r : faces.toArray())
+                Imgproc.rectangle(display, new Point(r.x, r.y),
+                    new Point(r.x + r.width, r.y + r.height), new Scalar(0, 220, 100), 2);
             return display;
         } catch (Exception e) { return frame; }
     }
 
+    // ── Stop camera ───────────────────────────────────────────────────────────
+
     private void stopCamera() {
         if (monitorTimeline != null) { monitorTimeline.stop(); monitorTimeline = null; }
-        if (cameraTimeline != null) { cameraTimeline.stop(); cameraTimeline = null; }
+        if (cameraTimeline  != null) { cameraTimeline.stop();  cameraTimeline  = null; }
         if (camera != null) { camera.release(); camera = null; }
         faceDetected.set(false);
         Platform.runLater(() -> {
@@ -398,10 +368,7 @@ public class FaceIdController {
     // ── Cancel ────────────────────────────────────────────────────────────────
 
     @FXML
-    private void onCancel() {
-        stopCamera();
-        closeDialog();
-    }
+    private void onCancel() { stopCamera(); closeDialog(); }
 
     private void closeDialog() {
         try { ((Stage) btnCancel.getScene().getWindow()).close(); }
@@ -410,15 +377,15 @@ public class FaceIdController {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private void setStatus(String text) {
-        Platform.runLater(() -> { if (labelCameraStatus != null) labelCameraStatus.setText(text); });
+    private void setStatus(String t) {
+        Platform.runLater(() -> { if (labelCameraStatus != null) labelCameraStatus.setText(t); });
     }
 
-    private void showResult(String message, boolean success) {
+    private void showResult(String msg, boolean ok) {
         Platform.runLater(() -> {
             if (labelResult == null) return;
-            labelResult.setText(message);
-            labelResult.setStyle(success
+            labelResult.setText(msg);
+            labelResult.setStyle(ok
                 ? "-fx-font-size:12;-fx-font-weight:600;-fx-background-radius:8;-fx-padding:10 14 10 14;-fx-border-radius:8;-fx-border-width:1;-fx-text-fill:#34d399;-fx-background-color:rgba(5,150,105,0.15);-fx-border-color:rgba(5,150,105,0.3);"
                 : "-fx-font-size:12;-fx-font-weight:600;-fx-background-radius:8;-fx-padding:10 14 10 14;-fx-border-radius:8;-fx-border-width:1;-fx-text-fill:#f85149;-fx-background-color:rgba(248,81,73,0.12);-fx-border-color:rgba(248,81,73,0.3);"
             );
