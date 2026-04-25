@@ -701,6 +701,30 @@ public class FrontofficeController {
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
 
+    /** Ouvre la messagerie en temps réel. */
+    @FXML public void onMessagerie() {
+        if (!requireLogin()) return;
+        setActiveNav(null);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/views/frontoffice/messagerie/chat.fxml"));
+            Parent view = loader.load();
+            // Arrêter le polling si on revient sur une autre vue
+            MessagerieController ctrl = loader.getController();
+            BorderPane root = (BorderPane) labelCurrentUser.getScene().getRoot();
+            // Remplacer le center (sans ScrollPane pour que le chat prenne toute la hauteur)
+            if (view instanceof javafx.scene.layout.Region region) {
+                region.setMaxHeight(Double.MAX_VALUE);
+                region.setMaxWidth(Double.MAX_VALUE);
+                region.prefHeightProperty().bind(root.heightProperty().subtract(64));
+                region.prefWidthProperty().bind(root.widthProperty());
+            }
+            root.setCenter(view);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     // ── Slider automatique ────────────────────────────────────────────────────
