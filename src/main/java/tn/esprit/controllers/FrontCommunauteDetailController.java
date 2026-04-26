@@ -528,62 +528,118 @@ public class FrontCommunauteDetailController {
 
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("Gerer les membres — " + communaute.getNom());
-        dialog.setMinWidth(500);
+        dialog.setTitle("Gérer les membres — " + communaute.getNom());
+        dialog.setMinWidth(520);
 
-        VBox root = new VBox(16);
-        root.setPadding(new Insets(24));
-        root.setStyle("-fx-background-color:#f9f9f9;");
+        // ── Root ──
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color:#f0eeff;");
 
+        // ── Header ──
+        VBox header = new VBox(4);
+        header.setStyle("-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);" +
+                        "-fx-padding:28 32 24 32;");
+        Label headerTitle = new Label("⚙  Gérer les membres");
+        headerTitle.setStyle("-fx-font-size:20; -fx-font-weight:900; -fx-text-fill:white;");
+        Label headerSub = new Label(communaute.getNom());
+        headerSub.setStyle("-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.65); -fx-font-weight:600;");
+        header.getChildren().addAll(headerTitle, headerSub);
+
+        // ── Body ──
+        VBox body = new VBox(22);
+        body.setStyle("-fx-padding:28 32 32 32;");
+
+        // Section membres actuels
+        VBox membresSection = new VBox(12);
+        HBox membresHeader = new HBox(10);
+        membresHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        Label dotMembres = new Label("●");
+        dotMembres.setStyle("-fx-text-fill:#7c3aed; -fx-font-size:10;");
         Label lblMembres = new Label("Membres actuels");
-        lblMembres.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
-        VBox membresBox = new VBox(6);
+        lblMembres.setStyle("-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#1e1b4b;");
+        membresHeader.getChildren().addAll(dotMembres, lblMembres);
+        VBox membresBox = new VBox(8);
         refreshMembresBox(membresBox, dialog);
+        membresSection.getChildren().addAll(membresHeader, membresBox);
 
-        Label lblAjouter = new Label("Ajouter un etudiant");
-        lblAjouter.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e; -fx-padding:8 0 0 0;");
+        // Section ajouter
+        VBox ajouterSection = new VBox(12);
+        HBox ajouterHeader = new HBox(10);
+        ajouterHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        Label dotAjouter = new Label("●");
+        dotAjouter.setStyle("-fx-text-fill:#7c3aed; -fx-font-size:10;");
+        Label lblAjouter = new Label("Ajouter un étudiant");
+        lblAjouter.setStyle("-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#1e1b4b;");
+        ajouterHeader.getChildren().addAll(dotAjouter, lblAjouter);
+
         ListView<User> listView = new ListView<>();
-        listView.setPrefHeight(180);
+        listView.setPrefHeight(200);
+        listView.setStyle("-fx-background-color:white; -fx-background-radius:16; " +
+                          "-fx-border-color:#ede9fe; -fx-border-radius:16; -fx-border-width:1.5;");
         refreshStudentList(listView);
 
         listView.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(User u, boolean empty) {
                 super.updateItem(u, empty);
                 if (empty || u == null) { setText(null); setGraphic(null); return; }
-                HBox row = new HBox(10);
-                row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+                // Avatar initiales
+                String init = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
+                Label avatar = new Label(init);
+                avatar.setMinSize(38, 38); avatar.setMaxSize(38, 38);
+                avatar.setAlignment(javafx.geometry.Pos.CENTER);
+                avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);" +
+                                "-fx-background-radius:50; -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:800;");
+
                 Label name  = new Label(u.getPrenom() + " " + u.getNom());
-                name.setStyle("-fx-font-size:13; -fx-text-fill:#1e1e1e;");
+                name.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1b4b;");
                 Label email = new Label(u.getEmail());
-                email.setStyle("-fx-font-size:11; -fx-text-fill:#888;");
+                email.setStyle("-fx-font-size:11; -fx-text-fill:#a78bfa;");
+                VBox info = new VBox(2, name, email);
+
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
+
                 Button btnAdd = new Button("+ Ajouter");
-                btnAdd.setStyle("-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:11; " +
-                                "-fx-padding:5 12 5 12; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
+                btnAdd.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white;" +
+                                "-fx-font-size:11; -fx-font-weight:700;" +
+                                "-fx-padding:7 16; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;" +
+                                "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.35),8,0,0,2);");
                 btnAdd.setOnAction(e -> {
                     serviceCommunaute.ajouterMembre(communaute.getId(), u.getId());
                     communaute.getMemberIds().add(u.getId());
                     refreshStudentList(listView);
                     refreshMembresBox(membresBox, dialog);
                 });
-                row.getChildren().addAll(new VBox(2, name, email), spacer, btnAdd);
+
+                HBox row = new HBox(12, avatar, info, spacer, btnAdd);
+                row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                row.setStyle("-fx-padding:8 12 8 12;");
                 setGraphic(row); setText(null);
             }
         });
 
-        Button btnFermer = new Button("Fermer");
-        btnFermer.setStyle("-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:13; " +
-                           "-fx-padding:9 24 9 24; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+        ajouterSection.getChildren().addAll(ajouterHeader, listView);
+
+        // Footer button
+        Button btnFermer = new Button("✕  Fermer");
+        btnFermer.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white;" +
+                           "-fx-font-size:13; -fx-font-weight:800;" +
+                           "-fx-padding:12 32; -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:0;" +
+                           "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),14,0,0,4);");
         btnFermer.setOnAction(e -> dialog.close());
+        HBox footer = new HBox(btnFermer);
+        footer.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        footer.setStyle("-fx-padding:4 0 0 0;");
 
-        root.getChildren().addAll(lblMembres, membresBox, lblAjouter, listView,
-                new HBox(btnFermer) {{ setAlignment(javafx.geometry.Pos.CENTER_RIGHT); }});
+        body.getChildren().addAll(membresSection, ajouterSection, footer);
+        root.getChildren().addAll(header, body);
 
-        dialog.setScene(new Scene(new ScrollPane(root) {{
-            setFitToWidth(true);
-            setStyle("-fx-background-color:#f9f9f9; -fx-background:transparent; -fx-border-width:0;");
-        }}, 520, 560));
+        ScrollPane sp = new ScrollPane(root);
+        sp.setFitToWidth(true);
+        sp.setStyle("-fx-background-color:#f0eeff; -fx-background:#f0eeff; -fx-border-width:0;");
+
+        dialog.setScene(new Scene(sp, 540, 600));
         dialog.showAndWait();
     }
 
@@ -591,31 +647,47 @@ public class FrontCommunauteDetailController {
         membresBox.getChildren().clear();
         if (communaute.getMemberIds().isEmpty()) {
             Label none = new Label("Aucun membre pour l'instant.");
-            none.setStyle("-fx-text-fill:#aaa; -fx-font-size:12;");
+            none.setStyle("-fx-text-fill:#c4b5fd; -fx-font-size:12; -fx-padding:8 0 4 0;");
             membresBox.getChildren().add(none);
             return;
         }
         for (int uid : communaute.getMemberIds()) {
             User u = userService.trouver(uid);
             if (u == null) continue;
-            HBox row = new HBox(10);
-            row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-            row.setStyle("-fx-background-color:white; -fx-background-radius:8; " +
-                         "-fx-border-color:#eeeeee; -fx-border-radius:8; -fx-padding:8 12 8 12;");
+
+            // Avatar initiales
+            String init = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
+            Label avatar = new Label(init);
+            avatar.setMinSize(40, 40); avatar.setMaxSize(40, 40);
+            avatar.setAlignment(javafx.geometry.Pos.CENTER);
+            avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);" +
+                            "-fx-background-radius:50; -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:800;");
+
             Label name = new Label(u.getPrenom() + " " + u.getNom());
-            name.setStyle("-fx-font-size:13; -fx-text-fill:#1e1e1e;");
+            name.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1b4b;");
+            Label emailLbl = new Label(u.getEmail());
+            emailLbl.setStyle("-fx-font-size:11; -fx-text-fill:#a78bfa;");
+            VBox info = new VBox(2, name, emailLbl);
+
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
+
             Button btnRetirer = new Button("Retirer");
-            btnRetirer.setStyle("-fx-background-color:rgba(233,69,96,0.1); -fx-text-fill:#e94560; " +
-                                "-fx-font-size:11; -fx-padding:4 10 4 10; -fx-background-radius:8; " +
-                                "-fx-cursor:hand; -fx-border-width:0;");
+            btnRetirer.setStyle("-fx-background-color:#fff1f2; -fx-text-fill:#e94560; " +
+                                "-fx-font-size:11; -fx-font-weight:700; -fx-padding:7 16; " +
+                                "-fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
             btnRetirer.setOnAction(e -> {
                 serviceCommunaute.retirerMembre(communaute.getId(), uid);
                 communaute.getMemberIds().remove(Integer.valueOf(uid));
                 refreshMembresBox(membresBox, dialog);
             });
-            row.getChildren().addAll(name, spacer, btnRetirer);
+
+            HBox row = new HBox(14, avatar, info, spacer, btnRetirer);
+            row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            row.setStyle("-fx-background-color:white; -fx-background-radius:16; " +
+                         "-fx-border-color:#ede9fe; -fx-border-radius:16; -fx-border-width:1.5; " +
+                         "-fx-padding:12 16 12 16;" +
+                         "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.07),10,0,0,3);");
             membresBox.getChildren().add(row);
         }
     }
