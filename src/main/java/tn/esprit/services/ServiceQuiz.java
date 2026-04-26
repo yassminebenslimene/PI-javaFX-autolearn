@@ -21,7 +21,7 @@ public class ServiceQuiz {
 
     // ── CREATE : Insérer un nouveau quiz en BDD ───────────────────────────────
     public boolean ajouter(Quiz quiz) {
-        String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, chapitre_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, image_name, image_size, chapitre_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, quiz.getTitre());
             statement.setString(2, quiz.getDescription());
@@ -29,7 +29,9 @@ public class ServiceQuiz {
             statement.setObject(4, quiz.getDureeMaxMinutes());
             statement.setObject(5, quiz.getSeuilReussite());
             statement.setObject(6, quiz.getMaxTentatives());
-            statement.setObject(7, quiz.getChapitreId());
+            statement.setObject(7, quiz.getImageName());
+            statement.setObject(8, quiz.getImageSize());
+            statement.setObject(9, quiz.getChapitreId());
             int rows = statement.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
@@ -68,7 +70,7 @@ public class ServiceQuiz {
 
     // ── UPDATE : Modifier un quiz existant ────────────────────────────────────
     public boolean modifier(Quiz quiz) {
-        String req = "UPDATE quiz SET titre = ?, description = ?, etat = ?, duree_max_minutes = ?, seuil_reussite = ?, max_tentatives = ?, chapitre_id = ? WHERE id = ?";
+        String req = "UPDATE quiz SET titre = ?, description = ?, etat = ?, duree_max_minutes = ?, seuil_reussite = ?, max_tentatives = ?, image_name = ?, image_size = ?, chapitre_id = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, quiz.getTitre());
             statement.setString(2, quiz.getDescription());
@@ -76,8 +78,10 @@ public class ServiceQuiz {
             statement.setObject(4, quiz.getDureeMaxMinutes());
             statement.setObject(5, quiz.getSeuilReussite());
             statement.setObject(6, quiz.getMaxTentatives());
-            statement.setObject(7, quiz.getChapitreId());
-            statement.setInt(8, quiz.getId());
+            statement.setObject(7, quiz.getImageName());
+            statement.setObject(8, quiz.getImageSize());
+            statement.setObject(9, quiz.getChapitreId());
+            statement.setInt(10, quiz.getId());
             int rows = statement.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
@@ -155,7 +159,9 @@ public class ServiceQuiz {
                 (Integer) rs.getObject("duree_max_minutes"),
                 (Integer) rs.getObject("seuil_reussite"),
                 (Integer) rs.getObject("max_tentatives"),
-                null, null, null,
+                rs.getString("image_name"),
+                (Integer) rs.getObject("image_size"),
+                null,
                 (Integer) rs.getObject("chapitre_id")
         );
     }

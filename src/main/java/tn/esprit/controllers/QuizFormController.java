@@ -4,7 +4,10 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Quiz;
 import tn.esprit.services.ActivityApiClient;
@@ -12,6 +15,12 @@ import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceQuiz;
 import tn.esprit.session.SessionManager;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 /**
@@ -35,6 +44,18 @@ public class QuizFormController {
     @FXML private TextField tentativesField; // champ pour le nb de tentatives (optionnel)
     @FXML private Label messageLabel;     // affiche les messages d'erreur
     @FXML private Button btnSauvegarder;  // bouton Enregistrer / Mettre à jour
+
+    // ── Composants image ─────────────────────────────────────────────────────
+    @FXML private StackPane imagePreviewPane;
+    @FXML private ImageView imagePreview;
+    @FXML private Label imagePreviewLabel;
+    @FXML private Label imageInfoLabel;
+    @FXML private Button btnSupprimerImage;
+
+    // Fichier image sélectionné (null si aucun)
+    private File selectedImageFile = null;
+    // Nom de l'image existante (en mode modification)
+    private String existingImageName = null;
 
     // Style normal d'un champ de saisie
     private static final String FIELD_NORMAL =
@@ -141,6 +162,11 @@ public class QuizFormController {
                 .filter(c -> c.getId() == quiz.getChapitreId())
                 .findFirst()
                 .ifPresent(chapitreCombo::setValue);
+        }
+        // Pré-charger l'image existante
+        if (quiz.getImageName() != null && !quiz.getImageName().isBlank()) {
+            existingImageName = quiz.getImageName();
+            afficherImageExistante(quiz.getImageName(), quiz.getImageSize());
         }
     }
 
@@ -258,9 +284,22 @@ public class QuizFormController {
         if (!valid) return;
 
         // ── Sauvegarde ────────────────────────────────────────────────────────────
+        // Copier l'image si une nouvelle a été sélectionnée
+        String imageName = existingImageName;
+        Integer imageSize = null;
+        if (selectedImageFile != null) {
+            String[] saved = saveImageFile(selectedImageFile);
+            if (saved != null) {
+                imageName = saved[0];
+                imageSize = Integer.parseInt(saved[1]);
+            }
+        } else if (quizAModifier != null) {
+            imageSize = quizAModifier.getImageSize();
+        }
+
         boolean ok;
         if (quizAModifier == null) {
-            Quiz newQuiz = new Quiz(titre, description, etat, duree, seuil, tentatives, null, null, null, chapitreSelectionne.getId());
+            Quiz newQuiz = new Quiz(titre, description, etat, duree, seuil, tentatives, imageName, imageSize, null, chapitreSelectionne.getId());
             ok = serviceQuiz.ajouter(newQuiz);
             if (!ok) {
                 showError("❌ Échec de l'ajout — vérifiez que la table 'quiz' existe et que le chapitre_id est valide.");
@@ -277,6 +316,8 @@ public class QuizFormController {
             quizAModifier.setDureeMaxMinutes(duree);
             quizAModifier.setSeuilReussite(seuil);
             quizAModifier.setMaxTentatives(tentatives);
+            quizAModifier.setImageName(imageName);
+            quizAModifier.setImageSize(imageSize);
             quizAModifier.setChapitreId(chapitreSelectionne.getId());
             ok = serviceQuiz.modifier(quizAModifier);
             if (ok) {
@@ -293,6 +334,103 @@ public class QuizFormController {
     // ── Retour : revenir à la liste sans sauvegarder ─────────────────────────
     @FXML
     public void retour() { navigateToList(); }
+
+    // ── Choisir une image ─────────────────────────────────────────────────────
+    @FXML
+    public void choisirImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choisir une image pour le quiz");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Images", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp")
+        );
+        File file = fileChooser.showOpenDialog(titreField.getScene().getWindow());
+        if (file == null) return;
+
+        // Vérifier la taille (max 5 Mo)
+        long sizeBytes = file.length();
+        if (sizeBytes > 5 * 1024 * 1024) {
+            showError("⚠ L'image est trop grande — maximum 5 Mo (fichier : " + (sizeBytes / 1024 / 1024) + " Mo).");
+            return;
+        }
+
+        selectedImageFile = file;
+        // Afficher la prévisualisation
+        try {
+            Image img = new Image(file.toURI().toString());
+            imagePreview.setImage(img);
+            imagePreview.setVisible(true);
+            imagePreview.setManaged(true);
+            imagePreviewLabel.setVisible(false);
+            imagePreviewLabel.setManaged(false);
+            btnSupprimerImage.setVisible(true);
+            btnSupprimerImage.setManaged(true);
+            String sizeStr = sizeBytes < 1024 ? sizeBytes + " o"
+                           : sizeBytes < 1024 * 1024 ? (sizeBytes / 1024) + " Ko"
+                           : String.format("%.1f Mo", sizeBytes / 1024.0 / 1024.0);
+            imageInfoLabel.setText("📄 " + file.getName() + "  •  " + sizeStr);
+        } catch (Exception e) {
+            showError("⚠ Impossible de charger l'image : " + e.getMessage());
+        }
+    }
+
+    // ── Supprimer l'image sélectionnée ────────────────────────────────────────
+    @FXML
+    public void supprimerImage() {
+        selectedImageFile = null;
+        existingImageName = null;
+        imagePreview.setImage(null);
+        imagePreview.setVisible(false);
+        imagePreview.setManaged(false);
+        imagePreviewLabel.setVisible(true);
+        imagePreviewLabel.setManaged(true);
+        btnSupprimerImage.setVisible(false);
+        btnSupprimerImage.setManaged(false);
+        imageInfoLabel.setText("");
+    }
+
+    // ── Afficher une image existante (mode modification) ──────────────────────
+    private void afficherImageExistante(String imageName, Integer imageSize) {
+        try {
+            // Chercher dans le dossier quiz_images
+            Path imgPath = Paths.get("src/main/resources/images/quiz", imageName);
+            if (Files.exists(imgPath)) {
+                Image img = new Image(imgPath.toUri().toString());
+                imagePreview.setImage(img);
+                imagePreview.setVisible(true);
+                imagePreview.setManaged(true);
+                imagePreviewLabel.setVisible(false);
+                imagePreviewLabel.setManaged(false);
+                btnSupprimerImage.setVisible(true);
+                btnSupprimerImage.setManaged(true);
+                String sizeStr = imageSize == null ? "" :
+                    imageSize < 1024 ? imageSize + " o" :
+                    imageSize < 1024 * 1024 ? (imageSize / 1024) + " Ko" :
+                    String.format("%.1f Mo", imageSize / 1024.0 / 1024.0);
+                imageInfoLabel.setText("📄 " + imageName + (sizeStr.isEmpty() ? "" : "  •  " + sizeStr));
+            }
+        } catch (Exception e) {
+            System.err.println("[QuizForm] Image existante introuvable : " + imageName);
+        }
+    }
+
+    // ── Copier l'image dans le dossier ressources ─────────────────────────────
+    // Retourne [nomFichier, tailleOctets] ou null si erreur
+    private String[] saveImageFile(File file) {
+        try {
+            Path destDir = Paths.get("src/main/resources/images/quiz");
+            Files.createDirectories(destDir);
+            // Nom unique : timestamp + nom original
+            String uniqueName = System.currentTimeMillis() + "_" + file.getName()
+                .replaceAll("[^a-zA-Z0-9._-]", "_");
+            Path dest = destDir.resolve(uniqueName);
+            Files.copy(file.toPath(), dest, StandardCopyOption.REPLACE_EXISTING);
+            return new String[]{uniqueName, String.valueOf(file.length())};
+        } catch (IOException e) {
+            System.err.println("[QuizForm] Erreur copie image : " + e.getMessage());
+            showError("⚠ Impossible de sauvegarder l'image : " + e.getMessage());
+            return null;
+        }
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 

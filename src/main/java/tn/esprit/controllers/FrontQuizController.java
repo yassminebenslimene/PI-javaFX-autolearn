@@ -115,6 +115,10 @@ public class FrontQuizController {
     /** Durée maximale du quiz en minutes (ou "—" si illimitée). */
     @FXML private Label labelDuree;
 
+    // ── Champ image — injecté depuis question.fxml ────────────────────────────
+    /** Image du quiz affichée dans la carte de question (visible si image définie). */
+    @FXML private javafx.scene.image.ImageView quizImageView;
+
     // ══════════════════════════════════════════════════════════════════════════
     // CHAMPS FXML — question.fxml
     // Ces champs sont injectés lors du chargement de l'écran de question.
@@ -362,7 +366,6 @@ public class FrontQuizController {
         labelDescQuiz.setText(quiz.getDescription() != null ? quiz.getDescription() : "");
         labelNbQuestions.setText(String.valueOf(questions.size()));
         labelTotalPoints.setText(String.valueOf(totalPoints));
-        // Affiche la durée en minutes, ou "—" si le quiz est sans limite de temps
         labelDuree.setText(quiz.getDureeMaxMinutes() != null ? String.valueOf(quiz.getDureeMaxMinutes()) : "—");
     }
 
@@ -666,6 +669,27 @@ public class FrontQuizController {
         labelProgress.setText("Question " + (indexQuestion + 1) + " / " + questions.size());
         labelQuestion.setText(q.getTexteQuestion());
         labelPoints.setText("⭐ " + q.getPoint() + " points");
+
+        // ── Afficher l'image du quiz dans la carte question ───────────────────
+        if (quizImageView != null) {
+            if (quiz.getImageName() != null && !quiz.getImageName().isBlank()) {
+                try {
+                    java.nio.file.Path imgPath = java.nio.file.Paths.get(
+                        "src/main/resources/images/quiz", quiz.getImageName());
+                    if (java.nio.file.Files.exists(imgPath)) {
+                        quizImageView.setImage(new javafx.scene.image.Image(imgPath.toUri().toString()));
+                        quizImageView.setVisible(true);
+                        quizImageView.setManaged(true);
+                    }
+                } catch (Exception ex) {
+                    quizImageView.setVisible(false);
+                    quizImageView.setManaged(false);
+                }
+            } else {
+                quizImageView.setVisible(false);
+                quizImageView.setManaged(false);
+            }
+        }
 
         // ── Barre de progression animée ──
         double progress = (double)(indexQuestion + 1) / questions.size();
