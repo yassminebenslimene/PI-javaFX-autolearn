@@ -365,8 +365,10 @@ public class FrontQuizController {
 
             // ── Bouton retour en haut à gauche ────────────────────────────────
             javafx.scene.control.Button btnRetour = new javafx.scene.control.Button("← Retour aux chapitres");
-            btnRetour.setStyle("-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;" +
-                "-fx-font-size:13; -fx-font-weight:700; -fx-padding:9 18; -fx-background-radius:22; -fx-cursor:hand; -fx-border-width:0;");
+            btnRetour.setStyle("-fx-background-color:rgba(255,255,255,0.14); -fx-text-fill:white;" +
+                "-fx-font-size:13; -fx-font-weight:800; -fx-padding:10 18; -fx-background-radius:999;" +
+                "-fx-cursor:hand; -fx-border-width:1; -fx-border-color:rgba(255,255,255,0.22); -fx-border-radius:999;" +
+                "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.16),10,0,0,3);");
             btnRetour.setOnAction(e -> { if (onRetourCallback != null) onRetourCallback.run(); });
             javafx.scene.layout.HBox topBar = new javafx.scene.layout.HBox(btnRetour);
             topBar.setPadding(new Insets(18, 0, 0, 18));
@@ -393,36 +395,36 @@ public class FrontQuizController {
                 // ── Carte blanche (style Symfony) ─────────────────────────────
                 javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(0);
                 card.setAlignment(javafx.geometry.Pos.TOP_CENTER);
-                card.setPrefWidth(348);
-                card.setMaxWidth(348);
-                card.setStyle("-fx-background-color:rgba(255,255,255,0.96); -fx-background-radius:30;" +
-                    "-fx-border-color:rgba(255,255,255,0.82); -fx-border-width:1; -fx-border-radius:30;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.12),24,0,0,10);");
+                card.setPrefWidth(360);
+                card.setMaxWidth(360);
+                card.setStyle("-fx-background-color:rgba(255,255,255,0.98); -fx-background-radius:30;" +
+                    "-fx-border-color:rgba(226,232,240,0.95); -fx-border-width:1; -fx-border-radius:30;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.10),22,0,0,10);");
 
                 // Bande colorée en haut
                 javafx.scene.layout.HBox topStripe = new javafx.scene.layout.HBox();
-                topStripe.setPrefHeight(10);
-                topStripe.setStyle("-fx-background-color:linear-gradient(to right," + color + ", derive(" + color + ", -16%));" +
+                topStripe.setPrefHeight(8);
+                topStripe.setStyle("-fx-background-color:linear-gradient(to right," + color + ", derive(" + color + ", -12%));" +
                     "-fx-background-radius:30 30 0 0;");
                 card.getChildren().add(topStripe);
 
                 // Corps de la carte
                 javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(14);
                 body.setAlignment(javafx.geometry.Pos.TOP_CENTER);
-                body.setPadding(new Insets(20, 24, 24, 24));
+                body.setPadding(new Insets(18, 24, 24, 24));
 
                 javafx.scene.control.Label meta = new javafx.scene.control.Label("Quiz interactif");
-                meta.setStyle("-fx-background-color:rgba(124,58,237,0.10); -fx-text-fill:#7c3aed;" +
+                meta.setStyle("-fx-background-color:rgba(124,58,237,0.12); -fx-text-fill:#6d28d9;" +
                     "-fx-font-size:11; -fx-font-weight:800; -fx-background-radius:999; -fx-padding:6 12 6 12;");
 
                 // Icône colorée
                 javafx.scene.layout.StackPane iconCircle = new javafx.scene.layout.StackPane();
-                iconCircle.setPrefSize(80, 80);
-                iconCircle.setMaxSize(80, 80);
-                javafx.scene.shape.Rectangle iconBg = new javafx.scene.shape.Rectangle(80, 80);
-                iconBg.setArcWidth(26); iconBg.setArcHeight(26);
-                iconBg.setStyle("-fx-fill:linear-gradient(to bottom right," + color + ", derive(" + color + ", -22%));" +
-                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.16),14,0,0,4);");
+                iconCircle.setPrefSize(84, 84);
+                iconCircle.setMaxSize(84, 84);
+                javafx.scene.shape.Rectangle iconBg = new javafx.scene.shape.Rectangle(84, 84);
+                iconBg.setArcWidth(28); iconBg.setArcHeight(28);
+                iconBg.setStyle("-fx-fill:linear-gradient(to bottom right," + color + ", derive(" + color + ", -24%));" +
+                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.16),16,0,0,4);");
                 javafx.scene.control.Label iconLbl = new javafx.scene.control.Label("▶");
                 iconLbl.setStyle("-fx-font-size:24; -fx-text-fill:white; -fx-font-weight:900;");
                 iconCircle.getChildren().addAll(iconBg, iconLbl);
@@ -431,7 +433,7 @@ public class FrontQuizController {
                 javafx.scene.control.Label qTitre = new javafx.scene.control.Label(q.getTitre());
                 qTitre.setStyle("-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#0f172a; -fx-text-alignment:CENTER; -fx-line-spacing:2;");
                 qTitre.setWrapText(true);
-                qTitre.setMaxWidth(280);
+                qTitre.setMaxWidth(290);
                 qTitre.setAlignment(javafx.geometry.Pos.CENTER);
 
                 // Description
@@ -441,14 +443,14 @@ public class FrontQuizController {
                 javafx.scene.control.Label qDesc = new javafx.scene.control.Label(descText);
                 qDesc.setStyle("-fx-font-size:12.5; -fx-text-fill:#475569; -fx-text-alignment:CENTER; -fx-line-spacing:2;");
                 qDesc.setWrapText(true);
-                qDesc.setMaxWidth(280);
+                qDesc.setMaxWidth(290);
                 qDesc.setAlignment(javafx.geometry.Pos.CENTER);
 
                 // Stats (Questions / Points / Minutes)
                 javafx.scene.layout.HBox statsBox = new javafx.scene.layout.HBox(10);
                 statsBox.setAlignment(javafx.geometry.Pos.CENTER);
-                statsBox.setStyle("-fx-background-color:#f8fafc; -fx-background-radius:20;" +
-                    "-fx-border-color:#e2e8f0; -fx-border-radius:20; -fx-padding:14 12 14 12;");
+                statsBox.setStyle("-fx-background-color:#f8fafc; -fx-background-radius:22;" +
+                    "-fx-border-color:#e2e8f0; -fx-border-radius:22; -fx-padding:14 12 14 12;");
                 statsBox.setMaxWidth(Double.MAX_VALUE);
 
                 javafx.scene.layout.VBox statQ = makeStat("❓", String.valueOf(qs.size()), "QUESTIONS", "#ef4444");
@@ -465,24 +467,24 @@ public class FrontQuizController {
                 sep2.setPrefWidth(1); sep2.setPrefHeight(40);
                 sep2.setStyle("-fx-background-color:#e2e8f0;");
 
-                statQ.setPrefWidth(92); statP.setPrefWidth(92); statD.setPrefWidth(92);
+                statQ.setPrefWidth(94); statP.setPrefWidth(94); statD.setPrefWidth(94);
                 statsBox.getChildren().addAll(statQ, sep1, statP, sep2, statD);
 
                 // Bouton Commencer
                 javafx.scene.control.Button btnCommencer = new javafx.scene.control.Button("▶   Commencer le quiz");
                 btnCommencer.setMaxWidth(Double.MAX_VALUE);
-                btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#0f172a,#1f2937);" +
-                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;" +
-                    "-fx-padding:14 0 14 0; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.24),16,0,0,6);");
-                btnCommencer.setOnMouseEntered(ev -> btnCommencer.setStyle("-fx-background-color:linear-gradient(to right," + color + ", derive(" + color + ", -12%));" +
-                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;" +
-                    "-fx-padding:14 0 14 0; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.30),18,0,0,8);"));
-                btnCommencer.setOnMouseExited(ev -> btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#111827,#1f2937);" +
-                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;" +
-                    "-fx-padding:14 0 14 0; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.24),16,0,0,6);"));
+                btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#22c55e,#16a34a);" +
+                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
+                    "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(34,197,94,0.25),18,0,0,6);");
+                btnCommencer.setOnMouseEntered(ev -> btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#16a34a,#15803d);" +
+                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
+                    "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(34,197,94,0.32),20,0,0,8);"));
+                btnCommencer.setOnMouseExited(ev -> btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#22c55e,#16a34a);" +
+                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
+                    "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(34,197,94,0.25),18,0,0,6);"));
 
                 final Quiz quizChoisi = q;
                 btnCommencer.setOnAction(e -> {
@@ -520,12 +522,12 @@ public class FrontQuizController {
                 card.getChildren().add(body);
 
                 // Hover sur la carte
-                card.setOnMouseEntered(e -> card.setStyle("-fx-background-color:rgba(255,255,255,0.99); -fx-background-radius:30;" +
-                    "-fx-border-color:rgba(255,255,255,0.92); -fx-border-width:1; -fx-border-radius:30;" +
-                    "-fx-effect:dropshadow(gaussian," + color + "55,32,0,0,12); -fx-cursor:hand;"));
-                card.setOnMouseExited(e -> card.setStyle("-fx-background-color:rgba(255,255,255,0.96); -fx-background-radius:30;" +
-                    "-fx-border-color:rgba(255,255,255,0.82); -fx-border-width:1; -fx-border-radius:30;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.12),24,0,0,10);"));
+                card.setOnMouseEntered(e -> card.setStyle("-fx-background-color:rgba(255,255,255,1); -fx-background-radius:30;" +
+                    "-fx-border-color:" + color + "22; -fx-border-width:1; -fx-border-radius:30;" +
+                    "-fx-effect:dropshadow(gaussian," + color + "44,28,0,0,12); -fx-cursor:hand;"));
+                card.setOnMouseExited(e -> card.setStyle("-fx-background-color:rgba(255,255,255,0.98); -fx-background-radius:30;" +
+                    "-fx-border-color:rgba(226,232,240,0.95); -fx-border-width:1; -fx-border-radius:30;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.10),22,0,0,10);"));
 
                 cardsRow.getChildren().add(card);
             }
@@ -1512,20 +1514,23 @@ public class FrontQuizController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
             Parent view = loader.load();
             FrontQuizController ctrl = loader.getController();
-            
+
             // Transfert complet de l'état
             ctrl.quiz = this.quiz;
             ctrl.chapitre = this.chapitre;
             ctrl.questions = this.questions;
             ctrl.totalPoints = this.totalPoints;
             ctrl.onRetourCallback = this.onRetourCallback;
-            ctrl.sceneRef = this.sceneRef != null ? this.sceneRef : this.labelTitreResultat;
-            
-            // Afficher l'intro
-            ctrl.afficherIntro();
+            // Transmettre la référence de scène stable (labelCurrentUser ou sceneRef)
+            ctrl.sceneRef = this.sceneRef;
+
+            // Injecter la vue dans le layout principal
             setCenter(view);
-        } catch (Exception e) { 
-            e.printStackTrace(); 
+
+            // Remplir les labels de l'intro (la vue est maintenant dans la scène)
+            javafx.application.Platform.runLater(ctrl::afficherIntro);
+        } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("Erreur lors du rechargement du quiz : " + e.getMessage());
         }
     }
@@ -1558,36 +1563,47 @@ public class FrontQuizController {
      * @param view la nouvelle vue Parent à afficher au centre du layout
      */
     private void setCenter(Parent view) {
-        javafx.scene.Node ref = sceneRef != null ? sceneRef
-            : labelTitreQuiz != null ? labelTitreQuiz
-            : labelQuestion != null ? labelQuestion
-            : labelTitreResultat;
-        if (ref == null) {
-            System.err.println("[setCenter] aucune référence visuelle disponible");
-            return;
+        // Priorité 1 : utiliser la scène directement si disponible (chemin le plus fiable)
+        javafx.scene.Scene scene = null;
+        if (sceneRef != null && sceneRef.getScene() != null) {
+            scene = sceneRef.getScene();
+        } else {
+            // Chercher via les labels disponibles
+            for (javafx.scene.Node n : new javafx.scene.Node[]{
+                    labelTitreQuiz, labelQuestion, labelTitreResultat}) {
+                if (n != null && n.getScene() != null) { scene = n.getScene(); break; }
+            }
         }
-        javafx.scene.Parent current = ref instanceof javafx.scene.Parent p ? p : ref.getParent();
-        while (current != null && !(current instanceof BorderPane)) {
-            current = current.getParent();
-        }
+
         BorderPane root = null;
-        if (current instanceof BorderPane borderPane) {
-            root = borderPane;
-        } else if (ref.getScene() != null && ref.getScene().getRoot() instanceof BorderPane borderPaneRoot) {
-            root = borderPaneRoot;
+        if (scene != null && scene.getRoot() instanceof BorderPane bp) {
+            root = bp;
+        } else {
+            // Fallback : remonter l'arbre jusqu'au BorderPane le plus haut
+            javafx.scene.Node ref = sceneRef != null ? sceneRef
+                : labelTitreQuiz != null ? labelTitreQuiz
+                : labelQuestion != null ? labelQuestion
+                : labelTitreResultat;
+            if (ref != null) {
+                javafx.scene.Parent current = ref instanceof javafx.scene.Parent p ? p : ref.getParent();
+                while (current != null) {
+                    if (current instanceof BorderPane bp2) root = bp2;
+                    current = current.getParent();
+                }
+            }
         }
+
         if (root == null) {
-            System.err.println("[setCenter] impossible de localiser le BorderPane racine depuis : " + ref);
+            System.err.println("[setCenter] impossible de localiser le BorderPane racine");
             return;
         }
+
+        // Les vues quiz prennent toute la hauteur disponible (pas de ScrollPane wrapper)
         if (view instanceof javafx.scene.layout.Region region) {
             region.prefHeightProperty().unbind();
             region.prefWidthProperty().unbind();
             region.setMaxHeight(Double.MAX_VALUE);
             region.setMaxWidth(Double.MAX_VALUE);
-            BorderPane.setAlignment(region, javafx.geometry.Pos.TOP_LEFT);
-            region.prefHeightProperty().bind(root.heightProperty().subtract(root.getTop() != null ? 64 : 0));
-            region.prefWidthProperty().bind(root.widthProperty());
         }
         root.setCenter(view);
     }
