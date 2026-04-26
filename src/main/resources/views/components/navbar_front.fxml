@@ -6,6 +6,7 @@
 <HBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="tn.esprit.controllers.NavbarController"
       alignment="CENTER_LEFT" spacing="0"
+      stylesheets="@../styles/app.css"
       style="-fx-background-color:rgba(122,106,216,0.96);
              -fx-min-height:68; -fx-max-height:68;
              -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
@@ -46,15 +47,21 @@
         <Separator orientation="VERTICAL"
                    style="-fx-background-color:rgba(255,255,255,0.3); -fx-pref-height:28;"/>
         <MenuButton fx:id="menuUser" text="Mon compte"
-                    style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                    style="-fx-background-color:rgba(255,255,255,0.18); -fx-text-fill:white;
                            -fx-font-size:12; -fx-font-weight:600; -fx-padding:7 14 7 14;
-                           -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;">
+                           -fx-background-radius:22; -fx-cursor:hand;
+                           -fx-border-width:1; -fx-border-color:rgba(255,255,255,0.3);
+                           -fx-border-radius:22;">
             <items>
-                <MenuItem text="Mon Profil" onAction="#onProfile"/>
-                <MenuItem text="Mes Participations" onAction="#onMesParticipations"/>
-                <MenuItem text="Mes Equipes" onAction="#onMesEquipes"/>
+                <MenuItem text="  Mon Profil" onAction="#onProfile"
+                          style="-fx-font-size:13;"/>
+                <MenuItem text="  Mes Participations" onAction="#onMesParticipations"
+                          style="-fx-font-size:13;"/>
+                <MenuItem text="  Mes Equipes" onAction="#onMesEquipes"
+                          style="-fx-font-size:13;"/>
                 <SeparatorMenuItem/>
-                <MenuItem text="Deconnexion" onAction="#onLogout"/>
+                <MenuItem text="  Deconnexion" onAction="#onLogout"
+                          style="-fx-font-size:13; -fx-text-fill:#e74c3c;"/>
             </items>
         </MenuButton>
     </HBox>

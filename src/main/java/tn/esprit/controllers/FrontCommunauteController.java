@@ -53,18 +53,18 @@ public class FrontCommunauteController {
         boolean hasAccess = c.getOwnerId() == currentUserId
                 || memberIds.contains(currentUserId);
 
-        VBox card = new VBox(12);
+        VBox card = new VBox(16);
         card.setPrefWidth(300);
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 20; " +
-                      "-fx-border-color: #e2e8f0; -fx-border-radius: 20; -fx-border-width: 1; " +
-                      "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 20, 0, 0, 8); -fx-padding: 24;");
+        card.setStyle("-fx-background-color:white; -fx-background-radius:24; " +
+                      "-fx-border-color:#ede9fe; -fx-border-radius:24; -fx-border-width:1.5; " +
+                      "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.1),22,0,0,7); -fx-padding:28;");
 
         // Icône + badge cadenas si accès restreint
-        HBox iconRow = new HBox(8);
+        HBox iconRow = new HBox(10);
         iconRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label icon = new Label("👥");
-        icon.setStyle("-fx-font-size: 24; -fx-background-color: #f1f5f9; " +
-                      "-fx-background-radius: 12; -fx-padding: 12;");
+        icon.setStyle("-fx-font-size:22; -fx-background-color:#f5f3ff; " +
+                      "-fx-background-radius:14; -fx-padding:13;");
         iconRow.getChildren().add(icon);
         if (!hasAccess) {
             Label lock = new Label("🔒");
@@ -73,55 +73,51 @@ public class FrontCommunauteController {
         }
 
         Label nom = new Label(c.getNom());
-        nom.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#1f1a42;");
+        nom.setStyle("-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#1e1b4b;");
 
         Label desc = new Label(c.getDescription() != null ? c.getDescription() : "");
         desc.setWrapText(true);
-        desc.setStyle("-fx-font-size:12; -fx-text-fill:#6a6790;");
+        desc.setStyle("-fx-font-size:12; -fx-text-fill:#6b7280; -fx-line-spacing:4;");
 
         javafx.scene.control.Button btn;
         if (hasAccess) {
-            btn = new javafx.scene.control.Button("Rejoindre le groupe →");
-            btn.setStyle("-fx-background-color: #7a6ad8; " +
-                         "-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 800; " +
-                         "-fx-padding: 12 24; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0; " +
-                         "-fx-effect: dropshadow(gaussian, rgba(122,106,216,0.3), 10, 0, 0, 3);");
-            
-            // Hover effect for button
-            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #5d4ec9; " +
-                                                    "-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 800; " +
-                                                    "-fx-padding: 12 24; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0; " +
-                                                    "-fx-effect: dropshadow(gaussian, rgba(122,106,216,0.4), 12, 0, 0, 4);"));
-            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #7a6ad8; " +
-                                                   "-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 800; " +
-                                                   "-fx-padding: 12 24; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0; " +
-                                                   "-fx-effect: dropshadow(gaussian, rgba(122,106,216,0.3), 10, 0, 0, 3);"));
-            
+            btn = new javafx.scene.control.Button("Rejoindre →");
+            btn.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); " +
+                         "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:900; " +
+                         "-fx-padding:13 30; -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:0; " +
+                         "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),14,0,0,5);");
+            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color:linear-gradient(to right,#6d28d9,#4338ca); " +
+                                                    "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:900; " +
+                                                    "-fx-padding:13 30; -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:0; " +
+                                                    "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.55),18,0,0,7);"));
+            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); " +
+                                                   "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:900; " +
+                                                   "-fx-padding:13 30; -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:0; " +
+                                                   "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),14,0,0,5);"));
             btn.setOnAction(e -> ouvrirDetail(c));
         } else {
             btn = new javafx.scene.control.Button("🔒  Accès restreint");
-            btn.setStyle("-fx-background-color:#f3f2f9; -fx-text-fill:#9b98b8; -fx-font-size:12; " +
-                         "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-border-width:0;");
+            btn.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#c4b5fd; -fx-font-size:12; " +
+                         "-fx-padding:11 24; -fx-background-radius:30; -fx-border-width:0;");
             btn.setDisable(true);
         }
 
         card.getChildren().addAll(iconRow, nom, desc, btn);
 
-        // Boutons modifier / supprimer visibles uniquement pour le créateur
         boolean isOwner = c.getOwnerId() == currentUserId;
         if (isOwner) {
             HBox ownerActions = new HBox(8);
             ownerActions.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
             javafx.scene.control.Button btnEdit = new javafx.scene.control.Button("✏ Modifier");
-            btnEdit.setStyle("-fx-background-color:#f1efff; -fx-text-fill:#5d4ec9; -fx-font-size:11; " +
-                             "-fx-font-weight:700; -fx-padding:7 14 7 14; -fx-background-radius:9; " +
+            btnEdit.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed; -fx-font-size:11; " +
+                             "-fx-font-weight:700; -fx-padding:7 14; -fx-background-radius:9; " +
                              "-fx-cursor:hand; -fx-border-width:0;");
             btnEdit.setOnAction(e -> onModifier(c));
 
             javafx.scene.control.Button btnDel = new javafx.scene.control.Button("🗑 Supprimer");
-            btnDel.setStyle("-fx-background-color:#fff1f3; -fx-text-fill:#e11d48; -fx-font-size:11; " +
-                            "-fx-font-weight:700; -fx-padding:7 14 7 14; -fx-background-radius:9; " +
+            btnDel.setStyle("-fx-background-color:#fff1f2; -fx-text-fill:#e94560; -fx-font-size:11; " +
+                            "-fx-font-weight:700; -fx-padding:7 14; -fx-background-radius:9; " +
                             "-fx-cursor:hand; -fx-border-width:0;");
             btnDel.setOnAction(e -> onSupprimer(c));
 

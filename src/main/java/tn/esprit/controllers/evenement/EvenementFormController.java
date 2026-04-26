@@ -7,7 +7,9 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import tn.esprit.entities.Evenement;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.EvenementService;
+import tn.esprit.session.SessionManager;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -223,11 +225,12 @@ public class EvenementFormController implements Initializable {
 
         // ── Sauvegarde ──────────────────────────────────────────────
         if (evenementToEdit == null) {
-            // Mode ajout
             Evenement e = new Evenement(titre, lieu, description, comboType.getValue(), dateDebut, dateFin, nbMax);
             service.ajouter(e);
+            var admin = SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_evenement",
+                java.util.Map.of("titre", titre, "lieu", lieu));
         } else {
-            // Mode modification
             evenementToEdit.setTitre(titre);
             evenementToEdit.setLieu(lieu);
             evenementToEdit.setDescription(description);
@@ -235,10 +238,8 @@ public class EvenementFormController implements Initializable {
             evenementToEdit.setDateDebut(dateDebut);
             evenementToEdit.setDateFin(dateFin);
             evenementToEdit.setNbMax(nbMax);
-            // Recalculer le statut
             String newStatus = evenementToEdit.computeStatus();
             evenementToEdit.setStatus(newStatus);
-            // workflowStatus mapping
             String wf = switch (newStatus) {
                 case "En cours"  -> "en_cours";
                 case "Passé"     -> "termine";
@@ -247,6 +248,9 @@ public class EvenementFormController implements Initializable {
             };
             evenementToEdit.setWorkflowStatus(wf);
             service.modifier(evenementToEdit);
+            var admin = SessionManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_evenement",
+                java.util.Map.of("titre", titre));
         }
 
         retourListe();
