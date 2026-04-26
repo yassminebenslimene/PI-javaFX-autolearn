@@ -25,6 +25,7 @@ public class ChallengeDetailController {
     @FXML private Label scoreLabel;
     @FXML private Label completedAtLabel;
     @FXML private Button startButton;
+    @FXML private Button backButton;
 
     private Challenge challenge;
     private ChallengeService challengeService;
@@ -68,6 +69,7 @@ public class ChallengeDetailController {
                 SessionManager.getCurrentUser().getId(), challenge.getId());
 
         if (userChallenge != null && userChallenge.isCompleted()) {
+            // Challenge déjà complété → afficher le résultat directement dans cette vue
             if (resultContainer != null) {
                 resultContainer.setVisible(true);
                 resultContainer.setManaged(true);
@@ -78,19 +80,35 @@ public class ChallengeDetailController {
             if (completedAtLabel != null && userChallenge.getCompletedAt() != null) {
                 completedAtLabel.setText("Terminé le " + userChallenge.getCompletedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             }
+
+            // Modifier le bouton start pour afficher "Voir mon résultat" et ouvrir resultchallenge
             if (startButton != null) {
                 startButton.setText("📊 Voir mon résultat");
-                startButton.setOnAction(e -> openResult());
+                startButton.setOnAction(e -> openResult());  // ← AJOUTER CETTE LIGNE
+                startButton.setVisible(true);
+                startButton.setManaged(true);
+            }
+            if (backButton != null) {
+                backButton.setVisible(true);
+                backButton.setManaged(true);
             }
         } else if (challenge.getDateFin().isBefore(LocalDate.now())) {
+            // Challenge expiré
             if (startButton != null) {
                 startButton.setText("🔒 Challenge expiré");
                 startButton.setDisable(true);
             }
         } else {
+            // Challenge non commencé
             if (startButton != null) {
                 startButton.setText("🚀 Commencer le challenge");
                 startButton.setOnAction(e -> startChallenge());
+                startButton.setVisible(true);
+                startButton.setManaged(true);
+            }
+            if (backButton != null) {
+                backButton.setVisible(false);
+                backButton.setManaged(false);
             }
         }
     }
