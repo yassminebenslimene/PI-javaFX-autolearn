@@ -31,9 +31,17 @@ public class FrontCommunauteDetailController {
     @FXML private Label     statPosts;
     @FXML private Label     statMembres;
     @FXML private Button    btnGererMembres;
-    @FXML private TextField fieldTitre;
-    @FXML private TextArea  fieldContenu;
-    @FXML private TextField fieldTags;
+    @FXML private TextField  fieldTitre;
+    @FXML private TextArea   fieldContenu;
+    @FXML private TextField  fieldTags;
+    @FXML private HBox       mediaPreviewBox;
+
+    // Pending attachments for the next post
+    private java.io.File pendingImageFile = null;
+    private java.io.File pendingVideoFile = null;
+    private java.io.File pendingDocFile   = null;
+
+    private static final String UPLOAD_DIR = "uploads/posts/";
     @FXML private VBox      postsPane;
     @FXML private VBox      similarPostsBox;
     @FXML private VBox      similarPostsList;
@@ -105,6 +113,79 @@ public class FrontCommunauteDetailController {
     }
 
     @FXML
+    public void onAttachImage() {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Choisir une image");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(
+                "Images", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp"));
+        java.io.File f = fc.showOpenDialog(fieldTitre.getScene().getWindow());
+        if (f != null) { pendingImageFile = f; addMediaChip("🖼  " + f.getName(), "#e0f2fe", "#0369a1"); }
+    }
+
+    @FXML
+    public void onAttachVideo() {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Choisir une vidéo");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(
+                "Vidéos", "*.mp4", "*.avi", "*.mov", "*.mkv", "*.webm"));
+        java.io.File f = fc.showOpenDialog(fieldTitre.getScene().getWindow());
+        if (f != null) { pendingVideoFile = f; addMediaChip("🎬  " + f.getName(), "#fef3c7", "#d97706"); }
+    }
+
+    @FXML
+    public void onAttachFile() {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Choisir un fichier");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(
+                "Fichiers", "*.pdf", "*.doc", "*.docx", "*.txt", "*.zip", "*.ppt", "*.pptx"));
+        java.io.File f = fc.showOpenDialog(fieldTitre.getScene().getWindow());
+        if (f != null) { pendingDocFile = f; addMediaChip("📎  " + f.getName(), "#f0fdf4", "#15803d"); }
+    }
+
+    private void addMediaChip(String name, String bg, String fg) {
+        if (mediaPreviewBox == null) return;
+        Label chip = new Label(name);
+        chip.setStyle("-fx-background-color:" + bg + "; -fx-text-fill:" + fg + ";" +
+                      "-fx-font-size:11; -fx-font-weight:700;" +
+                      "-fx-padding:6 14; -fx-background-radius:20;");
+        // X button to remove
+        Button btnX = new Button("✕");
+        btnX.setStyle("-fx-background-color:transparent; -fx-text-fill:" + fg + ";" +
+                      "-fx-font-size:10; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 0 0 4;");
+        HBox chipBox = new HBox(4, chip, btnX);
+        chipBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        btnX.setOnAction(e -> {
+            mediaPreviewBox.getChildren().remove(chipBox);
+            // clear the right pending file based on chip text
+            if (name.startsWith("🖼")) pendingImageFile = null;
+            else if (name.startsWith("🎬")) pendingVideoFile = null;
+            else pendingDocFile = null;
+            if (mediaPreviewBox.getChildren().isEmpty()) {
+                mediaPreviewBox.setVisible(false);
+                mediaPreviewBox.setManaged(false);
+            }
+        });
+        mediaPreviewBox.getChildren().add(chipBox);
+        mediaPreviewBox.setVisible(true);
+        mediaPreviewBox.setManaged(true);
+    }
+
+    /** Copies a file to UPLOAD_DIR and returns the stored filename */
+    private String saveFile(java.io.File src) {
+        try {
+            java.nio.file.Path dir = java.nio.file.Paths.get(UPLOAD_DIR);
+            java.nio.file.Files.createDirectories(dir);
+            String name = System.currentTimeMillis() + "_" + src.getName();
+            java.nio.file.Files.copy(src.toPath(), dir.resolve(name),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            return name;
+        } catch (Exception e) {
+            System.err.println("[Media] saveFile: " + e.getMessage());
+            return null;
+        }
+    }
+
+    @FXML
     public void onPublier() {
         String titre   = fieldTitre.getText().trim();
         String contenu = fieldContenu.getText().trim();
@@ -135,10 +216,13 @@ public class FrontCommunauteDetailController {
         // Tags: manual input takes priority, else auto-extract
         String manualTags = fieldTags != null ? fieldTags.getText().trim() : "";
         if (!manualTags.isEmpty()) {
-            // normalize: lowercase, remove spaces around commas
             p.setTags(manualTags.toLowerCase().replaceAll("\\s*,\\s*", ","));
         }
-        // auto-extract fills in if no manual tags (handled in servicePost.ajouter)
+
+        // Save media attachments
+        if (pendingImageFile != null) { p.setImageFile(saveFile(pendingImageFile)); pendingImageFile = null; }
+        if (pendingVideoFile != null) { p.setVideoFile(saveFile(pendingVideoFile)); pendingVideoFile = null; }
+        if (pendingDocFile   != null) { p.setSummary(saveFile(pendingDocFile));     pendingDocFile   = null; }
 
         servicePost.ajouter(p);
         if (emptyLabel != null) {
@@ -149,6 +233,11 @@ public class FrontCommunauteDetailController {
         fieldTitre.clear();
         fieldContenu.clear();
         if (fieldTags != null) fieldTags.clear();
+        if (mediaPreviewBox != null) {
+            mediaPreviewBox.getChildren().clear();
+            mediaPreviewBox.setVisible(false);
+            mediaPreviewBox.setManaged(false);
+        }
         clearFieldError(fieldTitre);
         clearFieldError(fieldContenu);
     }
@@ -261,6 +350,54 @@ public class FrontCommunauteDetailController {
                 tagsRow.getChildren().add(chip);
             }
             contentBox.getChildren().add(tagsRow);
+        }
+
+        // Media attachments
+        if (p.getImageFile() != null && !p.getImageFile().isBlank()) {
+            try {
+                java.io.File imgFile = new java.io.File(UPLOAD_DIR + p.getImageFile());
+                if (imgFile.exists()) {
+                    javafx.scene.image.Image img = new javafx.scene.image.Image(imgFile.toURI().toString());
+                    javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(img);
+                    iv.setFitWidth(460); iv.setPreserveRatio(true);
+                    iv.setStyle("-fx-background-radius:12;");
+                    contentBox.getChildren().add(iv);
+                }
+            } catch (Exception ignored) {}
+        }
+        if (p.getVideoFile() != null && !p.getVideoFile().isBlank()) {
+            try {
+                java.io.File vidFile = new java.io.File(UPLOAD_DIR + p.getVideoFile());
+                if (vidFile.exists()) {
+                    javafx.scene.media.Media media = new javafx.scene.media.Media(vidFile.toURI().toString());
+                    javafx.scene.media.MediaPlayer mp = new javafx.scene.media.MediaPlayer(media);
+                    javafx.scene.media.MediaView mv = new javafx.scene.media.MediaView(mp);
+                    mv.setFitWidth(460); mv.setPreserveRatio(true);
+                    // Play/pause on click
+                    HBox videoBox = new HBox(mv);
+                    videoBox.setStyle("-fx-background-color:#000; -fx-background-radius:12; -fx-cursor:hand;");
+                    videoBox.setOnMouseClicked(e -> {
+                        if (mp.getStatus() == javafx.scene.media.MediaPlayer.Status.PLAYING) mp.pause();
+                        else mp.play();
+                    });
+                    contentBox.getChildren().add(videoBox);
+                }
+            } catch (Exception ignored) {}
+        }
+        if (p.getSummary() != null && !p.getSummary().isBlank()
+                && !p.getSummary().contains(" ")) { // stored filename (no spaces)
+            java.io.File docFile = new java.io.File(UPLOAD_DIR + p.getSummary());
+            if (docFile.exists()) {
+                Button btnDoc = new Button("📎  " + docFile.getName());
+                btnDoc.setStyle("-fx-background-color:#f0fdf4; -fx-text-fill:#15803d;" +
+                                "-fx-font-size:11; -fx-font-weight:700;" +
+                                "-fx-padding:8 16; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+                btnDoc.setOnAction(e -> {
+                    try { java.awt.Desktop.getDesktop().open(docFile); }
+                    catch (Exception ex) { ex.printStackTrace(); }
+                });
+                contentBox.getChildren().add(btnDoc);
+            }
         }
 
         body.getChildren().addAll(topRow, contentBox);
