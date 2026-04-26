@@ -15,6 +15,22 @@ public class MainApp extends Application {
 
     private static Stage primaryStage;
     private static BackofficeController backofficeController;
+    private static javafx.application.HostServices hostServices;
+
+    /** Ouvre une URL dans le navigateur par défaut du système. */
+    public static void openUrl(String url) {
+        if (url == null || url.isBlank() || "#".equals(url)) return;
+        try {
+            if (hostServices != null) {
+                hostServices.showDocument(url);
+            } else {
+                // Fallback : java.awt.Desktop
+                java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+            }
+        } catch (Exception e) {
+            System.err.println("[MainApp] Impossible d'ouvrir l'URL : " + e.getMessage());
+        }
+    }
 
     public static void setBackofficeController(BackofficeController c) {
         backofficeController = c;
@@ -34,6 +50,10 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         primaryStage = stage;
+        hostServices = getHostServices();
+        // Vider les caches des services API au démarrage
+        tn.esprit.services.TechNewsService.clearCache();
+        tn.esprit.services.GeoLocationService.clearCache();
         primaryStage.setTitle("AutoLearn");
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(900);

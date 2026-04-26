@@ -226,7 +226,28 @@
                     <HBox fx:id="coursCardsContainer" spacing="20" alignment="CENTER"/>
                 </VBox>
 
-                <!-- SECTION 3: CHALLENGES CTA - split violet left + carousel right -->
+                <!-- SECTION 3: ACTUALITÉS TECH - NewsAPI -->
+                <VBox fx:id="sectionActualites" spacing="28"
+                      style="-fx-padding:56 80 56 80; -fx-background-color:white;
+                             -fx-border-color:#eeeeee transparent transparent transparent;
+                             -fx-border-width:1 0 0 0;">
+                    <HBox alignment="CENTER_LEFT" spacing="0">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="&#128240;  Actualités Tech"
+                                   style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#0ea5e9;
+                                          -fx-background-color:rgba(14,165,233,0.1); -fx-background-radius:20;
+                                          -fx-padding:3 14 3 14;"/>
+                            <Label text="Les dernières nouvelles en programmation"
+                                   style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:#1a1a2e;"/>
+                            <Label text="Restez à jour avec les tendances du monde tech"
+                                   style="-fx-font-size:13; -fx-text-fill:#888;"/>
+                        </VBox>
+                    </HBox>
+                    <!-- Grille 3 colonnes — remplie dynamiquement en Java -->
+                    <HBox fx:id="newsCardsContainer" spacing="20" alignment="CENTER_LEFT"/>
+                </VBox>
+
+                <!-- SECTION 4: CHALLENGES CTA - split violet left + carousel right -->
                 <HBox fx:id="sectionChallenges" spacing="0" minHeight="320">
                     <VBox spacing="20" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT"
                           style="-fx-padding:56 60 56 80; -fx-background-color:#7a6ad8;">

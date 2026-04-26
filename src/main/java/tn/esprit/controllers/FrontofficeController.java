@@ -21,6 +21,7 @@ import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.EvenementService;
 import tn.esprit.services.ServiceCours;
+import tn.esprit.services.TechNewsService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.SessionManager;
 
@@ -47,6 +48,8 @@ public class FrontofficeController {
     // Sections
     @FXML private VBox sectionCours;
     @FXML private VBox sectionFeatures;
+    @FXML private VBox sectionActualites;
+    @FXML private HBox newsCardsContainer;
     @FXML private HBox featureCardsContainer;
     @FXML private StackPane sectionEvenementsHome;
     @FXML private HBox evenementsHomeContainer;
@@ -108,9 +111,24 @@ public class FrontofficeController {
         if (labelCurrentUser != null) labelCurrentUser.setText(name);
         if (labelAvatarNav   != null) labelAvatarNav.setText(initials);
         if (menuUser         != null) menuUser.setText(initials + " \u25be");
-        if (welcomeLabel     != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Pret a apprendre aujourd'hui !");
+        // Message par défaut — sera remplacé par la géolocalisation
+        if (welcomeLabel != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Pret a apprendre aujourd'hui !");
         if (u instanceof Etudiant e && e.getNiveau() != null)
             if (labelNiveauUser != null) labelNiveauUser.setText("Niveau : " + e.getNiveau());
+
+        // ── Géolocalisation asynchrone ────────────────────────────────────────
+        // Appel API ipapi.co en arrière-plan — met à jour le message de bienvenue
+        // sans bloquer le chargement de la page
+        tn.esprit.services.GeoLocationService.getLocationAsync().thenAccept(geo -> {
+            javafx.application.Platform.runLater(() -> {
+                if (welcomeLabel != null) {
+                    if (geo != null) {
+                        welcomeLabel.setText(geo.getBienvenueMessage(u.getPrenom()));
+                    }
+                    // Si geo == null (pas de connexion), le message par défaut reste affiché
+                }
+            });
+        });
 
         // Emojis dans les slides
         if (slide1Icon != null) slide1Icon.setText("\uD83D\uDCDA");
@@ -152,14 +170,18 @@ public class FrontofficeController {
                 // Construire les feature cards
                 if (featureCardsContainer != null) buildFeatureCards();
 
+                // Charger les actualités tech (asynchrone)
+                if (newsCardsContainer != null) loadNewsCards();
+
                 // Démarrer le slider automatique
                 startSlider();
 
                 // Animations d'entree sur les sections
                 animateSlideIn(sectionFeatures,       0);
                 animateSlideIn(sectionCours,        150);
-                animateSlideIn(sectionChallenges,   300);
-                animateSlideIn(sectionEvenementsHome, 450);
+                animateSlideIn(sectionActualites,   300);
+                animateSlideIn(sectionChallenges,   450);
+                animateSlideIn(sectionEvenementsHome, 600);
 
             } catch (Exception e) { e.printStackTrace(); }
         });
@@ -186,6 +208,133 @@ public class FrontofficeController {
             empty.setStyle("-fx-text-fill:#aaa; -fx-font-size:13;");
             coursCardsContainer.getChildren().add(empty);
         }
+    }
+
+    // ── Actualités Tech ───────────────────────────────────────────────────────
+
+    private void loadNewsCards() {
+        // Placeholder de chargement
+        newsCardsContainer.getChildren().clear();
+        Label loading = new Label("⏳ Chargement des actualités...");
+        loading.setStyle("-fx-text-fill:#aaa; -fx-font-size:13;");
+        newsCardsContainer.getChildren().add(loading);
+
+        TechNewsService.getTopTechNewsAsync().thenAccept(articles -> {
+            javafx.application.Platform.runLater(() -> {
+                newsCardsContainer.getChildren().clear();
+                if (articles == null || articles.isEmpty()) {
+                    Label empty = new Label("Aucune actualité disponible pour le moment.");
+                    empty.setStyle("-fx-text-fill:#aaa; -fx-font-size:13;");
+                    newsCardsContainer.getChildren().add(empty);
+                    return;
+                }
+                // Afficher max 6 articles en 2 rangées de 3
+                int max = Math.min(articles.size(), 6);
+                // Ligne 1 : 3 premières cartes
+                HBox row1 = new HBox(20);
+                row1.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                // Ligne 2 : 3 suivantes
+                HBox row2 = new HBox(20);
+                row2.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+                for (int i = 0; i < max; i++) {
+                    VBox card = buildNewsCard(articles.get(i), i);
+                    card.setOpacity(0);
+                    if (i < 3) row1.getChildren().add(card);
+                    else       row2.getChildren().add(card);
+
+                    final int idx = i;
+                    FadeTransition ft = new FadeTransition(Duration.millis(500), card);
+                    ft.setFromValue(0); ft.setToValue(1);
+                    ft.setDelay(Duration.millis(80 + idx * 100));
+                    TranslateTransition tt = new TranslateTransition(Duration.millis(500), card);
+                    tt.setFromY(15); tt.setToY(0);
+                    tt.setDelay(Duration.millis(80 + idx * 100));
+                    tt.setInterpolator(javafx.animation.Interpolator.EASE_OUT);
+                    ft.play(); tt.play();
+                }
+
+                VBox rows = new VBox(16, row1);
+                if (!row2.getChildren().isEmpty()) rows.getChildren().add(row2);
+                rows.setMaxWidth(Double.MAX_VALUE);
+                newsCardsContainer.getChildren().add(rows);
+                HBox.setHgrow(rows, Priority.ALWAYS);
+            });
+        });
+    }
+
+    private VBox buildNewsCard(TechNewsService.NewsArticle article, int index) {
+        // Couleurs alternées par index
+        String[] accents = {"#0ea5e9", "#7a6ad8", "#10b981", "#f59e0b", "#ec4899", "#6366f1"};
+        String[] lightBgs = {"#e0f2fe", "#ede9ff", "#dcfce7", "#fef3c7", "#fce7f3", "#e0e7ff"};
+        String accent   = accents[index % accents.length];
+        String lightBg  = lightBgs[index % lightBgs.length];
+
+        // Bande colorée en haut
+        HBox topBar = new HBox();
+        topBar.setPrefHeight(5);
+        topBar.setStyle("-fx-background-color:" + accent + "; -fx-background-radius:12 12 0 0;");
+
+        // Source + date
+        Label sourceLbl = new Label("📰 " + (article.source().isBlank() ? "Tech" : article.source()));
+        sourceLbl.setStyle("-fx-font-size:10; -fx-font-weight:700; -fx-text-fill:" + accent + ";" +
+                           "-fx-background-color:" + lightBg + ";" +
+                           "-fx-background-radius:6; -fx-padding:2 8 2 8;");
+
+        Label dateLbl = new Label(article.getFormattedDate());
+        dateLbl.setStyle("-fx-font-size:10; -fx-text-fill:#bbb;");
+
+        HBox meta = new HBox(8, sourceLbl, dateLbl);
+        meta.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        // Titre
+        Label titleLbl = new Label(article.getShortTitle());
+        titleLbl.setStyle("-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#1a1a2e; -fx-line-spacing:2;");
+        titleLbl.setWrapText(true);
+        titleLbl.setMaxWidth(280);
+
+        // Description
+        Label descLbl = new Label(article.getShortDescription());
+        descLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666; -fx-line-spacing:3;");
+        descLbl.setWrapText(true);
+        descLbl.setMaxWidth(280);
+
+        // Bouton lire
+        Button readBtn = new Button("Lire l'article →");
+        readBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:" + accent + ";" +
+                         "-fx-font-size:11; -fx-font-weight:700; -fx-cursor:hand;" +
+                         "-fx-border-width:1.5; -fx-border-color:" + accent + ";" +
+                         "-fx-border-radius:6; -fx-padding:6 14 6 14; -fx-background-radius:6;");
+        readBtn.setOnAction(e -> MainApp.openUrl(article.url()));
+
+        VBox content = new VBox(10, meta, titleLbl, descLbl, readBtn);
+        content.setPadding(new Insets(14));
+        VBox.setVgrow(descLbl, Priority.ALWAYS);
+
+        VBox card = new VBox(0, topBar, content);
+        card.setPrefWidth(300);
+        card.setMaxWidth(300);
+        card.setMinHeight(180);
+        card.setStyle("-fx-background-color:white; -fx-background-radius:12;" +
+                      "-fx-border-color:#eeeeee; -fx-border-radius:12;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3);");
+
+        // Hover
+        card.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(160), card);
+            st.setToX(1.02); st.setToY(1.02); st.play();
+            card.setStyle("-fx-background-color:white; -fx-background-radius:12;" +
+                          "-fx-border-color:" + accent + "; -fx-border-radius:12;" +
+                          "-fx-effect:dropshadow(gaussian," + accent + "44,14,0,0,4); -fx-cursor:hand;");
+        });
+        card.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(160), card);
+            st.setToX(1.0); st.setToY(1.0); st.play();
+            card.setStyle("-fx-background-color:white; -fx-background-radius:12;" +
+                          "-fx-border-color:#eeeeee; -fx-border-radius:12;" +
+                          "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3);");
+        });
+        return card;
     }
 
     /** Image card with colored gradient overlay — rich visual style */
