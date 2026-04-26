@@ -22,6 +22,7 @@ import tn.esprit.entities.Cours;
 import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.GroqTranslationService;
 import tn.esprit.services.ServiceChapitre;
+import tn.esprit.services.TextToSpeechService;
 import tn.esprit.session.SessionManager;
 import tn.esprit.tools.ConfigLoader;
 
@@ -614,6 +615,287 @@ public class FrontChapitreDetailController {
                 }
             }
         }
+    }
+
+    // ========== ASSISTANT IA ==========
+
+    @FXML
+    public void onAssistantIA() {
+        Chapitre chapitre = chapitres.get(currentIndex);
+        String contenu = originalContent != null ? originalContent : chapitre.getContenu();
+        if (contenu == null || contenu.isBlank()) {
+            new Alert(Alert.AlertType.WARNING, "Ce chapitre n'a pas de contenu.").showAndWait();
+            return;
+        }
+        showAssistantDialog(chapitre, contenu);
+    }
+
+    private void showAssistantDialog(Chapitre chapitre, String contenu) {
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("🤖 Assistant IA — " + chapitre.getTitre());
+        dialog.setResizable(true);
+
+        // Root avec couleur de fond claire et moderne
+        javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(0);
+        root.setStyle("-fx-background-color:#f8fafc;");
+
+        // Header avec dégradé violet moderne
+        javafx.scene.layout.VBox header = new javafx.scene.layout.VBox(4);
+        header.setStyle("-fx-background-color:linear-gradient(to right,#8b5cf6,#a78bfa); -fx-padding:20 24 20 24;");
+        javafx.scene.control.Label hTitle = new javafx.scene.control.Label("🤖 Assistant Pédagogique IA");
+        hTitle.setStyle("-fx-font-size:17; -fx-font-weight:800; -fx-text-fill:white;");
+        javafx.scene.control.Label hSub = new javafx.scene.control.Label("Explication personnalisée • Synthèse vocale • Llama 3.3 70B");
+        hSub.setStyle("-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.9);");
+        header.getChildren().addAll(hTitle, hSub);
+
+        // Body
+        javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(16);
+        body.setStyle("-fx-padding:20 24 16 24;");
+
+        // Niveau selector avec couleurs claires
+        javafx.scene.layout.HBox niveauRow = new javafx.scene.layout.HBox(12);
+        niveauRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        javafx.scene.control.Label niveauLbl = new javafx.scene.control.Label("Niveau d'explication :");
+        niveauLbl.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#334155;");
+        javafx.scene.control.ToggleGroup tg = new javafx.scene.control.ToggleGroup();
+        javafx.scene.control.ToggleButton btnDeb = new javafx.scene.control.ToggleButton("🟢 Débutant");
+        javafx.scene.control.ToggleButton btnAdv = new javafx.scene.control.ToggleButton("🔴 Avancé");
+        String tbBase = "-fx-font-size:12; -fx-font-weight:600; -fx-padding:7 18 7 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;";
+        btnDeb.setStyle(tbBase + "-fx-background-color:#8b5cf6; -fx-text-fill:white;");
+        btnAdv.setStyle(tbBase + "-fx-background-color:#e2e8f0; -fx-text-fill:#64748b;");
+        btnDeb.setToggleGroup(tg); btnAdv.setToggleGroup(tg); btnDeb.setSelected(true);
+        btnDeb.selectedProperty().addListener((o, was, is) -> {
+            if (is) { btnDeb.setStyle(tbBase + "-fx-background-color:#8b5cf6; -fx-text-fill:white;"); }
+            else    { btnDeb.setStyle(tbBase + "-fx-background-color:#e2e8f0; -fx-text-fill:#64748b;"); }
+        });
+        btnAdv.selectedProperty().addListener((o, was, is) -> {
+            if (is) { btnAdv.setStyle(tbBase + "-fx-background-color:#8b5cf6; -fx-text-fill:white;"); }
+            else    { btnAdv.setStyle(tbBase + "-fx-background-color:#e2e8f0; -fx-text-fill:#64748b;"); }
+        });
+        javafx.scene.control.Button btnGenerate = new javafx.scene.control.Button("✨ Générer l'explication");
+        btnGenerate.setStyle("-fx-background-color:linear-gradient(to right,#8b5cf6,#a78bfa); -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:12; -fx-padding:8 20 8 20; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+        niveauRow.getChildren().addAll(niveauLbl, btnDeb, btnAdv, btnGenerate);
+
+        // Status avec couleur visible
+        javafx.scene.control.Label statusLbl = new javafx.scene.control.Label("");
+        statusLbl.setStyle("-fx-font-size:12; -fx-text-fill:#8b5cf6; -fx-font-weight:600;");
+
+        // Result area (WebView) avec fond clair
+        javafx.scene.web.WebView resultView = new javafx.scene.web.WebView();
+        resultView.setPrefHeight(380);
+        resultView.setStyle("-fx-background-color:white;");
+        resultView.getEngine().loadContent(buildAssistantPlaceholder(), "text/html");
+
+        // TTS Controls avec fond clair et bordure colorée
+        javafx.scene.layout.VBox ttsBox = new javafx.scene.layout.VBox(10);
+        ttsBox.setStyle("-fx-background-color:#f5f3ff; -fx-background-radius:12; -fx-padding:14 16 14 16; -fx-border-color:#8b5cf6; -fx-border-width:2; -fx-border-radius:12;");
+        ttsBox.setVisible(false);
+
+        javafx.scene.control.Label ttsTitle = new javafx.scene.control.Label("🔊 Synthèse Vocale");
+        ttsTitle.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#6d28d9;");
+
+        javafx.scene.layout.HBox ttsControls = new javafx.scene.layout.HBox(10);
+        ttsControls.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        javafx.scene.control.Button btnPlay  = new javafx.scene.control.Button("▶ Lire");
+        javafx.scene.control.Button btnPause = new javafx.scene.control.Button("⏸ Pause");
+        javafx.scene.control.Button btnStop  = new javafx.scene.control.Button("⏹ Stop");
+        javafx.scene.control.Button btnTest  = new javafx.scene.control.Button("🔧 Test");
+        String ttsBtn = "-fx-font-size:12; -fx-font-weight:600; -fx-padding:7 16 7 16; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;";
+        btnPlay.setStyle(ttsBtn  + "-fx-background-color:#22c55e;  -fx-text-fill:white;");
+        btnPause.setStyle(ttsBtn + "-fx-background-color:#f59e0b; -fx-text-fill:white;");
+        btnStop.setStyle(ttsBtn  + "-fx-background-color:#ef4444; -fx-text-fill:white;");
+        btnTest.setStyle(ttsBtn  + "-fx-background-color:#3b82f6; -fx-text-fill:white;");
+
+        javafx.scene.control.Label speedLbl = new javafx.scene.control.Label("Vitesse :");
+        speedLbl.setStyle("-fx-font-size:12; -fx-text-fill:#475569; -fx-font-weight:600;");
+        javafx.scene.control.Slider speedSlider = new javafx.scene.control.Slider(0.5, 2.0, 1.0);
+        speedSlider.setPrefWidth(100);
+        speedSlider.setStyle("-fx-control-inner-background:#ddd6fe;");
+        javafx.scene.control.Label speedVal = new javafx.scene.control.Label("1.0x");
+        speedVal.setStyle("-fx-font-size:11; -fx-text-fill:#6d28d9; -fx-min-width:35; -fx-font-weight:700;");
+        speedSlider.valueProperty().addListener((o, ov, nv) ->
+            speedVal.setText(String.format("%.1fx", nv.doubleValue())));
+
+        ttsControls.getChildren().addAll(btnPlay, btnPause, btnStop, btnTest, speedLbl, speedSlider, speedVal);
+        ttsBox.getChildren().addAll(ttsTitle, ttsControls);
+
+        // TTS engine using dedicated service
+        final String[] ttsText = {""};
+        final TextToSpeechService ttsService = new TextToSpeechService();
+
+        btnPlay.setOnAction(e -> {
+            if (ttsText[0].isEmpty()) {
+                statusLbl.setText("⚠️ Aucun texte à lire");
+                return;
+            }
+            
+            statusLbl.setText("🔊 Démarrage de la lecture...");
+            double rate = speedSlider.getValue();
+            int sapiRate = (int)((rate - 1.0) * 10);
+            
+            ttsService.speak(
+                ttsText[0],
+                sapiRate,
+                () -> javafx.application.Platform.runLater(() -> 
+                    statusLbl.setText("✅ Lecture terminée")
+                ),
+                error -> javafx.application.Platform.runLater(() -> 
+                    statusLbl.setText("❌ Erreur: " + error)
+                )
+            );
+            
+            statusLbl.setText("🔊 Lecture en cours...");
+        });
+
+        btnPause.setOnAction(e -> {
+            ttsService.stop();
+            statusLbl.setText("⏸ Lecture arrêtée");
+        });
+
+        btnStop.setOnAction(e -> {
+            ttsService.stop();
+            statusLbl.setText("⏹ Lecture stoppée");
+        });
+        
+        // Bouton de test TTS
+        btnTest.setOnAction(e -> {
+            statusLbl.setText("🔧 Test de la synthèse vocale...");
+            ttsService.test(
+                () -> javafx.application.Platform.runLater(() -> 
+                    statusLbl.setText("✅ Test réussi ! TTS fonctionne.")
+                ),
+                error -> javafx.application.Platform.runLater(() -> 
+                    statusLbl.setText("❌ Test échoué: " + error)
+                )
+            );
+        });
+
+        // Nettoyer le service TTS quand le dialog se ferme
+        dialog.setOnCloseRequest(e -> {
+            ttsService.stop();
+        });
+
+        // Generate action
+        btnGenerate.setOnAction(e -> {
+            String niveau = btnDeb.isSelected() ? "Débutant" : "Avancé";
+            btnGenerate.setDisable(true);
+            statusLbl.setText("⏳ Génération de l'explication en cours...");
+            ttsBox.setVisible(false);
+
+            new Thread(() -> {
+                try {
+                    String apiKey = tn.esprit.tools.ConfigLoader.getGroqApiKey();
+                    String model  = tn.esprit.tools.ConfigLoader.getGroqModel();
+                    GroqTranslationService groq = new GroqTranslationService(apiKey, model);
+                    String prompt = buildAssistantPrompt(chapitre.getTitre(), contenu, niveau);
+                    String result = groq.translate(prompt, "");
+
+                    javafx.application.Platform.runLater(() -> {
+                        String html = buildAssistantHtml(result, chapitre.getTitre(), niveau);
+                        resultView.getEngine().loadContent(html, "text/html");
+                        ttsText[0] = stripHtml(result);
+                        ttsBox.setVisible(true);
+                        statusLbl.setText("✅ Explication générée !");
+                        btnGenerate.setDisable(false);
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        statusLbl.setText("❌ Erreur: " + ex.getMessage());
+                        btnGenerate.setDisable(false);
+                    });
+                }
+            }).start();
+        });
+
+        body.getChildren().addAll(niveauRow, statusLbl, resultView, ttsBox);
+        root.getChildren().addAll(header, body);
+
+        dialog.setScene(new javafx.scene.Scene(root, 720, 680));
+        dialog.show();
+    }
+
+    private String buildAssistantPrompt(String titre, String contenu, String niveau) {
+        String niveauDesc = niveau.equals("Débutant")
+            ? "langage très simple, analogies du quotidien, pas de jargon, exemples basiques commentés ligne par ligne"
+            : "terminologie technique précise, concepts approfondis, optimisations, patterns professionnels";
+
+        String texte = contenu.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+        if (texte.length() > 2000) texte = texte.substring(0, 2000) + "...";
+
+        return String.format(
+            "Tu es un professeur expert. Génère une explication TRÈS DÉTAILLÉE du chapitre suivant.\n\n" +
+            "Chapitre: \"%s\" | Niveau: %s (%s)\n\nContenu:\n%s\n\n" +
+            "GÉNÈRE EXACTEMENT ce HTML structuré en français:\n\n" +
+            "<h3>📋 Résumé</h3>\n" +
+            "<p>[3-4 phrases résumant clairement l'essentiel du chapitre]</p>\n\n" +
+            "<h3>📖 Explication détaillée</h3>\n" +
+            "<p>[Paragraphe 1: explication du concept principal, adapté niveau %s, 4-5 phrases]</p>\n" +
+            "<p>[Paragraphe 2: approfondissement avec détails techniques]</p>\n" +
+            "<p>[Paragraphe 3: cas d'usage concrets et applications pratiques]</p>\n\n" +
+            "<h3>💻 Exemples de code</h3>\n" +
+            "<p>[Brève description de l'exemple]</p>\n" +
+            "<pre><code>[Exemple de code complet et commenté, pertinent au sujet '%s']</code></pre>\n" +
+            "<p>[Explication ligne par ligne du code ci-dessus]</p>\n" +
+            "<pre><code>[Deuxième exemple de code si pertinent]</code></pre>\n\n" +
+            "<h3>🎯 Points clés à retenir</h3>\n" +
+            "<ul>\n" +
+            "<li>[Point clé 1 avec explication courte]</li>\n" +
+            "<li>[Point clé 2 avec explication courte]</li>\n" +
+            "<li>[Point clé 3 avec explication courte]</li>\n" +
+            "<li>[Point clé 4 avec explication courte]</li>\n" +
+            "<li>[Point clé 5 avec explication courte]</li>\n" +
+            "</ul>\n\n" +
+            "RÈGLES: Réponds UNIQUEMENT avec le HTML. Sois très détaillé. Les exemples de code doivent être réels et fonctionnels.",
+            titre, niveau, niveauDesc, texte, niveau, titre
+        );
+    }
+
+    private String buildAssistantHtml(String content, String titre, String niveau) {
+        String badgeColor = niveau.equals("Débutant") ? "#22c55e" : "#ef4444";
+        return "<!DOCTYPE html><html><head><meta charset='UTF-8'><style>"
+            + "body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:20px 24px;background:white;color:#1e293b;line-height:1.8;}"
+            + "h3{font-size:15px;font-weight:700;color:#6d28d9;margin:20px 0 8px 0;padding:8px 14px;"
+            + "background:#f5f3ff;border-left:4px solid #8b5cf6;border-radius:0 8px 8px 0;}"
+            + "p{margin:8px 0;color:#334155;font-size:14px;}"
+            + "ul{margin:8px 0 8px 20px;padding:0;}"
+            + "li{margin:6px 0;color:#334155;font-size:14px;}"
+            + "li::marker{color:#8b5cf6;}"
+            + "pre{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;"
+            + "padding:16px 18px;margin:12px 0;overflow-x:auto;}"
+            + "code{font-family:'Consolas','Monaco',monospace;font-size:13px;color:#475569;line-height:1.6;}"
+            + "pre code{background:transparent;padding:0;}"
+            + "strong{color:#0f172a;font-weight:700;}"
+            + ".badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;"
+            + "background:" + badgeColor + ";color:white;margin-bottom:12px;}"
+            + "</style></head><body>"
+            + "<div class='badge'>Niveau " + niveau + "</div>"
+            + content
+            + "</body></html>";
+    }
+
+    private String buildAssistantPlaceholder() {
+        return "<!DOCTYPE html><html><head><meta charset='UTF-8'><style>"
+            + "body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:40px;background:white;"
+            + "color:#94a3b8;display:flex;align-items:center;justify-content:center;"
+            + "height:240px;text-align:center;}"
+            + "div{font-size:14px;line-height:2;}"
+            + ".icon{font-size:40px;display:block;margin-bottom:12px;}"
+            + "</style></head><body><div><span class='icon'>🤖</span>"
+            + "Choisissez un niveau et cliquez sur<br><strong style='color:#8b5cf6'>✨ Générer l'explication</strong>"
+            + "</div></body></html>";
+    }
+
+    private String stripHtml(String html) {
+        return html.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+    }
+
+    private String escapeJs(String text) {
+        // Limiter à 2000 chars pour TTS
+        if (text.length() > 2000) text = text.substring(0, 2000);
+        return "'" + text.replace("\\", "\\\\").replace("'", "\\'")
+                         .replace("\n", " ").replace("\r", "") + "'";
     }
 
     // ========== MÉTHODES DE TRADUCTION ==========

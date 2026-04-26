@@ -102,6 +102,12 @@
                                        -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:12;
                                        -fx-padding:10 0 10 0; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-width:0;"/>
+                        <Button text="🤖  Assistant IA" onAction="#onAssistantIA"
+                                maxWidth="Infinity"
+                                style="-fx-background-color:linear-gradient(to right,#a855f7,#7c3aed);
+                                       -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:12;
+                                       -fx-padding:10 0 10 0; -fx-background-radius:10;
+                                       -fx-cursor:hand; -fx-border-width:0;"/>
                     </VBox>
 
                     <!-- Info chapitre -->

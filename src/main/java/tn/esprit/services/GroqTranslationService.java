@@ -28,7 +28,8 @@ public class GroqTranslationService {
      */
     public String translate(String text, String targetLanguage) {
         try {
-            String prompt = buildTranslationPrompt(text, targetLanguage);
+            // Si targetLanguage est vide, c'est une génération directe (pas une traduction)
+            String prompt = targetLanguage.isEmpty() ? text : buildTranslationPrompt(text, targetLanguage);
             return callGroqAPI(prompt);
         } catch (Exception e) {
             System.err.println("Erreur de traduction: " + e.getMessage());
