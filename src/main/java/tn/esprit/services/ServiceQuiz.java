@@ -11,15 +11,14 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 
 /**
- * Service Quiz — gère toutes les opérations SQL sur la table "quiz".
- * Implémente IService<Quiz> pour les 4 opérations CRUD de base.
+ * Service Quiz — gère les opérations sur les quiz
  */
 public class ServiceQuiz {
 
-    // Connexion à la base de données (singleton partagé dans toute l'application)
+    // Connexion BDD
     private final Connection connection = MyConnection.getInstance().getConnection();
 
-    // ── CREATE : Insérer un nouveau quiz en BDD ───────────────────────────────
+    // Ajouter un nouveau quiz
     public boolean ajouter(Quiz quiz) {
         String req = "INSERT INTO quiz (titre, description, etat, duree_max_minutes, seuil_reussite, max_tentatives, image_name, image_size, chapitre_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(req)) {
@@ -41,10 +40,10 @@ public class ServiceQuiz {
         }
     }
 
-    // ── DELETE : Supprimer un quiz et toutes ses questions/options en cascade ──
+    // Supprimer un quiz et ses questions/options
     public boolean supprimer(Quiz quiz) {
         try {
-            // Étape 1 : supprimer toutes les options des questions de ce quiz
+            // Supprimer les options des questions de ce quiz
             String delOptions = "DELETE FROM `option` WHERE question_id IN (SELECT id FROM question WHERE quiz_id = ?)";
             try (PreparedStatement st = connection.prepareStatement(delOptions)) {
                 st.setInt(1, quiz.getId());

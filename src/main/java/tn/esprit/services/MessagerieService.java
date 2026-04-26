@@ -7,39 +7,25 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * MessagerieService — Messagerie en temps réel + système de follow.
+ * MessagerieService — gère la messagerie privée et le système de follow entre étudiants.
+ * Stocke tout dans la table "notification" existante (pas de nouvelle table).
  *
- * Utilise UNIQUEMENT la table "notification" existante (aucune nouvelle table).
- *
- * Convention des types :
- *   "follow_request"  → demande de follow envoyée
+ * Types utilisés dans le champ "type" :
+ *   "follow_request"  → demande de suivi envoyée
  *   "follow_accepted" → demande acceptée
  *   "follow_rejected" → demande refusée
  *   "chat_message"    → message de chat privé
- *
- * Format du champ "message" (JSON simplifié) :
- *   follow_request  : {"senderId":5,"senderName":"Zarrouk Nour","status":"pending"}
- *   chat_message    : {"senderId":5,"senderName":"Zarrouk Nour","text":"Salut !","conversationWith":9}
  */
 public class MessagerieService {
 
+    // Connexion BDD via singleton
     private Connection conn() {
         return MyConnection.getInstance().getConnection();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // FOLLOW — Demandes de suivi
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── FOLLOW — Demandes de suivi ────────────────────────────────────────────
 
-    /**
-     * Envoie une demande de follow à un autre étudiant.
-     * Ne fait rien si une demande pending existe déjà.
-     *
-     * @param senderId   ID de celui qui envoie
-     * @param receiverId ID de celui qui reçoit
-     * @param senderName Nom complet de l'expéditeur (pour l'affichage)
-     * @return true si envoyée, false si déjà existante
-     */
+    // Envoie une demande de follow (ne fait rien si déjà envoyée)
     public boolean envoyerDemandeFollow(int senderId, int receiverId, String senderName) {
         // Vérifier si une demande pending existe déjà
         if (demandeFollowExiste(senderId, receiverId)) return false;
@@ -59,9 +45,7 @@ public class MessagerieService {
         }
     }
 
-    /**
-     * Vérifie si une demande de follow pending existe entre deux utilisateurs.
-     */
+    // Vérifie si une demande de follow existe déjà entre deux utilisateurs
     public boolean demandeFollowExiste(int senderId, int receiverId) {
         String sql = "SELECT COUNT(*) FROM notification " +
                      "WHERE type IN ('follow_request','follow_accepted') " +
@@ -77,9 +61,7 @@ public class MessagerieService {
         return false;
     }
 
-    /**
-     * Vérifie si deux utilisateurs se suivent mutuellement (follow accepté).
-     */
+    // Vérifie si deux utilisateurs se suivent mutuellement
     public boolean seSuivent(int userId1, int userId2) {
         // Chercher une notification follow_accepted dans les deux sens
         String sql = "SELECT COUNT(*) FROM notification " +
@@ -98,12 +80,7 @@ public class MessagerieService {
         return false;
     }
 
-    /**
-     * Récupère les demandes de follow en attente pour un utilisateur.
-     *
-     * @param userId ID du destinataire
-     * @return Liste de Maps avec {id, senderId, senderName, createdAt}
-     */
+    // Retourne les demandes de follow en attente pour un utilisateur
     public List<Map<String, Object>> getDemandesFollowEnAttente(int userId) {
         List<Map<String, Object>> list = new ArrayList<>();
         String sql = "SELECT id, message, created_at FROM notification " +
@@ -125,15 +102,7 @@ public class MessagerieService {
         return list;
     }
 
-    /**
-     * Accepte une demande de follow.
-     * Met à jour le type → "follow_accepted" et marque comme lu.
-     * Crée aussi une notification inverse pour informer l'expéditeur.
-     *
-     * @param notifId    ID de la notification follow_request
-     * @param senderId   ID de l'expéditeur original
-     * @param receiverName Nom du destinataire (pour la notif inverse)
-     */
+    // Accepte une demande de follow et notifie l'expéditeur
     public void accepterFollow(int notifId, int senderId, String receiverName, int receiverId) {
         // Mettre à jour la demande → accepted
         String upd = "UPDATE notification SET type='follow_accepted', is_read=1, read_at=NOW() WHERE id=?";
@@ -157,9 +126,7 @@ public class MessagerieService {
         }
     }
 
-    /**
-     * Refuse une demande de follow.
-     */
+    // Refuse une demande de follow
     public void refuserFollow(int notifId) {
         String sql = "UPDATE notification SET type='follow_rejected', is_read=1, read_at=NOW() WHERE id=?";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
@@ -170,10 +137,7 @@ public class MessagerieService {
         }
     }
 
-    /**
-     * Retourne la liste des utilisateurs que userId suit (follow accepté).
-     * @return Liste de Maps {userId, nom, prenom}
-     */
+    // Retourne la liste des utilisateurs suivis (follow accepté)
     public List<Map<String, Object>> getFollowing(int userId) {
         List<Map<String, Object>> list = new ArrayList<>();
         // Cas 1 : userId a envoyé la demande → chercher follow_accepted chez le receiver
@@ -192,10 +156,7 @@ public class MessagerieService {
         return getContacts(userId);
     }
 
-    /**
-     * Retourne tous les contacts (utilisateurs avec qui on peut chatter).
-     * = tous les utilisateurs avec un follow_accepted dans les deux sens.
-     */
+    // Retourne tous les contacts avec qui on peut chatter (follow accepté des deux côtés)
     public List<Map<String, Object>> getContacts(int userId) {
         List<Map<String, Object>> contacts = new ArrayList<>();
         Set<Integer> seen = new HashSet<>();
@@ -250,26 +211,14 @@ public class MessagerieService {
         return contacts;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // CHAT — Messages privés
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── CHAT — Messages privés ────────────────────────────────────────────────
 
-    /**
-     * Envoie un message de chat à un autre utilisateur.
-     * Stocké dans notification avec type = "chat_message".
-     *
-     * @param senderId   ID de l'expéditeur
-     * @param receiverId ID du destinataire
-     * @param senderName Nom complet de l'expéditeur
-     * @param texte      Contenu du message
-     */
+    // Envoie un message texte simple
     public void envoyerMessage(int senderId, int receiverId, String senderName, String texte) {
         envoyerMessageComplet(senderId, receiverId, senderName, texte, null, null);
     }
 
-    /**
-     * Envoie un message avec fichier ou image joint.
-     */
+    // Envoie un message avec fichier ou image joint
     public void envoyerMessageComplet(int senderId, int receiverId, String senderName,
                                        String texte, String fileType, String filePath) {
         String json = buildChatJsonFull(senderId, senderName,
@@ -288,9 +237,7 @@ public class MessagerieService {
         }
     }
 
-    /**
-     * Marque un message spécifique comme "vu" (is_read=1).
-     */
+    // Marque un message comme lu
     public void marquerVu(int notifId) {
         String sql = "UPDATE notification SET is_read=1, read_at=NOW() WHERE id=?";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
@@ -301,9 +248,7 @@ public class MessagerieService {
         }
     }
 
-    /**
-     * Vérifie si un message a été vu (is_read=1).
-     */
+    // Vérifie si un message a été lu
     public boolean estVu(int notifId) {
         String sql = "SELECT is_read FROM notification WHERE id=?";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
@@ -316,14 +261,7 @@ public class MessagerieService {
         return false;
     }
 
-    /**
-     * Récupère la conversation entre deux utilisateurs.
-     * Retourne les messages dans les deux sens, triés par date.
-     *
-     * @param userId1 Premier utilisateur
-     * @param userId2 Deuxième utilisateur
-     * @return Liste de Maps {senderId, senderName, texte, sentAt, isOwn}
-     */
+    // Retourne tous les messages entre deux utilisateurs, triés par date
     public List<Map<String, Object>> getConversation(int userId1, int userId2) {
         List<Map<String, Object>> messages = new ArrayList<>();
 
@@ -383,9 +321,7 @@ public class MessagerieService {
         return messages;
     }
 
-    /**
-     * Compte les messages non lus pour un utilisateur.
-     */
+    // Compte les messages non lus pour un utilisateur
     public int getNombreMessagesNonLus(int userId) {
         String sql = "SELECT COUNT(*) FROM notification " +
                      "WHERE type = 'chat_message' AND user_id = ? AND is_read = 0";
@@ -399,9 +335,7 @@ public class MessagerieService {
         return 0;
     }
 
-    /**
-     * Marque tous les messages d'une conversation comme lus.
-     */
+    // Marque tous les messages d'une conversation comme lus (appelé automatiquement dans getConversation)
     private void marquerMessagesLus(int receiverId, int senderId) {
         String sql = "UPDATE notification SET is_read=1, read_at=NOW() " +
                      "WHERE type='chat_message' AND user_id=? AND message LIKE ? AND is_read=0";
@@ -414,10 +348,7 @@ public class MessagerieService {
         }
     }
 
-    /**
-     * Récupère les nouveaux messages depuis un certain ID (pour le polling).
-     * Utilisé pour rafraîchir le chat en temps réel.
-     */
+    // Retourne les nouveaux messages depuis un ID donné (polling temps réel)
     public List<Map<String, Object>> getNouveauxMessages(int receiverId, int senderId, int dernierId) {
         List<Map<String, Object>> messages = new ArrayList<>();
         String sql = "SELECT id, message, created_at FROM notification " +
@@ -443,13 +374,9 @@ public class MessagerieService {
         return messages;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // UTILISATEURS — Liste des étudiants connectés
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── UTILISATEURS ─────────────────────────────────────────────────────────
 
-    /**
-     * Retourne tous les étudiants (sauf l'utilisateur courant).
-     */
+    // Retourne tous les étudiants actifs sauf l'utilisateur courant
     public List<Map<String, Object>> getTousLesEtudiants(int currentUserId) {
         List<Map<String, Object>> list = new ArrayList<>();
         String sql = "SELECT userId, nom, prenom FROM user " +
@@ -471,9 +398,7 @@ public class MessagerieService {
         return list;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // HELPERS JSON — Construction et parsing du champ "message"
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── HELPERS JSON — Construction et parsing du champ "message" ────────────
 
     private String buildFollowJson(int senderId, String senderName, String status) {
         return "{\"senderId\":" + senderId +
@@ -485,11 +410,7 @@ public class MessagerieService {
         return buildChatJsonFull(senderId, senderName, texte, conversationWith, null, null);
     }
 
-    /**
-     * Construit le JSON d'un message avec support fichier/image.
-     * @param fileType  "image" | "file" | null
-     * @param filePath  chemin absolu du fichier, ou null
-     */
+    // Construit le JSON d'un message avec support fichier/image optionnel
     public String buildChatJsonFull(int senderId, String senderName, String texte,
                                      int conversationWith, String fileType, String filePath) {
         StringBuilder sb = new StringBuilder();

@@ -10,13 +10,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Service Option — gère toutes les opérations SQL sur la table "`option`".
- * ATTENTION : "option" est un mot réservé en SQL, on utilise des backticks : `option`
- * Implémente IService<Option> pour les 4 opérations CRUD de base.
+ * Service Option — gère les opérations sur les options de réponse
+ * Note : "option" est un mot réservé SQL, on utilise des backticks `option`
  */
 public class ServiceOption {
 
-    // Connexion à la base de données (singleton partagé)
+    // Connexion BDD
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     // ── CREATE : Insérer une nouvelle option en BDD ───────────────────────────

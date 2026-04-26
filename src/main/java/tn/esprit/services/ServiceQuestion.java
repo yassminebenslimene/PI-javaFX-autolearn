@@ -11,12 +11,11 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 
 /**
- * Service Question — gère toutes les opérations SQL sur la table "question".
- * Implémente IService<Question> pour les 4 opérations CRUD de base.
+ * Service Question — gère les opérations sur les questions de quiz
  */
 public class ServiceQuestion {
 
-    // Connexion à la base de données (singleton partagé)
+    // Connexion BDD
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     // ── CREATE : Insérer une nouvelle question en BDD ─────────────────────────

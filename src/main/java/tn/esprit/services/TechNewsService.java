@@ -14,21 +14,14 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * TechNewsService — Récupère les actualités tech via GNews API.
- *
- * API gratuite : https://gnews.io  (100 req/jour)
- * Endpoint     : /api/v4/top-headlines?topic=technology&lang=fr&apikey=KEY
- *
- * Avantages vs NewsAPI :
- *  - Articles en français (lang=fr)
- *  - Topic technology direct, pas besoin de filtrer les domaines
- *  - JSON simple à parser
+ * TechNewsService — récupère les actualités tech via l'API GNews.
+ * Affiche des articles de démo si l'API échoue ou est indisponible.
  */
 public class TechNewsService {
 
-    // ── Clé API GNews ─────────────────────────────────────────────────────────
+    // Clé API GNews (100 requêtes/jour gratuit)
     private static final String API_KEY = "6d7162607921dc42290250de2e7c2d52";
-    // Recherche ciblée : IA, programmation, développement logiciel — en français
+    // URL de recherche : articles IA/programmation en français, 6 max
     private static final String API_URL =
         "https://gnews.io/api/v4/search?q=intelligence+artificielle+OR+programmation+OR+developpement+logiciel&lang=fr&max=6&sortby=publishedAt&apikey=" + API_KEY;
 
@@ -37,7 +30,7 @@ public class TechNewsService {
         .build();
     private static final Gson GSON = new Gson();
 
-    // Cache simple — évite les appels répétés dans la même session
+    // Cache en mémoire pour éviter les appels répétés dans la même session
     private static List<NewsArticle> cachedArticles = null;
 
     // ── Modèle article ────────────────────────────────────────────────────────

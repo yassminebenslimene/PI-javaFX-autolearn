@@ -25,41 +25,38 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 /**
- * Controller du formulaire Quiz (quiz_form.fxml).
- * Gère à la fois la création d'un nouveau quiz et la modification d'un quiz existant.
- * Si quizAModifier == null → mode création, sinon → mode modification.
+ * QuizFormController — formulaire de création et modification d'un quiz.
+ * Mode création si quizAModifier == null, sinon mode modification.
  */
 public class QuizFormController {
 
-    // ── Composants FXML (liés aux éléments de quiz_form.fxml) ────────────────
-    @FXML private Label pageTitle;        // titre en haut de la page
-    @FXML private Label cardTitle;        // titre de la carte
-    @FXML private Label cardSubtitle;     // sous-titre de la carte
-    @FXML private TextField titreField;   // champ texte pour le titre
-    @FXML private TextArea descriptionField; // zone de texte pour la description
-    @FXML private ComboBox<String> etatCombo;  // liste déroulante pour l'état
-    @FXML private ComboBox<Chapitre> chapitreCombo; // liste déroulante chapitre (OBLIGATOIRE)
-    @FXML private Label chapitreErrorLabel;    // message d'erreur chapitre
-    @FXML private TextField dureeField;   // champ pour la durée max (optionnel)
-    @FXML private TextField seuilField;   // champ pour le seuil de réussite (optionnel)
-    @FXML private TextField tentativesField; // champ pour le nb de tentatives (optionnel)
-    @FXML private Label messageLabel;     // affiche les messages d'erreur
-    @FXML private Button btnSauvegarder;  // bouton Enregistrer / Mettre à jour
-    @FXML private Button btnGenererIA;    // bouton Générer avec IA
+    // ── Champs FXML ───────────────────────────────────────────────────────────
+    @FXML private Label pageTitle;
+    @FXML private Label cardTitle;
+    @FXML private Label cardSubtitle;
+    @FXML private TextField titreField;
+    @FXML private TextArea descriptionField;
+    @FXML private ComboBox<String> etatCombo;
+    @FXML private ComboBox<Chapitre> chapitreCombo; // obligatoire
+    @FXML private Label chapitreErrorLabel;
+    @FXML private TextField dureeField;
+    @FXML private TextField seuilField;
+    @FXML private TextField tentativesField;
+    @FXML private Label messageLabel;
+    @FXML private Button btnSauvegarder;
+    @FXML private Button btnGenererIA;
 
-    // ── Composants image ─────────────────────────────────────────────────────
+    // ── Image ─────────────────────────────────────────────────────────────────
     @FXML private StackPane imagePreviewPane;
     @FXML private ImageView imagePreview;
     @FXML private Label imagePreviewLabel;
     @FXML private Label imageInfoLabel;
     @FXML private Button btnSupprimerImage;
 
-    // Fichier image sélectionné (null si aucun)
-    private File selectedImageFile = null;
-    // Nom de l'image existante (en mode modification)
-    private String existingImageName = null;
+    private File selectedImageFile = null;   // image choisie par l'utilisateur
+    private String existingImageName = null; // image déjà enregistrée (mode modification)
 
-    // Style normal d'un champ de saisie
+    // Style normal d'un champ
     private static final String FIELD_NORMAL =
         "-fx-background-color:rgba(255,255,255,0.05);" +
         "-fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:8px;" +
@@ -75,14 +72,12 @@ public class QuizFormController {
         "-fx-text-fill:#f5f5f4; -fx-prompt-text-fill:rgba(245,245,244,0.35);" +
         "-fx-padding:9px 13px; -fx-font-size:13px;";
 
-    // Service pour les opérations BDD sur les quiz
     private final ServiceQuiz serviceQuiz = new ServiceQuiz();
     private final ServiceChapitre serviceChapitre = new ServiceChapitre();
 
-    // Le quiz à modifier (null si on est en mode création)
-    private Quiz quizAModifier = null;
+    private Quiz quizAModifier = null; // null = création, sinon = modification
 
-    // ── Initialisation : appelée automatiquement au chargement du FXML ───────
+    // Initialisation : remplit les ComboBox et attache les listeners de validation
     @FXML
     public void initialize() {
         // Remplir la liste déroulante états
@@ -93,7 +88,7 @@ public class QuizFormController {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item);
-                setStyle("-fx-text-fill:#f5f5f4;");
+                setStyle("-fx-text-fill:#f5f5f4; -fx-background-color:#1a2e1f; -fx-padding:8 14 8 14;");
             }
         });
         etatCombo.setButtonCell(new ListCell<>() {
@@ -111,7 +106,7 @@ public class QuizFormController {
             @Override protected void updateItem(Chapitre item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item.getTitre());
-                setStyle("-fx-text-fill:#f5f5f4;");
+                setStyle("-fx-text-fill:#f5f5f4; -fx-background-color:#1a2e1f; -fx-padding:8 14 8 14;");
             }
         });
         chapitreCombo.setButtonCell(new ListCell<>() {
@@ -135,6 +130,10 @@ public class QuizFormController {
         javafx.application.Platform.runLater(() -> {
             javafx.scene.Node content = descriptionField.lookup(".content");
             if (content != null) content.setStyle("-fx-background-color:#1a2e1f;");
+
+            // Forcer le fond sombre sur le popup ListView des ComboBox
+            styleComboPopup(etatCombo);
+            styleComboPopup(chapitreCombo);
         });
 
         // Effacer les erreurs dès que l'utilisateur commence à taper
@@ -145,7 +144,7 @@ public class QuizFormController {
         tentativesField.textProperty().addListener((o, ov, nv) -> resetField(tentativesField));
     }
 
-    // ── Mode modification : pré-remplir le formulaire avec les données du quiz ─
+    // Pré-remplit le formulaire avec les données du quiz à modifier
     public void initEdit(Quiz quiz) {
         this.quizAModifier = quiz;
         pageTitle.setText("Modifier le Quiz");
@@ -172,7 +171,7 @@ public class QuizFormController {
         }
     }
 
-    // ── Sauvegarder : appelé quand on clique sur le bouton Enregistrer ────────
+    // Valide les champs et sauvegarde le quiz (création ou modification)
     @FXML
     public void sauvegarder() {
         resetAll(); // effacer les erreurs précédentes
@@ -333,7 +332,7 @@ public class QuizFormController {
         if (ok) navigateToList();
     }
 
-    // ── Générer avec IA ───────────────────────────────────────────────────────
+    // Lance la génération IA depuis le formulaire (nécessite un chapitre sélectionné)
     @FXML
     public void genererAvecIA() {
         // Vérifier qu'un chapitre est sélectionné
@@ -452,11 +451,11 @@ public class QuizFormController {
         });
     }
 
-    // ── Retour : revenir à la liste sans sauvegarder ─────────────────────────
+    // Retourne à la liste sans sauvegarder
     @FXML
     public void retour() { navigateToList(); }
 
-    // ── Choisir une image ─────────────────────────────────────────────────────
+    // Ouvre le sélecteur de fichier pour choisir une image
     @FXML
     public void choisirImage() {
         FileChooser fileChooser = new FileChooser();
@@ -494,7 +493,7 @@ public class QuizFormController {
         }
     }
 
-    // ── Supprimer l'image sélectionnée ────────────────────────────────────────
+    // Supprime l'image sélectionnée et réinitialise la prévisualisation
     @FXML
     public void supprimerImage() {
         selectedImageFile = null;
@@ -509,7 +508,7 @@ public class QuizFormController {
         imageInfoLabel.setText("");
     }
 
-    // ── Afficher une image existante (mode modification) ──────────────────────
+    // Affiche l'image existante dans la prévisualisation (mode modification)
     private void afficherImageExistante(String imageName, Integer imageSize) {
         try {
             // Chercher dans le dossier quiz_images
@@ -534,8 +533,7 @@ public class QuizFormController {
         }
     }
 
-    // ── Copier l'image dans le dossier ressources ─────────────────────────────
-    // Retourne [nomFichier, tailleOctets] ou null si erreur
+    // Copie l'image dans le dossier ressources et retourne [nomFichier, taille]
     private String[] saveImageFile(File file) {
         try {
             Path destDir = Paths.get("src/main/resources/images/quiz");
@@ -553,7 +551,7 @@ public class QuizFormController {
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     // Marque un champ en erreur et affiche le message
     private void markError(Control field, String msg) {
@@ -575,7 +573,27 @@ public class QuizFormController {
     private void resetField(Control field) {
         field.setStyle(FIELD_NORMAL);
         messageLabel.setText("");
-        messageLabel.setStyle("");
+    }
+
+    // Applique un fond sombre au popup ListView d'un ComboBox
+    private <T> void styleComboPopup(ComboBox<T> combo) {
+        combo.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) {
+                javafx.scene.control.skin.ComboBoxListViewSkin<?> skin =
+                    (javafx.scene.control.skin.ComboBoxListViewSkin<?>) combo.getSkin();
+                if (skin != null) {
+                    javafx.scene.Node popup = skin.getPopupContent();
+                    if (popup != null) {
+                        popup.setStyle(
+                            "-fx-background-color:#1a2e1f;" +
+                            "-fx-border-color:rgba(255,255,255,0.1);" +
+                            "-fx-border-radius:8;" +
+                            "-fx-background-radius:8;"
+                        );
+                    }
+                }
+            }
+        });
     }
 
     // Remet tous les champs à leur style normal
@@ -589,7 +607,7 @@ public class QuizFormController {
         messageLabel.setStyle("");
     }
 
-    // Navigue vers la liste des quiz (index.fxml) dans la zone de contenu principale
+    // Navigue vers la liste des quiz dans la zone de contenu principale
     private void navigateToList() {
         try {
             StackPane contentArea = (StackPane) titreField.getScene().lookup("#contentArea");
@@ -601,7 +619,7 @@ public class QuizFormController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // Affiche une alerte de succès (vert) ou d'échec (rouge) selon le résultat
+    // Affiche une alerte de succès ou d'échec
     private void showAlert(boolean success, String msgOk, String msgEchec) {
         Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
         alert.setHeaderText(null);
