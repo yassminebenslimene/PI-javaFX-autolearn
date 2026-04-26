@@ -10,7 +10,6 @@ import tn.esprit.controllers.evenement.front.*;
 import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Evenement;
 import tn.esprit.entities.Participation;
-import tn.esprit.services.ParticipationWebServer;
 
 public class MainApp extends Application {
 
@@ -40,15 +39,13 @@ public class MainApp extends Application {
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
         primaryStage.setMaximized(true);
-        // Démarrer le serveur web embarqué pour les QR codes de participation (module Evenement)
-        ParticipationWebServer.start();
         showLanding();
         primaryStage.show();
     }
 
     @Override
     public void stop() {
-        ParticipationWebServer.stop();
+        // Cleanup
     }
 
     // ── Module User — navigation ──────────────────────────────────────────────

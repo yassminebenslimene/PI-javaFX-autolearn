@@ -114,7 +114,7 @@ public class ParticipationService implements IService<Participation> {
         try (PreparedStatement ps = connection.prepareStatement(req, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, p.getEquipeId());
             ps.setInt(2, p.getEvenementId());
-            ps.setString(3, p.getStatut() != null ? p.getStatut() : "ACCEPTE");
+            ps.setString(3, p.getStatut() != null ? p.getStatut() : "Accepté");
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) return keys.getInt(1);
@@ -139,7 +139,11 @@ public class ParticipationService implements IService<Participation> {
 
     public List<Participation> getByEtudiant(int etudiantId) {
         List<Participation> list = new ArrayList<>();
-        String req = "SELECT p.* FROM participation p JOIN equipe_etudiant ee ON p.equipe_id=ee.equipe_id WHERE ee.etudiant_id=?";
+        // DISTINCT pour éviter les doublons si l'étudiant est dans plusieurs équipes
+        String req = "SELECT DISTINCT p.* FROM participation p "
+                   + "JOIN equipe_etudiant ee ON p.equipe_id = ee.equipe_id "
+                   + "WHERE ee.etudiant_id = ? "
+                   + "ORDER BY p.id DESC";
         try (PreparedStatement ps = connection.prepareStatement(req)) {
             ps.setInt(1, etudiantId);
             ResultSet rs = ps.executeQuery();

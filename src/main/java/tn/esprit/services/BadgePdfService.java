@@ -7,150 +7,187 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Service de génération de badges PDF professionnels pour les participants aux événements.
- * Utilise l'API iText 5 pour créer des badges au format A6 paysage (badge physique).
+ * Badge PDF format A5 portrait (148mm x 210mm).
+ * Design professionnel : header violet, corps centré, QR code centré en bas.
  */
 public class BadgePdfService {
 
-    // Palette de couleurs AutoLearn
-    private static final BaseColor COLOR_PRIMARY    = new BaseColor(122, 106, 216);  // #7a6ad8 violet
-    private static final BaseColor COLOR_DARK       = new BaseColor(30, 30, 30);     // #1e1e1e
-    private static final BaseColor COLOR_ACCENT     = new BaseColor(5, 150, 105);    // #059669 vert
-    private static final BaseColor COLOR_LIGHT_BG   = new BaseColor(245, 243, 255);  // #f5f3ff
-    private static final BaseColor COLOR_WHITE      = BaseColor.WHITE;
-    private static final BaseColor COLOR_GRAY       = new BaseColor(107, 114, 128);  // #6b7280
-    private static final BaseColor COLOR_GOLD       = new BaseColor(245, 158, 11);   // #f59e0b
+    private static final BaseColor VIOLET_PRIMARY = new BaseColor(102, 126, 234);  // #667eea
+    private static final BaseColor VIOLET_DARK = new BaseColor(118, 75, 162);      // #764ba2
+    private static final BaseColor VIOLET_LIGHT = new BaseColor(240, 235, 255);    // #f0ebff
+    private static final BaseColor BLANC  = BaseColor.WHITE;
+    private static final BaseColor TEXT_DARK = new BaseColor(45, 55, 72);          // #2d3748
+    private static final BaseColor TEXT_MUTED = new BaseColor(107, 114, 128);      // #6b7280
 
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH);
+    private static final DateTimeFormatter DATE_FMT =
+            DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH);
+    private static final DateTimeFormatter TIME_FMT =
+            DateTimeFormatter.ofPattern("HH'h'mm", java.util.Locale.FRENCH);
 
-    /**
-     * Génère un badge PDF pour un participant.
-     *
-     * @param nomParticipant   Prénom + Nom du participant
-     * @param nomEquipe        Nom de l'équipe
-     * @param nomEvenement     Titre de l'événement
-     * @param typeEvenement    Type (Hackathon, Conference, Workshop)
-     * @param dateEvenement    Date de l'événement
-     * @param lieuEvenement    Lieu de l'événement
-     * @param participationId  ID de la participation (pour le numéro de badge)
-     * @param qrCodeBytes      QR code en bytes PNG (peut être null)
-     * @return bytes du PDF généré
-     */
     public byte[] generateBadge(String nomParticipant, String nomEquipe, String nomEvenement,
-                                  String typeEvenement, LocalDateTime dateEvenement,
-                                  String lieuEvenement, int participationId, byte[] qrCodeBytes) {
+                                 String typeEvenement, LocalDateTime dateEvenement,
+                                 String lieuEvenement, int participationId, byte[] qrCodeBytes) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-            // Format A6 paysage (148mm x 105mm) — taille badge standard
-            Rectangle pageSize = new Rectangle(PageSize.A6.getHeight(), PageSize.A6.getWidth());
-            Document doc = new Document(pageSize, 0, 0, 0, 0);
+            // A5 portrait : 419.5 x 595.3 pt
+            Document doc = new Document(PageSize.A5, 0, 0, 0, 0);
             PdfWriter writer = PdfWriter.getInstance(doc, baos);
             doc.open();
 
-            PdfContentByte canvas = writer.getDirectContent();
-            float W = pageSize.getWidth();
-            float H = pageSize.getHeight();
+            PdfContentByte cb = writer.getDirectContent();
+            float W = PageSize.A5.getWidth();   // 419.5
+            float H = PageSize.A5.getHeight();  // 595.3
 
-            // ── Fond principal blanc ──────────────────────────────────────────
-            canvas.setColorFill(COLOR_WHITE);
-            canvas.rectangle(0, 0, W, H);
-            canvas.fill();
+            // ── Fond blanc ────────────────────────────────────────────────────
+            cb.setColorFill(BLANC);
+            cb.rectangle(0, 0, W, H);
+            cb.fill();
 
-            // ── Bande supérieure violette ─────────────────────────────────────
-            canvas.setColorFill(COLOR_PRIMARY);
-            canvas.rectangle(0, H - 52, W, 52);
-            canvas.fill();
+            // ── Header violet (haut, 160pt) ───────────────────────────────────
+            float headerH = 160f;
+            cb.setColorFill(VIOLET_PRIMARY);
+            cb.rectangle(0, H - headerH, W, headerH);
+            cb.fill();
 
-            // ── Accent vert en bas ────────────────────────────────────────────
-            canvas.setColorFill(COLOR_ACCENT);
-            canvas.rectangle(0, 0, W, 8);
-            canvas.fill();
+            // Cercles décoratifs dans le header
+            cb.setColorFill(new BaseColor(255, 255, 255, 25));
+            cb.circle(W - 30, H - 20, 90); cb.fill();
+            cb.setColorFill(new BaseColor(255, 255, 255, 15));
+            cb.circle(W + 10, H - 60, 120); cb.fill();
+            cb.setColorFill(new BaseColor(255, 255, 255, 18));
+            cb.circle(30, H - 10, 60); cb.fill();
 
-            // ── Ligne décorative dorée ────────────────────────────────────────
-            canvas.setColorFill(COLOR_GOLD);
-            canvas.rectangle(0, 8, W, 3);
-            canvas.fill();
+            // ── Barre violet foncé (séparation header/corps) ─────────────────────────
+            cb.setColorFill(VIOLET_DARK);
+            cb.rectangle(0, H - headerH - 4f, W, 4f);
+            cb.fill();
 
-            // ── Cercle décoratif en haut à droite ────────────────────────────
-            canvas.setColorFill(new BaseColor(255, 255, 255, 30));
-            canvas.circle(W - 20, H - 10, 55);
-            canvas.fill();
-            canvas.setColorFill(new BaseColor(255, 255, 255, 15));
-            canvas.circle(W - 10, H - 5, 80);
-            canvas.fill();
+            // ── Pied de page violet ─────────────────────────────────────────────
+            cb.setColorFill(VIOLET_DARK);
+            cb.rectangle(0, 0, W, 12f);
+            cb.fill();
+            cb.setColorFill(VIOLET_LIGHT);
+            cb.rectangle(0, 12f, W, 3f);
+            cb.fill();
 
-            // ── Logo / Titre plateforme ───────────────────────────────────────
-            Font fontLogo = new Font(Font.FontFamily.HELVETICA, 13, Font.BOLD, COLOR_WHITE);
-            ColumnText.showTextAligned(canvas, Element.ALIGN_LEFT,
-                    new Phrase("🎓 AutoLearn", fontLogo), 18, H - 32, 0);
+            // ── Texte dans le header ──────────────────────────────────────────
+            // "AutoLearn" en haut à gauche
+            Font fLogo = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BLANC);
+            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
+                    new Phrase("AutoLearn", fLogo), 28f, H - 30f, 0);
 
-            // ── Badge type pill ───────────────────────────────────────────────
+            // Sous-titre plateforme
+            Font fSub = new Font(Font.FontFamily.HELVETICA, 9, Font.NORMAL, BLANC);
+            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
+                    new Phrase("Plateforme d'apprentissage", fSub), 28f, H - 44f, 0);
+
+            // Type pill (centré dans le header)
             String typeLabel = typeEvenement != null ? typeEvenement.toUpperCase() : "ÉVÉNEMENT";
-            float pillW = 80, pillH = 18;
-            float pillX = W - pillW - 14;
-            float pillY = H - 38;
-            canvas.setColorFill(COLOR_GOLD);
-            canvas.roundRectangle(pillX, pillY, pillW, pillH, 9);
-            canvas.fill();
-            Font fontPill = new Font(Font.FontFamily.HELVETICA, 7, Font.BOLD, COLOR_DARK);
-            ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER,
-                    new Phrase(typeLabel, fontPill), pillX + pillW / 2, pillY + 5, 0);
+            BaseColor typeColor = getTypeColor(typeEvenement);
+            float pillW = 100f, pillH = 22f;
+            float pillX = (W - pillW) / 2f;
+            float pillY = H - headerH + (headerH - 22f) / 2f + 20f;
+            cb.setColorFill(typeColor);
+            cb.roundRectangle(pillX, pillY, pillW, pillH, 11f);
+            cb.fill();
+            Font fPill = new Font(Font.FontFamily.HELVETICA, 9, Font.BOLD, BLANC);
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                    new Phrase(typeLabel, fPill), W / 2f, pillY + 6f, 0);
 
-            // ── Nom du participant ────────────────────────────────────────────
-            Font fontName = new Font(Font.FontFamily.HELVETICA, 17, Font.BOLD, COLOR_DARK);
-            ColumnText.showTextAligned(canvas, Element.ALIGN_LEFT,
-                    new Phrase(nomParticipant, fontName), 18, H - 78, 0);
+            // Icône événement (grand emoji centré)
+            Font fIcon = new Font(Font.FontFamily.HELVETICA, 36, Font.NORMAL, BLANC);
+            String typeIcon = getTypeIcon(typeEvenement);
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                    new Phrase(typeIcon, fIcon), W / 2f, H - 90f, 0);
 
-            // ── Ligne séparatrice ─────────────────────────────────────────────
-            canvas.setColorFill(COLOR_PRIMARY);
-            canvas.rectangle(18, H - 84, 40, 2);
-            canvas.fill();
+            // ── Corps du badge (zone blanche) ─────────────────────────────────
+            // Zone : de y=15 à y=(H-headerH-4)
+            float bodyTop    = H - headerH - 4f;
+            float bodyBottom = 15f;
+            float centerX    = W / 2f;
 
-            // ── Nom de l'équipe ───────────────────────────────────────────────
-            Font fontTeam = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, COLOR_PRIMARY);
-            ColumnText.showTextAligned(canvas, Element.ALIGN_LEFT,
-                    new Phrase("👥  " + nomEquipe, fontTeam), 18, H - 100, 0);
+            // Nom du participant (grand, centré)
+            Font fName = new Font(Font.FontFamily.HELVETICA, 22, Font.BOLD, VIOLET_PRIMARY);
+            String nomDisplay = nomParticipant.length() > 24
+                    ? nomParticipant.substring(0, 21) + "..." : nomParticipant;
+            float yName = bodyTop - 28f;
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                    new Phrase(nomDisplay, fName), centerX, yName, 0);
 
-            // ── Nom de l'événement ────────────────────────────────────────────
-            Font fontEvent = new Font(Font.FontFamily.HELVETICA, 9, Font.NORMAL, COLOR_GRAY);
-            String eventDisplay = nomEvenement.length() > 38 ? nomEvenement.substring(0, 35) + "..." : nomEvenement;
-            ColumnText.showTextAligned(canvas, Element.ALIGN_LEFT,
-                    new Phrase("📅  " + eventDisplay, fontEvent), 18, H - 116, 0);
+            // Ligne décorative sous le nom
+            float lineW = Math.min(nomDisplay.length() * 7f, 180f);
+            cb.setColorFill(VIOLET_PRIMARY);
+            cb.rectangle(centerX - lineW / 2f, yName - 8f, lineW, 2.5f);
+            cb.fill();
 
-            // ── Date et lieu ──────────────────────────────────────────────────
-            Font fontMeta = new Font(Font.FontFamily.HELVETICA, 8, Font.NORMAL, COLOR_GRAY);
+            // Équipe
+            Font fTeam = new Font(Font.FontFamily.HELVETICA, 13, Font.BOLD, VIOLET_DARK);
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                    new Phrase("Équipe : " + truncate(nomEquipe, 28), fTeam),
+                    centerX, yName - 26f, 0);
+
+            // Séparateur
+            cb.setColorFill(new BaseColor(230, 230, 240));
+            cb.rectangle(28f, yName - 40f, W - 56f, 1f);
+            cb.fill();
+
+            // Événement
+            Font fEvent = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, TEXT_DARK);
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                    new Phrase(truncate(nomEvenement, 36), fEvent),
+                    centerX, yName - 56f, 0);
+
+            // Date
             if (dateEvenement != null) {
-                ColumnText.showTextAligned(canvas, Element.ALIGN_LEFT,
-                        new Phrase("🗓  " + dateEvenement.format(DATE_FMT), fontMeta), 18, H - 130, 0);
-            }
-            if (lieuEvenement != null && !lieuEvenement.isBlank()) {
-                String lieuDisplay = lieuEvenement.length() > 30 ? lieuEvenement.substring(0, 27) + "..." : lieuEvenement;
-                ColumnText.showTextAligned(canvas, Element.ALIGN_LEFT,
-                        new Phrase("📍  " + lieuDisplay, fontMeta), 18, H - 142, 0);
+                Font fDate = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, TEXT_MUTED);
+                String dateStr = dateEvenement.format(DATE_FMT) + " à " + dateEvenement.format(TIME_FMT);
+                ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                        new Phrase("📅  " + dateStr, fDate), centerX, yName - 72f, 0);
             }
 
-            // ── QR Code ───────────────────────────────────────────────────────
+            // Lieu
+            if (lieuEvenement != null && !lieuEvenement.isBlank()) {
+                Font fLieu = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, TEXT_MUTED);
+                ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                        new Phrase("📍  " + truncate(lieuEvenement, 34), fLieu),
+                        centerX, yName - 87f, 0);
+            }
+
+            // ── QR Code centré ────────────────────────────────────────────────
+            float qrSize = 110f;
+            float qrX    = centerX - qrSize / 2f;
+            float qrY    = bodyBottom + 40f;
+
+            // Fond violet clair pour le QR
+            cb.setColorFill(VIOLET_LIGHT);
+            cb.roundRectangle(qrX - 10f, qrY - 10f, qrSize + 20f, qrSize + 20f, 12f);
+            cb.fill();
+
             if (qrCodeBytes != null && qrCodeBytes.length > 0) {
                 try {
                     Image qr = Image.getInstance(qrCodeBytes);
-                    float qrSize = 62;
                     qr.scaleToFit(qrSize, qrSize);
-                    qr.setAbsolutePosition(W - qrSize - 14, 22);
+                    qr.setAbsolutePosition(qrX, qrY);
                     doc.add(qr);
                 } catch (Exception ignored) {}
             }
 
-            // ── Numéro de badge ───────────────────────────────────────────────
-            Font fontBadgeNum = new Font(Font.FontFamily.HELVETICA, 7, Font.NORMAL, COLOR_GRAY);
-            ColumnText.showTextAligned(canvas, Element.ALIGN_LEFT,
-                    new Phrase("BADGE #" + String.format("%05d", participationId), fontBadgeNum),
-                    18, 18, 0);
+            // Label sous le QR
+            Font fQrLabel = new Font(Font.FontFamily.HELVETICA, 8, Font.NORMAL, VIOLET_PRIMARY);
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                    new Phrase("Scanner pour vérifier", fQrLabel), centerX, qrY - 8f, 0);
 
-            // ── Mention PARTICIPANT ───────────────────────────────────────────
-            Font fontRole = new Font(Font.FontFamily.HELVETICA, 7, Font.BOLD, COLOR_ACCENT);
-            ColumnText.showTextAligned(canvas, Element.ALIGN_LEFT,
-                    new Phrase("✓  PARTICIPANT OFFICIEL", fontRole), 18, 30, 0);
+            // ── Numéro de badge et statut ─────────────────────────────────────
+            Font fBadge = new Font(Font.FontFamily.HELVETICA, 8, Font.NORMAL, TEXT_MUTED);
+            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
+                    new Phrase("BADGE #" + String.format("%05d", participationId), fBadge),
+                    28f, 24f, 0);
+
+            Font fRole = new Font(Font.FontFamily.HELVETICA, 8, Font.BOLD, VIOLET_PRIMARY);
+            ColumnText.showTextAligned(cb, Element.ALIGN_RIGHT,
+                    new Phrase("✓ PARTICIPANT OFFICIEL", fRole),
+                    W - 28f, 24f, 0);
 
             doc.close();
             return baos.toByteArray();
@@ -159,5 +196,30 @@ public class BadgePdfService {
             System.err.println("Erreur génération badge PDF: " + e.getMessage());
             return null;
         }
+    }
+
+    private BaseColor getTypeColor(String type) {
+        if (type == null) return VIOLET_PRIMARY;
+        return switch (type.toLowerCase()) {
+            case "hackathon"  -> new BaseColor(79, 172, 254);    // #4facfe
+            case "conference" -> new BaseColor(240, 147, 251);   // #f093fb
+            case "workshop"   -> new BaseColor(102, 126, 234);   // #667eea
+            default           -> VIOLET_PRIMARY;
+        };
+    }
+
+    private String getTypeIcon(String type) {
+        if (type == null) return "🎯";
+        return switch (type.toLowerCase()) {
+            case "hackathon"  -> "💻";
+            case "conference" -> "🎤";
+            case "workshop"   -> "🛠";
+            default           -> "🎯";
+        };
+    }
+
+    private String truncate(String s, int max) {
+        if (s == null) return "";
+        return s.length() > max ? s.substring(0, max - 3) + "..." : s;
     }
 }

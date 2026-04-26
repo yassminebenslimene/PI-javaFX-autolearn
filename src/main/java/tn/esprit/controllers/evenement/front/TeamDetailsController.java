@@ -95,27 +95,34 @@ public class TeamDetailsController {
         tn.esprit.entities.Participation existing =
                 participationService.getByEquipeAndEvenement(equipe.getId(), evenement.getId());
 
-        int participationId;
-        if (existing == null) {
-            Participation p = new Participation(equipe.getId(), evenement.getId());
-            p.setStatut("Accepté");
-            participationId = participationService.ajouterEtRetournerId(p);
-            // Envoyer les emails de confirmation à tous les membres (asynchrone)
-            if (participationId > 0) {
-                new ParticipationConfirmationService().sendConfirmationToTeam(equipe, evenement, participationId);
-            }
-        } else {
-            participationId = existing.getId();
+        if (existing != null) {
+            // Participation déjà existante — informer et aller vers Mes Participations
+            FrontNavHelper.goMesParticipations(
+                    "✓ Vous participez déjà à \"" + evenement.getTitre() + "\" avec l'équipe \""
+                    + equipe.getNom() + "\".");
+            return;
         }
 
-        // Naviguer vers la salle 3D
-        try {
-            MainApp.showSalleReservation(evenement, equipe);
-        } catch (Exception e) {
-            e.printStackTrace();
-            FrontNavHelper.goMesParticipations("Participation acceptée pour l'événement \""
-                    + evenement.getTitre() + "\". Un email de confirmation a été envoyé.");
+        // Créer la participation
+        Participation p = new Participation(equipe.getId(), evenement.getId());
+        p.setStatut("Accepté");
+        int participationId = participationService.ajouterEtRetournerId(p);
+
+        if (participationId <= 0) {
+            new Alert(Alert.AlertType.ERROR,
+                    "Erreur lors de l'enregistrement de la participation. Veuillez réessayer.")
+                    .showAndWait();
+            return;
         }
+
+        // Envoyer les emails de confirmation à tous les membres (asynchrone — ne bloque pas l'UI)
+        new ParticipationConfirmationService().sendConfirmationToTeam(equipe, evenement, participationId);
+
+        // Naviguer vers Mes Participations avec message de succès
+        FrontNavHelper.goMesParticipations(
+                "🎉 Participation confirmée ! Votre équipe \"" + equipe.getNom()
+                + "\" est inscrite à \"" + evenement.getTitre()
+                + "\". Un email de confirmation avec votre badge a été envoyé à tous les membres.");
     }
 
     @FXML

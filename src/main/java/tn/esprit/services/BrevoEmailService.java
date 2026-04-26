@@ -17,7 +17,7 @@ import java.util.Base64;
 public class BrevoEmailService {
 
     private static final String BREVO_API_KEY =
-            "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";
+            "System.getProperty("BREVO_API_KEY", "YOUR_BREVO_KEY")";
     private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
     private static final String FROM_EMAIL    = "autolearn66@gmail.com";
     private static final String FROM_NAME     = "AutoLearn";
@@ -85,11 +85,14 @@ public class BrevoEmailService {
                 System.out.println("✅ Email envoyé via Brevo à: " + toEmail);
                 return true;
             } else {
-                // Lire le message d'erreur
                 InputStream errStream = conn.getErrorStream();
                 if (errStream != null) {
                     String errMsg = new String(errStream.readAllBytes(), StandardCharsets.UTF_8);
                     System.err.println("❌ Erreur Brevo [" + responseCode + "]: " + errMsg);
+                    // Conseil si IP non autorisée
+                    if (errMsg.contains("unrecognised IP") || errMsg.contains("unauthorized")) {
+                        System.err.println("💡 Solution: Autorisez votre IP sur https://app.brevo.com/security/authorised_ips");
+                    }
                 }
                 return false;
             }

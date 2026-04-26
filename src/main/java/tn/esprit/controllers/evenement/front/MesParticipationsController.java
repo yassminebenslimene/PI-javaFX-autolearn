@@ -68,7 +68,13 @@ public class MesParticipationsController {
         for (Participation p : participations) {
             Equipe eq = equipeService.getById(p.getEquipeId());
             Evenement ev = evenementService.getById(p.getEvenementId());
-            if (eq == null || ev == null) continue;
+            if (eq == null || ev == null) {
+                System.err.println("⚠️ Participation #" + p.getId()
+                        + " ignorée — equipe=" + p.getEquipeId()
+                        + " ev=" + p.getEvenementId()
+                        + " (eq=" + eq + ", ev=" + ev + ")");
+                continue;
+            }
             participationsContainer.getChildren().add(buildParticipationCard(p, eq, ev));
         }
     }
@@ -81,10 +87,21 @@ public class MesParticipationsController {
                 + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3);"
                 + "-fx-max-width:480;");
 
-        // Status badge
-        Label statusBadge = new Label("\u2713 Accepte");
-        statusBadge.setStyle("-fx-background-color:#d1fae5; -fx-text-fill:#065f46; -fx-font-size:11;"
-                + "-fx-font-weight:700; -fx-background-radius:20; -fx-padding:4 12 4 12;");
+        // Status badge — reflète le statut réel en DB
+        String statut = p.getStatut() != null ? p.getStatut() : "En attente";
+        String badgeBg, badgeFg, badgeText;
+        if (statut.equalsIgnoreCase("Accepté") || statut.equalsIgnoreCase("Accepte")
+                || statut.equalsIgnoreCase("ACCEPTE")) {
+            badgeBg = "#d1fae5"; badgeFg = "#065f46"; badgeText = "✓ Accepté";
+        } else if (statut.equalsIgnoreCase("Refusé") || statut.equalsIgnoreCase("Refuse")) {
+            badgeBg = "#fee2e2"; badgeFg = "#991b1b"; badgeText = "✗ Refusé";
+        } else {
+            badgeBg = "#fef3c7"; badgeFg = "#92400e"; badgeText = "⏳ En attente";
+        }
+        Label statusBadge = new Label(badgeText);
+        statusBadge.setStyle("-fx-background-color:" + badgeBg + "; -fx-text-fill:" + badgeFg + ";"
+                + "-fx-font-size:11; -fx-font-weight:700; -fx-background-radius:20;"
+                + "-fx-padding:4 12 4 12;");
 
         Label titre = new Label(ev.getTitre());
         titre.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#1e1e1e;");

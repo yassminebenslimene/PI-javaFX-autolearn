@@ -11,6 +11,7 @@ import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.EquipeService;
 import tn.esprit.services.EvenementService;
+import tn.esprit.services.ParticipationService;
 import tn.esprit.services.WeatherService;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ public class EvenementFrontController {
     private final EvenementService evenementService = new EvenementService();
     private final EquipeService equipeService = new EquipeService();
     private final WeatherService weatherService = new WeatherService();
+    private final ParticipationService participationService = new ParticipationService();
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd MMM yyyy");
     private static final DateTimeFormatter FMT_TIME = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -38,21 +40,21 @@ public class EvenementFrontController {
 
     // ── Couleurs par type ────────────────────────────────────────
     private static String typeColor(String type) {
-        if (type == null) return "#7a6ad8";
+        if (type == null) return "#8b6614";
         return switch (type) {
-            case "Hackathon"  -> "#16a34a";   // vert foncé comme les cours
-            case "Conference" -> "#4f46e5";   // bleu indigo comme les cours
-            case "Workshop"   -> "#f59e0b";   // jaune
-            default           -> "#7a6ad8";
+            case "Hackathon"  -> "#d4a96a";   // or/gold
+            case "Conference" -> "#a0826d";   // nude
+            case "Workshop"   -> "#f5e6c8";   // beige
+            default           -> "#8b6614";   // marron
         };
     }
     private static String typeBg(String type) {
-        if (type == null) return "rgba(122,106,216,0.1)";
+        if (type == null) return "rgba(139,102,20,0.1)";
         return switch (type) {
-            case "Hackathon"  -> "rgba(22,163,74,0.1)";
-            case "Conference" -> "rgba(79,70,229,0.1)";
-            case "Workshop"   -> "rgba(245,158,11,0.1)";
-            default           -> "rgba(122,106,216,0.1)";
+            case "Hackathon"  -> "rgba(212,169,106,0.1)";
+            case "Conference" -> "rgba(160,130,109,0.1)";
+            case "Workshop"   -> "rgba(245,230,200,0.1)";
+            default           -> "rgba(139,102,20,0.1)";
         };
     }
     private static String typeIcon(String type) {
@@ -519,8 +521,10 @@ public class EvenementFrontController {
         spotsBox.getChildren().add(spotsLbl);
         details.getChildren().add(spotsBox);
 
-        // Équipes participantes
-        List<Equipe> equipes = equipeService.getByEvenement(ev.getId());
+        // Équipes participantes — only those with an active participation record
+        List<Equipe> equipes = equipeService.getByEvenement(ev.getId()).stream()
+            .filter(eq -> participationService.getByEquipeAndEvenement(eq.getId(), ev.getId()) != null)
+            .collect(java.util.stream.Collectors.toList());
         details.getChildren().add(sectionTitle(">> Equipes participantes (" + equipes.size() + ")", color));
         if (equipes.isEmpty()) {
             details.getChildren().add(errLabel("Aucune équipe inscrite. Soyez le premier !"));
