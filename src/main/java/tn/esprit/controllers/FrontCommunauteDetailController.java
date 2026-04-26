@@ -33,7 +33,14 @@ public class FrontCommunauteDetailController {
     @FXML private Button    btnGererMembres;
     @FXML private TextField fieldTitre;
     @FXML private TextArea  fieldContenu;
+    @FXML private TextField fieldTags;
     @FXML private VBox      postsPane;
+    @FXML private VBox      similarPostsBox;
+    @FXML private VBox      similarPostsList;
+    @FXML private ScrollPane mainScrollPane;
+
+    /** Maps postId → its card VBox for scroll-to navigation */
+    private final java.util.Map<Integer, VBox> postCardMap = new java.util.HashMap<>();
 
     private final ServicePost        servicePost        = new ServicePost();
     private final ServiceCommentaire serviceCommentaire = new ServiceCommentaire();
@@ -82,6 +89,7 @@ public class FrontCommunauteDetailController {
 
     private void loadPosts() {
         postsPane.getChildren().clear();
+        postCardMap.clear();
         emptyLabel = null;
         List<Post> posts = servicePost.getHotByCommunaute(communaute.getId());
         if (statPosts != null) statPosts.setText(String.valueOf(posts.size()));
@@ -123,6 +131,15 @@ public class FrontCommunauteDetailController {
                 ? SessionManager.getCurrentUser().getId() : 0;
         Post p = new Post(contenu, titre, communaute.getId(), userId);
         p.setCreatedAt(LocalDateTime.now());
+
+        // Tags: manual input takes priority, else auto-extract
+        String manualTags = fieldTags != null ? fieldTags.getText().trim() : "";
+        if (!manualTags.isEmpty()) {
+            // normalize: lowercase, remove spaces around commas
+            p.setTags(manualTags.toLowerCase().replaceAll("\\s*,\\s*", ","));
+        }
+        // auto-extract fills in if no manual tags (handled in servicePost.ajouter)
+
         servicePost.ajouter(p);
         if (emptyLabel != null) {
             postsPane.getChildren().remove(emptyLabel);
@@ -131,6 +148,7 @@ public class FrontCommunauteDetailController {
         postsPane.getChildren().add(0, buildPostCard(p, 0));
         fieldTitre.clear();
         fieldContenu.clear();
+        if (fieldTags != null) fieldTags.clear();
         clearFieldError(fieldTitre);
         clearFieldError(fieldContenu);
     }
@@ -228,6 +246,23 @@ public class FrontCommunauteDetailController {
         lblContenu.setStyle("-fx-font-size:13; -fx-text-fill:#4b5563; -fx-line-spacing:5;");
         contentBox.getChildren().add(lblContenu);
 
+        // Tags chips
+        if (p.getTags() != null && !p.getTags().isBlank()) {
+            HBox tagsRow = new HBox(6);
+            tagsRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            tagsRow.setStyle("-fx-padding:4 0 0 0;");
+            for (String tag : p.getTags().split(",")) {
+                String t = tag.trim();
+                if (t.isEmpty()) continue;
+                Label chip = new Label("# " + t);
+                chip.setStyle("-fx-background-color:#f0eeff; -fx-text-fill:#7c3aed;" +
+                              "-fx-font-size:10; -fx-font-weight:800;" +
+                              "-fx-padding:3 10; -fx-background-radius:20;");
+                tagsRow.getChildren().add(chip);
+            }
+            contentBox.getChildren().add(tagsRow);
+        }
+
         body.getChildren().addAll(topRow, contentBox);
 
         // ── Reaction bar ─────────────────────────────────
@@ -275,6 +310,8 @@ public class FrontCommunauteDetailController {
                     "-fx-font-size:12; -fx-font-weight:700;" +
                     "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"));
             pause.play();
+            // ── Trigger similarity recommendation ──
+            showSimilarPosts(p);
         });
 
         // Comment count chip
@@ -352,6 +389,7 @@ public class FrontCommunauteDetailController {
         addComment.getChildren().addAll(miniAvatar, commentField, btnSend);
         commentsSection.getChildren().addAll(commentsBox, addComment);
         card.getChildren().addAll(body, sep, commentsSection);
+        postCardMap.put(p.getId(), card);
         return card;
     }
 
@@ -625,6 +663,80 @@ public class FrontCommunauteDetailController {
         User u = userService.trouver(userId);
         if (u != null) return u.getPrenom() + " " + u.getNom();
         return "Utilisateur #" + userId;
+    }
+
+    /** Shows top-3 similar posts in the sidebar when user likes a post */
+    private void showSimilarPosts(Post source) {
+        if (similarPostsBox == null || similarPostsList == null) return;
+        List<Post> similar = servicePost.getSimilarPosts(source, communaute.getId(), 3);
+        if (similar.isEmpty()) return;
+
+        similarPostsList.getChildren().clear();
+        for (Post p : similar) {
+            VBox card = new VBox(5);
+            card.setStyle("-fx-background-color:#faf8ff; -fx-background-radius:14;" +
+                          "-fx-border-color:#ede9fe; -fx-border-radius:14; -fx-border-width:1;" +
+                          "-fx-padding:12 14; -fx-cursor:hand;");
+
+            String titleText = (p.getTitre() != null && !p.getTitre().isBlank())
+                    ? p.getTitre() : p.getContenu();
+            if (titleText.length() > 60) titleText = titleText.substring(0, 57) + "…";
+
+            Label lblTitle = new Label(titleText);
+            lblTitle.setWrapText(true);
+            lblTitle.setStyle("-fx-font-size:12; -fx-font-weight:800; -fx-text-fill:#1e1b4b;");
+
+            // Tags chips
+            HBox tagsRow = new HBox(6);
+            tagsRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            if (p.getTags() != null && !p.getTags().isBlank()) {
+                String[] tags = p.getTags().split(",");
+                int shown = 0;
+                for (String tag : tags) {
+                    if (shown >= 3) break;
+                    Label chip = new Label(tag.trim());
+                    chip.setStyle("-fx-background-color:#ede9fe; -fx-text-fill:#7c3aed;" +
+                                  "-fx-font-size:9; -fx-font-weight:700;" +
+                                  "-fx-padding:2 8; -fx-background-radius:10;");
+                    tagsRow.getChildren().add(chip);
+                    shown++;
+                }
+            }
+
+            card.getChildren().addAll(lblTitle, tagsRow);
+            // Click → scroll to post (just reload for now)
+            card.setOnMouseClicked(e -> {
+                // Scroll to the target post
+                VBox targetCard = postCardMap.get(p.getId());
+                if (targetCard != null && mainScrollPane != null) {
+                    // compute relative Y position of the card inside the scrollPane content
+                    javafx.application.Platform.runLater(() -> {
+                        double cardY = targetCard.localToScene(0, 0).getY();
+                        double contentH = mainScrollPane.getContent().getBoundsInLocal().getHeight();
+                        double viewH   = mainScrollPane.getViewportBounds().getHeight();
+                        double scrollY = (cardY - mainScrollPane.localToScene(0, 0).getY()
+                                         + mainScrollPane.getVvalue() * (contentH - viewH))
+                                         / (contentH - viewH);
+                        mainScrollPane.setVvalue(Math.max(0, Math.min(1, scrollY)));
+                    });
+                }
+                // highlight the card briefly
+                String origStyle = card.getStyle();
+                card.setStyle("-fx-background-color:white; -fx-background-radius:24;" +
+                              "-fx-border-color:#7c3aed; -fx-border-radius:24; -fx-border-width:2;" +
+                              "-fx-padding:12 14; -fx-cursor:hand;" +
+                              "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.25),16,0,0,4);");
+                javafx.animation.PauseTransition pt = new javafx.animation.PauseTransition(
+                        javafx.util.Duration.millis(800));
+                pt.setOnFinished(ev -> card.setStyle(origStyle));
+                pt.play();
+            });
+
+            similarPostsList.getChildren().add(card);
+        }
+
+        similarPostsBox.setVisible(true);
+        similarPostsBox.setManaged(true);
     }
 
     @FXML
