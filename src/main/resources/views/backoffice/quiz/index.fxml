@@ -55,6 +55,14 @@
                                    -fx-border-width:0;
                                    -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.4),10,0,0,3);"/>
 
+                    <!-- Bouton "🤖 Générer avec IA" → génère un quiz automatiquement -->
+                    <Button text="🤖 Générer avec IA" onAction="#ouvrirGenerateurIA"
+                            style="-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);
+                                   -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:13px;
+                                   -fx-padding:9px 18px; -fx-background-radius:8px; -fx-cursor:hand;
+                                   -fx-border-width:0;
+                                   -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.4),10,0,0,3);"/>
+
                     <!-- Barre de recherche : filtre les quiz par titre ou description -->
                     <HBox alignment="CENTER" spacing="8"
                           style="-fx-background-color:rgba(255,255,255,0.07);

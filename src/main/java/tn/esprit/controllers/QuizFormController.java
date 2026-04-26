@@ -11,6 +11,7 @@ import javafx.stage.FileChooser;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Quiz;
 import tn.esprit.services.ActivityApiClient;
+import tn.esprit.services.GroqQuizGeneratorService;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceQuiz;
 import tn.esprit.session.SessionManager;
@@ -44,6 +45,7 @@ public class QuizFormController {
     @FXML private TextField tentativesField; // champ pour le nb de tentatives (optionnel)
     @FXML private Label messageLabel;     // affiche les messages d'erreur
     @FXML private Button btnSauvegarder;  // bouton Enregistrer / Mettre à jour
+    @FXML private Button btnGenererIA;    // bouton Générer avec IA
 
     // ── Composants image ─────────────────────────────────────────────────────
     @FXML private StackPane imagePreviewPane;
@@ -329,6 +331,125 @@ public class QuizFormController {
         }
         // Si succès → retourner à la liste des quiz
         if (ok) navigateToList();
+    }
+
+    // ── Générer avec IA ───────────────────────────────────────────────────────
+    @FXML
+    public void genererAvecIA() {
+        // Vérifier qu'un chapitre est sélectionné
+        Chapitre chapitre = chapitreCombo.getValue();
+        if (chapitre == null) {
+            chapitreCombo.setStyle(FIELD_ERROR);
+            if (chapitreErrorLabel != null) {
+                chapitreErrorLabel.setText("🔒 Sélectionnez un chapitre avant de générer");
+                chapitreErrorLabel.setVisible(true);
+                chapitreErrorLabel.setManaged(true);
+            }
+            showError("🤖 Sélectionnez d'abord un chapitre pour que l'IA puisse générer les questions.");
+            return;
+        }
+
+        // Boîte de dialogue de configuration
+        javafx.scene.control.Dialog<String[]> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("🤖 Générer avec IA Groq");
+        dialog.setHeaderText("Configurer la génération automatique\nChapitre : " + chapitre.getTitre());
+
+        javafx.scene.control.ButtonType btnGenerer = new javafx.scene.control.ButtonType(
+            "🚀 Générer", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
+        javafx.scene.control.ButtonType btnAnnuler = new javafx.scene.control.ButtonType(
+            "Annuler", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(btnGenerer, btnAnnuler);
+
+        // Formulaire de configuration
+        javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(12);
+        content.setPadding(new javafx.geometry.Insets(16));
+        content.setStyle("-fx-background-color:#1a2e1f;");
+
+        // Nombre de questions
+        javafx.scene.control.Label lblNb = new javafx.scene.control.Label("Nombre de questions (1-10) :");
+        lblNb.setStyle("-fx-text-fill:#f5f5f4; -fx-font-size:13;");
+        javafx.scene.control.Spinner<Integer> spinnerNb = new javafx.scene.control.Spinner<>(1, 10, 5);
+        spinnerNb.setEditable(true);
+        spinnerNb.setStyle("-fx-background-color:#0f1a14; -fx-text-fill:#f5f5f4;");
+
+        // Difficulté
+        javafx.scene.control.Label lblDiff = new javafx.scene.control.Label("Niveau de difficulté :");
+        lblDiff.setStyle("-fx-text-fill:#f5f5f4; -fx-font-size:13;");
+        javafx.scene.control.ComboBox<String> comboDiff = new javafx.scene.control.ComboBox<>();
+        comboDiff.getItems().addAll("facile", "moyen", "difficile");
+        comboDiff.setValue("moyen");
+        comboDiff.setMaxWidth(Double.MAX_VALUE);
+        comboDiff.setStyle("-fx-background-color:#0f1a14; -fx-text-fill:#f5f5f4;");
+
+        content.getChildren().addAll(lblNb, spinnerNb, lblDiff, comboDiff);
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setStyle("-fx-background-color:#0f1a14;");
+
+        dialog.setResultConverter(btn -> {
+            if (btn == btnGenerer) {
+                return new String[]{
+                    String.valueOf(spinnerNb.getValue()),
+                    comboDiff.getValue()
+                };
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(params -> {
+            int nb = Integer.parseInt(params[0]);
+            String diff = params[1];
+
+            // Désactiver le bouton pendant la génération
+            if (btnGenererIA != null) {
+                btnGenererIA.setDisable(true);
+                btnGenererIA.setText("⏳ Génération en cours...");
+            }
+            showError(""); // effacer erreurs
+
+            // Afficher message de chargement
+            messageLabel.setText("🤖 L'IA génère " + nb + " questions... (peut prendre 5-15 secondes)");
+            messageLabel.setStyle("-fx-text-fill:#a5b4fc; -fx-font-size:13px; -fx-font-weight:bold;");
+
+            // Titre du quiz depuis le champ titre (ou auto)
+            String titre = titreField.getText() == null || titreField.getText().isBlank()
+                ? null : titreField.getText().trim();
+
+            // Appel asynchrone
+            GroqQuizGeneratorService groqService = new GroqQuizGeneratorService();
+            groqService.genererQuizAsync(chapitre, nb, diff, titre, chapitre.getId())
+                .thenAccept(quiz -> {
+                    javafx.application.Platform.runLater(() -> {
+                        if (btnGenererIA != null) {
+                            btnGenererIA.setDisable(false);
+                            btnGenererIA.setText("🤖 Générer avec IA");
+                        }
+                        if (quiz != null) {
+                            messageLabel.setText("✅ Quiz généré avec succès ! " + nb + " questions créées en BDD.");
+                            messageLabel.setStyle("-fx-text-fill:#6ee7b7; -fx-font-size:13px; -fx-font-weight:bold;");
+                            // Naviguer vers la liste pour voir le quiz créé
+                            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                                javafx.scene.control.Alert.AlertType.INFORMATION);
+                            alert.setTitle("✅ Génération réussie");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Quiz \"" + quiz.getTitre() + "\" créé avec " + nb
+                                + " questions !\n\nÉtat : brouillon — Révisez et activez-le.");
+                            alert.showAndWait();
+                            navigateToList();
+                        }
+                    });
+                })
+                .exceptionally(ex -> {
+                    javafx.application.Platform.runLater(() -> {
+                        if (btnGenererIA != null) {
+                            btnGenererIA.setDisable(false);
+                            btnGenererIA.setText("🤖 Générer avec IA");
+                        }
+                        String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                        showError("❌ Erreur IA : " + msg);
+                    });
+                    return null;
+                });
+        });
     }
 
     // ── Retour : revenir à la liste sans sauvegarder ─────────────────────────

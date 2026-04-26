@@ -454,6 +454,130 @@ public class QuizController {
         naviguerVersFormulaire(null);
     }
 
+    @FXML
+    public void ouvrirGenerateurIA() {
+        // Boîte de dialogue de configuration IA
+        tn.esprit.services.ServiceChapitre serviceChapitre = new tn.esprit.services.ServiceChapitre();
+        java.util.List<tn.esprit.entities.Chapitre> chapitres = serviceChapitre.consulter();
+
+        if (chapitres.isEmpty()) {
+            new Alert(Alert.AlertType.WARNING,
+                "Aucun chapitre disponible. Créez d'abord un chapitre avec du contenu.")
+                .showAndWait();
+            return;
+        }
+
+        javafx.scene.control.Dialog<Void> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("🤖 Générer un Quiz avec IA");
+        dialog.setHeaderText("Génération automatique de questions QCM\nvia Groq (Llama 4 Scout)");
+
+        javafx.scene.control.ButtonType btnGenerer = new javafx.scene.control.ButtonType(
+            "🚀 Générer", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
+        javafx.scene.control.ButtonType btnAnnuler = new javafx.scene.control.ButtonType(
+            "Annuler", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(btnGenerer, btnAnnuler);
+
+        // Formulaire
+        javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(12);
+        content.setPadding(new javafx.geometry.Insets(16));
+        content.setStyle("-fx-background-color:#1a2e1f; -fx-min-width:380;");
+
+        // Chapitre
+        javafx.scene.control.Label lblChapitre = new javafx.scene.control.Label("Chapitre source :");
+        lblChapitre.setStyle("-fx-text-fill:#f5f5f4; -fx-font-size:13; -fx-font-weight:bold;");
+        javafx.scene.control.ComboBox<tn.esprit.entities.Chapitre> comboChapitre = new javafx.scene.control.ComboBox<>();
+        comboChapitre.getItems().addAll(chapitres);
+        comboChapitre.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+            @Override protected void updateItem(tn.esprit.entities.Chapitre item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getTitre());
+                setStyle("-fx-text-fill:#f5f5f4;");
+            }
+        });
+        comboChapitre.setButtonCell(new javafx.scene.control.ListCell<>() {
+            @Override protected void updateItem(tn.esprit.entities.Chapitre item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "Sélectionnez un chapitre" : item.getTitre());
+                setStyle("-fx-text-fill:#f5f5f4;");
+            }
+        });
+        comboChapitre.setMaxWidth(Double.MAX_VALUE);
+        comboChapitre.setStyle("-fx-background-color:#0f1a14; -fx-text-fill:#f5f5f4;");
+
+        // Nombre de questions
+        javafx.scene.control.Label lblNb = new javafx.scene.control.Label("Nombre de questions (1-10) :");
+        lblNb.setStyle("-fx-text-fill:#f5f5f4; -fx-font-size:13;");
+        javafx.scene.control.Spinner<Integer> spinnerNb = new javafx.scene.control.Spinner<>(1, 10, 5);
+        spinnerNb.setEditable(true);
+        spinnerNb.setMaxWidth(Double.MAX_VALUE);
+        spinnerNb.setStyle("-fx-background-color:#0f1a14;");
+
+        // Difficulté
+        javafx.scene.control.Label lblDiff = new javafx.scene.control.Label("Niveau de difficulté :");
+        lblDiff.setStyle("-fx-text-fill:#f5f5f4; -fx-font-size:13;");
+        javafx.scene.control.ComboBox<String> comboDiff = new javafx.scene.control.ComboBox<>();
+        comboDiff.getItems().addAll("facile", "moyen", "difficile");
+        comboDiff.setValue("moyen");
+        comboDiff.setMaxWidth(Double.MAX_VALUE);
+        comboDiff.setStyle("-fx-background-color:#0f1a14; -fx-text-fill:#f5f5f4;");
+
+        // Status label
+        javafx.scene.control.Label statusLabel = new javafx.scene.control.Label("");
+        statusLabel.setStyle("-fx-text-fill:#a5b4fc; -fx-font-size:12;");
+        statusLabel.setWrapText(true);
+
+        content.getChildren().addAll(lblChapitre, comboChapitre, lblNb, spinnerNb, lblDiff, comboDiff, statusLabel);
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setStyle("-fx-background-color:#0f1a14;");
+
+        // Désactiver le bouton Générer si pas de chapitre sélectionné
+        javafx.scene.Node btnGenererNode = dialog.getDialogPane().lookupButton(btnGenerer);
+        btnGenererNode.setDisable(true);
+        comboChapitre.valueProperty().addListener((o, ov, nv) ->
+            btnGenererNode.setDisable(nv == null));
+
+        dialog.setResultConverter(btn -> null);
+
+        // Gérer le clic sur Générer manuellement
+        btnGenererNode.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            event.consume(); // empêcher la fermeture automatique
+
+            tn.esprit.entities.Chapitre chapitre = comboChapitre.getValue();
+            if (chapitre == null) return;
+
+            int nb = spinnerNb.getValue();
+            String diff = comboDiff.getValue();
+
+            btnGenererNode.setDisable(true);
+            statusLabel.setText("⏳ L'IA génère " + nb + " questions... (5-15 secondes)");
+
+            tn.esprit.services.GroqQuizGeneratorService groqService = new tn.esprit.services.GroqQuizGeneratorService();
+            groqService.genererQuizAsync(chapitre, nb, diff, null, chapitre.getId())
+                .thenAccept(quiz -> {
+                    javafx.application.Platform.runLater(() -> {
+                        dialog.close();
+                        if (quiz != null) {
+                            new Alert(Alert.AlertType.INFORMATION,
+                                "✅ Quiz \"" + quiz.getTitre() + "\" créé avec " + nb + " questions !\n\nÉtat : brouillon — Révisez et activez-le.")
+                                .showAndWait();
+                            chargerTout(); // rafraîchir la liste
+                        }
+                    });
+                })
+                .exceptionally(ex -> {
+                    javafx.application.Platform.runLater(() -> {
+                        btnGenererNode.setDisable(false);
+                        String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                        statusLabel.setText("❌ Erreur : " + msg);
+                        statusLabel.setStyle("-fx-text-fill:#fca5a5; -fx-font-size:12;");
+                    });
+                    return null;
+                });
+        });
+
+        dialog.showAndWait();
+    }
+
     private void ouvrirFormModification(Quiz quiz) {
         naviguerVersFormulaire(quiz);
     }

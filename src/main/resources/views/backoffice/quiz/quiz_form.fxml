@@ -212,10 +212,16 @@
                             <Button text="🏠 Gestion Quiz" onAction="#retour"
                                     style="-fx-background-color:rgba(255,255,255,0.06); -fx-text-fill:rgba(245,245,244,0.7);
                                            -fx-background-radius:8; -fx-padding:10 20; -fx-cursor:hand; -fx-border-width:0;"/>
+                            <!-- Bouton Générer avec IA -->
+                            <Button fx:id="btnGenererIA" text="🤖 Générer avec IA" onAction="#genererAvecIA"
+                                    style="-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);
+                                           -fx-text-fill:white; -fx-font-size:13px; -fx-font-weight:700;
+                                           -fx-padding:10 20; -fx-background-radius:8px; -fx-cursor:hand;
+                                           -fx-border-width:0;
+                                           -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.4),10,0,0,3);"/>
                             <!-- Espace flexible pour pousser le bouton Enregistrer à droite -->
                             <Region HBox.hgrow="ALWAYS"/>
                             <!-- Bouton Enregistrer (droite) — vert, appelle sauvegarder() -->
-                            <!-- fx:id="btnSauvegarder" → son texte change en "Mettre à jour" en mode modification -->
                             <Button fx:id="btnSauvegarder" text="✓ Enregistrer" onAction="#sauvegarder"
                                     style="-fx-background-color:linear-gradient(to bottom right,#34d399,#059669);
                                            -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:14px;
