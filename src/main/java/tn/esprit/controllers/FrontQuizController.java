@@ -393,40 +393,45 @@ public class FrontQuizController {
                 // ── Carte blanche (style Symfony) ─────────────────────────────
                 javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(0);
                 card.setAlignment(javafx.geometry.Pos.TOP_CENTER);
-                card.setPrefWidth(330);
-                card.setMaxWidth(330);
-                card.setStyle("-fx-background-color:rgba(255,255,255,0.92); -fx-background-radius:26;" +
-                    "-fx-border-color:rgba(255,255,255,0.55); -fx-border-width:1.2; -fx-border-radius:26;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.18),28,0,0,10);");
+                card.setPrefWidth(348);
+                card.setMaxWidth(348);
+                card.setStyle("-fx-background-color:rgba(255,255,255,0.96); -fx-background-radius:30;" +
+                    "-fx-border-color:rgba(255,255,255,0.82); -fx-border-width:1; -fx-border-radius:30;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.12),24,0,0,10);");
 
                 // Bande colorée en haut
                 javafx.scene.layout.HBox topStripe = new javafx.scene.layout.HBox();
                 topStripe.setPrefHeight(10);
-                topStripe.setStyle("-fx-background-color:linear-gradient(to right," + color + ", derive(" + color + ", -18%));" +
-                    "-fx-background-radius:26 26 0 0;");
+                topStripe.setStyle("-fx-background-color:linear-gradient(to right," + color + ", derive(" + color + ", -16%));" +
+                    "-fx-background-radius:30 30 0 0;");
                 card.getChildren().add(topStripe);
 
                 // Corps de la carte
                 javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(14);
                 body.setAlignment(javafx.geometry.Pos.TOP_CENTER);
-                body.setPadding(new Insets(22, 24, 24, 24));
+                body.setPadding(new Insets(20, 24, 24, 24));
+
+                javafx.scene.control.Label meta = new javafx.scene.control.Label("Quiz interactif");
+                meta.setStyle("-fx-background-color:rgba(124,58,237,0.10); -fx-text-fill:#7c3aed;" +
+                    "-fx-font-size:11; -fx-font-weight:800; -fx-background-radius:999; -fx-padding:6 12 6 12;");
 
                 // Icône colorée
                 javafx.scene.layout.StackPane iconCircle = new javafx.scene.layout.StackPane();
-                iconCircle.setPrefSize(64, 64);
-                iconCircle.setMaxSize(64, 64);
-                javafx.scene.shape.Rectangle iconBg = new javafx.scene.shape.Rectangle(64, 64);
-                iconBg.setArcWidth(16); iconBg.setArcHeight(16);
-                iconBg.setStyle("-fx-fill:" + color + ";");
-                javafx.scene.control.Label iconLbl = new javafx.scene.control.Label("📋");
-                iconLbl.setStyle("-fx-font-size:28;");
+                iconCircle.setPrefSize(80, 80);
+                iconCircle.setMaxSize(80, 80);
+                javafx.scene.shape.Rectangle iconBg = new javafx.scene.shape.Rectangle(80, 80);
+                iconBg.setArcWidth(26); iconBg.setArcHeight(26);
+                iconBg.setStyle("-fx-fill:linear-gradient(to bottom right," + color + ", derive(" + color + ", -22%));" +
+                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.16),14,0,0,4);");
+                javafx.scene.control.Label iconLbl = new javafx.scene.control.Label("▶");
+                iconLbl.setStyle("-fx-font-size:24; -fx-text-fill:white; -fx-font-weight:900;");
                 iconCircle.getChildren().addAll(iconBg, iconLbl);
 
                 // Titre
                 javafx.scene.control.Label qTitre = new javafx.scene.control.Label(q.getTitre());
-                qTitre.setStyle("-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#0f172a; -fx-text-alignment:CENTER;");
+                qTitre.setStyle("-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#0f172a; -fx-text-alignment:CENTER; -fx-line-spacing:2;");
                 qTitre.setWrapText(true);
-                qTitre.setMaxWidth(270);
+                qTitre.setMaxWidth(280);
                 qTitre.setAlignment(javafx.geometry.Pos.CENTER);
 
                 // Description
@@ -434,16 +439,16 @@ public class FrontQuizController {
                     ? (q.getDescription().length() > 55 ? q.getDescription().substring(0, 55) + "..." : q.getDescription())
                     : "";
                 javafx.scene.control.Label qDesc = new javafx.scene.control.Label(descText);
-                qDesc.setStyle("-fx-font-size:12.5; -fx-text-fill:#64748b; -fx-text-alignment:CENTER; -fx-line-spacing:2;");
+                qDesc.setStyle("-fx-font-size:12.5; -fx-text-fill:#475569; -fx-text-alignment:CENTER; -fx-line-spacing:2;");
                 qDesc.setWrapText(true);
-                qDesc.setMaxWidth(270);
+                qDesc.setMaxWidth(280);
                 qDesc.setAlignment(javafx.geometry.Pos.CENTER);
 
                 // Stats (Questions / Points / Minutes)
                 javafx.scene.layout.HBox statsBox = new javafx.scene.layout.HBox(10);
                 statsBox.setAlignment(javafx.geometry.Pos.CENTER);
-                statsBox.setStyle("-fx-background-color:#f8fafc; -fx-background-radius:16;" +
-                    "-fx-border-color:#e2e8f0; -fx-border-radius:16; -fx-padding:14 12 14 12;");
+                statsBox.setStyle("-fx-background-color:#f8fafc; -fx-background-radius:20;" +
+                    "-fx-border-color:#e2e8f0; -fx-border-radius:20; -fx-padding:14 12 14 12;");
                 statsBox.setMaxWidth(Double.MAX_VALUE);
 
                 javafx.scene.layout.VBox statQ = makeStat("❓", String.valueOf(qs.size()), "QUESTIONS", "#ef4444");
@@ -460,24 +465,24 @@ public class FrontQuizController {
                 sep2.setPrefWidth(1); sep2.setPrefHeight(40);
                 sep2.setStyle("-fx-background-color:#e2e8f0;");
 
-                statQ.setPrefWidth(88); statP.setPrefWidth(88); statD.setPrefWidth(88);
+                statQ.setPrefWidth(92); statP.setPrefWidth(92); statD.setPrefWidth(92);
                 statsBox.getChildren().addAll(statQ, sep1, statP, sep2, statD);
 
                 // Bouton Commencer
                 javafx.scene.control.Button btnCommencer = new javafx.scene.control.Button("▶   Commencer le quiz");
                 btnCommencer.setMaxWidth(Double.MAX_VALUE);
-                btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#111827,#1f2937);" +
+                btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#0f172a,#1f2937);" +
                     "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;" +
-                    "-fx-padding:14 0 14 0; -fx-background-radius:18; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.22),14,0,0,6);");
+                    "-fx-padding:14 0 14 0; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.24),16,0,0,6);");
                 btnCommencer.setOnMouseEntered(ev -> btnCommencer.setStyle("-fx-background-color:linear-gradient(to right," + color + ", derive(" + color + ", -12%));" +
                     "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;" +
-                    "-fx-padding:14 0 14 0; -fx-background-radius:18; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.28),16,0,0,8);"));
+                    "-fx-padding:14 0 14 0; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.30),18,0,0,8);"));
                 btnCommencer.setOnMouseExited(ev -> btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#111827,#1f2937);" +
                     "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;" +
-                    "-fx-padding:14 0 14 0; -fx-background-radius:18; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.22),14,0,0,6);"));
+                    "-fx-padding:14 0 14 0; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.24),16,0,0,6);"));
 
                 final Quiz quizChoisi = q;
                 btnCommencer.setOnAction(e -> {
@@ -511,19 +516,16 @@ public class FrontQuizController {
                     }
                 });
 
-                javafx.scene.control.Label meta = new javafx.scene.control.Label("Quiz interactif");
-                meta.setStyle("-fx-background-color:rgba(124,58,237,0.10); -fx-text-fill:#7c3aed;" +
-                    "-fx-font-size:11; -fx-font-weight:800; -fx-background-radius:999; -fx-padding:6 12 6 12;");
                 body.getChildren().addAll(meta, iconCircle, qTitre, qDesc, statsBox, btnCommencer);
                 card.getChildren().add(body);
 
                 // Hover sur la carte
-                card.setOnMouseEntered(e -> card.setStyle("-fx-background-color:rgba(255,255,255,0.96); -fx-background-radius:26;" +
-                    "-fx-border-color:rgba(255,255,255,0.78); -fx-border-width:1.2; -fx-border-radius:26;" +
-                    "-fx-effect:dropshadow(gaussian," + color + "55,30,0,0,12); -fx-cursor:hand;"));
-                card.setOnMouseExited(e -> card.setStyle("-fx-background-color:rgba(255,255,255,0.92); -fx-background-radius:26;" +
-                    "-fx-border-color:rgba(255,255,255,0.55); -fx-border-width:1.2; -fx-border-radius:26;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.18),28,0,0,10);"));
+                card.setOnMouseEntered(e -> card.setStyle("-fx-background-color:rgba(255,255,255,0.99); -fx-background-radius:30;" +
+                    "-fx-border-color:rgba(255,255,255,0.92); -fx-border-width:1; -fx-border-radius:30;" +
+                    "-fx-effect:dropshadow(gaussian," + color + "55,32,0,0,12); -fx-cursor:hand;"));
+                card.setOnMouseExited(e -> card.setStyle("-fx-background-color:rgba(255,255,255,0.96); -fx-background-radius:30;" +
+                    "-fx-border-color:rgba(255,255,255,0.82); -fx-border-width:1; -fx-border-radius:30;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.12),24,0,0,10);"));
 
                 cardsRow.getChildren().add(card);
             }
