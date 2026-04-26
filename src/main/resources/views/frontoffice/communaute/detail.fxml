@@ -12,84 +12,75 @@
         <VBox spacing="0">
 
             <!-- ══════════ HERO ══════════ -->
-            <StackPane minHeight="300" maxHeight="300">
+            <StackPane minHeight="190" maxHeight="190">
 
                 <!-- Gradient bg -->
                 <VBox style="-fx-background-color:linear-gradient(to bottom right,#6d28d9,#7c3aed,#4f46e5,#818cf8);
-                             -fx-min-height:300; -fx-max-height:300;"/>
-
-                <!-- Noise overlay -->
+                             -fx-min-height:190; -fx-max-height:190;"/>
                 <VBox style="-fx-background-color:rgba(255,255,255,0.04);
-                             -fx-min-height:300; -fx-max-height:300;"/>
+                             -fx-min-height:190; -fx-max-height:190;"/>
 
                 <!-- Decorative circles -->
-                <Circle radius="220" fill="rgba(255,255,255,0.04)" translateX="-380" translateY="-60"/>
-                <Circle radius="150" fill="rgba(255,255,255,0.05)" translateX="340"  translateY="60"/>
-                <Circle radius="80"  fill="rgba(255,255,255,0.06)" translateX="60"   translateY="-100"/>
-                <Circle radius="50"  fill="rgba(255,255,255,0.08)" translateX="-100" translateY="80"/>
+                <Circle radius="160" fill="rgba(255,255,255,0.04)" translateX="-340" translateY="-40"/>
+                <Circle radius="100" fill="rgba(255,255,255,0.05)" translateX="300"  translateY="30"/>
 
                 <VBox spacing="0">
                     <!-- Top bar -->
-                    <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding:22 72 0 72;">
+                    <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding:16 64 0 64;">
                         <Button text="← Retour" onAction="#onRetour"
                                 style="-fx-background-color:rgba(255,255,255,0.18);
-                                       -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;
-                                       -fx-padding:9 22 9 22; -fx-background-radius:30;
+                                       -fx-text-fill:white; -fx-font-size:11; -fx-font-weight:700;
+                                       -fx-padding:7 18 7 18; -fx-background-radius:30;
                                        -fx-cursor:hand; -fx-border-width:1;
-                                       -fx-border-color:rgba(255,255,255,0.3); -fx-border-radius:30;
-                                       -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.1),6,0,0,2);"/>
+                                       -fx-border-color:rgba(255,255,255,0.3); -fx-border-radius:30;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Button text="↺  Rafraîchir" onAction="#onRefresh"
                                 style="-fx-background-color:rgba(255,255,255,0.12);
-                                       -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:11; -fx-font-weight:600;
-                                       -fx-padding:9 18 9 18; -fx-background-radius:30;
+                                       -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:10; -fx-font-weight:600;
+                                       -fx-padding:7 14 7 14; -fx-background-radius:30;
                                        -fx-cursor:hand; -fx-border-width:1;
                                        -fx-border-color:rgba(255,255,255,0.2); -fx-border-radius:30;"/>
                     </HBox>
 
                     <!-- Identity -->
-                    <HBox spacing="26" alignment="BOTTOM_LEFT"
-                          style="-fx-padding:0 72 38 72;" VBox.vgrow="ALWAYS">
+                    <HBox spacing="18" alignment="CENTER_LEFT"
+                          style="-fx-padding:14 64 20 64;" VBox.vgrow="ALWAYS">
 
                         <!-- Avatar -->
-                        <StackPane>
-                            <Circle radius="56" fill="rgba(255,255,255,0.15)"/>
-                            <Circle radius="48" fill="rgba(255,255,255,0.1)"/>
-                            <Label fx:id="labelAvatar"
-                                   style="-fx-background-color:white;
-                                          -fx-text-fill:#7c3aed; -fx-font-size:32; -fx-font-weight:900;
-                                          -fx-background-radius:50%; -fx-alignment:center;
-                                          -fx-min-width:90; -fx-min-height:90;
-                                          -fx-max-width:90; -fx-max-height:90;
-                                          -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),20,0,0,6);
-                                          -fx-border-color:rgba(255,255,255,0.95);
-                                          -fx-border-radius:50%; -fx-border-width:3;"/>
-                        </StackPane>
+                        <Label fx:id="labelAvatar"
+                               style="-fx-background-color:white;
+                                      -fx-text-fill:#7c3aed; -fx-font-size:22; -fx-font-weight:900;
+                                      -fx-background-radius:50%; -fx-alignment:center;
+                                      -fx-min-width:64; -fx-min-height:64;
+                                      -fx-max-width:64; -fx-max-height:64;
+                                      -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.35),14,0,0,4);
+                                      -fx-border-color:rgba(255,255,255,0.9);
+                                      -fx-border-radius:50%; -fx-border-width:2.5;"/>
 
-                        <VBox spacing="10" alignment="BOTTOM_LEFT" VBox.vgrow="ALWAYS">
+                        <VBox spacing="6" alignment="CENTER_LEFT">
                             <Label fx:id="labelNom" text=""
-                                   style="-fx-font-size:32; -fx-font-weight:900; -fx-text-fill:white;
-                                          -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),8,0,0,3);"/>
+                                   style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:white;
+                                          -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.25),6,0,0,2);"/>
                             <Label fx:id="labelDescription" text="" wrapText="true"
-                                   style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.72); -fx-max-width:520;"/>
-                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                   style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.68); -fx-max-width:480;"/>
+                            <HBox spacing="8" alignment="CENTER_LEFT">
                                 <Label fx:id="labelMembresCount"
-                                       style="-fx-background-color:rgba(255,255,255,0.2);
-                                              -fx-text-fill:white; -fx-font-size:11; -fx-font-weight:700;
-                                              -fx-padding:6 18 6 18; -fx-background-radius:30;
-                                              -fx-border-color:rgba(255,255,255,0.35); -fx-border-radius:30; -fx-border-width:1;"/>
+                                       style="-fx-background-color:rgba(255,255,255,0.18);
+                                              -fx-text-fill:white; -fx-font-size:10; -fx-font-weight:700;
+                                              -fx-padding:4 14 4 14; -fx-background-radius:30;
+                                              -fx-border-color:rgba(255,255,255,0.3); -fx-border-radius:30; -fx-border-width:1;"/>
                                 <Label text="✅  Vérifiée"
-                                       style="-fx-background-color:rgba(52,211,153,0.25);
-                                              -fx-text-fill:#a7f3d0; -fx-font-size:11; -fx-font-weight:700;
-                                              -fx-padding:6 18 6 18; -fx-background-radius:30;
-                                              -fx-border-color:rgba(52,211,153,0.4); -fx-border-radius:30; -fx-border-width:1;"/>
+                                       style="-fx-background-color:rgba(52,211,153,0.22);
+                                              -fx-text-fill:#a7f3d0; -fx-font-size:10; -fx-font-weight:700;
+                                              -fx-padding:4 14 4 14; -fx-background-radius:30;
+                                              -fx-border-color:rgba(52,211,153,0.35); -fx-border-radius:30; -fx-border-width:1;"/>
                                 <Button fx:id="btnGererMembres" text="⚙  Gérer les membres"
                                         onAction="#onGererMembres" visible="false" managed="false"
                                         style="-fx-background-color:white; -fx-text-fill:#7c3aed;
-                                               -fx-font-size:11; -fx-font-weight:800;
-                                               -fx-padding:6 20 6 20; -fx-background-radius:30;
+                                               -fx-font-size:10; -fx-font-weight:800;
+                                               -fx-padding:4 16 4 16; -fx-background-radius:30;
                                                -fx-cursor:hand; -fx-border-width:0;
-                                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),8,0,0,3);"/>
+                                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),6,0,0,2);"/>
                             </HBox>
                         </VBox>
                     </HBox>
