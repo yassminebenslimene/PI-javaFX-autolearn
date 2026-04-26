@@ -38,6 +38,55 @@ public class ServicePost {
         return list;
     }
 
+    /**
+     * Hot Ranking Algorithm — Reddit-style:
+     *
+     *   score = (likes * 2 + nb_comments * 1.5 + 1) / POW(age_hours + 2, 1.8)
+     *
+     * - likes    = COALESCE(ai_reaction, 0)  — nombre de réactions IA
+     * - comments = COUNT(commentaire)
+     * - age      = TIMESTAMPDIFF(HOUR, created_at, NOW())
+     * - +2 dans le dénominateur : évite division par zéro
+     * - POW(x, 1.8) : décroissance progressive de l'âge
+     */
+    public List<Post> getHotByCommunaute(int communauteId) {
+        List<Post> list = new ArrayList<>();
+        String req =
+            "SELECT p.*, " +
+            "  COUNT(c.id)                                          AS nb_comments, " +
+            "  COALESCE(CAST(p.ai_reaction AS UNSIGNED), 0)        AS nb_likes, " +
+            "  TIMESTAMPDIFF(HOUR, p.created_at, NOW())            AS age_hours, " +
+            "  (COALESCE(CAST(p.ai_reaction AS UNSIGNED), 0) * 2   " +
+            "   + COUNT(c.id) * 1.5 + 1)                           " +
+            "  / POW(TIMESTAMPDIFF(HOUR, p.created_at, NOW()) + 2, 1.8) AS hot_score " +
+            "FROM post p " +
+            "LEFT JOIN commentaire c ON c.post_id = p.id " +
+            "WHERE p.communaute_id = ? " +
+            "GROUP BY p.id " +
+            "ORDER BY hot_score DESC";
+        try {
+            PreparedStatement ps = conn().prepareStatement(req);
+            ps.setInt(1, communauteId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Post post = fromRs(rs);
+                double score    = rs.getDouble("hot_score");
+                int    comments = rs.getInt("nb_comments");
+                int    likes    = rs.getInt("nb_likes");
+                int    age      = rs.getInt("age_hours");
+                System.out.printf("[ServicePost] HOT post#%d score=%.4f likes=%d comments=%d age=%dh%n",
+                        post.getId(), score, likes, comments, age);
+                list.add(post);
+            }
+            System.out.println("[ServicePost] getHotByCommunaute(" + communauteId + ") -> " + list.size() + " posts");
+        } catch (SQLException e) {
+            System.err.println("[ServicePost] getHotByCommunaute: " + e.getMessage());
+            // fallback to date order
+            return getByCommunaute(communauteId);
+        }
+        return list;
+    }
+
     public Post getById(int id) {
         String req = "SELECT * FROM post WHERE id=?";
         try {

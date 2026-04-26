@@ -83,14 +83,16 @@ public class FrontCommunauteDetailController {
     private void loadPosts() {
         postsPane.getChildren().clear();
         emptyLabel = null;
-        List<Post> posts = servicePost.getByCommunaute(communaute.getId());
+        List<Post> posts = servicePost.getHotByCommunaute(communaute.getId());
         if (statPosts != null) statPosts.setText(String.valueOf(posts.size()));
         if (posts.isEmpty()) {
             emptyLabel = new Label("✨  Aucun post pour l'instant. Soyez le premier à publier !");
-            emptyLabel.setStyle("-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:13; -fx-padding:16 0 0 0;");
+            emptyLabel.setStyle("-fx-text-fill:#c4b5fd; -fx-font-size:13; -fx-padding:16 0 0 0;");
             postsPane.getChildren().add(emptyLabel);
         } else {
-            for (Post p : posts) postsPane.getChildren().add(buildPostCard(p));
+            for (int i = 0; i < posts.size(); i++) {
+                postsPane.getChildren().add(buildPostCard(posts.get(i), i));
+            }
         }
     }
 
@@ -126,7 +128,7 @@ public class FrontCommunauteDetailController {
             postsPane.getChildren().remove(emptyLabel);
             emptyLabel = null;
         }
-        postsPane.getChildren().add(0, buildPostCard(p));
+        postsPane.getChildren().add(0, buildPostCard(p, 0));
         fieldTitre.clear();
         fieldContenu.clear();
         clearFieldError(fieldTitre);
@@ -149,10 +151,12 @@ public class FrontCommunauteDetailController {
         field.setTooltip(null);
     }
 
-    private VBox buildPostCard(Post p) {
+    private VBox buildPostCard(Post p, int rank) {
         VBox card = new VBox(0);
+        // Top post gets a hot border
+        String borderColor = rank == 0 ? "#f59e0b" : "#ede9fe";
         card.setStyle("-fx-background-color:white; -fx-background-radius:24; " +
-                      "-fx-border-color:#ede9fe; -fx-border-radius:24; -fx-border-width:1.5; " +
+                      "-fx-border-color:" + borderColor + "; -fx-border-radius:24; -fx-border-width:1.5; " +
                       "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.1),24,0,0,8);");
 
         VBox body = new VBox(18);
@@ -179,8 +183,23 @@ public class FrontCommunauteDetailController {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Hot badge for top 3
         HBox topRow = new HBox(14, avatar, authorInfo, spacer);
         topRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        if (rank == 0) {
+            Label hotBadge = new Label("🔥 Hot");
+            hotBadge.setStyle("-fx-background-color:#fef3c7; -fx-text-fill:#d97706;" +
+                              "-fx-font-size:10; -fx-font-weight:900;" +
+                              "-fx-padding:4 12; -fx-background-radius:20;");
+            topRow.getChildren().add(hotBadge);
+        } else if (rank == 1) {
+            Label badge = new Label("📈 Trending");
+            badge.setStyle("-fx-background-color:#ede9fe; -fx-text-fill:#7c3aed;" +
+                           "-fx-font-size:10; -fx-font-weight:900;" +
+                           "-fx-padding:4 12; -fx-background-radius:20;");
+            topRow.getChildren().add(badge);
+        }
 
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
@@ -193,8 +212,7 @@ public class FrontCommunauteDetailController {
             MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
             menu.getItems().addAll(itemModifier, itemSupprimer);
             itemModifier.setOnAction(e -> onModifierPost(p, card, null, null, null));
-            itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));
-            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
+            itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
             topRow.getChildren().add(btnMenu);
         }
 
@@ -211,6 +229,62 @@ public class FrontCommunauteDetailController {
         contentBox.getChildren().add(lblContenu);
 
         body.getChildren().addAll(topRow, contentBox);
+
+        // ── Reaction bar ─────────────────────────────────
+        // Count comments for display
+        int commentCount = serviceCommentaire.getByPost(p.getId()).size();
+        int likeCount = 0;
+        try {
+            String aiR = p.getAiReaction();
+            if (aiR != null && !aiR.isBlank()) likeCount = Integer.parseInt(aiR.trim());
+        } catch (NumberFormatException ignored) {}
+
+        HBox reactionBar = new HBox(16);
+        reactionBar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        reactionBar.setStyle("-fx-padding:14 0 4 0;");
+
+        // Like button
+        final int[] currentLikes = {likeCount};
+        Label likeCountLbl = new Label(likeCount > 0 ? "  " + likeCount : "");
+        likeCountLbl.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7c3aed;");
+
+        Button btnLikePost = new Button("♥  J'aime");
+        btnLikePost.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                             "-fx-font-size:12; -fx-font-weight:700;" +
+                             "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+        btnLikePost.setOnMouseEntered(e -> btnLikePost.setStyle(
+                "-fx-background-color:#ede9fe; -fx-text-fill:#6d28d9;" +
+                "-fx-font-size:12; -fx-font-weight:700;" +
+                "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"));
+        btnLikePost.setOnMouseExited(e -> btnLikePost.setStyle(
+                "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                "-fx-font-size:12; -fx-font-weight:700;" +
+                "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"));
+        btnLikePost.setOnAction(e -> {
+            currentLikes[0]++;
+            p.setAiReaction(String.valueOf(currentLikes[0]));
+            servicePost.modifier(p);
+            likeCountLbl.setText("  " + currentLikes[0]);
+            btnLikePost.setStyle("-fx-background-color:#e94560; -fx-text-fill:white;" +
+                                 "-fx-font-size:12; -fx-font-weight:700;" +
+                                 "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
+                    javafx.util.Duration.millis(700));
+            pause.setOnFinished(ev -> btnLikePost.setStyle(
+                    "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                    "-fx-font-size:12; -fx-font-weight:700;" +
+                    "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"));
+            pause.play();
+        });
+
+        // Comment count chip
+        Label commentChip = new Label("💬  " + commentCount + " commentaire" + (commentCount > 1 ? "s" : ""));
+        commentChip.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#6b7280;" +
+                             "-fx-font-size:12; -fx-font-weight:600;" +
+                             "-fx-padding:8 18; -fx-background-radius:20;");
+
+        reactionBar.getChildren().addAll(btnLikePost, likeCountLbl, commentChip);
+        body.getChildren().add(reactionBar);
 
         Separator sep = new Separator();
         sep.setStyle("-fx-background-color:#f3f0ff;");
@@ -368,7 +442,7 @@ public class FrontCommunauteDetailController {
                 servicePost.modifier(p);
                 // Rebuild the card in place
                 int idx = postsPane.getChildren().indexOf(card);
-                if (idx >= 0) postsPane.getChildren().set(idx, buildPostCard(p));
+                if (idx >= 0) postsPane.getChildren().set(idx, buildPostCard(p, idx));
             }
         });
     }
@@ -404,7 +478,39 @@ public class FrontCommunauteDetailController {
         lblContenu.setWrapText(true);
         lblContenu.setStyle("-fx-font-size:12; -fx-text-fill:#4b5563; -fx-line-spacing:3;");
 
-        VBox bubble = new VBox(5, lblNom, lblContenu);
+        // ── Like button + count ──────────────────────────
+        Label likesCount = new Label(c.getLikes() > 0 ? String.valueOf(c.getLikes()) : "");
+        likesCount.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7c3aed;");
+
+        Button btnLike = new Button("♥");
+        btnLike.setStyle("-fx-background-color:transparent; -fx-text-fill:#c4b5fd;" +
+                         "-fx-font-size:14; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 0;");
+        btnLike.setOnMouseEntered(e -> btnLike.setStyle(
+                "-fx-background-color:transparent; -fx-text-fill:#7c3aed;" +
+                "-fx-font-size:14; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 0;"));
+        btnLike.setOnMouseExited(e -> btnLike.setStyle(
+                "-fx-background-color:transparent; -fx-text-fill:#c4b5fd;" +
+                "-fx-font-size:14; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 0;"));
+        btnLike.setOnAction(e -> {
+            int newLikes = serviceCommentaire.likeCommentaire(c.getId());
+            c.setLikes(newLikes);
+            likesCount.setText(String.valueOf(newLikes));
+            // animate: turn red briefly
+            btnLike.setStyle("-fx-background-color:transparent; -fx-text-fill:#e94560;" +
+                             "-fx-font-size:14; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 0;");
+            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
+                    javafx.util.Duration.millis(600));
+            pause.setOnFinished(ev -> btnLike.setStyle(
+                    "-fx-background-color:transparent; -fx-text-fill:#7c3aed;" +
+                    "-fx-font-size:14; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 0;"));
+            pause.play();
+        });
+
+        HBox likeRow = new HBox(4, btnLike, likesCount);
+        likeRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        likeRow.setStyle("-fx-padding:6 0 0 0;");
+
+        VBox bubble = new VBox(4, lblNom, lblContenu, likeRow);
         bubble.setStyle("-fx-background-color:#f5f3ff; -fx-background-radius:18; " +
                         "-fx-border-color:#ede9fe; -fx-border-radius:18; -fx-border-width:1; " +
                         "-fx-padding:11 16 11 16;");
