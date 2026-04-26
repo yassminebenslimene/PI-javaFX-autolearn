@@ -24,6 +24,12 @@ public class FrontCommunauteDetailController {
 
     @FXML private Label     labelNom;
     @FXML private Label     labelDescription;
+    @FXML private Label     labelAvatar;
+    @FXML private Label     labelAvatarPost;
+    @FXML private Label     labelMembresCount;
+    @FXML private Label     labelSidebarMembres;
+    @FXML private Label     statPosts;
+    @FXML private Label     statMembres;
     @FXML private Button    btnGererMembres;
     @FXML private TextField fieldTitre;
     @FXML private TextArea  fieldContenu;
@@ -43,8 +49,30 @@ public class FrontCommunauteDetailController {
         this.onRetour   = retour;
         labelNom.setText(c.getNom());
         labelDescription.setText(c.getDescription() != null ? c.getDescription() : "");
-        int currentUserId = SessionManager.getCurrentUser() != null
-                ? SessionManager.getCurrentUser().getId() : -1;
+
+        // Avatar communauté (initiale)
+        String initCom = c.getNom() != null && !c.getNom().isEmpty()
+                ? String.valueOf(c.getNom().charAt(0)).toUpperCase() : "C";
+        if (labelAvatar != null) labelAvatar.setText(initCom);
+
+        // Avatar post (initiale utilisateur connecté)
+        User currentUser = SessionManager.getCurrentUser();
+        if (labelAvatarPost != null && currentUser != null) {
+            String initUser = currentUser.getPrenom().substring(0,1).toUpperCase()
+                            + currentUser.getNom().substring(0,1).toUpperCase();
+            labelAvatarPost.setText(initUser);
+        }
+
+        // Compteur membres
+        int nbMembres = c.getMemberIds() != null ? c.getMemberIds().size() : 0;
+        if (labelMembresCount != null)
+            labelMembresCount.setText("👥  " + nbMembres + " membre" + (nbMembres > 1 ? "s" : ""));
+        if (labelSidebarMembres != null)
+            labelSidebarMembres.setText(nbMembres + " membre" + (nbMembres > 1 ? "s" : ""));
+        if (statMembres != null)
+            statMembres.setText(String.valueOf(nbMembres));
+
+        int currentUserId = currentUser != null ? currentUser.getId() : -1;
         if (currentUserId == c.getOwnerId()) {
             btnGererMembres.setVisible(true);
             btnGererMembres.setManaged(true);
@@ -56,11 +84,10 @@ public class FrontCommunauteDetailController {
         postsPane.getChildren().clear();
         emptyLabel = null;
         List<Post> posts = servicePost.getByCommunaute(communaute.getId());
+        if (statPosts != null) statPosts.setText(String.valueOf(posts.size()));
         if (posts.isEmpty()) {
-            emptyLabel = new Label("Aucune publication pour le moment. Lancez la premiere discussion.");
-            emptyLabel.setStyle("-fx-text-fill:#64748b; -fx-font-size:13; -fx-font-weight:600; " +
-                    "-fx-background-color:white; -fx-background-radius:10; -fx-border-color:#dbe3ee; " +
-                    "-fx-border-radius:10; -fx-padding:12 14 12 14;");
+            emptyLabel = new Label("✨  Aucun post pour l'instant. Soyez le premier à publier !");
+            emptyLabel.setStyle("-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:13; -fx-padding:16 0 0 0;");
             postsPane.getChildren().add(emptyLabel);
         } else {
             for (Post p : posts) postsPane.getChildren().add(buildPostCard(p));
@@ -123,169 +150,142 @@ public class FrontCommunauteDetailController {
     }
 
     private VBox buildPostCard(Post p) {
-        VBox card = new VBox(11);
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 20; " +
-                      "-fx-border-color: #e2e8f0; -fx-border-radius: 20; -fx-border-width: 1; " +
-                      "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 15, 0, 0, 5); -fx-padding: 20;");
+        VBox card = new VBox(0);
+        card.setStyle("-fx-background-color:#1a1a2e; -fx-background-radius:20; " +
+                      "-fx-border-color:rgba(162,155,254,0.15); -fx-border-radius:20; -fx-border-width:1; " +
+                      "-fx-effect:dropshadow(gaussian,rgba(108,92,231,0.12),18,0,0,4);");
+
+        VBox body = new VBox(14);
+        body.setStyle("-fx-padding:22 22 16 22;");
 
         String auteur  = getUserName(p.getUserId());
         String dateStr = tempsRelatif(p.getCreatedAt());
 
-        // Avatar avec initiale
+        // Avatar gradient
         String initiale = auteur.isEmpty() ? "?" : String.valueOf(auteur.charAt(0)).toUpperCase();
         Label avatar = new Label(initiale);
-        avatar.setMinSize(40, 40);
-        avatar.setMaxSize(40, 40);
+        avatar.setMinSize(46, 46);
+        avatar.setMaxSize(46, 46);
         avatar.setAlignment(javafx.geometry.Pos.CENTER);
-        avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#2563eb,#7c3aed); " +
+        avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#a29bfe,#6c5ce7); " +
                         "-fx-background-radius:50; -fx-text-fill:white; " +
-                        "-fx-font-size:15; -fx-font-weight:700;");
+                        "-fx-font-size:17; -fx-font-weight:900; " +
+                        "-fx-effect:dropshadow(gaussian,rgba(108,92,231,0.5),8,0,0,0);");
 
-        // Nom + date empilés
         Label lblAuteur = new Label(auteur);
-        lblAuteur.setStyle("-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#0f172a;");
+        lblAuteur.setStyle("-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:white;");
         Label lblDate = new Label("🕐  " + dateStr);
-        lblDate.setStyle("-fx-font-size:11; -fx-text-fill:#64748b;");
-        VBox authorInfo = new VBox(2, lblAuteur, lblDate);
+        lblDate.setStyle("-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.4);");
+        VBox authorInfo = new VBox(3, lblAuteur, lblDate);
 
-        Label badge = new Label("NOUVEAU");
-        badge.setStyle("-fx-background-color:linear-gradient(to right,#dbeafe,#ede9fe); -fx-text-fill:#3730a3; -fx-font-size:10; " +
-                "-fx-font-weight:800; -fx-padding:4 8 4 8; -fx-background-radius:12;");
-
-        // Spacer + bouton ⋮
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox topRow = new HBox(10, avatar, authorInfo, badge, spacer);
+        HBox topRow = new HBox(14, avatar, authorInfo, spacer);
         topRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-        // Titre
-        Label lblTitre = new Label(p.getTitre() != null && !p.getTitre().isEmpty()
-                ? p.getTitre() : "(sans titre)");
-        lblTitre.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#0f172a; " +
-                          "-fx-padding:6 0 0 0;");
-
-        // Contenu
-        Label lblContenu = new Label(p.getContenu());
-        lblContenu.setWrapText(true);
-        lblContenu.setStyle("-fx-font-size:13; -fx-text-fill:#334155; -fx-padding:2 0 4 0;");
 
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
-
-        // Commentaires
-        VBox commentsBox = new VBox(6);
-        commentsBox.setStyle("-fx-padding:6 0 0 0;");
-        for (Commentaire c : serviceCommentaire.getByPost(p.getId()))
-            commentsBox.getChildren().add(buildCommentRow(c));
-
-        HBox actionRow = new HBox(12);
-        actionRow.setAlignment(javafx.geometry.Pos.CENTER);
-        actionRow.setStyle("-fx-padding: 10 0 10 0; -fx-border-color: #f1f5f9; -fx-border-width: 1 0 1 0;");
-        
-        Button likeBtn = new Button("👍 J'aime");
-        Button replyBtn = new Button("💬 Commenter");
-        Button shareBtn = new Button("↗ Partager");
-        
-        String actionStyle = "-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 13; -fx-font-weight: 700; " +
-                             "-fx-padding: 8 12; -fx-background-radius: 10; -fx-cursor: hand;";
-        
-        likeBtn.setStyle(actionStyle);
-        replyBtn.setStyle(actionStyle);
-        shareBtn.setStyle(actionStyle);
-        
-        likeBtn.setMaxWidth(Double.MAX_VALUE);
-        replyBtn.setMaxWidth(Double.MAX_VALUE);
-        shareBtn.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(likeBtn, Priority.ALWAYS);
-        HBox.setHgrow(replyBtn, Priority.ALWAYS);
-        HBox.setHgrow(shareBtn, Priority.ALWAYS);
-        
-        likeBtn.setAlignment(javafx.geometry.Pos.CENTER);
-        replyBtn.setAlignment(javafx.geometry.Pos.CENTER);
-        shareBtn.setAlignment(javafx.geometry.Pos.CENTER);
-
-        // Hover effects
-        String hoverStyle = "-fx-background-color: #f1f5f9; -fx-text-fill: #2563eb;";
-        likeBtn.setOnMouseEntered(e -> likeBtn.setStyle(actionStyle + hoverStyle));
-        likeBtn.setOnMouseExited(e -> likeBtn.setStyle(actionStyle));
-        replyBtn.setOnMouseEntered(e -> replyBtn.setStyle(actionStyle + hoverStyle));
-        replyBtn.setOnMouseExited(e -> replyBtn.setStyle(actionStyle));
-        shareBtn.setOnMouseEntered(e -> shareBtn.setStyle(actionStyle + hoverStyle));
-        shareBtn.setOnMouseExited(e -> shareBtn.setStyle(actionStyle));
-
-        actionRow.getChildren().addAll(likeBtn, replyBtn, shareBtn);
-
         if (p.getUserId() == currentUserId) {
-            Button btnEdit = new Button("✏");
-            Button btnDel = new Button("🗑");
-            
-            String btnBase = "-fx-background-color: transparent; -fx-background-radius: 30; -fx-cursor: hand; -fx-font-size: 14; -fx-padding: 4 8;";
-            btnEdit.setStyle(btnBase + "-fx-text-fill: #3b82f6;");
-            btnDel.setStyle(btnBase + "-fx-text-fill: #ef4444;");
-            
-            btnEdit.setOnMouseEntered(e -> btnEdit.setStyle(btnBase + "-fx-text-fill: #2563eb; -fx-background-color: #eff6ff;"));
-            btnEdit.setOnMouseExited(e -> btnEdit.setStyle(btnBase + "-fx-text-fill: #3b82f6; -fx-background-color: transparent;"));
-            btnDel.setOnMouseEntered(e -> btnDel.setStyle(btnBase + "-fx-text-fill: #dc2626; -fx-background-color: #fef2f2;"));
-            btnDel.setOnMouseExited(e -> btnDel.setStyle(btnBase + "-fx-text-fill: #ef4444; -fx-background-color: transparent;"));
-
-            btnEdit.setOnAction(e -> onModifierPost(p, card, lblTitre, lblContenu, actionRow));
-            btnDel.setOnAction(e -> onSupprimerPost(p, card));
-            
-            HBox postActions = new HBox(5, btnEdit, btnDel);
-            postActions.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-            topRow.getChildren().add(postActions);
+            Button btnMenu = new Button("⋮");
+            btnMenu.setStyle("-fx-background-color:rgba(255,255,255,0.07); -fx-text-fill:rgba(255,255,255,0.6); " +
+                             "-fx-font-size:16; -fx-cursor:hand; -fx-border-width:0; " +
+                             "-fx-padding:4 12 4 12; -fx-background-radius:50;");
+            ContextMenu menu = new ContextMenu();
+            menu.setStyle("-fx-background-color:#1a1a2e; -fx-border-color:rgba(162,155,254,0.2); -fx-border-width:1;");
+            MenuItem itemModifier  = new MenuItem("✏  Modifier");
+            MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
+            menu.getItems().addAll(itemModifier, itemSupprimer);
+            itemModifier.setOnAction(e -> onModifierPost(p, card, null, null));
+            itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));
+            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
+            topRow.getChildren().add(btnMenu);
         }
 
-        // Champ commentaire
-        HBox addComment = new HBox(8);
+        // Content
+        VBox contentBox = new VBox(8);
+        if (p.getTitre() != null && !p.getTitre().isEmpty()) {
+            Label lblTitre = new Label(p.getTitre());
+            lblTitre.setStyle("-fx-font-size:17; -fx-font-weight:900; -fx-text-fill:white; -fx-line-spacing:2;");
+            lblTitre.setWrapText(true);
+            contentBox.getChildren().add(lblTitre);
+        }
+        Label lblContenu = new Label(p.getContenu());
+        lblContenu.setWrapText(true);
+        lblContenu.setStyle("-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.72); -fx-line-spacing:3;");
+        contentBox.getChildren().add(lblContenu);
+
+        body.getChildren().addAll(topRow, contentBox);
+
+        // Separator
+        Separator sep = new Separator();
+        sep.setStyle("-fx-background-color:rgba(255,255,255,0.06);");
+
+        // Comments section
+        VBox commentsSection = new VBox(0);
+        commentsSection.setStyle("-fx-padding:0 22 0 22;");
+
+        VBox commentsBox = new VBox(6);
+        commentsBox.setStyle("-fx-padding:14 0 10 0;");
+        List<Commentaire> comments = serviceCommentaire.getByPost(p.getId());
+        for (Commentaire c : comments)
+            commentsBox.getChildren().add(buildCommentRow(c));
+
+        // Comment input bar
+        HBox addComment = new HBox(10);
+        addComment.setStyle("-fx-padding:8 0 18 0;");
+        addComment.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        String userInit = "?";
+        if (SessionManager.getCurrentUser() != null) {
+            User u = SessionManager.getCurrentUser();
+            userInit = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
+        }
+        Label miniAvatar = new Label(userInit);
+        miniAvatar.setMinSize(34, 34);
+        miniAvatar.setMaxSize(34, 34);
+        miniAvatar.setAlignment(javafx.geometry.Pos.CENTER);
+        miniAvatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#a29bfe,#6c5ce7); " +
+                            "-fx-background-radius:50; -fx-text-fill:white; -fx-font-size:11; -fx-font-weight:800;");
+
         TextField commentField = new TextField();
-        commentField.setPromptText("Ajouter un commentaire...");
-        commentField.setStyle("-fx-background-color:#f8fbff; -fx-background-radius:20; " +
-                              "-fx-border-color:#cfdbef; -fx-border-radius:20; -fx-border-width:1; " +
-                              "-fx-padding:9 16 9 16; -fx-font-size:12;");
+        commentField.setPromptText("Écrire un commentaire...");
+        commentField.setStyle("-fx-background-color:rgba(255,255,255,0.06); -fx-background-radius:24; " +
+                              "-fx-border-width:1; -fx-border-color:rgba(255,255,255,0.1); " +
+                              "-fx-border-radius:24; -fx-padding:10 18 10 18; -fx-font-size:12; " +
+                              "-fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);");
         HBox.setHgrow(commentField, Priority.ALWAYS);
 
-        Button btnComment = new Button("Envoyer");
-        btnComment.setStyle("-fx-background-color:linear-gradient(to right,#2563eb,#7c3aed); -fx-text-fill:white; -fx-font-size:12; " +
-                            "-fx-font-weight:700; -fx-padding:8 16 8 16; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0; " +
-                            "-fx-effect:dropshadow(gaussian,rgba(99,102,241,0.30),10,0,0,2);");
-        btnComment.setOnAction(e -> {
+        Button btnSend = new Button("➤");
+        btnSend.setStyle("-fx-background-color:linear-gradient(to right,#a29bfe,#6c5ce7); -fx-text-fill:white; " +
+                         "-fx-font-size:13; -fx-padding:9 16 9 16; -fx-background-radius:50; " +
+                         "-fx-cursor:hand; -fx-border-width:0; " +
+                         "-fx-effect:dropshadow(gaussian,rgba(108,92,231,0.5),8,0,0,0);");
+
+        btnSend.setOnAction(e -> {
             String txt = commentField.getText().trim();
-            if (txt.isEmpty()) {
-                commentField.setStyle("-fx-background-color:#ffe4eb; -fx-background-radius:20; " +
-                                      "-fx-border-color:transparent; -fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
-                commentField.setPromptText("Le commentaire ne peut pas être vide !");
+            if (txt.isEmpty() || txt.length() < 2) {
+                commentField.setStyle("-fx-background-color:rgba(233,69,96,0.15); -fx-background-radius:24; " +
+                                      "-fx-border-width:1; -fx-border-color:rgba(233,69,96,0.5); " +
+                                      "-fx-border-radius:24; -fx-padding:10 18 10 18; -fx-font-size:12; " +
+                                      "-fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);");
                 return;
             }
-            if (txt.length() < 2) {
-                commentField.setStyle("-fx-background-color:#ffe4eb; -fx-background-radius:20; " +
-                                      "-fx-border-color:transparent; -fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
-                commentField.setPromptText("Minimum 2 caractères.");
-                return;
-            }
-            if (txt.length() > 500) {
-                commentField.setStyle("-fx-background-color:#ffe4eb; -fx-background-radius:20; " +
-                                      "-fx-border-color:transparent; -fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
-                commentField.setPromptText("Maximum 500 caractères.");
-                return;
-            }
-            if (tn.esprit.tools.BadWordFilter.containsBadWord(txt)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING, "Votre commentaire contient des mots inappropriés et ne peut pas être publié.", ButtonType.OK);
-                alert.setHeaderText("Contenu inapproprié");
-                alert.showAndWait();
-                return;
-            }
-            commentField.setStyle("-fx-background-color:#f8fbff; -fx-background-radius:20; " +
-                                  "-fx-border-color:#cfdbef; -fx-border-width:1; -fx-padding:9 16 9 16; -fx-font-size:12;");
+            commentField.setStyle("-fx-background-color:rgba(255,255,255,0.06); -fx-background-radius:24; " +
+                                  "-fx-border-width:1; -fx-border-color:rgba(255,255,255,0.1); " +
+                                  "-fx-border-radius:24; -fx-padding:10 18 10 18; -fx-font-size:12; " +
+                                  "-fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);");
             int uid = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
             Commentaire newC = new Commentaire(txt, p.getId(), uid);
             serviceCommentaire.ajouter(newC);
             commentField.clear();
             commentsBox.getChildren().add(buildCommentRow(newC));
         });
+        commentField.setOnAction(e -> btnSend.fire());
 
-        addComment.getChildren().addAll(commentField, btnComment);
-        card.getChildren().addAll(topRow, lblTitre, lblContenu, actionRow, commentsBox, addComment);
+        addComment.getChildren().addAll(miniAvatar, commentField, btnSend);
+        commentsSection.getChildren().addAll(commentsBox, addComment);
+
+        card.getChildren().addAll(body, sep, commentsSection);
         return card;
     }
 
@@ -301,10 +301,17 @@ public class FrontCommunauteDetailController {
         VBox editBox = new VBox(10);
         editBox.setStyle("-fx-padding: 5 0 10 0;");
 
-        TextField fTitre = new TextField(p.getTitre());
-        fTitre.setPromptText("Titre de la publication");
-        fTitre.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-border-color: #e2e8f0; " +
-                         "-fx-border-radius: 10; -fx-padding: 8 12; -fx-font-size: 14; -fx-font-weight: 700;");
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(20));
+        TextField fTitre = new TextField(p.getTitre() != null ? p.getTitre() : "");
+        fTitre.setPromptText("Titre (max 100 caractères)");
+        TextArea  fContenu = new TextArea(p.getContenu());
+        fContenu.setPromptText("Contenu * (10–2000 caractères)");
+        fContenu.setPrefRowCount(4);
+        Label errLabel = new Label();
+        errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:11;");
+        content.getChildren().addAll(new Label("Titre :"), fTitre, new Label("Contenu :"), fContenu, errLabel);
+        dialog.getDialogPane().setContent(content);
 
         TextArea fContenu = new TextArea(p.getContenu());
         fContenu.setPromptText("Contenu...");
@@ -359,17 +366,9 @@ public class FrontCommunauteDetailController {
                 p.setTitre(titre);
                 p.setContenu(contenu);
                 servicePost.modifier(p);
-                
-                lblTitre.setText(titre.isEmpty() ? "(sans titre)" : titre);
-                lblContenu.setText(contenu);
-                
-                card.getChildren().remove(editBox);
-                lblTitre.setVisible(true);
-                lblTitre.setManaged(true);
-                lblContenu.setVisible(true);
-                lblContenu.setManaged(true);
-                actionRow.setVisible(true);
-                actionRow.setManaged(true);
+                // Rebuild the card in place
+                int idx = postsPane.getChildren().indexOf(card);
+                if (idx >= 0) postsPane.getChildren().set(idx, buildPostCard(p));
             }
         });
     }
@@ -390,46 +389,37 @@ public class FrontCommunauteDetailController {
     private HBox buildCommentRow(Commentaire c) {
         String nom = getUserName(c.getUserId());
 
-        // Avatar cercle avec initiale
         String initiale = nom.isEmpty() ? "?" : String.valueOf(nom.charAt(0)).toUpperCase();
         Label avatar = new Label(initiale);
         avatar.setMinSize(32, 32);
         avatar.setMaxSize(32, 32);
         avatar.setAlignment(javafx.geometry.Pos.CENTER);
-        avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#3b82f6,#7c3aed); -fx-background-radius:50; " +
-                        "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;");
+        avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#a29bfe,#6c5ce7); " +
+                        "-fx-background-radius:50; -fx-text-fill:white; -fx-font-size:11; -fx-font-weight:800;");
 
-        // Bulle : nom en gras + contenu
         Label lblNom = new Label(nom);
-        lblNom.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#0f172a;");
+        lblNom.setStyle("-fx-font-size:12; -fx-font-weight:800; -fx-text-fill:white;");
 
         Label lblContenu = new Label(c.getContenu());
         lblContenu.setWrapText(true);
-        lblContenu.setStyle("-fx-font-size:12; -fx-text-fill:#334155;");
+        lblContenu.setStyle("-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.75);");
 
-        VBox bubble = new VBox(2, lblNom, lblContenu);
-        bubble.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 18; " +
-                        "-fx-padding: 10 16;");
+        VBox bubble = new VBox(3, lblNom, lblContenu);
+        bubble.setStyle("-fx-background-color:rgba(255,255,255,0.07); -fx-background-radius:16; " +
+                        "-fx-border-color:rgba(255,255,255,0.08); -fx-border-radius:16; -fx-border-width:1; " +
+                        "-fx-padding:9 14 9 14;");
         HBox.setHgrow(bubble, Priority.ALWAYS);
 
-        HBox row = new HBox(8, avatar, bubble);
+        HBox row = new HBox(10, avatar, bubble);
         row.setAlignment(javafx.geometry.Pos.TOP_LEFT);
-        row.setPadding(new Insets(2, 0, 2, 0));
+        row.setPadding(new Insets(3, 0, 3, 0));
 
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
         if (c.getUserId() == currentUserId) {
-            Button btnEdit = new Button("✏");
-            Button btnDel = new Button("🗑");
-            
-            String btnBase = "-fx-background-color: transparent; -fx-background-radius: 30; -fx-cursor: hand; -fx-font-size: 11; -fx-padding: 2 6;";
-            btnEdit.setStyle(btnBase + "-fx-text-fill: #64748b;");
-            btnDel.setStyle(btnBase + "-fx-text-fill: #94a3b8;");
-            
-            btnEdit.setOnMouseEntered(e -> btnEdit.setStyle(btnBase + "-fx-text-fill: #3b82f6; -fx-background-color: #eff6ff;"));
-            btnEdit.setOnMouseExited(e -> btnEdit.setStyle(btnBase + "-fx-text-fill: #64748b; -fx-background-color: transparent;"));
-            btnDel.setOnMouseEntered(e -> btnDel.setStyle(btnBase + "-fx-text-fill: #ef4444; -fx-background-color: #fef2f2;"));
-            btnDel.setOnMouseExited(e -> btnDel.setStyle(btnBase + "-fx-text-fill: #94a3b8; -fx-background-color: transparent;"));
+            Button btnMenu = new Button("⋮");
+            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.4); " +
+                             "-fx-font-size:14; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 6 0 6;");
 
             btnEdit.setOnAction(e -> onModifierComment(c, bubble, lblContenu));
             btnDel.setOnAction(e -> {

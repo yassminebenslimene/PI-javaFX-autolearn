@@ -4,156 +4,318 @@
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-      fx:controller="tn.esprit.controllers.FrontCommunauteDetailController"
-      style="-fx-background-color:linear-gradient(to bottom,#f5f8ff,#eef3ff);">
+            fx:controller="tn.esprit.controllers.FrontCommunauteDetailController"
+            style="-fx-background-color:#0f0e17;">
     <top>
         <fx:include source="../../components/navbar_front.fxml" fx:id="navbar"/>
     </top>
+
     <center>
-        <ScrollPane fitToWidth="true"
-                    style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;">
-            <VBox spacing="0" style="-fx-background-color:transparent;">
+        <VBox spacing="0">
 
-            <!-- Hero communauté -->
-            <VBox spacing="14" style="-fx-background-color: #7a6ad8;
-                                       -fx-padding: 30 70;">
-                <HBox alignment="CENTER_LEFT" spacing="12">
-                    <Button text="← Retour" onAction="#onRetour"
-                            style="-fx-background-color:rgba(255,255,255,0.16); -fx-text-fill:white;
-                                   -fx-font-size:12; -fx-font-weight:700; -fx-padding:7 16 7 16; -fx-background-radius:20;
-                                   -fx-cursor:hand; -fx-border-color:rgba(255,255,255,0.25); -fx-border-radius:20; -fx-border-width:1;"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="btnGererMembres" text="👥  Gérer les membres" onAction="#onGererMembres"
-                            visible="false" managed="false"
-                            style="-fx-background-color: white; -fx-text-fill: #7a6ad8;
-                                   -fx-font-size: 12; -fx-font-weight: 800; -fx-padding: 8 18;
-                                   -fx-background-radius: 10; -fx-cursor: hand; -fx-border-width: 0;"/>
-                </HBox>
+            <!-- ══════════════════════════════════════════
+                 HERO — Cover cinématique
+            ══════════════════════════════════════════ -->
+            <VBox spacing="0" minHeight="260" maxHeight="260"
+                  style="-fx-background-color:linear-gradient(to bottom right,#1a0533,#2d1b69,#6c5ce7);
+                         -fx-min-height:260; -fx-max-height:260;">
 
-                <Label fx:id="labelNom" text=""
-                       style="-fx-font-size:34; -fx-font-weight:800; -fx-text-fill:white;"/>
-                <Label fx:id="labelDescription" text="" wrapText="true"
-                       style="-fx-font-size:14; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.85);"/>
+                <!-- Noise overlay -->
+                <VBox spacing="0" minHeight="260" maxHeight="260"
+                      style="-fx-background-color:rgba(0,0,0,0.35); -fx-min-height:260; -fx-max-height:260;">
 
-                <HBox spacing="12">
-                    <HBox alignment="CENTER_LEFT" spacing="8"
-                          style="-fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 12;
-                                 -fx-padding: 8 16;">
-                        <Label text="⚡" style="-fx-font-size: 14;"/>
-                        <Label text="Communauté active" style="-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 700;"/>
+                    <!-- Top bar: back + refresh -->
+                    <HBox alignment="CENTER_LEFT" spacing="12"
+                          style="-fx-padding:22 60 0 60;">
+                        <Button text="← Retour" onAction="#onRetour"
+                                style="-fx-background-color:rgba(255,255,255,0.12);
+                                       -fx-text-fill:rgba(255,255,255,0.9);
+                                       -fx-font-size:12; -fx-font-weight:600;
+                                       -fx-padding:7 20 7 20; -fx-background-radius:30;
+                                       -fx-cursor:hand; -fx-border-width:1;
+                                       -fx-border-color:rgba(255,255,255,0.2);
+                                       -fx-border-radius:30;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="🔄" onAction="#onRefresh"
+                                style="-fx-background-color:rgba(255,255,255,0.1);
+                                       -fx-text-fill:white; -fx-font-size:13;
+                                       -fx-padding:7 14 7 14; -fx-background-radius:30;
+                                       -fx-cursor:hand; -fx-border-width:0;"/>
                     </HBox>
-                    <HBox alignment="CENTER_LEFT" spacing="8"
-                          style="-fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 12;
-                                 -fx-padding: 8 16;">
-                        <Label text="🧠" style="-fx-font-size: 14;"/>
-                        <Label text="Partagez vos idées" style="-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 700;"/>
-                    </HBox>
-                </HBox>
 
-                <HBox spacing="10">
-                    <Label text="Activite elevee"
-                           style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 11; -fx-font-weight: 800;
-                                  -fx-padding: 6 12; -fx-background-radius: 8;"/>
-                    <Label text="Discussions en temps reel"
-                           style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 11; -fx-font-weight: 800;
-                                  -fx-padding: 6 12; -fx-background-radius: 8;"/>
-                    <Label text="Communaute engagee"
-                           style="-fx-background-color: #ec4899; -fx-text-fill: white; -fx-font-size: 11; -fx-font-weight: 800;
-                                  -fx-padding: 6 12; -fx-background-radius: 8;"/>
-                </HBox>
+                    <!-- Community identity -->
+                    <HBox spacing="24" alignment="BOTTOM_LEFT"
+                          style="-fx-padding:0 60 32 60;" VBox.vgrow="ALWAYS">
+
+                        <!-- Big avatar with glow -->
+                        <StackPane>
+                            <Label fx:id="labelAvatar"
+                                   style="-fx-background-color:linear-gradient(to bottom right,#a29bfe,#6c5ce7);
+                                          -fx-text-fill:white; -fx-font-size:32; -fx-font-weight:900;
+                                          -fx-background-radius:50%; -fx-alignment:center;
+                                          -fx-min-width:88; -fx-min-height:88;
+                                          -fx-max-width:88; -fx-max-height:88;
+                                          -fx-effect:dropshadow(gaussian,rgba(108,92,231,0.8),24,0,0,0);
+                                          -fx-border-color:rgba(255,255,255,0.3);
+                                          -fx-border-radius:50%; -fx-border-width:3;"/>
+                        </StackPane>
+
+                        <!-- Name + desc + badges -->
+                        <VBox spacing="8" VBox.vgrow="ALWAYS" alignment="BOTTOM_LEFT">
+                            <Label fx:id="labelNom" text=""
+                                   style="-fx-font-size:30; -fx-font-weight:900; -fx-text-fill:white;
+                                          -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.5),6,0,0,2);"/>
+                            <Label fx:id="labelDescription" text="" wrapText="true"
+                                   style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.72);
+                                          -fx-max-width:560;"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label fx:id="labelMembresCount"
+                                       style="-fx-background-color:rgba(162,155,254,0.25);
+                                              -fx-text-fill:#a29bfe; -fx-font-size:11; -fx-font-weight:700;
+                                              -fx-padding:5 14 5 14; -fx-background-radius:30;
+                                              -fx-border-color:rgba(162,155,254,0.4);
+                                              -fx-border-radius:30; -fx-border-width:1;"/>
+                                <Label text="● Actif"
+                                       style="-fx-background-color:rgba(0,210,100,0.18);
+                                              -fx-text-fill:#00d264; -fx-font-size:11; -fx-font-weight:700;
+                                              -fx-padding:5 14 5 14; -fx-background-radius:30;
+                                              -fx-border-color:rgba(0,210,100,0.35);
+                                              -fx-border-radius:30; -fx-border-width:1;"/>
+                                <Button fx:id="btnGererMembres" text="⚙  Gérer les membres"
+                                        onAction="#onGererMembres" visible="false" managed="false"
+                                        style="-fx-background-color:rgba(255,255,255,0.15);
+                                               -fx-text-fill:white; -fx-font-size:11; -fx-font-weight:700;
+                                               -fx-padding:5 16 5 16; -fx-background-radius:30;
+                                               -fx-cursor:hand; -fx-border-width:1;
+                                               -fx-border-color:rgba(255,255,255,0.3);
+                                               -fx-border-radius:30;"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
             </VBox>
 
-            <!-- Zone contenu -->
-            <HBox spacing="20" VBox.vgrow="ALWAYS" style="-fx-padding: 26 70; -fx-background-color: #f8fafc;">
-
-                <!-- Colonne principale -->
-                <VBox spacing="16" HBox.hgrow="ALWAYS">
-                    <VBox spacing="12" style="-fx-background-color: white; -fx-background-radius: 16;
-                                               -fx-border-color: #e2e8f0; -fx-border-radius: 16; -fx-border-width: 1;
-                                               -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 20, 0, 0, 5);
-                                               -fx-padding: 24;">
-                        <HBox alignment="CENTER_LEFT">
-                            <Label text="Creer une publication" style="-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#0f172a;"/>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="Partagez avec votre communaute" style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#64748b;"/>
-                        </HBox>
-                        <TextField fx:id="fieldTitre" promptText="Titre de votre publication..."
-                                   style="-fx-background-color: #f1f5f9; -fx-background-radius: 12;
-                                          -fx-border-width: 0; -fx-padding: 12 16; -fx-font-size: 14;"/>
-                        <TextArea fx:id="fieldContenu" promptText="Que voulez-vous partager avec la communauté ?" prefRowCount="4"
-                                  style="-fx-background-color: #f1f5f9; -fx-background-radius: 12;
-                                         -fx-border-width: 0; -fx-padding: 12 16; -fx-font-size: 14;"/>
-                        <HBox alignment="CENTER_RIGHT">
-                            <Button text="🚀  Publier" onAction="#onPublier"
-                                    style="-fx-background-color: #7a6ad8; -fx-text-fill: white; -fx-font-weight: 800;
-                                           -fx-font-size: 14; -fx-padding: 12 32; -fx-background-radius: 12;
-                                           -fx-cursor: hand; -fx-border-width: 0;
-                                           -fx-effect: dropshadow(gaussian, rgba(122,106,216,0.3), 10, 0, 0, 3);"/>
-                        </HBox>
-                    </VBox>
-
-                    <VBox spacing="16" style="-fx-background-color: white; -fx-background-radius: 16;
-                                               -fx-border-color: #e2e8f0; -fx-border-radius: 16; -fx-border-width: 1;
-                                               -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 20, 0, 0, 5);
-                                               -fx-padding: 24;">
-                        <HBox alignment="CENTER_LEFT">
-                            <Label text="Fil d'actualite" style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:#111827;"/>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <HBox spacing="6" alignment="CENTER_LEFT">
-                                <Label text="Tous"
-                                       style="-fx-background-color:#dbeafe; -fx-text-fill:#1e40af; -fx-font-size:11; -fx-font-weight:700;
-                                              -fx-padding:5 10 5 10; -fx-background-radius:14;"/>
-                                <Label text="Recents"
-                                       style="-fx-background-color:#f1f5f9; -fx-text-fill:#475569; -fx-font-size:11; -fx-font-weight:700;
-                                              -fx-padding:5 10 5 10; -fx-background-radius:14;"/>
-                                <Label text="Populaires"
-                                       style="-fx-background-color:#f1f5f9; -fx-text-fill:#475569; -fx-font-size:11; -fx-font-weight:700;
-                                              -fx-padding:5 10 5 10; -fx-background-radius:14;"/>
-                            </HBox>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Button text="🔄  Rafraîchir" onAction="#onRefresh"
-                                    style="-fx-background-color: white; -fx-text-fill: #7a6ad8;
-                                           -fx-font-size: 13; -fx-font-weight: 800; -fx-cursor: hand;
-                                           -fx-border-color: #7a6ad8; -fx-border-radius: 10; -fx-border-width: 1.5;
-                                           -fx-padding: 8 18; -fx-background-radius: 10;"/>
-                        </HBox>
-                        <VBox fx:id="postsPane" spacing="16"
-                               style="-fx-padding: 4; -fx-background-color: transparent;"/>
-                    </VBox>
+            <!-- ══════════════════════════════════════════
+                 STATS BAR
+            ══════════════════════════════════════════ -->
+            <HBox alignment="CENTER" spacing="0"
+                  style="-fx-background-color:#16213e;
+                         -fx-border-color:rgba(255,255,255,0.06);
+                         -fx-border-width:0 0 1 0;">
+                <VBox alignment="CENTER" spacing="3" prefWidth="160" prefHeight="64"
+                      style="-fx-border-color:transparent rgba(255,255,255,0.06) transparent transparent;
+                             -fx-border-width:0 1 0 0;">
+                    <Label fx:id="statPosts" text="—"
+                           style="-fx-font-size:20; -fx-font-weight:900; -fx-text-fill:#a29bfe;"/>
+                    <Label text="Publications"
+                           style="-fx-font-size:10; -fx-text-fill:rgba(255,255,255,0.45); -fx-font-weight:600;"/>
                 </VBox>
-
-                <!-- Sidebar -->
-                <VBox spacing="14" prefWidth="280">
-                    <VBox spacing="8" style="-fx-background-color:linear-gradient(to bottom,#ffffff,#fcfbff); -fx-background-radius:16;
-                                              -fx-border-color:#e8e6fb; -fx-border-radius:16; -fx-border-width:1;
-                                              -fx-effect:dropshadow(gaussian,rgba(58,46,116,0.10),10,0,0,3);
-                                              -fx-padding:16;">
-                        <Label text="Conseils pour un post impactant" style="-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#1f1a42;"/>
-                        <Label wrapText="true" text="Donnez un titre clair. Soyez precis dans votre question. Ajoutez du contexte utile. Restez bienveillant avec la communaute."
-                               style="-fx-font-size:12; -fx-text-fill:#5d587f;"/>
-                    </VBox>
-
-                    <VBox spacing="8" style="-fx-background-color:linear-gradient(to bottom,#ffffff,#fcfbff); -fx-background-radius:16;
-                                              -fx-border-color:#e8e6fb; -fx-border-radius:16; -fx-border-width:1;
-                                              -fx-effect:dropshadow(gaussian,rgba(58,46,116,0.10),10,0,0,3);
-                                              -fx-padding:16;">
-                        <Label text="Ambiance de la communaute" style="-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#1f1a42;"/>
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label text="-" style="-fx-font-size:13;"/>
-                            <Label text="Reponses rapides et utiles" style="-fx-font-size:12; -fx-text-fill:#5d587f;"/>
-                        </HBox>
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label text="-" style="-fx-font-size:13;"/>
-                            <Label text="Discussions structurees" style="-fx-font-size:12; -fx-text-fill:#5d587f;"/>
-                        </HBox>
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label text="-" style="-fx-font-size:13;"/>
-                            <Label text="Partage de ressources utiles" style="-fx-font-size:12; -fx-text-fill:#5d587f;"/>
-                        </HBox>
-                    </VBox>
+                <VBox alignment="CENTER" spacing="3" prefWidth="160" prefHeight="64"
+                      style="-fx-border-color:transparent rgba(255,255,255,0.06) transparent transparent;
+                             -fx-border-width:0 1 0 0;">
+                    <Label fx:id="statMembres" text="—"
+                           style="-fx-font-size:20; -fx-font-weight:900; -fx-text-fill:#a29bfe;"/>
+                    <Label text="Membres"
+                           style="-fx-font-size:10; -fx-text-fill:rgba(255,255,255,0.45); -fx-font-weight:600;"/>
+                </VBox>
+                <VBox alignment="CENTER" spacing="3" prefWidth="160" prefHeight="64">
+                    <Label text="🔥"
+                           style="-fx-font-size:20;"/>
+                    <Label text="Communauté active"
+                           style="-fx-font-size:10; -fx-text-fill:rgba(255,255,255,0.45); -fx-font-weight:600;"/>
                 </VBox>
             </HBox>
+
+            <!-- ══════════════════════════════════════════
+                 MAIN CONTENT
+            ══════════════════════════════════════════ -->
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS"
+                        style="-fx-background-color:#0f0e17; -fx-background:#0f0e17; -fx-border-width:0;">
+                <HBox spacing="20" style="-fx-padding:28 60 48 60; -fx-background-color:#0f0e17;">
+
+                    <!-- ── FEED COLUMN ── -->
+                    <VBox spacing="18" HBox.hgrow="ALWAYS">
+
+                        <!-- ┌─ CREATE POST CARD ─┐ -->
+                        <VBox spacing="0"
+                              style="-fx-background-color:#1a1a2e;
+                                     -fx-background-radius:20;
+                                     -fx-border-color:rgba(162,155,254,0.2);
+                                     -fx-border-radius:20; -fx-border-width:1;
+                                     -fx-effect:dropshadow(gaussian,rgba(108,92,231,0.15),20,0,0,4);
+                                     -fx-padding:22;">
+
+                            <!-- User row -->
+                            <HBox spacing="14" alignment="CENTER_LEFT" style="-fx-padding:0 0 16 0;">
+                                <Label fx:id="labelAvatarPost"
+                                       style="-fx-background-color:linear-gradient(to bottom right,#a29bfe,#6c5ce7);
+                                              -fx-text-fill:white; -fx-font-size:15; -fx-font-weight:800;
+                                              -fx-background-radius:50%; -fx-alignment:center;
+                                              -fx-min-width:46; -fx-min-height:46;
+                                              -fx-max-width:46; -fx-max-height:46;
+                                              -fx-effect:dropshadow(gaussian,rgba(108,92,231,0.5),8,0,0,0);"/>
+                                <VBox spacing="2">
+                                    <Label text="Nouvelle publication"
+                                           style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:white;"/>
+                                    <Label text="Partagez avec votre communauté"
+                                           style="-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.4);"/>
+                                </VBox>
+                            </HBox>
+
+                            <!-- Divider -->
+                            <Separator style="-fx-background-color:rgba(255,255,255,0.07);"/>
+
+                            <VBox spacing="12" style="-fx-padding:16 0 0 0;">
+                                <TextField fx:id="fieldTitre"
+                                           promptText="✨  Titre accrocheur (optionnel)"
+                                           style="-fx-background-color:rgba(255,255,255,0.05);
+                                                  -fx-background-radius:12; -fx-border-width:1;
+                                                  -fx-border-color:rgba(255,255,255,0.08);
+                                                  -fx-border-radius:12; -fx-padding:12 18 12 18;
+                                                  -fx-font-size:13; -fx-text-fill:white;
+                                                  -fx-prompt-text-fill:rgba(255,255,255,0.3);"/>
+                                <TextArea fx:id="fieldContenu"
+                                          promptText="💬  Quoi de neuf ? Partagez vos idées, questions, ressources..."
+                                          prefRowCount="4"
+                                          style="-fx-background-color:rgba(255,255,255,0.05);
+                                                 -fx-background-radius:12; -fx-border-width:1;
+                                                 -fx-border-color:rgba(255,255,255,0.08);
+                                                 -fx-border-radius:12; -fx-padding:12 18 12 18;
+                                                 -fx-font-size:13; -fx-text-fill:white;
+                                                 -fx-prompt-text-fill:rgba(255,255,255,0.3);"/>
+                                <HBox alignment="CENTER_RIGHT">
+                                    <Button text="🚀  Publier" onAction="#onPublier"
+                                            style="-fx-background-color:linear-gradient(to right,#a29bfe,#6c5ce7);
+                                                   -fx-text-fill:white; -fx-font-weight:800; -fx-font-size:13;
+                                                   -fx-padding:11 32 11 32; -fx-background-radius:30;
+                                                   -fx-cursor:hand; -fx-border-width:0;
+                                                   -fx-effect:dropshadow(gaussian,rgba(108,92,231,0.6),14,0,0,4);"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Posts list injected here -->
+                        <VBox fx:id="postsPane" spacing="18"/>
+
+                    </VBox>
+
+                    <!-- ── SIDEBAR ── -->
+                    <VBox spacing="16" prefWidth="270" minWidth="250" maxWidth="290">
+
+                        <!-- About card -->
+                        <VBox spacing="14"
+                              style="-fx-background-color:#1a1a2e;
+                                     -fx-background-radius:20;
+                                     -fx-border-color:rgba(162,155,254,0.2);
+                                     -fx-border-radius:20; -fx-border-width:1;
+                                     -fx-padding:20;">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="ℹ"
+                                       style="-fx-background-color:rgba(162,155,254,0.15);
+                                              -fx-text-fill:#a29bfe; -fx-font-size:14;
+                                              -fx-background-radius:8; -fx-padding:6 8 6 8;"/>
+                                <Label text="À propos"
+                                       style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:white;"/>
+                            </HBox>
+                            <Separator style="-fx-background-color:rgba(255,255,255,0.07);"/>
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <Label text="👥"
+                                       style="-fx-background-color:rgba(162,155,254,0.1);
+                                              -fx-background-radius:8; -fx-padding:6 8 6 8; -fx-font-size:13;"/>
+                                <Label fx:id="labelSidebarMembres"
+                                       style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.7);"/>
+                            </HBox>
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <Label text="📅"
+                                       style="-fx-background-color:rgba(162,155,254,0.1);
+                                              -fx-background-radius:8; -fx-padding:6 8 6 8; -fx-font-size:13;"/>
+                                <Label text="Communauté active"
+                                       style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.7);"/>
+                            </HBox>
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <Label text="🌐"
+                                       style="-fx-background-color:rgba(162,155,254,0.1);
+                                              -fx-background-radius:8; -fx-padding:6 8 6 8; -fx-font-size:13;"/>
+                                <Label text="Ouverte à tous les membres"
+                                       style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.7);"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Rules card -->
+                        <VBox spacing="14"
+                              style="-fx-background-color:#1a1a2e;
+                                     -fx-background-radius:20;
+                                     -fx-border-color:rgba(162,155,254,0.2);
+                                     -fx-border-radius:20; -fx-border-width:1;
+                                     -fx-padding:20;">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="📋"
+                                       style="-fx-background-color:rgba(162,155,254,0.15);
+                                              -fx-text-fill:#a29bfe; -fx-font-size:14;
+                                              -fx-background-radius:8; -fx-padding:6 8 6 8;"/>
+                                <Label text="Règles"
+                                       style="-fx-font-size:14; -fx-font-weight:800; -fx-text-fill:white;"/>
+                            </HBox>
+                            <Separator style="-fx-background-color:rgba(255,255,255,0.07);"/>
+                            <VBox spacing="10">
+                                <HBox spacing="12" alignment="TOP_LEFT">
+                                    <Label text="1"
+                                           style="-fx-background-color:rgba(162,155,254,0.2);
+                                                  -fx-text-fill:#a29bfe; -fx-font-size:11; -fx-font-weight:800;
+                                                  -fx-background-radius:50%; -fx-min-width:22; -fx-min-height:22;
+                                                  -fx-max-width:22; -fx-max-height:22; -fx-alignment:center;"/>
+                                    <Label text="Respectez tous les membres" wrapText="true"
+                                           style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.65);"/>
+                                </HBox>
+                                <HBox spacing="12" alignment="TOP_LEFT">
+                                    <Label text="2"
+                                           style="-fx-background-color:rgba(162,155,254,0.2);
+                                                  -fx-text-fill:#a29bfe; -fx-font-size:11; -fx-font-weight:800;
+                                                  -fx-background-radius:50%; -fx-min-width:22; -fx-min-height:22;
+                                                  -fx-max-width:22; -fx-max-height:22; -fx-alignment:center;"/>
+                                    <Label text="Partagez du contenu de qualité" wrapText="true"
+                                           style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.65);"/>
+                                </HBox>
+                                <HBox spacing="12" alignment="TOP_LEFT">
+                                    <Label text="3"
+                                           style="-fx-background-color:rgba(162,155,254,0.2);
+                                                  -fx-text-fill:#a29bfe; -fx-font-size:11; -fx-font-weight:800;
+                                                  -fx-background-radius:50%; -fx-min-width:22; -fx-min-height:22;
+                                                  -fx-max-width:22; -fx-max-height:22; -fx-alignment:center;"/>
+                                    <Label text="Pas de spam ni de pub" wrapText="true"
+                                           style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.65);"/>
+                                </HBox>
+                                <HBox spacing="12" alignment="TOP_LEFT">
+                                    <Label text="4"
+                                           style="-fx-background-color:rgba(162,155,254,0.2);
+                                                  -fx-text-fill:#a29bfe; -fx-font-size:11; -fx-font-weight:800;
+                                                  -fx-background-radius:50%; -fx-min-width:22; -fx-min-height:22;
+                                                  -fx-max-width:22; -fx-max-height:22; -fx-alignment:center;"/>
+                                    <Label text="Encouragez et entraidez-vous" wrapText="true"
+                                           style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.65);"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Tips card -->
+                        <VBox spacing="12"
+                              style="-fx-background-color:linear-gradient(to bottom right,rgba(108,92,231,0.25),rgba(72,52,212,0.15));
+                                     -fx-background-radius:20;
+                                     -fx-border-color:rgba(162,155,254,0.3);
+                                     -fx-border-radius:20; -fx-border-width:1;
+                                     -fx-padding:20;">
+                            <Label text="💡 Conseil du jour"
+                                   style="-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#a29bfe;"/>
+                            <Label text="Posez des questions précises pour obtenir de meilleures réponses de la communauté !"
+                                   wrapText="true"
+                                   style="-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.65); -fx-line-spacing:3;"/>
+                        </VBox>
+
+                    </VBox>
+
+                </HBox>
+            </ScrollPane>
+
         </VBox>
-        </ScrollPane>
     </center>
 </BorderPane>
