@@ -425,15 +425,16 @@ public class FrontQuizController {
             // ── HEADER VIOLET ─────────────────────────────────────────────────
             javafx.scene.layout.StackPane header = new javafx.scene.layout.StackPane();
             header.setStyle("-fx-background-color:linear-gradient(to bottom right,#7c3aed,#a78bfa);");
-            header.setPrefHeight(160);
-            header.setMinHeight(160);
-            header.setMaxHeight(160);
+            header.setPrefHeight(120);
+            header.setMinHeight(120);
+            header.setMaxHeight(120);
 
             // Décorations cercles dans le header
             for (double[] c : new double[][]{
-                {100,-340,-60,0.06},{80,360,-50,0.05},{70,-380,60,0.07},
-                {60,-100,70,0.05},{65,200,60,0.06},{50,180,-60,0.08},
-                {45,-280,20,0.09},{40,280,40,0.07}}) {
+                {120,-340,-30,0.06},{100,360,-20,0.05},{90,-380,40,0.07},
+                {80,-100,50,0.05},{85,200,40,0.06},{70,180,-40,0.08},
+                {60,-280,10,0.09},{55,280,30,0.07},{40,0,50,0.05},
+                {30,-150,-50,0.08},{25,320,-40,0.07}}) {
                 javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(c[0]);
                 circle.setFill(javafx.scene.paint.Color.rgb(255,255,255,c[3]));
                 circle.setTranslateX(c[1]); circle.setTranslateY(c[2]);
@@ -441,26 +442,28 @@ public class FrontQuizController {
                 header.getChildren().add(circle);
             }
 
-            // Bouton retour en haut à gauche
+            // Bouton retour — aligné à gauche, centré verticalement
             javafx.scene.control.Button btnRetour = new javafx.scene.control.Button("← Retour aux chapitres");
-            btnRetour.setStyle("-fx-background-color:rgba(255,255,255,0.14); -fx-text-fill:white;" +
-                "-fx-font-size:13; -fx-font-weight:800; -fx-padding:10 18; -fx-background-radius:999;" +
-                "-fx-cursor:hand; -fx-border-width:1; -fx-border-color:rgba(255,255,255,0.22); -fx-border-radius:999;" +
-                "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.16),10,0,0,3);");
+            btnRetour.setStyle(
+                "-fx-background-color:rgba(255,255,255,0.14); -fx-text-fill:white;" +
+                "-fx-font-size:13; -fx-font-weight:700; -fx-padding:9 18; -fx-background-radius:999;" +
+                "-fx-cursor:hand; -fx-border-width:1; -fx-border-color:rgba(255,255,255,0.30);" +
+                "-fx-border-radius:999;");
             btnRetour.setOnAction(e -> { if (onRetourCallback != null) onRetourCallback.run(); });
-            javafx.scene.layout.HBox topBar = new javafx.scene.layout.HBox(btnRetour);
-            topBar.setPadding(new Insets(18, 0, 0, 18));
-            javafx.scene.layout.StackPane.setAlignment(topBar, javafx.geometry.Pos.TOP_LEFT);
+            javafx.scene.layout.HBox leftBox = new javafx.scene.layout.HBox(btnRetour);
+            leftBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            leftBox.setPadding(new Insets(0, 0, 0, 24));
+            javafx.scene.layout.StackPane.setAlignment(leftBox, javafx.geometry.Pos.CENTER_LEFT);
 
-            // Titre centré dans le header
+            // Titre — vraiment centré dans le header
             javafx.scene.control.Label titre = new javafx.scene.control.Label("Choisissez votre Quiz");
             titre.setStyle(
-                "-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:white;" +
-                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),8,0,0,2);"
+                "-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:white;" +
+                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),6,0,0,2);"
             );
             javafx.scene.layout.StackPane.setAlignment(titre, javafx.geometry.Pos.CENTER);
 
-            header.getChildren().addAll(topBar, titre);
+            header.getChildren().addAll(leftBox, titre);
             root.getChildren().add(header);
 
             // ── SECTION BLANCHE (filtres + cartes) ───────────────────────────
