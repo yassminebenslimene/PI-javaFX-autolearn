@@ -26,6 +26,8 @@ public class BackofficeController {
     @FXML private Button btnExercices;
     @FXML private Button btnChallenges;
     @FXML private Button btnCommunaute;
+    @FXML private Button btnPosts;
+    @FXML private Button btnCommentaires;
     @FXML private Button btnProfile;
     @FXML private Button btnChatbot;
 
@@ -57,7 +59,8 @@ public class BackofficeController {
 
     private void setActive(Button active) {
         for (Button b : new Button[]{btnDashboard, btnUsers, btnActivites, btnQuiz, btnCours, btnEvenements,
-                                      btnExercices, btnChallenges, btnCommunaute, btnProfile, btnChatbot}) {
+                                      btnExercices, btnChallenges, btnCommunaute, btnPosts, btnCommentaires,
+                                      btnProfile, btnChatbot}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }
@@ -135,6 +138,20 @@ public class BackofficeController {
         if (labelPageTitle != null) labelPageTitle.setText("Gestion de la Communauté");
         logNav("communaute");
         loadView("/views/backoffice/communaute/index.fxml");
+    }
+
+    @FXML public void navigateToPosts() {
+        setActive(btnPosts);
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Posts");
+        logNav("posts");
+        loadView("/views/backoffice/post/index.fxml");
+    }
+
+    @FXML public void navigateToCommentaires() {
+        setActive(btnCommentaires);
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Commentaires");
+        logNav("commentaires");
+        loadView("/views/backoffice/commentaire/index.fxml");
     }
 
     @FXML public void navigateToChatbot() {
