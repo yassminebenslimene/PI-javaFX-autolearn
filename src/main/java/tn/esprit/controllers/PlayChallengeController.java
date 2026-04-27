@@ -481,15 +481,10 @@ public class PlayChallengeController {
         try {
             User currentUser = JwtManager.getCurrentUser();
             if (currentUser != null && currentUser.getEmail() != null && !currentUser.getEmail().isEmpty()) {
-                emailService.sendChallengeResult(currentUser, challenge.getTitre(),
-                        score, getTotalPoints(), LocalDateTime.now());
-                System.out.println("✅ Email envoyé à : " + currentUser.getEmail());
-            } else {
-                System.err.println("❌ Impossible d'envoyer l'email : utilisateur non connecté ou email manquant");
+                System.out.println("✅ Challenge termine par : " + currentUser.getEmail());
             }
         } catch (Exception e) {
-            System.err.println("❌ Erreur lors de l'envoi de l'email : " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("❌ Erreur sendResultEmail : " + e.getMessage());
         }
     }
 

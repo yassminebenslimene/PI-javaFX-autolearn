@@ -143,10 +143,6 @@ public class FrontofficeController {
 
                 // Charger les vraies cartes de cours
                 if (coursCardsContainer != null) loadCoursCards();
-                // Charger les cartes challenges
-                if (challengeCardsContainer != null) loadChallengeCards();
-
-                // Charger les cartes de challenges
                 if (challengeCarouselPane != null) loadChallengeCarousel();
 
                 // Charger les evenements
@@ -571,7 +567,7 @@ public class FrontofficeController {
 
     @FXML public void onCours() { setActiveNav(btnNavCours); naviguerVersCours(); }
 
-    @FXML public void onViewCourses() { setActiveNav(btnCours); naviguerVersCours(); }
+    @FXML public void onViewCourses() { setActiveNav(btnNavCours); naviguerVersCours(); }
 
     private void naviguerVersCours() {
         if (!requireLogin()) return;
