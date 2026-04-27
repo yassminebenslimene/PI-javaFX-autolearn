@@ -4,7 +4,6 @@ import tn.esprit.entities.Challenge;
 import tn.esprit.tools.MyConnection;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,40 +13,33 @@ public class ChallengeService {
 
     public ChallengeService() {
         connection = MyConnection.getInstance().getConnection();
-        detectColumnNames();
     }
 
-    // Noms de colonnes détectés dynamiquement
-    private String colDateDebut = "date_debut";
-    private String colDateFin   = "date_fin";
+    // Nom de colonne détecté dynamiquement
     private String colCreatedBy = "created_by";
 
-    /** Détecte les vrais noms de colonnes de la table challenge */
+    /** Détecte le vrai nom de colonne created_by */
     private void detectColumnNames() {
         try {
             java.sql.ResultSet rs = connection.getMetaData().getColumns(null, null, "challenge", null);
             while (rs.next()) {
                 String col = rs.getString("COLUMN_NAME").toLowerCase();
-                if (col.equals("datedebut") || col.equals("date_debut")) colDateDebut = rs.getString("COLUMN_NAME");
-                if (col.equals("datefin")   || col.equals("date_fin"))   colDateFin   = rs.getString("COLUMN_NAME");
                 if (col.equals("createdby") || col.equals("created_by")) colCreatedBy = rs.getString("COLUMN_NAME");
             }
         } catch (java.sql.SQLException e) {
-            // Garder les valeurs par défaut
+            // Garder la valeur par défaut
         }
     }
 
     public void add(Challenge challenge) {
-        String query = "INSERT INTO challenge (titre, description, " + colDateDebut + ", " + colDateFin + ", niveau, duree, " + colCreatedBy + ") VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO challenge (titre, description, niveau, duree, " + colCreatedBy + ") VALUES (?, ?, ?, ?, ?)";
         try {
             PreparedStatement pst = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             pst.setString(1, challenge.getTitre());
             pst.setString(2, challenge.getDescription());
-            pst.setDate(3, Date.valueOf(challenge.getDateDebut()));
-            pst.setDate(4, Date.valueOf(challenge.getDateFin()));
-            pst.setString(5, challenge.getNiveau());
-            pst.setInt(6, challenge.getDuree());
-            pst.setInt(7, challenge.getCreatedBy());
+            pst.setString(3, challenge.getNiveau());
+            pst.setInt(4, challenge.getDuree());
+            pst.setInt(5, challenge.getCreatedBy());
             pst.executeUpdate();
 
             // Récupérer l'ID généré
@@ -69,17 +61,15 @@ public class ChallengeService {
     }
 
     public void update(Challenge challenge) {
-        String query = "UPDATE challenge SET titre=?, description=?, " + colDateDebut + "=?, " + colDateFin + "=?, niveau=?, duree=?, " + colCreatedBy + "=? WHERE id=?";
+        String query = "UPDATE challenge SET titre=?, description=?, niveau=?, duree=?, " + colCreatedBy + "=? WHERE id=?";
         try {
             PreparedStatement pst = connection.prepareStatement(query);
             pst.setString(1, challenge.getTitre());
             pst.setString(2, challenge.getDescription());
-            pst.setDate(3, Date.valueOf(challenge.getDateDebut()));
-            pst.setDate(4, Date.valueOf(challenge.getDateFin()));
-            pst.setString(5, challenge.getNiveau());
-            pst.setInt(6, challenge.getDuree());
-            pst.setInt(7, challenge.getCreatedBy());
-            pst.setInt(8, challenge.getId());
+            pst.setString(3, challenge.getNiveau());
+            pst.setInt(4, challenge.getDuree());
+            pst.setInt(5, challenge.getCreatedBy());
+            pst.setInt(6, challenge.getId());
             pst.executeUpdate();
 
             // Supprimer les anciennes relations
@@ -147,8 +137,6 @@ public class ChallengeService {
         c.setId(rs.getInt("id"));
         c.setTitre(rs.getString("titre"));
         c.setDescription(rs.getString("description"));
-        c.setDateDebut(rs.getDate(colDateDebut) != null ? rs.getDate(colDateDebut).toLocalDate() : java.time.LocalDate.now());
-        c.setDateFin(rs.getDate(colDateFin) != null ? rs.getDate(colDateFin).toLocalDate() : java.time.LocalDate.now());
         c.setNiveau(rs.getString("niveau"));
         c.setDuree(rs.getInt("duree"));
         try { c.setCreatedBy(rs.getInt(colCreatedBy)); } catch (java.sql.SQLException ignored) {}

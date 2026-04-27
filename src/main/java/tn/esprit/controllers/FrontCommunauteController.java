@@ -17,6 +17,7 @@ public class FrontCommunauteController {
     @FXML private FlowPane cardsPane;
     @FXML private Label emptyLabel;
     @FXML private TextField searchField;
+    @FXML private NavbarController navbarController;
 
     private final ServiceCommunaute service = new ServiceCommunaute();
     private List<Communaute> allCommunautes;
@@ -26,6 +27,11 @@ public class FrontCommunauteController {
 
     @FXML
     public void initialize() {
+        // Set active navbar button
+        if (navbarController != null) {
+            navbarController.setActive("Communaute");
+        }
+        
         allCommunautes = service.getList();
         searchField.textProperty().addListener((obs, o, n) -> afficher(n));
         afficher("");

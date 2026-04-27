@@ -11,7 +11,6 @@ import tn.esprit.entities.Quiz;
 import tn.esprit.services.ExerciceService;
 import tn.esprit.services.ServiceQuiz;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +18,6 @@ public class ChallengeFormController {
 
     @FXML private TextField txtTitre;
     @FXML private TextField txtDescription;
-    @FXML private DatePicker dateDebut;
-    @FXML private DatePicker dateFin;
     @FXML private ComboBox<String> comboNiveau;
     @FXML private TextField txtDuree;
     @FXML private TextField txtId;
@@ -30,8 +27,6 @@ public class ChallengeFormController {
 
     @FXML private Label errorTitre;
     @FXML private Label errorDescription;
-    @FXML private Label errorDateDebut;
-    @FXML private Label errorDateFin;
     @FXML private Label errorNiveau;
     @FXML private Label errorDuree;
     @FXML private Label dialogTitle;
@@ -54,16 +49,6 @@ public class ChallengeFormController {
             "-fx-border-color:#ef4444; " +
             "-fx-border-radius:8; -fx-background-radius:8; " +
             "-fx-padding:10 14 10 14; -fx-font-size:13; " +
-            "-fx-text-fill:white;";
-
-    private final String DATE_STYLE = "-fx-border-color:rgba(255,255,255,0.15); " +
-            "-fx-background-color:rgba(255,255,255,0.08); " +
-            "-fx-border-radius:8; -fx-background-radius:8; " +
-            "-fx-text-fill:white;";
-
-    private final String DATE_ERROR_STYLE = "-fx-border-color:#ef4444; " +
-            "-fx-background-color:rgba(239,68,68,0.08); " +
-            "-fx-border-radius:8; -fx-background-radius:8; " +
             "-fx-text-fill:white;";
 
     // Classe interne pour les cartes d'exercices
@@ -199,16 +184,6 @@ public class ChallengeFormController {
             txtDuree.setStyle(DEFAULT_STYLE);
         });
 
-        dateDebut.valueProperty().addListener((obs, oldVal, newVal) -> {
-            errorDateDebut.setText("");
-            dateDebut.setStyle(DATE_STYLE);
-        });
-
-        dateFin.valueProperty().addListener((obs, oldVal, newVal) -> {
-            errorDateFin.setText("");
-            dateFin.setStyle(DATE_STYLE);
-        });
-
         comboNiveau.valueProperty().addListener((obs, oldVal, newVal) -> {
             errorNiveau.setText("");
             comboNiveau.setStyle(DEFAULT_STYLE);
@@ -286,8 +261,6 @@ public class ChallengeFormController {
             txtId.setText(String.valueOf(challenge.getId()));
             txtTitre.setText(challenge.getTitre());
             txtDescription.setText(challenge.getDescription());
-            dateDebut.setValue(challenge.getDateDebut());
-            dateFin.setValue(challenge.getDateFin());
             comboNiveau.setValue(challenge.getNiveau());
             txtDuree.setText(String.valueOf(challenge.getDuree()));
 
@@ -327,16 +300,12 @@ public class ChallengeFormController {
         // Reset errors et styles
         errorTitre.setText("");
         errorDescription.setText("");
-        errorDateDebut.setText("");
-        errorDateFin.setText("");
         errorNiveau.setText("");
         errorDuree.setText("");
 
         txtTitre.setStyle(DEFAULT_STYLE);
         txtDescription.setStyle(DEFAULT_STYLE);
         txtDuree.setStyle(DEFAULT_STYLE);
-        dateDebut.setStyle(DATE_STYLE);
-        dateFin.setStyle(DATE_STYLE);
         comboNiveau.setStyle(DEFAULT_STYLE);
 
         // Validation Titre
@@ -368,30 +337,6 @@ public class ChallengeFormController {
         } else if (description.length() > 500) {
             errorDescription.setText("⚠ La description ne peut pas dépasser 500 caractères");
             txtDescription.setStyle(ERROR_STYLE);
-            isValid = false;
-        }
-
-        // Validation Date Début
-        LocalDate debut = dateDebut.getValue();
-        if (debut == null) {
-            errorDateDebut.setText("⚠ La date de début est obligatoire");
-            dateDebut.setStyle(DATE_ERROR_STYLE);
-            isValid = false;
-        } else if (debut.isBefore(LocalDate.now())) {
-            errorDateDebut.setText("⚠ La date de début ne peut pas être dans le passé");
-            dateDebut.setStyle(DATE_ERROR_STYLE);
-            isValid = false;
-        }
-
-        // Validation Date Fin
-        LocalDate fin = dateFin.getValue();
-        if (fin == null) {
-            errorDateFin.setText("⚠ La date de fin est obligatoire");
-            dateFin.setStyle(DATE_ERROR_STYLE);
-            isValid = false;
-        } else if (debut != null && fin.isBefore(debut)) {
-            errorDateFin.setText("⚠ La date de fin doit être après la date de début");
-            dateFin.setStyle(DATE_ERROR_STYLE);
             isValid = false;
         }
 
@@ -437,8 +382,6 @@ public class ChallengeFormController {
         if (isValid) {
             challenge.setTitre(titre);
             challenge.setDescription(description);
-            challenge.setDateDebut(debut);
-            challenge.setDateFin(fin);
             challenge.setNiveau(niveau);
 
             // Récupérer les IDs des exercices sélectionnés

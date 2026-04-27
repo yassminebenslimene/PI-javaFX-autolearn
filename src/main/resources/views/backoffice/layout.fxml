@@ -29,9 +29,14 @@
                     <Label text="AutoLearn" style="-fx-text-fill:white; -fx-font-size:16; -fx-font-weight:bold;"/>
                 </HBox>
 
-                <!-- MAIN MENU -->
-                <VBox spacing="2" style="-fx-padding:16 8 8 8;">
-                    <Label text="MAIN MENU" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
+                <!-- Scrollable menu area -->
+                <javafx.scene.control.ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" fitToHeight="false"
+                                                 style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;"
+                                                 hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" pannable="false">
+                    <VBox spacing="0" style="-fx-background-color:transparent;">
+                        <!-- MAIN MENU -->
+                        <VBox spacing="2" style="-fx-padding:16 8 8 8;">
+                            <Label text="MAIN MENU" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
 
                     <Button fx:id="btnDashboard" text="  ⊞   Dashboard" maxWidth="Infinity" onAction="#navigateToDashboard"
                             style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
@@ -62,7 +67,14 @@
                             style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-
+                    <Button fx:id="btnStudentsAtRisk" text="  ⚠️   Étudiants à risque" maxWidth="Infinity" onAction="#navigateToStudentsAtRisk"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                    <Button fx:id="btnRetention" text="  📊   Rétention" maxWidth="Infinity" onAction="#navigateToRetention"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
                     <Button fx:id="btnQuiz" text="  📋   Quiz" maxWidth="Infinity" onAction="#navigateToQuiz"
                             style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
@@ -78,27 +90,29 @@
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
 
-                    <Button fx:id="btnChatbot" text="  AI   Assistant IA" maxWidth="Infinity" onAction="#navigateToChatbot"
-                            style="-fx-background-color:rgba(5,150,105,0.15); -fx-text-fill:#6ee7b7;
-                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
-                                   -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand; -fx-border-width:1;
-                                   -fx-border-color:rgba(5,150,105,0.3); -fx-border-radius:10;"/>
-                </VBox>
+                            <Button fx:id="btnChatbot" text="  AI   Assistant IA" maxWidth="Infinity" onAction="#navigateToChatbot"
+                                    style="-fx-background-color:rgba(5,150,105,0.15); -fx-text-fill:#6ee7b7;
+                                           -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                           -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand; -fx-border-width:1;
+                                           -fx-border-color:rgba(5,150,105,0.3); -fx-border-radius:10;"/>
+                        </VBox>
 
-                <!-- COMPTE -->
-                <VBox spacing="2" style="-fx-padding:8 8 8 8;">
-                    <Label text="COMPTE" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
-                    <Button fx:id="btnProfile" text="  👤   Mon Profil" maxWidth="Infinity" onAction="#navigateToProfile"
-                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
-                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
-                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-                    <Button text="  ⎋   Déconnexion" maxWidth="Infinity" onAction="#onLogout"
-                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
-                                   -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
-                                   -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
-                </VBox>
+                        <!-- COMPTE -->
+                        <VBox spacing="2" style="-fx-padding:8 8 16 8;">
+                            <Label text="COMPTE" style="-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10; -fx-font-weight:bold; -fx-padding:0 0 6 12;"/>
+                            <Button fx:id="btnProfile" text="  👤   Mon Profil" maxWidth="Infinity" onAction="#navigateToProfile"
+                                    style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                           -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                           -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                            <Button text="  ⎋   Déconnexion" maxWidth="Infinity" onAction="#onLogout"
+                                    style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.7);
+                                           -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
+                                           -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
+                        </VBox>
+                    </VBox>
+                </javafx.scene.control.ScrollPane>
 
-                <Region VBox.vgrow="ALWAYS"/>
+                <Region VBox.vgrow="NEVER" minHeight="0" prefHeight="0"/>
 
                 <!-- User footer -->
                 <HBox spacing="10" alignment="CENTER_LEFT"

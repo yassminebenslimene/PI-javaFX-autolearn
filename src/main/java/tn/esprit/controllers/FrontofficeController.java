@@ -42,8 +42,10 @@ public class FrontofficeController {
     @FXML private Button btnHome;
     @FXML private Button btnNavCours;
     @FXML private Button btnNavChallenges;
+    @FXML private Button btnNavClassement;
     @FXML private Button btnNavEvenements;
     @FXML private Button btnNavCommunaute;
+    @FXML private Button btnNavMessagerie;
 
     // Sections
     @FXML private VBox sectionCours;
@@ -65,7 +67,7 @@ public class FrontofficeController {
         "-fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
 
     private void setActiveNav(Button active) {
-        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavEvenements, btnNavCommunaute}) {
+        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavClassement, btnNavEvenements, btnNavCommunaute, btnNavMessagerie}) {
             if (b != null) b.setStyle(b == active ? NAV_ACTIVE : NAV_INACTIVE);
         }
     }
@@ -633,11 +635,6 @@ public class FrontofficeController {
             dur.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
             meta.getChildren().add(dur);
         }
-        if (c.getDateFin() != null) {
-            Label fin = new Label("\uD83D\uDCC5 " + c.getDateFin().toString());
-            fin.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
-            meta.getChildren().add(fin);
-        }
 
         Button btn = new Button("Relever le challenge →");
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -811,6 +808,11 @@ public class FrontofficeController {
         }
     }
 
+    @FXML public void onLeaderboard() {
+        if (!requireLogin()) return;
+        try { MainApp.showLeaderboard(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
     @FXML public void onProfile() {
         try {
             var u = SessionManager.getCurrentUser();
@@ -839,7 +841,7 @@ public class FrontofficeController {
     /** Ouvre la messagerie en temps réel. */
     @FXML public void onMessagerie() {
         if (!requireLogin()) return;
-        setActiveNav(null);
+        setActiveNav(btnNavMessagerie);
         try {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/views/frontoffice/messagerie/chat.fxml"));

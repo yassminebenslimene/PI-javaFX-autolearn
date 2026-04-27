@@ -68,12 +68,19 @@ public class MainApp extends Application {
     }
 
     /**
+     * DEPRECATED: Old Python Face ID server - now using Face++ API directly
      * Starts the Python Face ID server automatically if not already running.
      * Looks for faceid_server.py in the project directory.
      */
     private static Process faceIdProcess;
 
     private static void startFaceIdServer() {
+        // DISABLED: Now using Face++ API directly in FaceIdService
+        // No need to start Python server anymore
+        System.out.println("[FaceID] Using Face++ API (Python server disabled)");
+        return;
+        
+        /* OLD CODE - COMMENTED OUT
         // Check if already running
         if (tn.esprit.services.FaceIdService.isServerRunning()) {
             System.out.println("[FaceID] Server already running");
@@ -125,6 +132,7 @@ public class MainApp extends Application {
         t.setDaemon(true);
         t.setName("faceid-server-starter");
         t.start();
+        */
     }
 
     /** Stop the Face ID server when app closes */
@@ -304,6 +312,12 @@ public class MainApp extends Application {
         load("/views/frontoffice/showchallenges.fxml");
         primaryStage.setMaximized(true);
         primaryStage.setTitle("AutoLearn — Challenges");
+    }
+
+    public static void showLeaderboard() throws Exception {
+        load("/views/frontoffice/leaderboard.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Classement");
     }
 
     public static void showCommunauteFront() throws Exception {

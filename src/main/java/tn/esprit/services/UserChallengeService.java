@@ -106,6 +106,17 @@ public class UserChallengeService {
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    public void delete(int id) {
+        String query = "DELETE FROM user_challenge WHERE id=?";
+        try {
+            PreparedStatement pst = connection.prepareStatement(query);
+            pst.setInt(1, id);
+            pst.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     /** Parse le JSON simple {"questionId":"réponse",...} généré par convertAnswersToJson() */
     private Map<Integer, String> parseAnswersJson(String json) {
         Map<Integer, String> map = new HashMap<>();

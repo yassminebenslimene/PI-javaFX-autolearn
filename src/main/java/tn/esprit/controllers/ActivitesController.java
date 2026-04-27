@@ -88,29 +88,22 @@ public class ActivitesController {
     private void loadData() {
         showLoading();
 
-        // Try Symfony API first, fall back to direct DB read if API unavailable
-        ActivityApiClient.fetchRecentActivities(500).thenAccept(apiResult -> {
-            List<ActivityApiClient.ActivityEntry> all;
+        // Read directly from user_activity table (same table Symfony uses)
+        ActivityApiClient.fetchRecentActivities(500).thenAccept(all -> {
 
-            if (apiResult.isEmpty()) {
-                System.out.println("[Activites] API returned 0 — falling back to direct DB");
-                all = ActivityApiClient.fetchFromDbDirect(500);
-            } else {
-                all = apiResult;
-            }
+            System.out.println("[Activites] Total=" + all.size());
 
             // Students tab: user.* actions by non-admin users
             List<ActivityApiClient.ActivityEntry> students = all.stream()
                 .filter(e -> e.action().startsWith("user.") && !"ADMIN".equalsIgnoreCase(e.userRole()))
                 .collect(Collectors.toList());
 
-            // Admin tab: ALL actions by the current admin (login + admin.* actions)
+            // Admin tab: ALL actions by the current admin
             List<ActivityApiClient.ActivityEntry> adminHistory = all.stream()
                 .filter(e -> e.userId() == currentAdminId)
                 .collect(Collectors.toList());
 
-            System.out.println("[Activites] Total=" + all.size()
-                + " Students=" + students.size() + " Admin=" + adminHistory.size());
+            System.out.println("[Activites] Students=" + students.size() + " Admin=" + adminHistory.size());
 
             Platform.runLater(() -> {
                 allStudentEntries = students;
@@ -245,11 +238,11 @@ public class ActivitesController {
         h.setStyle("-fx-padding:8 0 8 0; -fx-border-color:transparent transparent rgba(255,255,255,0.1) transparent; -fx-border-width:0 0 1 0;");
         h.getChildren().addAll(
             hCell("#",            50),
-            hCell("Date",         140),
-            hCell("Utilisateur",  170),
-            hCell("Role",          90),
-            hCell("Localisation", 200),
-            hCell("Action",       140)
+            hCell("Date",         150),
+            hCell("Utilisateur",  180),
+            hCell("Role",          80),
+            hCell("Localisation", 180),
+            hCell("Action",       220)
         );
         return h;
     }
@@ -257,31 +250,37 @@ public class ActivitesController {
     private Label hCell(String text, double w) {
         Label l = new Label(text);
         l.setPrefWidth(w);
+        l.setMinWidth(w);
         l.setStyle("-fx-text-fill:rgba(245,245,244,0.35); -fx-font-size:11; -fx-font-weight:700; -fx-padding:0 8 0 8;");
         return l;
     }
 
     private HBox buildRow(ActivityApiClient.ActivityEntry e, boolean even) {
-        String bg = even ? "-fx-background-color:rgba(255,255,255,0.025);" : "-fx-background-color:transparent;";
+        String bg     = even ? "-fx-background-color:rgba(255,255,255,0.025);" : "-fx-background-color:transparent;";
         String border = "-fx-border-color:transparent transparent rgba(255,255,255,0.04) transparent; -fx-border-width:0 0 1 0;";
 
         HBox row = new HBox(0);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setStyle(bg + "-fx-padding:11 0 11 0; -fx-cursor:hand;" + border);
+        row.setStyle(bg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" + border);
 
         // ID
         Label idLbl = new Label("#" + e.id());
         idLbl.setPrefWidth(50);
+        idLbl.setMinWidth(50);
         idLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.25); -fx-font-size:10; -fx-padding:0 8 0 8;");
 
         // Date
-        Label dateLbl = new Label(e.createdAt());
-        dateLbl.setPrefWidth(140);
+        Label dateLbl = new Label(e.createdAt() != null ? e.createdAt() : "—");
+        dateLbl.setPrefWidth(150);
+        dateLbl.setMinWidth(150);
+        dateLbl.setWrapText(false);
         dateLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:12; -fx-padding:0 8 0 8;");
 
         // User
-        Label userLbl = new Label(e.userName());
-        userLbl.setPrefWidth(170);
+        Label userLbl = new Label(e.userName() != null ? e.userName() : "—");
+        userLbl.setPrefWidth(180);
+        userLbl.setMinWidth(180);
+        userLbl.setWrapText(true);
         userLbl.setStyle("-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:600; -fx-padding:0 8 0 8;");
 
         // Role badge
@@ -291,43 +290,48 @@ public class ActivitesController {
         Label roleLbl = new Label(e.userRole() != null ? e.userRole() : "—");
         roleLbl.setStyle(roleColor + "-fx-font-size:10; -fx-font-weight:700; -fx-background-radius:5; -fx-padding:2 7 2 7;");
         HBox roleBox = new HBox(roleLbl);
-        roleBox.setPrefWidth(90);
+        roleBox.setPrefWidth(80);
+        roleBox.setMinWidth(80);
         roleBox.setPadding(new Insets(0, 8, 0, 8));
         roleBox.setAlignment(Pos.CENTER_LEFT);
 
-        // Location
+        // Location — show full text, no truncation
         String loc = (e.location() != null && !e.location().equals("—") && !e.location().isBlank())
             ? e.location() : (e.ipAddress() != null ? e.ipAddress() : "—");
         Label locLbl = new Label("📍 " + loc);
-        locLbl.setPrefWidth(200);
-        locLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:11; -fx-padding:0 8 0 8;");
+        locLbl.setPrefWidth(180);
+        locLbl.setMinWidth(180);
+        locLbl.setWrapText(true);
+        locLbl.setStyle("-fx-text-fill:rgba(245,245,244,0.5); -fx-font-size:11; -fx-padding:0 8 0 8;");
 
-        // Action badge
+        // Action badge — full label, no truncation
         String action = e.action();
         String badgeStyle = action.contains("login")      ? "-fx-background-color:rgba(99,102,241,0.25); -fx-text-fill:#a5b4fc;" :
                             action.contains("logout")     ? "-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:rgba(245,245,244,0.6);" :
                             action.contains("suspend")    ? "-fx-background-color:rgba(239,68,68,0.25); -fx-text-fill:#f87171;" :
                             action.contains("reactivat")  ? "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;" :
                             action.contains("creat")      ? "-fx-background-color:rgba(5,150,105,0.25); -fx-text-fill:#34d399;" :
-                            action.contains("view")       ? "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;" :
-                            action.contains("cours")      ? "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;" :
-                            action.contains("challenge")  ? "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;" :
+                            action.contains("delet")      ? "-fx-background-color:rgba(239,68,68,0.2); -fx-text-fill:#f87171;" :
+                            action.contains("updat")      ? "-fx-background-color:rgba(251,191,36,0.2); -fx-text-fill:#fbbf24;" :
+                            action.contains("view")       ? "-fx-background-color:rgba(14,165,233,0.2); -fx-text-fill:#38bdf8;" :
+                            action.contains("cours")      ? "-fx-background-color:rgba(14,165,233,0.2); -fx-text-fill:#38bdf8;" :
+                            action.contains("challenge")  ? "-fx-background-color:rgba(14,165,233,0.2); -fx-text-fill:#38bdf8;" :
                                                             "-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:rgba(245,245,244,0.6);";
         Label actionLbl = new Label(e.actionIcon() + "  " + e.actionLabel());
-        actionLbl.setStyle(badgeStyle + "-fx-font-size:11; -fx-font-weight:700; -fx-background-radius:6; -fx-padding:3 10 3 10;");
+        actionLbl.setWrapText(false);
+        actionLbl.setStyle(badgeStyle + "-fx-font-size:11; -fx-font-weight:700; -fx-background-radius:6; -fx-padding:4 12 4 12;");
         HBox actionBox = new HBox(actionLbl);
-        actionBox.setPrefWidth(140);
+        actionBox.setPrefWidth(220);
+        actionBox.setMinWidth(220);
         actionBox.setPadding(new Insets(0, 8, 0, 8));
         actionBox.setAlignment(Pos.CENTER_LEFT);
 
         row.getChildren().addAll(idLbl, dateLbl, userLbl, roleBox, locLbl, actionBox);
 
         // Hover
-        String hoverBg = currentTab == Tab.STUDENTS
-            ? "-fx-background-color:rgba(99,102,241,0.08);"
-            : "-fx-background-color:rgba(122,106,216,0.08);";
-        row.setOnMouseEntered(ev -> row.setStyle(hoverBg + "-fx-padding:11 0 11 0; -fx-cursor:hand;" + border));
-        row.setOnMouseExited(ev  -> row.setStyle(bg + "-fx-padding:11 0 11 0; -fx-cursor:hand;" + border));
+        String hoverBg = "-fx-background-color:rgba(122,106,216,0.08);";
+        row.setOnMouseEntered(ev -> row.setStyle(hoverBg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" + border));
+        row.setOnMouseExited(ev  -> row.setStyle(bg + "-fx-padding:10 0 10 0; -fx-cursor:hand;" + border));
 
         return row;
     }

@@ -38,6 +38,7 @@ public class PlayChallengeController {
 
     private TranslateService translateService;
     private QuoteService quoteService;
+    private GroqChallengeCorrectorService aiCorrectorService;
     private Challenge challenge;
     private List<Exercice> exercices;
     private List<Quiz> quizzes;
@@ -60,6 +61,7 @@ public class PlayChallengeController {
         quizService = new ServiceQuiz();
         emailService = new EmailService();
         quoteService = new QuoteService();
+        aiCorrectorService = new GroqChallengeCorrectorService();
         exerciceAnswers = new HashMap<>();
         quizScores = new HashMap<>();
         translateService = new TranslateService();
@@ -319,10 +321,151 @@ public class PlayChallengeController {
     @FXML
     public void onFinish() {
         saveCurrentAnswer();
-        calculateScore();
-        generateAIAnalysis();
-        sendResultEmail();
 
+        // Show loading state
+        if (finishButton != null) {
+            finishButton.setText("🤖 Correction IA en cours...");
+            finishButton.setDisable(true);
+        }
+
+        // Run AI correction asynchronously
+        new Thread(() -> {
+            calculateScoreWithAI();
+        }).start();
+    }
+
+    private void calculateScoreWithAI() {
+        score = 0;
+        StringBuilder fullAnalysis = new StringBuilder();
+        Map<String, GroqChallengeCorrectorService.CorrectionResult> corrections = new HashMap<>();
+
+        fullAnalysis.append("╔══════════════════════════════════════════════════════════════════════╗\n");
+        fullAnalysis.append("║              🤖 CORRECTION INTELLIGENTE PAR L'IA GROQ                ║\n");
+        fullAnalysis.append("╚══════════════════════════════════════════════════════════════════════╝\n\n");
+
+        int questionNumber = 1;
+
+        // Correct exercises with AI
+        for (Exercice e : exercices) {
+            String userAnswer = exerciceAnswers.get(e.getId());
+            String bonneReponse = e.getReponse() != null ? e.getReponse() : "";
+
+            try {
+                GroqChallengeCorrectorService.CorrectionResult correction =
+                    aiCorrectorService.corrigerReponse(
+                        e.getQuestion(), bonneReponse, userAnswer != null ? userAnswer : "", e.getPoints()
+                    ).get(); // blocking — we're already in a background thread
+
+                score += correction.pointsObtenus();
+                corrections.put(e.getQuestion(), correction);
+
+                fullAnalysis.append("┌─────────────────────────────────────────────────────────────────┐\n");
+                fullAnalysis.append("│ 📌 EXERCICE N°").append(questionNumber).append("\n");
+                fullAnalysis.append("├─────────────────────────────────────────────────────────────────┤\n");
+                fullAnalysis.append("│ ❓ ").append(e.getQuestion()).append("\n");
+                fullAnalysis.append("├─────────────────────────────────────────────────────────────────┤\n");
+                fullAnalysis.append("│ 📝 VOTRE RÉPONSE :\n");
+                fullAnalysis.append("│ ").append(userAnswer != null && !userAnswer.isEmpty() ? userAnswer : "(non répondue)").append("\n");
+                fullAnalysis.append("├─────────────────────────────────────────────────────────────────┤\n");
+                fullAnalysis.append("│ 🎯 SCORE : ").append(correction.pointsObtenus()).append("/").append(e.getPoints())
+                    .append(" (").append(correction.pourcentage()).append("%)\n");
+                fullAnalysis.append("│\n");
+                fullAnalysis.append("│ 💬 FEEDBACK IA :\n");
+                fullAnalysis.append("│ ").append(correction.feedback()).append("\n");
+                if (!correction.pointsForts().isEmpty()) {
+                    fullAnalysis.append("│\n│ ✅ POINTS FORTS : ").append(correction.pointsForts()).append("\n");
+                }
+                if (!correction.pointsManques().isEmpty()) {
+                    fullAnalysis.append("│ ⚠️ À AMÉLIORER : ").append(correction.pointsManques()).append("\n");
+                }
+                fullAnalysis.append("│\n│ 💡 CONSEIL : ").append(correction.conseil()).append("\n");
+                fullAnalysis.append("└─────────────────────────────────────────────────────────────────┘\n\n");
+
+            } catch (Exception ex) {
+                // Fallback: give points for participation
+                if (userAnswer != null && !userAnswer.trim().isEmpty()) {
+                    score += e.getPoints();
+                }
+                fullAnalysis.append("│ ⚠️ Correction IA indisponible pour cette question.\n");
+                fullAnalysis.append("└─────────────────────────────────────────────────────────────────┘\n\n");
+            }
+            questionNumber++;
+        }
+
+        // Quiz scores (self-evaluation)
+        for (Quiz q : quizzes) {
+            Integer quizScore = quizScores.get(q.getId());
+            if (quizScore != null && quizScore >= 50) score += 50;
+
+            fullAnalysis.append("┌─────────────────────────────────────────────────────────────────┐\n");
+            fullAnalysis.append("│ 📋 QUIZ : ").append(q.getTitre()).append("\n");
+            fullAnalysis.append("│ 🎯 AUTO-ÉVALUATION : ").append(quizScore != null ? quizScore : 0).append("/100\n");
+            fullAnalysis.append("└─────────────────────────────────────────────────────────────────┘\n\n");
+        }
+
+        // Generate global resume with AI
+        try {
+            int totalPoints = getTotalPoints();
+            GroqChallengeCorrectorService.ChallengeResume resume =
+                aiCorrectorService.genererResume(corrections, score, totalPoints).get();
+
+            fullAnalysis.append("╔══════════════════════════════════════════════════════════════════════╗\n");
+            fullAnalysis.append("║                    📊 BILAN PÉDAGOGIQUE GLOBAL                       ║\n");
+            fullAnalysis.append("╚══════════════════════════════════════════════════════════════════════╝\n\n");
+            fullAnalysis.append("🎯 ").append(resume.messageGeneral()).append("\n\n");
+
+            if (!resume.pointsForts().isEmpty()) {
+                fullAnalysis.append("✅ POINTS FORTS :\n");
+                resume.pointsForts().forEach(p -> fullAnalysis.append("  • ").append(p).append("\n"));
+                fullAnalysis.append("\n");
+            }
+            if (!resume.pointsAmeliorer().isEmpty()) {
+                fullAnalysis.append("📚 À AMÉLIORER :\n");
+                resume.pointsAmeliorer().forEach(p -> fullAnalysis.append("  • ").append(p).append("\n"));
+                fullAnalysis.append("\n");
+            }
+            if (!resume.recommandations().isEmpty()) {
+                fullAnalysis.append("💡 RECOMMANDATIONS :\n");
+                resume.recommandations().forEach(r -> fullAnalysis.append("  • ").append(r).append("\n"));
+                fullAnalysis.append("\n");
+            }
+            fullAnalysis.append("🚀 ").append(resume.encouragement()).append("\n");
+
+        } catch (Exception ex) {
+            fullAnalysis.append("📊 Score final : ").append(score).append("/").append(getTotalPoints()).append("\n");
+        }
+
+        this.aiAnalysis = fullAnalysis.toString();
+
+        // Save and navigate to result on UI thread
+        Platform.runLater(() -> {
+            saveUserChallengeResult();
+            sendResultEmail();
+            navigateToResult();
+        });
+    }
+
+    private void saveUserChallengeResult() {
+        try {
+            UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
+                JwtManager.getCurrentUser().getId(), challenge.getId());
+            if (userChallenge == null) {
+                userChallenge = new UserChallenge();
+                userChallenge.setUserId(JwtManager.getCurrentUser().getId());
+                userChallenge.setChallengeId(challenge.getId());
+            }
+            userChallenge.setCompleted(true);
+            userChallenge.setScore(score);
+            userChallenge.setTotalPoints(getTotalPoints());
+            userChallenge.setCompletedAt(LocalDateTime.now());
+            userChallengeService.save(userChallenge);
+        } catch (Exception e) {
+            System.err.println("Erreur sauvegarde résultat: " + e.getMessage());
+        }
+    }
+
+    private void navigateToResult() {
+        if (timer != null) timer.stop();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/resultchallenge.fxml"));
             javafx.scene.Parent root = loader.load();
@@ -330,148 +473,9 @@ public class PlayChallengeController {
             controller.setChallenge(challenge);
             controller.setScore(score, getTotalPoints());
             controller.setAIAnalysis(aiAnalysis);
-
             MainApp.getPrimaryStage().getScene().setRoot(root);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void calculateScore() {
-        score = 0;
-        // Score basé uniquement sur la participation (avoir répondu)
-        for (Exercice e : exercices) {
-            String userAnswer = exerciceAnswers.get(e.getId());
-            if (userAnswer != null && !userAnswer.trim().isEmpty()) {
-                score += e.getPoints();
-            }
-        }
-        for (Quiz q : quizzes) {
-            Integer quizScore = quizScores.get(q.getId());
-            if (quizScore != null && quizScore >= 50) {
-                score += 50;
-            }
-        }
-    }
-
-    private void generateAIAnalysis() {
-        StringBuilder analysis = new StringBuilder();
-        analysis.append("╔══════════════════════════════════════════════════════════════════════╗\n");
-        analysis.append("║                    🤖 ANALYSE IA DE VOS RÉPONSES                      ║\n");
-        analysis.append("╚══════════════════════════════════════════════════════════════════════╝\n\n");
-
-        int questionNumber = 1;
-
-        for (Exercice e : exercices) {
-            String userAnswer = exerciceAnswers.get(e.getId());
-            String theme = detectTheme(e.getQuestion());
-
-            analysis.append("┌─────────────────────────────────────────────────────────────────┐\n");
-            analysis.append("│ 📌 QUESTION N°").append(questionNumber).append("\n");
-            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
-            analysis.append("│ ❓ ").append(e.getQuestion()).append("\n");
-            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
-            analysis.append("│ 📝 VOTRE RÉPONSE :\n");
-            analysis.append("│ ").append(userAnswer != null && !userAnswer.isEmpty() ? userAnswer : "(non répondue)").append("\n");
-            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
-
-            if (userAnswer == null || userAnswer.trim().isEmpty()) {
-                analysis.append("│ ⚠️ ANALYSE : Aucune réponse fournie\n");
-                analysis.append("│\n");
-                analysis.append("│ 💡 RECOMMANDATION : Prenez le temps de répondre à chaque question.\n");
-            } else {
-                // Analyse de la qualité de la réponse
-                analysis.append("│ 🧠 ANALYSE DE VOTRE RÉPONSE :\n");
-                analysis.append("│\n");
-
-                // Longueur
-                if (userAnswer.length() < 20) {
-                    analysis.append("│   ⚠️ Réponse trop courte. Développez davantage.\n");
-                } else if (userAnswer.length() > 100) {
-                    analysis.append("│   ✅ Réponse bien développée.\n");
-                } else {
-                    analysis.append("│   📘 Longueur de réponse correcte.\n");
-                }
-
-                // Structure
-                if (userAnswer.contains(".") && userAnswer.split("\\.").length >= 2) {
-                    analysis.append("│   ✅ Bonne structure avec plusieurs phrases.\n");
-                } else {
-                    analysis.append("│   ⚠️ Structure à améliorer. Utilisez des phrases complètes.\n");
-                }
-
-                // Vocabulaire technique
-                if (containsTechnicalTerms(userAnswer, theme)) {
-                    analysis.append("│   ✅ Bon usage du vocabulaire technique.\n");
-                } else {
-                    analysis.append("│   ⚠️ Utilisez davantage de termes techniques.\n");
-                }
-
-                analysis.append("│\n");
-                analysis.append("│ 💡 RECOMMANDATIONS :\n");
-                analysis.append("│   • ").append(getRecommendationByTheme(theme)).append("\n");
-            }
-            analysis.append("└─────────────────────────────────────────────────────────────────┘\n\n");
-            questionNumber++;
-        }
-
-        // Analyse des quiz
-        for (Quiz q : quizzes) {
-            Integer quizScore = quizScores.get(q.getId());
-            String theme = detectTheme(q.getTitre());
-
-            analysis.append("┌─────────────────────────────────────────────────────────────────┐\n");
-            analysis.append("│ 📋 QUIZ : ").append(q.getTitre()).append("\n");
-            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
-            analysis.append("│ 🎯 VOTRE AUTO-ÉVALUATION : ").append(quizScore != null ? quizScore : 0).append("/100\n");
-            analysis.append("├─────────────────────────────────────────────────────────────────┤\n");
-
-            if (quizScore == null || quizScore < 50) {
-                analysis.append("│ 📊 ANALYSE : Auto-évaluation basse\n");
-                analysis.append("│\n");
-                analysis.append("│ 💡 CONSEILS : Révisez les concepts de ").append(theme).append("\n");
-            } else {
-                analysis.append("│ 📊 ANALYSE : Bonne confiance en vos connaissances\n");
-                analysis.append("│\n");
-                analysis.append("│ 🚀 POUR ALLER PLUS LOIN : Testez-vous sur des exercices avancés\n");
-            }
-            analysis.append("└─────────────────────────────────────────────────────────────────┘\n\n");
-        }
-
-        this.aiAnalysis = analysis.toString();
-    }
-
-    private String detectTheme(String text) {
-        String lowerText = text.toLowerCase();
-        if (lowerText.contains("java") || lowerText.contains("poo") || lowerText.contains("objet")) {
-            return "Java";
-        } else if (lowerText.contains("sql") || lowerText.contains("base de données")) {
-            return "SQL";
-        } else if (lowerText.contains("html") || lowerText.contains("css") || lowerText.contains("javascript")) {
-            return "Web";
-        } else {
-            return "Général";
-        }
-    }
-
-    private boolean containsTechnicalTerms(String answer, String theme) {
-        String lowerAnswer = answer.toLowerCase();
-        if (theme.equals("Java")) {
-            return lowerAnswer.contains("classe") || lowerAnswer.contains("objet") || lowerAnswer.contains("méthode");
-        } else if (theme.equals("SQL")) {
-            return lowerAnswer.contains("select") || lowerAnswer.contains("from") || lowerAnswer.contains("join");
-        } else if (theme.equals("Web")) {
-            return lowerAnswer.contains("html") || lowerAnswer.contains("css") || lowerAnswer.contains("javascript");
-        }
-        return false;
-    }
-
-    private String getRecommendationByTheme(String theme) {
-        switch (theme) {
-            case "Java": return "Révisez les concepts de programmation orientée objet (classes, objets, héritage)";
-            case "SQL": return "Entraînez-vous sur les requêtes SQL (SELECT, JOIN, GROUP BY)";
-            case "Web": return "Pratiquez HTML/CSS et JavaScript avec des mini-projets";
-            default: return "Structurez vos réponses et utilisez des exemples concrets";
         }
     }
 
@@ -496,22 +500,12 @@ public class PlayChallengeController {
     }
 
     private void finishChallenge() {
-        calculateScore();
-        generateAIAnalysis();
-        sendResultEmail();
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/resultchallenge.fxml"));
-            javafx.scene.Parent root = loader.load();
-            ResultChallengeController controller = loader.getController();
-            controller.setChallenge(challenge);
-            controller.setScore(score, getTotalPoints());
-            controller.setAIAnalysis(aiAnalysis);
-
-            MainApp.getPrimaryStage().getScene().setRoot(root);
-        } catch (IOException e) {
-            e.printStackTrace();
+        saveCurrentAnswer();
+        if (finishButton != null) {
+            finishButton.setText("🤖 Correction IA...");
+            finishButton.setDisable(true);
         }
+        new Thread(this::calculateScoreWithAI).start();
     }
 
     @FXML

@@ -147,10 +147,10 @@ public class MessagerieService {
                      "WHERE n.type = 'follow_accepted' " +
                      "AND n.message LIKE ? " +
                      "UNION " +
-                     "SELECT DISTINCT CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(n.message,'\"senderId\":',−1),',',1) AS UNSIGNED) as otherId, " +
+                     "SELECT DISTINCT CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(n.message,'\"senderId\":',-1),',',1) AS UNSIGNED) as otherId, " +
                      "u.nom, u.prenom " +
                      "FROM notification n " +
-                     "JOIN user u ON u.userId = CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(n.message,'\"senderId\":',−1),',',1) AS UNSIGNED) " +
+                     "JOIN user u ON u.userId = CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(n.message,'\"senderId\":',-1),',',1) AS UNSIGNED) " +
                      "WHERE n.type = 'follow_accepted' AND n.user_id = ?";
         // Approche simplifiée : récupérer tous les follow_accepted liés à userId
         return getContacts(userId);
@@ -188,7 +188,7 @@ public class MessagerieService {
         // Chercher aussi les cas où userId a reçu la demande et l'a acceptée
         String sql2 = "SELECT DISTINCT u.userId, u.nom, u.prenom " +
                       "FROM notification n " +
-                      "JOIN user u ON u.userId = CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(n.message,'\"senderId\":',−1),',',1) AS UNSIGNED) " +
+                      "JOIN user u ON u.userId = CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(n.message,'\"senderId\":',-1),',',1) AS UNSIGNED) " +
                       "WHERE n.type = 'follow_accepted' AND n.user_id = ?";
         try (PreparedStatement ps = conn().prepareStatement(sql2)) {
             ps.setInt(1, userId);

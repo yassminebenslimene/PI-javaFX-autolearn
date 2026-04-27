@@ -15,6 +15,8 @@ public class NavbarController {
     @FXML private Button btnEvenements;
     @FXML private Button btnCommunaute;
     @FXML private Button btnChallenges;
+    @FXML private Button btnClassement;
+    @FXML private Button btnMessages;
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
     @FXML private Button btnProfile;
@@ -56,8 +58,8 @@ public class NavbarController {
     }
 
     public void setActive(String page) {
-        Button[] fb = {btnAccueil, btnCours, btnEvenements, btnCommunaute, btnChallenges};
-        String[] fn = {"Accueil", "Cours", "Evenements", "Communaute", "Challenges"};
+        Button[] fb = {btnAccueil, btnCours, btnChallenges, btnClassement, btnEvenements, btnCommunaute, btnMessages};
+        String[] fn = {"Accueil", "Cours", "Challenges", "Classement", "Evenements", "Communaute", "Messages"};
         for (int i = 0; i < fb.length; i++)
             if (fb[i] != null) fb[i].setStyle(fn[i].equals(page) ? ACTIVE_FRONT : INACTIVE_FRONT);
         Button[] bb = {btnDashboard, btnUsers, btnCours, btnEvenements, btnChallenges, btnCommunaute, btnProfile};
@@ -88,6 +90,14 @@ public class NavbarController {
         if (SessionManager.isAdmin())
             navigate(() -> MainApp.showBackofficeView("/views/backoffice/challenge/challenges.fxml", "Challenges"));
         else navigate(() -> MainApp.showChallengesFront());
+    }
+    @FXML private void onLeaderboard() {
+        navigate(() -> MainApp.showLeaderboard());
+    }
+    @FXML private void onMessagerie() {
+        // For now, just go to frontoffice which has the messagerie button
+        // The user can click Messages from the main layout
+        navigate(() -> MainApp.showFrontoffice());
     }
     @FXML private void onDashboard() { navigate(() -> MainApp.showBackoffice()); }
     @FXML private void onUsers()     { navigate(() -> MainApp.showBackoffice()); }

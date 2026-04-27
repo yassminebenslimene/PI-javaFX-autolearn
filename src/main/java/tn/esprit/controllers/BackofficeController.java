@@ -58,7 +58,8 @@ public class BackofficeController {
 
     private void setActive(Button active) {
         for (Button b : new Button[]{btnDashboard, btnUsers, btnActivites, btnQuiz, btnCours, btnEvenements,
-                                      btnExercices, btnChallenges, btnCommunaute, btnProfile, btnChatbot}) {
+                                      btnExercices, btnChallenges, btnStudentsAtRisk, btnRetention,
+                                      btnCommunaute, btnProfile, btnChatbot}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }

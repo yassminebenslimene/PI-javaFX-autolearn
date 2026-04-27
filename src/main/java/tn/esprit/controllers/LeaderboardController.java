@@ -226,6 +226,10 @@ public class LeaderboardController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
+    @FXML private void onMessagerie() {
+        try { MainApp.showFrontoffice(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
     @FXML private void onProfile() {
         try { MainApp.showProfile(); } catch (Exception e) { e.printStackTrace(); }
     }

@@ -338,8 +338,6 @@ public class ChatbotActionExecutor {
             c.setDescription(desc);
             c.setNiveau(niv);
             c.setDuree(duree);
-            c.setDateDebut(LocalDate.now().plusDays(1));
-            c.setDateFin(LocalDate.now().plusDays(30));
             c.setCreatedBy(currentUserId());
 
             challengeService.add(c);
