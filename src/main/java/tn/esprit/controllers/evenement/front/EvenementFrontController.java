@@ -283,6 +283,22 @@ public class EvenementFrontController {
 
         expandBtn.setOnAction(e -> showDetailsModal(ev, isCancelled, isPast, nbEquipes, color, bg));
 
+        // ── Bouton Espace Participant (événement En cours uniquement) ──
+        if ("En cours".equals(ev.computeStatus())
+                && tn.esprit.session.SessionManager.getCurrentUser() != null) {
+            Button espaceBtn = new Button("🎯  Espace Participant");
+            espaceBtn.setMaxWidth(Double.MAX_VALUE);
+            espaceBtn.setStyle(
+                    "-fx-background-color:linear-gradient(to right,#667eea,#764ba2);"
+                    + "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;"
+                    + "-fx-padding:10 16 10 16; -fx-background-radius:0 0 18 18;"
+                    + "-fx-cursor:hand; -fx-border-width:0; -fx-max-width:Infinity;");
+            espaceBtn.setOnAction(e ->
+                    tn.esprit.controllers.evenement.front.EspaceParticipantController
+                            .show(ev, card.getScene().getWindow()));
+            body.getChildren().add(espaceBtn);
+        }
+
         card.getChildren().addAll(topBand, body);
         return card;
     }

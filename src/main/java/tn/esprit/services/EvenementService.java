@@ -119,7 +119,7 @@ public class EvenementService implements IService<Evenement> {
     @Override
     public List<Evenement> getAll() {
         List<Evenement> list = new ArrayList<>();
-        String req = "SELECT * FROM evenement ORDER BY date_debut DESC";
+        String req = "SELECT * FROM evenement ORDER BY date_debut ASC";
         try (Statement st = connection.createStatement();
              ResultSet rs = st.executeQuery(req)) {
             while (rs.next()) {

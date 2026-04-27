@@ -22,7 +22,7 @@ public class EvenementIndexController implements Initializable {
 
     @FXML private VBox tableRows;
     @FXML private ComboBox<String> filterCombo;
-    @FXML private VBox statsContainer;
+    @FXML private HBox statsContainer;
 
     private final EvenementService service = new EvenementService();
     private final GroqService groqService = new GroqService();
@@ -68,7 +68,6 @@ public class EvenementIndexController implements Initializable {
         List<Evenement> filtered = getFiltered();
 
         if (currentFilter.equals("Tous les types d'événements")) {
-            // Show one card per type
             Map<String, List<Evenement>> byType = new LinkedHashMap<>();
             byType.put("Hackathon", new ArrayList<>());
             byType.put("Conference", new ArrayList<>());
@@ -76,12 +75,9 @@ public class EvenementIndexController implements Initializable {
             for (Evenement e : allEvents) {
                 if (e.getType() != null) byType.computeIfAbsent(e.getType(), k -> new ArrayList<>()).add(e);
             }
-            HBox row = new HBox(16);
-            row.setAlignment(Pos.CENTER_LEFT);
             for (Map.Entry<String, List<Evenement>> entry : byType.entrySet()) {
-                if (!entry.getValue().isEmpty()) row.getChildren().add(buildStatCard(entry.getKey(), entry.getValue()));
+                if (!entry.getValue().isEmpty()) statsContainer.getChildren().add(buildStatCard(entry.getKey(), entry.getValue()));
             }
-            if (!row.getChildren().isEmpty()) statsContainer.getChildren().add(row);
         } else if (!filtered.isEmpty()) {
             statsContainer.getChildren().add(buildStatCard(currentFilter, filtered));
         }
@@ -159,80 +155,174 @@ public class EvenementIndexController implements Initializable {
     private void showReportDialog(String type, String content) {
         String[] icons = {"📈", "💡", "✨"};
         String[] types = {"Analyse", "Recommandations", "Suggestions"};
-        String icon = icons[Arrays.asList(types).indexOf(type) < 0 ? 0 : Arrays.asList(types).indexOf(type)];
+        int idx = Arrays.asList(types).indexOf(type);
+        String icon = idx < 0 ? "📊" : icons[idx];
+        String[] gradients = {
+            "linear-gradient(to right,#667eea,#764ba2)",
+            "linear-gradient(to right,#f093fb,#f5576c)",
+            "linear-gradient(to right,#00f2fe,#4facfe)"
+        };
+        String gradient = idx < 0 ? gradients[0] : gradients[idx];
 
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle(icon + " Rapport " + type);
 
         VBox root = new VBox(0);
-        root.setPrefWidth(680);
+        root.setPrefWidth(760);
+        root.setMaxWidth(760);
 
-        // Header
-        VBox header = new VBox(4);
-        header.setPadding(new Insets(20, 24, 16, 24));
-        header.setStyle("-fx-background-color:linear-gradient(to right,#667eea,#764ba2);");
-        Label lTitle = new Label(icon + "  Rapport " + type);
-        lTitle.setStyle("-fx-text-fill:white; -fx-font-size:16; -fx-font-weight:bold;");
-        Label lSub = new Label("Filtre: " + currentFilter + "  •  " + getFiltered().size() + " événements analysés");
-        lSub.setStyle("-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:11;");
-        header.getChildren().addAll(lTitle, lSub);
+        // ── Header ──────────────────────────────────────────────────────────
+        VBox header = new VBox(6);
+        header.setPadding(new Insets(24, 28, 20, 28));
+        header.setStyle("-fx-background-color:" + gradient + "; -fx-background-radius:8 8 0 0;");
 
-        // Content
-        VBox body = new VBox(12);
-        body.setPadding(new Insets(20, 24, 20, 24));
+        HBox titleRow = new HBox(10);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+        Label lIcon = new Label(icon);
+        lIcon.setStyle("-fx-font-size:22;");
+        VBox titleBox = new VBox(3);
+        Label lTitle = new Label("Rapport " + type);
+        lTitle.setStyle("-fx-text-fill:white; -fx-font-size:18; -fx-font-weight:bold;");
+        Label lSub = new Label("AutoLearn  •  " + currentFilter + "  •  " + getFiltered().size() + " événements analysés");
+        lSub.setStyle("-fx-text-fill:rgba(255,255,255,0.8); -fx-font-size:11;");
+        titleBox.getChildren().addAll(lTitle, lSub);
+        titleRow.getChildren().addAll(lIcon, titleBox);
+        header.getChildren().add(titleRow);
+
+        // ── Body ─────────────────────────────────────────────────────────────
+        VBox body = new VBox(0);
         body.setStyle("-fx-background-color:#f8f9ff;");
+        body.setPadding(new Insets(24, 28, 24, 28));
 
-        // Parse sections (lines starting with ** or numbered)
+        // Parse and render markdown-like content
         String[] lines = content.split("\n");
+        VBox currentSection = null;
+
         for (String line : lines) {
             String trimmed = line.trim();
             if (trimmed.isEmpty()) continue;
-            if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
-                Label section = new Label(trimmed.replace("**", ""));
-                section.setStyle("-fx-text-fill:#667eea; -fx-font-size:13; -fx-font-weight:bold; -fx-padding:8 0 2 0;");
-                section.setWrapText(true);
-                body.getChildren().add(section);
+
+            // H2: ## Title
+            if (trimmed.startsWith("## ")) {
+                String text = trimmed.substring(3).replaceAll("\\*\\*", "");
+                Label h = new Label(text);
+                h.setStyle("-fx-text-fill:#1a202c; -fx-font-size:15; -fx-font-weight:bold; -fx-padding:12 0 6 0;");
+                h.setWrapText(true);
+                body.getChildren().add(h);
+                // Separator
+                Region sep = new Region();
+                sep.setPrefHeight(1);
+                sep.setStyle("-fx-background-color:#e2e8f0;");
+                sep.setMaxWidth(Double.MAX_VALUE);
+                VBox.setMargin(sep, new Insets(0, 0, 10, 0));
+                body.getChildren().add(sep);
+                currentSection = null;
+
+            // H3: ### Title
+            } else if (trimmed.startsWith("### ")) {
+                String text = trimmed.substring(4).replaceAll("\\*\\*", "");
+                Label h = new Label(text);
+                h.setStyle("-fx-text-fill:#667eea; -fx-font-size:13; -fx-font-weight:bold; -fx-padding:10 0 4 0;");
+                h.setWrapText(true);
+                body.getChildren().add(h);
+                currentSection = null;
+
+            // H4: #### Title
+            } else if (trimmed.startsWith("#### ")) {
+                String text = trimmed.substring(5).replaceAll("\\*\\*", "");
+                Label h = new Label("▸ " + text);
+                h.setStyle("-fx-text-fill:#4a5568; -fx-font-size:12; -fx-font-weight:bold; -fx-padding:8 0 2 0;");
+                h.setWrapText(true);
+                body.getChildren().add(h);
+
+            // Bullet: - item or • item
             } else if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
+                String text = trimmed.substring(2).replaceAll("\\*\\*(.*?)\\*\\*", "$1");
                 HBox item = new HBox(8);
                 item.setAlignment(Pos.TOP_LEFT);
+                VBox.setMargin(item, new Insets(2, 0, 2, 12));
                 Label bullet = new Label("•");
-                bullet.setStyle("-fx-text-fill:#667eea; -fx-font-size:14; -fx-font-weight:bold;");
-                bullet.setMinWidth(12);
-                Label text = new Label(trimmed.substring(2));
-                text.setStyle("-fx-text-fill:#2d3748; -fx-font-size:12;");
-                text.setWrapText(true);
-                text.setMaxWidth(580);
-                item.getChildren().addAll(bullet, text);
+                bullet.setStyle("-fx-text-fill:#667eea; -fx-font-size:13; -fx-font-weight:bold;");
+                bullet.setMinWidth(10);
+                Label lbl = new Label(text);
+                lbl.setStyle("-fx-text-fill:#2d3748; -fx-font-size:12;");
+                lbl.setWrapText(true);
+                lbl.setMaxWidth(660);
+                item.getChildren().addAll(bullet, lbl);
                 body.getChildren().add(item);
+
+            // Numbered: 1. item
+            } else if (trimmed.matches("^\\d+\\.\\s.*")) {
+                String text = trimmed.replaceFirst("^\\d+\\.\\s", "").replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+                HBox item = new HBox(8);
+                item.setAlignment(Pos.TOP_LEFT);
+                VBox.setMargin(item, new Insets(2, 0, 2, 12));
+                String num = trimmed.replaceFirst("^(\\d+)\\..*", "$1");
+                Label numLbl = new Label(num + ".");
+                numLbl.setStyle("-fx-text-fill:#667eea; -fx-font-size:12; -fx-font-weight:bold;");
+                numLbl.setMinWidth(22);
+                Label lbl = new Label(text);
+                lbl.setStyle("-fx-text-fill:#2d3748; -fx-font-size:12;");
+                lbl.setWrapText(true);
+                lbl.setMaxWidth(650);
+                item.getChildren().addAll(numLbl, lbl);
+                body.getChildren().add(item);
+
+            // Bold standalone: **text**
+            } else if (trimmed.startsWith("**") && trimmed.endsWith("**") && trimmed.length() > 4) {
+                String text = trimmed.substring(2, trimmed.length() - 2);
+                Label lbl = new Label(text);
+                lbl.setStyle("-fx-text-fill:#2d3748; -fx-font-size:12; -fx-font-weight:bold; -fx-padding:6 0 2 0;");
+                lbl.setWrapText(true);
+                body.getChildren().add(lbl);
+
+            // Normal paragraph
             } else {
-                Label text = new Label(trimmed);
-                text.setStyle("-fx-text-fill:#4a5568; -fx-font-size:12;");
-                text.setWrapText(true);
-                text.setMaxWidth(620);
-                body.getChildren().add(text);
+                String text = trimmed.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+                Label lbl = new Label(text);
+                lbl.setStyle("-fx-text-fill:#4a5568; -fx-font-size:12; -fx-padding:2 0 2 0;");
+                lbl.setWrapText(true);
+                lbl.setMaxWidth(700);
+                body.getChildren().add(lbl);
             }
         }
 
         ScrollPane scroll = new ScrollPane(body);
         scroll.setFitToWidth(true);
-        scroll.setPrefHeight(420);
-        scroll.setStyle("-fx-background-color:#f8f9ff; -fx-background:transparent; -fx-border-width:0;");
+        scroll.setPrefHeight(460);
+        scroll.setStyle("-fx-background-color:#f8f9ff; -fx-background:#f8f9ff; -fx-border-width:0;");
 
-        // Footer with PDF button
-        HBox footer = new HBox(12);
-        footer.setPadding(new Insets(12, 24, 12, 24));
+        // ── Footer ───────────────────────────────────────────────────────────
+        HBox footer = new HBox(10);
+        footer.setPadding(new Insets(14, 24, 14, 24));
         footer.setAlignment(Pos.CENTER_RIGHT);
-        footer.setStyle("-fx-background-color:white; -fx-border-color:#e2e8f0 transparent transparent transparent; -fx-border-width:1 0 0 0;");
-        Button btnPdf = new Button("⬇ Télécharger PDF");
-        btnPdf.setStyle("-fx-background-color:#667eea; -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:bold;" +
-                        "-fx-padding:9 18 9 18; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
+        footer.setStyle("-fx-background-color:white; -fx-border-color:#e2e8f0 transparent transparent transparent; -fx-border-width:1 0 0 0; -fx-background-radius:0 0 8 8;");
+
+        Label lInfo = new Label("Généré par AutoLearn AI  •  " + java.time.LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        lInfo.setStyle("-fx-text-fill:#a0aec0; -fx-font-size:10;");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button btnPdf = new Button("⬇  Télécharger PDF");
+        btnPdf.setStyle("-fx-background-color:" + gradient + "; -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:bold;" +
+                        "-fx-padding:10 20 10 20; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;" +
+                        "-fx-effect:dropshadow(gaussian,rgba(102,126,234,0.4),6,0,0,2);");
         btnPdf.setOnAction(ev -> exportReportPdf(type, icon, content));
-        footer.getChildren().add(btnPdf);
+        footer.getChildren().addAll(lInfo, spacer, btnPdf);
 
         root.getChildren().addAll(header, scroll, footer);
         dialog.getDialogPane().setContent(root);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().setStyle("-fx-background-color:white; -fx-padding:0;");
+        dialog.getDialogPane().setStyle("-fx-background-color:white; -fx-padding:0; -fx-background-radius:8;");
+        dialog.getDialogPane().setPrefWidth(780);
+
+        // Style the close button
+        Button closeBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (closeBtn != null) {
+            closeBtn.setStyle("-fx-background-color:#e2e8f0; -fx-text-fill:#4a5568; -fx-font-size:12;" +
+                              "-fx-padding:8 18 8 18; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;");
+        }
+
         dialog.showAndWait();
     }
 
@@ -257,69 +347,103 @@ public class EvenementIndexController implements Initializable {
         try {
             com.itextpdf.text.Document doc = new com.itextpdf.text.Document(com.itextpdf.text.PageSize.A4, 50, 50, 60, 50);
             java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-            com.itextpdf.text.pdf.PdfWriter.getInstance(doc, baos);
+            com.itextpdf.text.pdf.PdfWriter writer = com.itextpdf.text.pdf.PdfWriter.getInstance(doc, baos);
             doc.open();
 
-            com.itextpdf.text.BaseColor violet = new com.itextpdf.text.BaseColor(102, 126, 234);
-            com.itextpdf.text.BaseColor dark = new com.itextpdf.text.BaseColor(45, 55, 72);
-            com.itextpdf.text.BaseColor grey = new com.itextpdf.text.BaseColor(74, 85, 104);
+            com.itextpdf.text.BaseColor violet    = new com.itextpdf.text.BaseColor(102, 126, 234);
+            com.itextpdf.text.BaseColor purple    = new com.itextpdf.text.BaseColor(118, 75, 162);
+            com.itextpdf.text.BaseColor dark      = new com.itextpdf.text.BaseColor(26, 32, 44);
+            com.itextpdf.text.BaseColor grey      = new com.itextpdf.text.BaseColor(74, 85, 104);
+            com.itextpdf.text.BaseColor lightGrey = new com.itextpdf.text.BaseColor(226, 232, 240);
+            com.itextpdf.text.BaseColor bgLight   = new com.itextpdf.text.BaseColor(248, 249, 255);
+            com.itextpdf.text.BaseColor green     = new com.itextpdf.text.BaseColor(5, 150, 105);
 
-            // Header
-            com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("AutoLearn — Rapport " + type,
-                com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 20,
-                    com.itextpdf.text.Font.BOLD, violet));
-            title.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-            title.setSpacingAfter(4);
-            doc.add(title);
+            com.itextpdf.text.Font fontTitle   = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 22, violet);
+            com.itextpdf.text.Font fontSub     = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 10, grey);
+            com.itextpdf.text.Font fontH2      = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 13, dark);
+            com.itextpdf.text.Font fontH3      = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 11, violet);
+            com.itextpdf.text.Font fontH4      = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 10, grey);
+            com.itextpdf.text.Font fontBullet  = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 10, dark);
+            com.itextpdf.text.Font fontBody    = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 10, grey);
+            com.itextpdf.text.Font fontBold    = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 10, dark);
+            com.itextpdf.text.Font fontFooter  = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_OBLIQUE, 8, lightGrey);
 
-            com.itextpdf.text.Paragraph sub = new com.itextpdf.text.Paragraph(
-                "Filtre: " + currentFilter + "  •  " + getFiltered().size() + " événements",
-                com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 11,
-                    com.itextpdf.text.Font.NORMAL, grey));
-            sub.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-            sub.setSpacingAfter(16);
-            doc.add(sub);
+            // ── Header block ─────────────────────────────────────────────────
+            com.itextpdf.text.Paragraph titleP = new com.itextpdf.text.Paragraph("AutoLearn — Rapport " + type, fontTitle);
+            titleP.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+            titleP.setSpacingAfter(4);
+            doc.add(titleP);
 
-            com.itextpdf.text.pdf.draw.LineSeparator ls = new com.itextpdf.text.pdf.draw.LineSeparator(
-                1.5f, 100, violet, com.itextpdf.text.Element.ALIGN_CENTER, 0);
-            doc.add(new com.itextpdf.text.Chunk(ls));
-            doc.add(new com.itextpdf.text.Paragraph("\n"));
+            com.itextpdf.text.Paragraph subP = new com.itextpdf.text.Paragraph(
+                currentFilter + "  •  " + getFiltered().size() + " événements  •  " +
+                java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")), fontSub);
+            subP.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+            subP.setSpacingAfter(14);
+            doc.add(subP);
 
-            // Content
+            // Gradient-like separator (double line)
+            doc.add(new com.itextpdf.text.Chunk(new com.itextpdf.text.pdf.draw.LineSeparator(2f, 100, violet, com.itextpdf.text.Element.ALIGN_CENTER, 0)));
+            doc.add(new com.itextpdf.text.Paragraph(" "));
+
+            // ── Content ──────────────────────────────────────────────────────
             for (String line : content.split("\n")) {
-                String trimmed = line.trim();
-                if (trimmed.isEmpty()) { doc.add(new com.itextpdf.text.Paragraph(" ")); continue; }
-                if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
-                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph(trimmed.replace("**", ""),
-                        com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 12,
-                            com.itextpdf.text.Font.BOLD, violet));
-                    p.setSpacingBefore(8);
+                String t = line.trim();
+                if (t.isEmpty()) { doc.add(new com.itextpdf.text.Paragraph(" ", fontBody)); continue; }
+
+                if (t.startsWith("## ")) {
+                    String text = t.substring(3).replaceAll("\\*\\*", "");
+                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph(text, fontH2);
+                    p.setSpacingBefore(12); p.setSpacingAfter(2);
                     doc.add(p);
-                } else if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
-                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph("  • " + trimmed.substring(2),
-                        com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 11,
-                            com.itextpdf.text.Font.NORMAL, dark));
-                    p.setIndentationLeft(12);
+                    doc.add(new com.itextpdf.text.Chunk(new com.itextpdf.text.pdf.draw.LineSeparator(0.5f, 100, lightGrey, com.itextpdf.text.Element.ALIGN_CENTER, 0)));
+                    doc.add(new com.itextpdf.text.Paragraph(" ", fontBody));
+
+                } else if (t.startsWith("### ")) {
+                    String text = t.substring(4).replaceAll("\\*\\*", "");
+                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph(text, fontH3);
+                    p.setSpacingBefore(8); p.setSpacingAfter(2);
                     doc.add(p);
+
+                } else if (t.startsWith("#### ")) {
+                    String text = t.substring(5).replaceAll("\\*\\*", "");
+                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph("▸ " + text, fontH4);
+                    p.setSpacingBefore(6); p.setSpacingAfter(1);
+                    doc.add(p);
+
+                } else if (t.startsWith("- ") || t.startsWith("• ")) {
+                    String text = t.substring(2).replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph("    •  " + text, fontBullet);
+                    p.setIndentationLeft(10); p.setSpacingAfter(1);
+                    doc.add(p);
+
+                } else if (t.matches("^\\d+\\.\\s.*")) {
+                    String text = t.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph("    " + text, fontBullet);
+                    p.setIndentationLeft(10); p.setSpacingAfter(1);
+                    doc.add(p);
+
+                } else if (t.startsWith("**") && t.endsWith("**") && t.length() > 4) {
+                    String text = t.substring(2, t.length() - 2);
+                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph(text, fontBold);
+                    p.setSpacingBefore(4); p.setSpacingAfter(1);
+                    doc.add(p);
+
                 } else {
-                    doc.add(new com.itextpdf.text.Paragraph(trimmed,
-                        com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 11,
-                            com.itextpdf.text.Font.NORMAL, grey)));
+                    String text = t.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+                    com.itextpdf.text.Paragraph p = new com.itextpdf.text.Paragraph(text, fontBody);
+                    p.setSpacingAfter(2);
+                    doc.add(p);
                 }
             }
 
-            // Footer
+            // ── Footer ───────────────────────────────────────────────────────
             doc.add(new com.itextpdf.text.Paragraph("\n"));
-            doc.add(new com.itextpdf.text.Chunk(new com.itextpdf.text.pdf.draw.LineSeparator(
-                0.5f, 100, new com.itextpdf.text.BaseColor(200, 200, 220),
-                com.itextpdf.text.Element.ALIGN_CENTER, 0)));
-            com.itextpdf.text.Paragraph footer = new com.itextpdf.text.Paragraph(
-                "Généré par AutoLearn  •  © 2026",
-                com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 9,
-                    com.itextpdf.text.Font.ITALIC, grey));
-            footer.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-            footer.setSpacingBefore(6);
-            doc.add(footer);
+            doc.add(new com.itextpdf.text.Chunk(new com.itextpdf.text.pdf.draw.LineSeparator(0.5f, 100, lightGrey, com.itextpdf.text.Element.ALIGN_CENTER, 0)));
+            com.itextpdf.text.Paragraph footerP = new com.itextpdf.text.Paragraph(
+                "Généré par AutoLearn  •  Rapport " + type + "  •  © 2026", fontFooter);
+            footerP.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+            footerP.setSpacingBefore(6);
+            doc.add(footerP);
 
             doc.close();
             return baos.toByteArray();
