@@ -359,7 +359,8 @@ public class EmpruntMaterielController {
                 listBox.setManaged(true);
                 renderItemList(items, listBox, bannerLbl, ev, body);
                 showConfirmationBanner(bannerLbl, item, duree[0]);
-                showQRAndPDF(item, ev, duree[0], body);
+                // Afficher QR/PDF dans un popup séparé APRÈS confirmation
+                showQRAndPDFPopup(item, ev, duree[0]);
                 SoundUtil.playSound("confirmation");
             } else {
                 bannerLbl.setText("❌  Utilisateur non connecté.");
@@ -404,9 +405,9 @@ public class EmpruntMaterielController {
         bannerLbl.setManaged(true);
     }
 
-    // ── QR Code + PDF ────────────────────────────────────────────
+    // ── QR Code + PDF — Popup séparé après confirmation ──────────
 
-    private static void showQRAndPDF(ItemMateriel item, Evenement ev, int duree, VBox body) {
+    private static void showQRAndPDFPopup(ItemMateriel item, Evenement ev, int duree) {
         String content = "AutoLearn - Recu Emprunt Materiel\n"
                 + "================================\n"
                 + "Item: " + item.emoji + " " + item.nom + "\n"

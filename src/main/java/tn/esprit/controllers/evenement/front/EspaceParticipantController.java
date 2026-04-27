@@ -188,11 +188,20 @@ public class EspaceParticipantController {
         topBand.setPadding(new Insets(18, 20, 18, 20));
         topBand.setStyle("-fx-background-color:linear-gradient(to right," + accent + "22," + bgLight + "); -fx-background-radius:18 18 0 0;");
 
-        // Grand emoji principal dans cercle
+        // Grand emoji principal dans cercle avec animation
         Label mainEmojiLbl = new Label(mainEmoji);
         mainEmojiLbl.setStyle("-fx-font-size:44; -fx-background-color:" + accent + ";"
                 + "-fx-background-radius:50%; -fx-padding:14 16 14 16;"
                 + "-fx-min-width:80; -fx-min-height:80; -fx-alignment:CENTER;");
+        
+        // Animation de bounce sur l'emoji
+        ScaleTransition bounce = new ScaleTransition(Duration.millis(1200), mainEmojiLbl);
+        bounce.setFromX(1); bounce.setToX(1.1);
+        bounce.setFromY(1); bounce.setToY(1.1);
+        bounce.setAutoReverse(true);
+        bounce.setCycleCount(Animation.INDEFINITE);
+        bounce.setInterpolator(Interpolator.EASE_BOTH);
+        bounce.play();
 
         VBox textBox = new VBox(4);
         HBox.setHgrow(textBox, Priority.ALWAYS);
@@ -205,22 +214,36 @@ public class EspaceParticipantController {
         descLbl.setWrapText(true);
         textBox.getChildren().addAll(titreLbl, sousTitreLbl, descLbl);
 
-        // Fleche
+        // Fleche animée
         Label arrow = new Label("\u2192");
         arrow.setStyle("-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:" + accent + ";");
+        TranslateTransition arrowMove = new TranslateTransition(Duration.millis(800), arrow);
+        arrowMove.setFromX(0); arrowMove.setToX(8);
+        arrowMove.setAutoReverse(true);
+        arrowMove.setCycleCount(Animation.INDEFINITE);
+        arrowMove.play();
 
         topBand.getChildren().addAll(mainEmojiLbl, textBox, arrow);
 
-        // Bande mini-emojis en bas
+        // Bande mini-emojis en bas avec animations
         HBox miniRow = new HBox(8);
         miniRow.setAlignment(Pos.CENTER_LEFT);
         miniRow.setPadding(new Insets(10, 20, 10, 20));
         miniRow.setStyle("-fx-background-color:" + bgLight + "; -fx-background-radius:0 0 18 18;");
-        for (String e : miniEmojis) {
-            Label ml = new Label(e);
+        for (int i = 0; i < miniEmojis.length; i++) {
+            Label ml = new Label(miniEmojis[i]);
             ml.setStyle("-fx-font-size:22; -fx-background-color:white; -fx-background-radius:50%;"
                     + "-fx-padding:6 8 6 8; -fx-min-width:38; -fx-min-height:38; -fx-alignment:CENTER;"
                     + "-fx-effect:dropshadow(gaussian," + accent + "33,6,0,0,2);");
+            
+            // Animation de rotation pour chaque mini-emoji
+            final int idx = i;
+            RotateTransition rt = new RotateTransition(Duration.millis(2000 + idx * 300), ml);
+            rt.setByAngle(360);
+            rt.setCycleCount(Animation.INDEFINITE);
+            rt.setInterpolator(Interpolator.LINEAR);
+            rt.play();
+            
             miniRow.getChildren().add(ml);
         }
         Label plusLbl = new Label("et plus...");
@@ -235,7 +258,7 @@ public class EspaceParticipantController {
                     + "-fx-border-color:" + accent + "; -fx-border-radius:20; -fx-border-width:2.5;"
                     + "-fx-effect:dropshadow(gaussian," + accent + "66,18,0,0,6); -fx-cursor:hand;");
             ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
-            st.setToX(1.02); st.setToY(1.02); st.play();
+            st.setToX(1.05); st.setToY(1.05); st.play();
         });
         card.setOnMouseExited(e -> {
             card.setStyle("-fx-background-color:" + bgCard + "; -fx-background-radius:20;"
