@@ -371,11 +371,8 @@ public class FrontQuizController {
 
         if (quizActifs.isEmpty()) {
             if (labelTitreQuiz != null) labelTitreQuiz.setText("Aucun quiz disponible pour ce chapitre");
-        } else if (quizActifs.size() == 1) {
-            // Un seul quiz → lancer directement
-            setQuiz(quizActifs.get(0));
         } else {
-            // Plusieurs quiz → afficher la sélection après que la scène soit prête
+            // Toujours afficher la page de sélection avec les cartes (même avec 1 seul quiz)
             javafx.application.Platform.runLater(() -> afficherSelectionQuiz(quizActifs));
         }
     }
