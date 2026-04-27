@@ -22,8 +22,11 @@ import java.util.stream.Collectors;
  */
 public class ResourceRecommendationService {
 
-    private final ServiceCours serviceCours = new ServiceCours();
-    private final ServiceQuiz  serviceQuiz  = new ServiceQuiz();
+    private final ServiceCours    serviceCours = new ServiceCours();
+    private final ServiceQuiz     serviceQuiz  = new ServiceQuiz();
+    private final GroqTopicService groq        = new GroqTopicService();
+
+    private static final boolean USE_GROQ = !GroqTopicService.API_KEY_PLACEHOLDER;
 
     private static final Set<String> STOP_WORDS = Set.of(
         "pour", "dans", "avec", "cette", "votre", "notre", "vous", "nous",
@@ -47,6 +50,17 @@ public class ResourceRecommendationService {
             post.getContenu()
         );
 
+        // ── Groq semantic enrichment ───────────────────────────────────────
+        if (USE_GROQ) {
+            try {
+                List<String> groqTopics = groq.extractTopics(post.getTitre(), post.getContenu());
+                postKeywords.addAll(groqTopics);
+                System.out.println("[Recommend] Groq topics: " + groqTopics);
+            } catch (Exception e) {
+                System.err.println("[Recommend] Groq fallback to keywords: " + e.getMessage());
+            }
+        }
+
         if (postKeywords.isEmpty()) return Collections.emptyList();
 
         System.out.println("[Recommend] post#" + post.getId() + " keywords=" + postKeywords);
@@ -55,11 +69,11 @@ public class ResourceRecommendationService {
         // ── Score Courses ──────────────────────────────────────────────────
         for (Cours c : serviceCours.getAll()) {
             Set<String> resKw = extractKeywords(null, c.getTitre(),
-                    c.getDescription() + " " + c.getMatiere());
+                    c.getDescription() + " " + c.getMatiere() + " " + c.getNiveau());
             double score = overlapScore(postKeywords, resKw);
             System.out.printf("[Recommend] cours#%d '%s' kw=%s score=%.3f%n",
                     c.getId(), c.getTitre(), resKw, score);
-            if (score >= 0.1) {
+            if (score >= 0.05) {
                 String subtitle = (c.getMatiere() != null ? c.getMatiere() : "")
                         + (c.getNiveau() != null ? "  ·  " + c.getNiveau() : "");
                 results.add(new ResourceResult("cours", c.getId(), c.getTitre(), subtitle, score));

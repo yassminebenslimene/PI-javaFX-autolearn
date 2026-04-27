@@ -17,6 +17,7 @@ import tn.esprit.services.ServicePost;
 import tn.esprit.services.UserService;
 import tn.esprit.services.ResourceRecommendationService;
 import tn.esprit.services.TrendAnalyzerService;
+import tn.esprit.services.GroqTopicService;
 import tn.esprit.session.SessionManager;
 
 import java.time.LocalDateTime;
@@ -37,6 +38,7 @@ public class FrontCommunauteDetailController {
     @FXML private TextArea   fieldContenu;
     @FXML private TextField  fieldTags;
     @FXML private HBox       mediaPreviewBox;
+    @FXML private Button     btnImprove;
 
     // Pending attachments for the next post
     private java.io.File pendingImageFile = null;
@@ -55,6 +57,7 @@ public class FrontCommunauteDetailController {
 
     private ResourceRecommendationService recommendationService;
     private TrendAnalyzerService          trendAnalyzerService;
+    private GroqTopicService              groqService;
     /** Maps postId → its card VBox for scroll-to navigation */
     private final java.util.Map<Integer, VBox> postCardMap = new java.util.HashMap<>();
 
@@ -199,6 +202,58 @@ public class FrontCommunauteDetailController {
             System.err.println("[Media] saveFile: " + e.getMessage());
             return null;
         }
+    }
+
+    @FXML
+    public void onImprovePost() {
+        String contenu = fieldContenu.getText().trim();
+        if (contenu.isEmpty()) return;
+
+        // Show loading state
+        if (btnImprove != null) {
+            btnImprove.setText("⏳  En cours...");
+            btnImprove.setDisable(true);
+        }
+
+        // Run Groq in background thread to avoid blocking UI
+        new Thread(() -> {
+            try {
+                if (groqService == null) groqService = new GroqTopicService();
+                System.out.println("[Groq] improving text: " + contenu.substring(0, Math.min(50, contenu.length())));
+                String improved = groqService.improvePost(contenu);
+                System.out.println("[Groq] result: " + improved.substring(0, Math.min(80, improved.length())));
+
+                javafx.application.Platform.runLater(() -> {
+                    fieldContenu.setText(improved);
+                    if (btnImprove != null) {
+                        btnImprove.setText("✅  Amélioré !");
+                        btnImprove.setStyle("-fx-background-color:#d1fae5; -fx-text-fill:#059669;" +
+                                           "-fx-font-size:12; -fx-font-weight:800;" +
+                                           "-fx-padding:13 22; -fx-background-radius:30; -fx-border-width:0;");
+                        // Reset after 2s
+                        javafx.animation.PauseTransition pt = new javafx.animation.PauseTransition(
+                                javafx.util.Duration.seconds(2));
+                        pt.setOnFinished(e -> {
+                            btnImprove.setText("✨  Améliorer");
+                            btnImprove.setStyle("-fx-background-color:#fef3c7; -fx-text-fill:#d97706;" +
+                                               "-fx-font-size:12; -fx-font-weight:800;" +
+                                               "-fx-padding:13 22; -fx-background-radius:30; -fx-border-width:0;");
+                            btnImprove.setDisable(false);
+                        });
+                        pt.play();
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("[Groq] onImprovePost error: " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                e.printStackTrace();
+                javafx.application.Platform.runLater(() -> {
+                    if (btnImprove != null) {
+                        btnImprove.setText("✨  Améliorer");
+                        btnImprove.setDisable(false);
+                    }
+                });
+            }
+        }).start();
     }
 
     @FXML

@@ -196,6 +196,11 @@
                                                    -fx-padding:8 16; -fx-background-radius:20;
                                                    -fx-cursor:hand; -fx-border-width:0;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
+                                    <Button fx:id="btnImprove" text="✨  Améliorer" onAction="#onImprovePost"
+                                            style="-fx-background-color:#fef3c7; -fx-text-fill:#d97706;
+                                                   -fx-font-size:12; -fx-font-weight:800;
+                                                   -fx-padding:13 22 13 22; -fx-background-radius:30;
+                                                   -fx-cursor:hand; -fx-border-width:0;"/>
                                     <Button text="🚀  Publier" onAction="#onPublier"
                                             style="-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5);
                                                    -fx-text-fill:white; -fx-font-weight:900; -fx-font-size:13;
