@@ -67,16 +67,6 @@ public class FrontofficeController {
         }
     }
 
-    // Navbar buttons (pour gérer l'état actif)
-    @FXML private Button btnHome;
-    @FXML private Button btnCours;
-    @FXML private Button btnChallenges;
-    @FXML private Button btnEvenements;
-    @FXML private Button btnCommunaute;
-
-    private static final String NAV_ACTIVE   = "-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0; -fx-background-radius:8;";
-    private static final String NAV_INACTIVE = "-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
-
     // Slider icons (set in Java to avoid encoding issues)
     @FXML private Label slide1Icon, slide2Icon, slide3Icon;
     @FXML private Label aboutIcon1, aboutIcon2, aboutIcon3, aboutIcon4;
