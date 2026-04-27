@@ -102,7 +102,7 @@ public class GroqQuizGeneratorService {
                     : "Quiz IA - " + chapitre.getTitre();
 
                 Quiz quiz = new Quiz(titre,
-                    "Quiz généré automatiquement par IA Groq (Llama 4 Scout)",
+                    "Quiz généré automatiquement par IA Groq (Llama 4 Scout) | niveau:" + difficulte,
                     "actif", null, 60, null, null, null, null, chapitreId);
 
                 boolean ok = serviceQuiz.ajouter(quiz);

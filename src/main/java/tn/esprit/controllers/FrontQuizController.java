@@ -385,6 +385,37 @@ public class FrontQuizController {
      * L'étudiant choisit lequel passer.
      */
     private void afficherSelectionQuiz(List<Quiz> quizActifs) {
+        afficherSelectionQuizFiltre(quizActifs, "tous");
+    }
+
+    /** Détecte le niveau d'un quiz depuis sa description (tag niveau: inséré par l'IA) */
+    private String detecterNiveau(Quiz q) {
+        String desc  = q.getDescription() != null ? q.getDescription() : "";
+        String titre = q.getTitre()       != null ? q.getTitre()       : "";
+
+        // 1. Tag explicite inséré lors de la génération IA : "niveau:facile"
+        java.util.regex.Matcher m = java.util.regex.Pattern
+            .compile("niveau:(facile|moyen|difficile)", java.util.regex.Pattern.CASE_INSENSITIVE)
+            .matcher(desc);
+        if (m.find()) return m.group(1).toLowerCase();
+
+        // 2. Mot-clé dans la description ou le titre
+        String combined = (desc + " " + titre).toLowerCase();
+        if (combined.contains("facile")    || combined.contains("débutant"))     return "facile";
+        if (combined.contains("difficile") || combined.contains("avancé"))       return "difficile";
+        if (combined.contains("moyen")     || combined.contains("intermédiaire")) return "moyen";
+
+        // 3. Fallback basé sur le seuil de réussite
+        if (q.getSeuilReussite() != null) {
+            if (q.getSeuilReussite() <= 40) return "facile";
+            if (q.getSeuilReussite() >= 70) return "difficile";
+        }
+
+        // 4. Défaut : moyen
+        return "moyen";
+    }
+
+    private void afficherSelectionQuizFiltre(List<Quiz> quizActifs, String filtreActif) {
         try {
             // ── Fond violet dégradé (même style que intro.fxml) ──────────────
             javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane();
@@ -414,177 +445,308 @@ public class FrontQuizController {
             javafx.scene.layout.StackPane.setAlignment(topBar, javafx.geometry.Pos.TOP_LEFT);
             root.getChildren().add(topBar);
 
-            // ── Contenu central : cartes côte à côte ─────────────────────────
-            javafx.scene.layout.VBox centerBox = new javafx.scene.layout.VBox(24);
+            // ── Contenu central ───────────────────────────────────────────────
+            javafx.scene.layout.VBox centerBox = new javafx.scene.layout.VBox(20);
             centerBox.setAlignment(javafx.geometry.Pos.CENTER);
-            centerBox.setMaxWidth(900);
+            centerBox.setMaxWidth(960);
 
-            // Cartes en HBox (côte à côte comme Symfony)
-            javafx.scene.layout.HBox cardsRow = new javafx.scene.layout.HBox(24);
-            cardsRow.setAlignment(javafx.geometry.Pos.CENTER);
+            // ── Titre ─────────────────────────────────────────────────────────
+            javafx.scene.control.Label titre = new javafx.scene.control.Label("Choisissez votre Quiz");
+            titre.setStyle(
+                "-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:white;" +
+                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),8,0,0,2);"
+            );
 
-            String[] colors = {"#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa"};
+            // ── Barre de filtres sur fond blanc arrondi (style page Cours) ──────
+            javafx.scene.layout.HBox filtreBox = new javafx.scene.layout.HBox(10);
+            filtreBox.setAlignment(javafx.geometry.Pos.CENTER);
+            filtreBox.setStyle(
+                "-fx-background-color:rgba(255,255,255,0.95);" +
+                "-fx-background-radius:999;" +
+                "-fx-padding:8 16 8 16;" +
+                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.10),12,0,0,3);"
+            );
 
-            for (int i = 0; i < quizActifs.size(); i++) {
-                Quiz q = quizActifs.get(i);
-                List<Question> qs = serviceQuestion.findByQuizId(q.getId());
-                int totalPts = qs.stream().mapToInt(Question::getPoint).sum();
-                String color = colors[i % colors.length];
+            String[][] filtres = {
+                {"tous",      "Tous",      "#7c3aed", "#7c3aed"},
+                {"facile",    "Facile",    "#22c55e", "#22c55e"},
+                {"moyen",     "Moyen",     "#f59e0b", "#f59e0b"},
+                {"difficile", "Difficile", "#ef4444", "#ef4444"}
+            };
 
-                // ── Carte blanche (style Symfony) ─────────────────────────────
-                javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(0);
-                card.setAlignment(javafx.geometry.Pos.TOP_CENTER);
-                card.setPrefWidth(360);
-                card.setMaxWidth(360);
-                card.setStyle("-fx-background-color:rgba(255,255,255,0.98); -fx-background-radius:30;" +
-                    "-fx-border-color:rgba(226,232,240,0.95); -fx-border-width:1; -fx-border-radius:30;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.10),22,0,0,10);");
+            for (String[] f : filtres) {
+                String fKey = f[0], fLabel = f[1], fColor = f[2];
+                boolean isActive = filtreActif.equals(fKey);
 
-                // Bande colorée en haut
-                javafx.scene.layout.HBox topStripe = new javafx.scene.layout.HBox();
-                topStripe.setPrefHeight(8);
-                topStripe.setStyle("-fx-background-color:linear-gradient(to right," + color + ", derive(" + color + ", -12%));" +
-                    "-fx-background-radius:30 30 0 0;");
-                card.getChildren().add(topStripe);
-
-                // Corps de la carte
-                javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(14);
-                body.setAlignment(javafx.geometry.Pos.TOP_CENTER);
-                body.setPadding(new Insets(18, 24, 24, 24));
-
-                javafx.scene.control.Label meta = new javafx.scene.control.Label("Quiz interactif");
-                meta.setStyle("-fx-background-color:rgba(124,58,237,0.12); -fx-text-fill:#6d28d9;" +
-                    "-fx-font-size:11; -fx-font-weight:800; -fx-background-radius:999; -fx-padding:6 12 6 12;");
-
-                // Icône colorée
-                javafx.scene.layout.StackPane iconCircle = new javafx.scene.layout.StackPane();
-                iconCircle.setPrefSize(84, 84);
-                iconCircle.setMaxSize(84, 84);
-                javafx.scene.shape.Rectangle iconBg = new javafx.scene.shape.Rectangle(84, 84);
-                iconBg.setArcWidth(28); iconBg.setArcHeight(28);
-                iconBg.setStyle("-fx-fill:linear-gradient(to bottom right," + color + ", derive(" + color + ", -24%));" +
-                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.16),16,0,0,4);");
-                javafx.scene.control.Label iconLbl = new javafx.scene.control.Label("▶");
-                iconLbl.setStyle("-fx-font-size:24; -fx-text-fill:white; -fx-font-weight:900;");
-                iconCircle.getChildren().addAll(iconBg, iconLbl);
-
-                // Titre
-                javafx.scene.control.Label qTitre = new javafx.scene.control.Label(q.getTitre());
-                qTitre.setStyle("-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#0f172a; -fx-text-alignment:CENTER; -fx-line-spacing:2;");
-                qTitre.setWrapText(true);
-                qTitre.setMaxWidth(290);
-                qTitre.setAlignment(javafx.geometry.Pos.CENTER);
-
-                // Description
-                String descText = q.getDescription() != null
-                    ? (q.getDescription().length() > 55 ? q.getDescription().substring(0, 55) + "..." : q.getDescription())
-                    : "";
-                javafx.scene.control.Label qDesc = new javafx.scene.control.Label(descText);
-                qDesc.setStyle("-fx-font-size:12.5; -fx-text-fill:#475569; -fx-text-alignment:CENTER; -fx-line-spacing:2;");
-                qDesc.setWrapText(true);
-                qDesc.setMaxWidth(290);
-                qDesc.setAlignment(javafx.geometry.Pos.CENTER);
-
-                // Stats (Questions / Points / Minutes)
-                javafx.scene.layout.HBox statsBox = new javafx.scene.layout.HBox(10);
-                statsBox.setAlignment(javafx.geometry.Pos.CENTER);
-                statsBox.setStyle("-fx-background-color:#f8fafc; -fx-background-radius:22;" +
-                    "-fx-border-color:#e2e8f0; -fx-border-radius:22; -fx-padding:14 12 14 12;");
-                statsBox.setMaxWidth(Double.MAX_VALUE);
-
-                javafx.scene.layout.VBox statQ = makeStat("❓", String.valueOf(qs.size()), "QUESTIONS", "#ef4444");
-                javafx.scene.layout.VBox statP = makeStat("⭐", String.valueOf(totalPts), "POINTS", "#f59e0b");
-                javafx.scene.layout.VBox statD = makeStat("⏱",
-                    q.getDureeMaxMinutes() != null ? String.valueOf(q.getDureeMaxMinutes()) : "—",
-                    "MINUTES", "#3b82f6");
-
-                // Séparateurs
-                javafx.scene.layout.Region sep1 = new javafx.scene.layout.Region();
-                sep1.setPrefWidth(1); sep1.setPrefHeight(40);
-                sep1.setStyle("-fx-background-color:#e2e8f0;");
-                javafx.scene.layout.Region sep2 = new javafx.scene.layout.Region();
-                sep2.setPrefWidth(1); sep2.setPrefHeight(40);
-                sep2.setStyle("-fx-background-color:#e2e8f0;");
-
-                statQ.setPrefWidth(94); statP.setPrefWidth(94); statD.setPrefWidth(94);
-                statsBox.getChildren().addAll(statQ, sep1, statP, sep2, statD);
-
-                // Bouton Commencer
-                javafx.scene.control.Button btnCommencer = new javafx.scene.control.Button("▶   Commencer le quiz");
-                btnCommencer.setMaxWidth(Double.MAX_VALUE);
-                btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#22c55e,#16a34a);" +
-                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
-                    "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(34,197,94,0.25),18,0,0,6);");
-                btnCommencer.setOnMouseEntered(ev -> btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#16a34a,#15803d);" +
-                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
-                    "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(34,197,94,0.32),20,0,0,8);"));
-                btnCommencer.setOnMouseExited(ev -> btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#22c55e,#16a34a);" +
-                    "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
-                    "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(34,197,94,0.25),18,0,0,6);"));
-
-                final Quiz quizChoisi = q;
-                btnCommencer.setOnAction(e -> {
-                    try {
-                        // Initialiser l'état du quiz
-                        this.quiz = quizChoisi;
-                        this.questions = serviceQuestion.findByQuizIdAleatoire(quizChoisi.getId(), 0);
-                        this.totalPoints = questions.stream().mapToInt(Question::getPoint).sum();
-                        this.indexQuestion = 0;
-                        this.reponsesChoisies.clear();
-                        playStart();
-
-                        // Garder une référence stable, pas le bouton temporaire du card
-                        if (sceneRef == null && labelTitreQuiz != null) {
-                            sceneRef = labelTitreQuiz;
-                        } else if (sceneRef == null && btnCommencer.getScene() != null) {
-                            sceneRef = btnCommencer.getScene().getRoot();
-                        }
-
-                        System.out.println("[Quiz] sceneRef=" + sceneRef + " scene=" +
-                            (sceneRef != null ? sceneRef.getScene() : "null"));
-
-                        FXMLLoader loadingLoader = new FXMLLoader(
-                            getClass().getResource("/views/frontoffice/quiz/loading.fxml"));
-                        Parent loadingView = loadingLoader.load();
-                        FrontQuizController loadingCtrl = loadingLoader.getController();
-                        setCenter(loadingView);
-                        loadingCtrl.startLoading("Quiz - " + quizChoisi.getTitre(), this::naviguerVersQuestion);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                });
-
-                body.getChildren().addAll(meta, iconCircle, qTitre, qDesc, statsBox, btnCommencer);
-                card.getChildren().add(body);
-
-                // Hover sur la carte
-                card.setOnMouseEntered(e -> card.setStyle("-fx-background-color:rgba(255,255,255,1); -fx-background-radius:30;" +
-                    "-fx-border-color:" + color + "22; -fx-border-width:1; -fx-border-radius:30;" +
-                    "-fx-effect:dropshadow(gaussian," + color + "44,28,0,0,12); -fx-cursor:hand;"));
-                card.setOnMouseExited(e -> card.setStyle("-fx-background-color:rgba(255,255,255,0.98); -fx-background-radius:30;" +
-                    "-fx-border-color:rgba(226,232,240,0.95); -fx-border-width:1; -fx-border-radius:30;" +
-                    "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.10),22,0,0,10);"));
-
-                cardsRow.getChildren().add(card);
+                javafx.scene.control.Button btnFiltre = new javafx.scene.control.Button(fLabel);
+                if (isActive) {
+                    // Bouton actif : fond plein coloré, texte blanc
+                    btnFiltre.setStyle(
+                        "-fx-background-color:" + fColor + ";" +
+                        "-fx-text-fill:white;" +
+                        "-fx-font-size:13; -fx-font-weight:800;" +
+                        "-fx-padding:8 22; -fx-background-radius:999;" +
+                        "-fx-cursor:hand; -fx-border-width:0;" +
+                        "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),8,0,0,2);"
+                    );
+                } else {
+                    // Bouton inactif : fond blanc, bordure colorée, texte coloré
+                    btnFiltre.setStyle(
+                        "-fx-background-color:white;" +
+                        "-fx-text-fill:" + fColor + ";" +
+                        "-fx-font-size:13; -fx-font-weight:700;" +
+                        "-fx-padding:8 22; -fx-background-radius:999;" +
+                        "-fx-cursor:hand;" +
+                        "-fx-border-width:2; -fx-border-color:" + fColor + ";" +
+                        "-fx-border-radius:999;"
+                    );
+                    // Hover : fond légèrement coloré
+                    btnFiltre.setOnMouseEntered(ev -> btnFiltre.setStyle(
+                        "-fx-background-color:" + fColor + "18;" +
+                        "-fx-text-fill:" + fColor + ";" +
+                        "-fx-font-size:13; -fx-font-weight:700;" +
+                        "-fx-padding:8 22; -fx-background-radius:999;" +
+                        "-fx-cursor:hand;" +
+                        "-fx-border-width:2; -fx-border-color:" + fColor + ";" +
+                        "-fx-border-radius:999;"
+                    ));
+                    btnFiltre.setOnMouseExited(ev -> btnFiltre.setStyle(
+                        "-fx-background-color:white;" +
+                        "-fx-text-fill:" + fColor + ";" +
+                        "-fx-font-size:13; -fx-font-weight:700;" +
+                        "-fx-padding:8 22; -fx-background-radius:999;" +
+                        "-fx-cursor:hand;" +
+                        "-fx-border-width:2; -fx-border-color:" + fColor + ";" +
+                        "-fx-border-radius:999;"
+                    ));
+                }
+                btnFiltre.setOnAction(e -> afficherSelectionQuizFiltre(quizActifs, fKey));
+                filtreBox.getChildren().add(btnFiltre);
             }
 
-            centerBox.getChildren().add(cardsRow);
+            // Compteur de quiz filtrés
+            List<Quiz> quizFiltres = filtreActif.equals("tous") ? quizActifs
+                : quizActifs.stream()
+                    .filter(q -> detecterNiveau(q).equals(filtreActif))
+                    .collect(java.util.stream.Collectors.toList());
+
+            javafx.scene.layout.HBox filtreRow = new javafx.scene.layout.HBox(14);
+            filtreRow.setAlignment(javafx.geometry.Pos.CENTER);
+            filtreRow.getChildren().add(filtreBox);
+
+            centerBox.getChildren().addAll(titre, filtreRow);
+
+            // ── Cartes quiz filtrées ───────────────────────────────────────────
+            if (quizFiltres.isEmpty()) {
+                javafx.scene.layout.VBox videBox = new javafx.scene.layout.VBox(12);
+                videBox.setAlignment(javafx.geometry.Pos.CENTER);
+                videBox.setStyle(
+                    "-fx-background-color:rgba(255,255,255,0.15);" +
+                    "-fx-background-radius:20; -fx-padding:40 60 40 60;"
+                );
+                javafx.scene.control.Label videIcon = new javafx.scene.control.Label("🔍");
+                videIcon.setStyle("-fx-font-size:36;");
+                javafx.scene.control.Label vide = new javafx.scene.control.Label(
+                    "Aucun quiz de niveau \"" + filtreActif + "\" disponible");
+                vide.setStyle("-fx-font-size:15; -fx-text-fill:white; -fx-font-weight:700;");
+                javafx.scene.control.Label videHint = new javafx.scene.control.Label(
+                    "Essayez un autre niveau ou sélectionnez \"Tous\"");
+                videHint.setStyle("-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.7);");
+                videBox.getChildren().addAll(videIcon, vide, videHint);
+                centerBox.getChildren().add(videBox);
+            } else {
+                // Cartes en HBox (côte à côte) — toutes à la même hauteur
+                javafx.scene.layout.HBox cardsRow = new javafx.scene.layout.HBox(20);
+                cardsRow.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+                cardsRow.setFillHeight(true);
+
+                String[] colors = {"#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa"};
+
+                for (int i = 0; i < quizFiltres.size(); i++) {
+                    Quiz q = quizFiltres.get(i);
+                    List<Question> qs = serviceQuestion.findByQuizId(q.getId());
+                    int totalPts = qs.stream().mapToInt(Question::getPoint).sum();
+                    String color = colors[i % colors.length];
+
+                    // ── Carte blanche ─────────────────────────────────────────
+                    javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(0);
+                    card.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+                    card.setPrefWidth(300);
+                    card.setMaxWidth(300);
+                    card.setMinHeight(420);
+                    card.setMaxHeight(Double.MAX_VALUE);
+                    javafx.scene.layout.HBox.setHgrow(card, javafx.scene.layout.Priority.NEVER);
+                    card.setStyle("-fx-background-color:rgba(255,255,255,0.98); -fx-background-radius:30;" +
+                        "-fx-border-color:rgba(226,232,240,0.95); -fx-border-width:1; -fx-border-radius:30;" +
+                        "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.10),22,0,0,10);");
+
+                    // Bande colorée en haut
+                    javafx.scene.layout.HBox topStripe = new javafx.scene.layout.HBox();
+                    topStripe.setPrefHeight(8);
+                    topStripe.setStyle("-fx-background-color:linear-gradient(to right," + color + ", derive(" + color + ", -12%));" +
+                        "-fx-background-radius:30 30 0 0;");
+                    card.getChildren().add(topStripe);
+
+                    // Corps de la carte
+                    javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(10);
+                    body.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+                    body.setPadding(new Insets(16, 20, 20, 20));
+                    javafx.scene.layout.VBox.setVgrow(body, javafx.scene.layout.Priority.ALWAYS);
+
+                    // Badges : "Quiz interactif" + niveau
+                    javafx.scene.layout.HBox badgesRow = new javafx.scene.layout.HBox(6);
+                    badgesRow.setAlignment(javafx.geometry.Pos.CENTER);
+
+                    javafx.scene.control.Label meta = new javafx.scene.control.Label("Quiz interactif");
+                    meta.setStyle(
+                        "-fx-background-color:rgba(124,58,237,0.10);" +
+                        "-fx-text-fill:#7c3aed;" +
+                        "-fx-font-size:11; -fx-font-weight:800;" +
+                        "-fx-background-radius:999; -fx-padding:4 10 4 10;" +
+                        "-fx-border-width:1.5; -fx-border-color:#7c3aed;" +
+                        "-fx-border-radius:999;"
+                    );
+                    meta.setMinHeight(26); meta.setPrefHeight(26);
+
+                    String niveauQuiz = detecterNiveau(q);
+                    String niveauColor = switch (niveauQuiz) {
+                        case "facile"    -> "#22c55e";
+                        case "difficile" -> "#ef4444";
+                        default          -> "#f59e0b";
+                    };
+                    // Badge niveau style page Cours : fond coloré léger, bordure, texte coloré
+                    javafx.scene.control.Label niveauBadge = new javafx.scene.control.Label(
+                        niveauQuiz.substring(0,1).toUpperCase() + niveauQuiz.substring(1));
+                    niveauBadge.setStyle(
+                        "-fx-background-color:" + niveauColor + "20;" +
+                        "-fx-text-fill:" + niveauColor + ";" +
+                        "-fx-font-size:11; -fx-font-weight:800;" +
+                        "-fx-background-radius:999; -fx-padding:4 10 4 10;" +
+                        "-fx-border-width:1.5; -fx-border-color:" + niveauColor + ";" +
+                        "-fx-border-radius:999;"
+                    );
+                    niveauBadge.setMinHeight(26); niveauBadge.setPrefHeight(26);
+                    badgesRow.getChildren().addAll(meta, niveauBadge);
+
+                    // Icône colorée
+                    javafx.scene.layout.StackPane iconCircle = new javafx.scene.layout.StackPane();
+                    iconCircle.setPrefSize(76, 76); iconCircle.setMinSize(76, 76); iconCircle.setMaxSize(76, 76);
+                    javafx.scene.shape.Rectangle iconBg = new javafx.scene.shape.Rectangle(76, 76);
+                    iconBg.setArcWidth(28); iconBg.setArcHeight(28);
+                    iconBg.setStyle("-fx-fill:linear-gradient(to bottom right," + color + ", derive(" + color + ", -24%));");
+                    javafx.scene.control.Label iconLbl = new javafx.scene.control.Label("▶");
+                    iconLbl.setStyle("-fx-font-size:24; -fx-text-fill:white; -fx-font-weight:900;");
+                    iconCircle.getChildren().addAll(iconBg, iconLbl);
+
+                    // Titre — hauteur fixe
+                    javafx.scene.control.Label qTitre = new javafx.scene.control.Label(q.getTitre());
+                    qTitre.setStyle("-fx-font-size:16; -fx-font-weight:900; -fx-text-fill:#0f172a; -fx-text-alignment:CENTER;");
+                    qTitre.setWrapText(true); qTitre.setMaxWidth(260);
+                    qTitre.setMinHeight(50); qTitre.setPrefHeight(50);
+                    qTitre.setAlignment(javafx.geometry.Pos.CENTER);
+
+                    // Description — hauteur fixe, sans le tag niveau:
+                    String rawDesc = q.getDescription() != null ? q.getDescription() : "";
+                    String cleanDesc = rawDesc.replaceAll("\\s*\\|\\s*niveau:\\w+", "").trim();
+                    String descText = cleanDesc.length() > 60 ? cleanDesc.substring(0, 60) + "..." : cleanDesc;
+                    javafx.scene.control.Label qDesc = new javafx.scene.control.Label(descText);
+                    qDesc.setStyle("-fx-font-size:12; -fx-text-fill:#475569; -fx-text-alignment:CENTER;");
+                    qDesc.setWrapText(true); qDesc.setMaxWidth(260);
+                    qDesc.setMinHeight(40); qDesc.setPrefHeight(40);
+                    qDesc.setAlignment(javafx.geometry.Pos.CENTER);
+
+                    // Stats
+                    javafx.scene.layout.HBox statsBox = new javafx.scene.layout.HBox(10);
+                    statsBox.setAlignment(javafx.geometry.Pos.CENTER);
+                    statsBox.setStyle("-fx-background-color:#f8fafc; -fx-background-radius:22;" +
+                        "-fx-border-color:#e2e8f0; -fx-border-radius:22; -fx-padding:12 10 12 10;");
+                    statsBox.setMaxWidth(Double.MAX_VALUE);
+                    statsBox.setMinHeight(80); statsBox.setPrefHeight(80);
+
+                    javafx.scene.layout.VBox statQ = makeStat("❓", String.valueOf(qs.size()), "QUESTIONS", "#ef4444");
+                    javafx.scene.layout.VBox statP = makeStat("⭐", String.valueOf(totalPts), "POINTS", "#f59e0b");
+                    javafx.scene.layout.VBox statD = makeStat("⏱",
+                        q.getDureeMaxMinutes() != null ? String.valueOf(q.getDureeMaxMinutes()) : "—",
+                        "MINUTES", "#3b82f6");
+                    javafx.scene.layout.Region sep1 = new javafx.scene.layout.Region();
+                    sep1.setPrefWidth(1); sep1.setPrefHeight(40); sep1.setStyle("-fx-background-color:#e2e8f0;");
+                    javafx.scene.layout.Region sep2 = new javafx.scene.layout.Region();
+                    sep2.setPrefWidth(1); sep2.setPrefHeight(40); sep2.setStyle("-fx-background-color:#e2e8f0;");
+                    statQ.setPrefWidth(80); statP.setPrefWidth(80); statD.setPrefWidth(80);
+                    statsBox.getChildren().addAll(statQ, sep1, statP, sep2, statD);
+
+                    // Spacer + Bouton Commencer
+                    javafx.scene.layout.Region spacerBtn = new javafx.scene.layout.Region();
+                    javafx.scene.layout.VBox.setVgrow(spacerBtn, javafx.scene.layout.Priority.ALWAYS);
+
+                    javafx.scene.control.Button btnCommencer = new javafx.scene.control.Button("▶   Commencer le quiz");
+                    btnCommencer.setMaxWidth(Double.MAX_VALUE);
+                    btnCommencer.setStyle("-fx-background-color:linear-gradient(to right,#22c55e,#16a34a);" +
+                        "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
+                        "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;" +
+                        "-fx-effect:dropshadow(gaussian,rgba(34,197,94,0.25),18,0,0,6);");
+                    btnCommencer.setOnMouseEntered(ev -> btnCommencer.setStyle(
+                        "-fx-background-color:linear-gradient(to right,#16a34a,#15803d);" +
+                        "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
+                        "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;"));
+                    btnCommencer.setOnMouseExited(ev -> btnCommencer.setStyle(
+                        "-fx-background-color:linear-gradient(to right,#22c55e,#16a34a);" +
+                        "-fx-text-fill:white; -fx-font-size:14; -fx-font-weight:900;" +
+                        "-fx-padding:14 18 14 18; -fx-background-radius:999; -fx-cursor:hand; -fx-border-width:0;"));
+
+                    final Quiz quizChoisi = q;
+                    btnCommencer.setOnAction(e -> {
+                        try {
+                            this.quiz = quizChoisi;
+                            this.questions = serviceQuestion.findByQuizIdAleatoire(quizChoisi.getId(), 0);
+                            this.totalPoints = questions.stream().mapToInt(Question::getPoint).sum();
+                            this.indexQuestion = 0;
+                            this.reponsesChoisies.clear();
+                            playStart();
+                            if (sceneRef == null && btnCommencer.getScene() != null)
+                                sceneRef = btnCommencer.getScene().getRoot();
+                            FXMLLoader loadingLoader = new FXMLLoader(
+                                getClass().getResource("/views/frontoffice/quiz/loading.fxml"));
+                            Parent loadingView = loadingLoader.load();
+                            FrontQuizController loadingCtrl = loadingLoader.getController();
+                            setCenter(loadingView);
+                            loadingCtrl.startLoading("Quiz - " + quizChoisi.getTitre(), this::naviguerVersQuestion);
+                        } catch (Exception ex) { ex.printStackTrace(); }
+                    });
+
+                    body.getChildren().addAll(badgesRow, iconCircle, qTitre, qDesc, statsBox, spacerBtn, btnCommencer);
+                    card.getChildren().add(body);
+
+                    // Hover
+                    card.setOnMouseEntered(e -> card.setStyle(
+                        "-fx-background-color:rgba(255,255,255,1); -fx-background-radius:30;" +
+                        "-fx-border-color:" + color + "44; -fx-border-width:1; -fx-border-radius:30;" +
+                        "-fx-effect:dropshadow(gaussian," + color + "44,28,0,0,12); -fx-cursor:hand;"));
+                    card.setOnMouseExited(e -> card.setStyle(
+                        "-fx-background-color:rgba(255,255,255,0.98); -fx-background-radius:30;" +
+                        "-fx-border-color:rgba(226,232,240,0.95); -fx-border-width:1; -fx-border-radius:30;" +
+                        "-fx-effect:dropshadow(gaussian,rgba(15,23,42,0.10),22,0,0,10);"));
+
+                    cardsRow.getChildren().add(card);
+                }
+                centerBox.getChildren().add(cardsRow);
+            } // fin else (quizFiltres non vide)
+
             root.getChildren().add(centerBox);
             javafx.scene.layout.StackPane.setAlignment(centerBox, javafx.geometry.Pos.CENTER);
 
-            // Afficher
-            if (labelTitreQuiz != null && labelTitreQuiz.getScene() != null) {
+            // Afficher la vue
+            if (sceneRef != null && sceneRef.getScene() != null) {
+                setCenter(root);
+            } else if (labelTitreQuiz != null && labelTitreQuiz.getScene() != null) {
                 sceneRef = labelTitreQuiz;
                 setCenter(root);
             } else {
                 javafx.application.Platform.runLater(() -> {
                     if (labelTitreQuiz != null && labelTitreQuiz.getScene() != null) {
                         sceneRef = labelTitreQuiz;
-                        setCenter(root);
                     }
+                    setCenter(root);
                 });
             }
         } catch (Exception e) {
