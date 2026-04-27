@@ -2,6 +2,8 @@ package tn.esprit.controllers;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.animation.FadeTransition;
+import javafx.util.Duration;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -70,6 +72,7 @@ public class FrontCommunauteController {
 
         VBox card = new VBox(16);
         card.setPrefWidth(300);
+        card.setUserData(c);
         card.setStyle("-fx-background-color:white; -fx-background-radius:24; " +
                       "-fx-border-color:#ede9fe; -fx-border-radius:24; -fx-border-width:1.5; " +
                       "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.1),22,0,0,7); -fx-padding:28;");
@@ -288,51 +291,117 @@ public class FrontCommunauteController {
     }
 
     private void onModifier(Communaute c) {
-        javafx.scene.control.Dialog<Communaute> dialog = new javafx.scene.control.Dialog<>();
-        dialog.setTitle("Modifier la communauté");
-        dialog.getDialogPane().getButtonTypes().addAll(
-            javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+        // Find the card in the cardsPane
+        VBox card = cardsPane.getChildren().stream()
+            .filter(n -> n instanceof VBox && n.getUserData() == c)
+            .map(n -> (VBox) n)
+            .findFirst().orElse(null);
+        if (card == null) return;
 
-        VBox content = new VBox(10);
-        content.setPadding(new javafx.geometry.Insets(20));
+        // Avoid double edit panels
+        card.getChildren().removeIf(n -> "edit-panel".equals(n.getId()));
+
+        // ── Inline edit panel ─────────────────────────────────────────────
+        VBox editPanel = new VBox(14);
+        editPanel.setId("edit-panel");
+        editPanel.setStyle(
+            "-fx-background-color:#faf8ff; -fx-background-radius:16;" +
+            "-fx-border-color:#ddd6fe; -fx-border-radius:16; -fx-border-width:1.5;" +
+            "-fx-padding:18;");
+
+        Label editTitle = new Label("✏  Modifier la communauté");
+        editTitle.setStyle("-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#4f46e5;");
+
+        // Nom field
+        Label lblNom = new Label("Nom");
+        lblNom.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7c3aed;");
         TextField fNom = new TextField(c.getNom());
+        fNom.setStyle(
+            "-fx-background-color:white; -fx-background-radius:10;" +
+            "-fx-border-color:#ddd6fe; -fx-border-radius:10; -fx-border-width:1.5;" +
+            "-fx-padding:10 14; -fx-font-size:13; -fx-text-fill:#1e1b4b;");
+
+        // Description field
+        Label lblDesc = new Label("Description");
+        lblDesc.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7c3aed;");
         javafx.scene.control.TextArea fDesc = new javafx.scene.control.TextArea(c.getDescription());
         fDesc.setPrefRowCount(3);
+        fDesc.setWrapText(true);
+        fDesc.setStyle(
+            "-fx-background-color:white; -fx-background-radius:10;" +
+            "-fx-border-color:#ddd6fe; -fx-border-radius:10; -fx-border-width:1.5;" +
+            "-fx-padding:10 14; -fx-font-size:12; -fx-text-fill:#1e1b4b;");
+
+        // Error label
         Label errLabel = new Label();
         errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:11;");
-        content.getChildren().addAll(new Label("Nom :"), fNom, new Label("Description :"), fDesc, errLabel);
-        dialog.getDialogPane().setContent(content);
+        errLabel.setWrapText(true);
 
-        javafx.scene.control.Button okBtn = (javafx.scene.control.Button)
-            dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
-        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+        // Buttons row
+        javafx.scene.control.Button btnSave = new javafx.scene.control.Button("✔  Enregistrer");
+        btnSave.setStyle(
+            "-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5);" +
+            "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:800;" +
+            "-fx-padding:9 22; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+        btnSave.setOnMouseEntered(e -> btnSave.setOpacity(0.88));
+        btnSave.setOnMouseExited(e -> btnSave.setOpacity(1.0));
+
+        javafx.scene.control.Button btnCancel = new javafx.scene.control.Button("Annuler");
+        btnCancel.setStyle(
+            "-fx-background-color:transparent; -fx-text-fill:#9ca3af;" +
+            "-fx-font-size:12; -fx-font-weight:600;" +
+            "-fx-padding:9 18; -fx-background-radius:20; -fx-cursor:hand;" +
+            "-fx-border-width:1; -fx-border-color:#e5e7eb; -fx-border-radius:20;");
+        btnCancel.setOnMouseEntered(e -> btnCancel.setStyle(
+            "-fx-background-color:#f9fafb; -fx-text-fill:#6b7280;" +
+            "-fx-font-size:12; -fx-font-weight:600;" +
+            "-fx-padding:9 18; -fx-background-radius:20; -fx-cursor:hand;" +
+            "-fx-border-width:1; -fx-border-color:#d1d5db; -fx-border-radius:20;"));
+        btnCancel.setOnMouseExited(e -> btnCancel.setStyle(
+            "-fx-background-color:transparent; -fx-text-fill:#9ca3af;" +
+            "-fx-font-size:12; -fx-font-weight:600;" +
+            "-fx-padding:9 18; -fx-background-radius:20; -fx-cursor:hand;" +
+            "-fx-border-width:1; -fx-border-color:#e5e7eb; -fx-border-radius:20;"));
+
+        HBox btnRow = new HBox(10, btnSave, btnCancel);
+        btnRow.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        editPanel.getChildren().addAll(editTitle, lblNom, fNom, lblDesc, fDesc, errLabel, btnRow);
+
+        // Animate in
+        editPanel.setOpacity(0);
+        card.getChildren().add(editPanel);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), editPanel);
+        ft.setFromValue(0); ft.setToValue(1); ft.play();
+
+        // ── Actions ───────────────────────────────────────────────────────
+        btnCancel.setOnAction(e -> {
+            javafx.animation.FadeTransition out = new javafx.animation.FadeTransition(javafx.util.Duration.millis(150), editPanel);
+            out.setFromValue(1); out.setToValue(0);
+            out.setOnFinished(ev -> card.getChildren().remove(editPanel));
+            out.play();
+        });
+
+        btnSave.setOnAction(e -> {
             String nom  = fNom.getText().trim();
             String desc = fDesc.getText().trim();
             if (nom.length() < 3 || nom.length() > 80) {
                 errLabel.setText("Le nom doit contenir entre 3 et 80 caractères.");
-                e.consume();
-            } else if (desc.length() < 15) {
+                fNom.setStyle("-fx-background-color:#fff1f2; -fx-background-radius:10;" +
+                    "-fx-border-color:#fca5a5; -fx-border-radius:10; -fx-border-width:1.5;" +
+                    "-fx-padding:10 14; -fx-font-size:13;");
+                return;
+            }
+            if (desc.length() < 15) {
                 errLabel.setText("La description doit contenir au moins 15 caractères.");
-                e.consume();
-            } else if (desc.length() > 500) {
-                errLabel.setText("La description ne peut pas dépasser 500 caractères.");
-                e.consume();
-            } else {
-                errLabel.setText("");
+                fDesc.setStyle("-fx-background-color:#fff1f2; -fx-background-radius:10;" +
+                    "-fx-border-color:#fca5a5; -fx-border-radius:10; -fx-border-width:1.5;" +
+                    "-fx-padding:10 14; -fx-font-size:12;");
+                return;
             }
-        });
-
-        dialog.setResultConverter(btn -> {
-            if (btn == javafx.scene.control.ButtonType.OK) {
-                c.setNom(fNom.getText().trim());
-                c.setDescription(fDesc.getText().trim());
-                return c;
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(updated -> {
-            service.modifier(updated);
+            c.setNom(nom);
+            c.setDescription(desc);
+            service.modifier(c);
             allCommunautes = service.getList();
             afficher(searchField.getText());
         });
