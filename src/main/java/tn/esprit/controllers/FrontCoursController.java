@@ -42,6 +42,7 @@ public class FrontCoursController {
     private final CourseProgressService progressService = new CourseProgressService();
 
     private Consumer<Cours> onVoirChapitres;
+    private Consumer<Cours> onVoirCommunaute;
     private List<Cours>     allCours;
     private Map<Integer, Integer> countByCours = new HashMap<>();
 
@@ -61,6 +62,10 @@ public class FrontCoursController {
 
     public void setOnVoirChapitres(Consumer<Cours> callback) {
         this.onVoirChapitres = callback;
+    }
+
+    public void setOnVoirCommunaute(Consumer<Cours> callback) {
+        this.onVoirCommunaute = callback;
     }
 
     public void loadData() {
@@ -185,7 +190,7 @@ public class FrontCoursController {
         VBox progressBox = new VBox(5, progressLabel, progressBarBox);
         progressBox.setStyle("-fx-background-color:" + progressBgColor + "; -fx-background-radius:8; -fx-padding:8 10 8 10;");
 
-        // Bouton
+        // Bouton Voir chapitres
         Button btn = new Button("Voir les chapitres  →");
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle("-fx-background-color:linear-gradient(to right," + accent + "," + accent + ");" +
@@ -193,12 +198,30 @@ public class FrontCoursController {
                      "-fx-padding:11 0 11 0; -fx-background-radius:12; -fx-cursor:hand; -fx-border-width:0;" +
                      "-fx-effect:dropshadow(gaussian," + accentA + ",8,0,0,3);");
         btn.setOnAction(e -> { if (onVoirChapitres != null) onVoirChapitres.accept(cours); });
-
-        // Hover effect
         btn.setOnMouseEntered(e -> btn.setOpacity(0.88));
         btn.setOnMouseExited(e -> btn.setOpacity(1.0));
 
-        content.getChildren().addAll(titre, matiere, descLabel, sep, progressBox, btn);
+        // Bouton Communauté
+        Button btnComm = new Button("👥  Communauté du cours");
+        btnComm.setMaxWidth(Double.MAX_VALUE);
+        btnComm.setStyle(
+            "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+            "-fx-font-size:12; -fx-font-weight:700;" +
+            "-fx-padding:9 0 9 0; -fx-background-radius:12; -fx-cursor:hand;" +
+            "-fx-border-width:1.5; -fx-border-color:#ddd6fe; -fx-border-radius:12;");
+        btnComm.setOnMouseEntered(e -> btnComm.setStyle(
+            "-fx-background-color:#ede9fe; -fx-text-fill:#6d28d9;" +
+            "-fx-font-size:12; -fx-font-weight:700;" +
+            "-fx-padding:9 0 9 0; -fx-background-radius:12; -fx-cursor:hand;" +
+            "-fx-border-width:1.5; -fx-border-color:#c4b5fd; -fx-border-radius:12;"));
+        btnComm.setOnMouseExited(e -> btnComm.setStyle(
+            "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+            "-fx-font-size:12; -fx-font-weight:700;" +
+            "-fx-padding:9 0 9 0; -fx-background-radius:12; -fx-cursor:hand;" +
+            "-fx-border-width:1.5; -fx-border-color:#ddd6fe; -fx-border-radius:12;"));
+        btnComm.setOnAction(e -> { if (onVoirCommunaute != null) onVoirCommunaute.accept(cours); });
+
+        content.getChildren().addAll(titre, matiere, descLabel, sep, progressBox, btn, btnComm);
 
         // ── Assembler la carte ──
         VBox card = new VBox(0, banner, content);

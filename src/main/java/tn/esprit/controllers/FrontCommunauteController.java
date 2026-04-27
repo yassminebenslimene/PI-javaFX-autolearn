@@ -33,6 +33,14 @@ public class FrontCommunauteController {
     public void setOnRetour(Runnable r) { this.onRetour = r; }
     public void setOnOuvrirDetail(java.util.function.Consumer<Communaute> cb) { this.onOuvrirDetail = cb; }
 
+    /** Pre-fills the search field with a course name so relevant communities show up */
+    public void preselectCours(String coursNom) {
+        if (searchField != null && coursNom != null) {
+            searchField.setText(coursNom);
+            afficher(coursNom);
+        }
+    }
+
     @FXML
     public void initialize() {
         allCommunautes = service.getList();
