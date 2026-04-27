@@ -28,8 +28,8 @@ public class QrCodeService {
      * @return bytes PNG du QR code, ou null en cas d'erreur
      */
     public byte[] generateParticipationQrCode(int participationId, int etudiantId, int evenementId) {
-        // Contenu local simple : ID de participation + étudiant + événement
-        String content = String.format("PART:%d|ETU:%d|EV:%d", participationId, etudiantId, evenementId);
+        // Contenu local simple : format lisible et compréhensible
+        String content = String.format("AutoLearn Participation\nRef:%d\nEtudiant:%d\nEvenement:%d", participationId, etudiantId, evenementId);
         return generateQrCode(content, 300);
     }
 
@@ -60,9 +60,9 @@ public class QrCodeService {
     }
 
     /**
-     * Retourne le contenu du QR code (format local simple).
+     * Retourne le contenu du QR code (format lisible et compréhensible).
      */
     public String getParticipationContent(int participationId, int etudiantId, int evenementId) {
-        return String.format("PART:%d|ETU:%d|EV:%d", participationId, etudiantId, evenementId);
+        return String.format("AutoLearn Participation\nRef:%d\nEtudiant:%d\nEvenement:%d", participationId, etudiantId, evenementId);
     }
 }

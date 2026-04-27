@@ -281,7 +281,7 @@ public class MemoryGameController {
         VBox front = new VBox(4);
         front.setAlignment(Pos.CENTER);
         front.setPrefSize(130, 110);
-        front.setStyle("-fx-background-color:" + card.color + "22; -fx-background-radius:14;"
+        front.setStyle("-fx-background-color:" + card.color + "dd; -fx-background-radius:14;"
                 + "-fx-border-color:" + card.color + "; -fx-border-radius:14; -fx-border-width:2.5;"
                 + "-fx-effect:dropshadow(gaussian," + card.color + "88,14,0,0,4);");
         front.setVisible(false);
@@ -292,14 +292,14 @@ public class MemoryGameController {
         
         // Nom du café
         Label nameLbl = new Label(CAFE_TYPES[card.pairId % CAFE_TYPES.length]);
-        nameLbl.setStyle("-fx-font-size:11; -fx-font-weight:bold; -fx-text-fill:#1e1e1e;");
+        nameLbl.setStyle("-fx-font-size:11; -fx-font-weight:bold; -fx-text-fill:white;");
         nameLbl.setWrapText(true);
         nameLbl.setMaxWidth(100);
         nameLbl.setAlignment(Pos.CENTER);
         
         // Description
         Label descLbl = new Label(CAFE_DESCRIPTIONS[card.pairId % CAFE_DESCRIPTIONS.length]);
-        descLbl.setStyle("-fx-font-size:9; -fx-text-fill:#6b7280; -fx-font-style:italic;");
+        descLbl.setStyle("-fx-font-size:9; -fx-text-fill:rgba(255,255,255,0.9); -fx-font-style:italic;");
         descLbl.setWrapText(true);
         descLbl.setMaxWidth(100);
         descLbl.setAlignment(Pos.CENTER);

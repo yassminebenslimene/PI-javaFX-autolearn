@@ -40,16 +40,18 @@ public class EspaceParticipantPageController {
             "-fx-font-size:28; " +
             "-fx-font-weight:bold; " +
             "-fx-text-fill:#D4A96A; " +
-            "-fx-effect:dropshadow(gaussian, rgba(212,169,106,0.5), 15, 0, 0, 3);"
+            "-fx-effect:dropshadow(gaussian, rgba(212,169,106,0.5), 15, 0, 0, 3); " +
+            "-fx-padding:20 0 20 0;"
         );
         titleLabel.setAlignment(Pos.CENTER);
         containerBox.getChildren().add(titleLabel);
 
-        // Grille 2x2 pour les 4 fonctionnalités
+        // Grille 2x3 pour les 6 fonctionnalités
         GridPane grid = new GridPane();
         grid.setHgap(20);
         grid.setVgap(20);
-        grid.setAlignment(Pos.CENTER);
+        grid.setAlignment(Pos.TOP_CENTER);
+        grid.setPadding(new Insets(0, 20, 20, 20));
 
         // Colonne 1 et 2 avec même largeur
         ColumnConstraints col1 = new ColumnConstraints();
@@ -80,20 +82,27 @@ public class EspaceParticipantPageController {
         );
         grid.add(jeuxContainer, 1, 0);
 
-        // Conteneur 3 : Réservation de Tables 🪑
-        VBox reservationContainer = buildContainer(
-            "🪑 Réservation Tables",
-            "Réservez votre place",
-            "#8B6614",
-            "#D4A96A",
-            () -> {
-                try { tn.esprit.MainApp.showSalleReservation(evenement, null); }
-                catch (Exception ex) { ex.printStackTrace(); }
-            }
+        // Conteneur 3 : Menu Déjeuner 🍽️
+        VBox menuContainer = buildContainer(
+            "🍽️ Menu Déjeuner",
+            "Découvrez nos plats",
+            "#f39c12",
+            "#f1c40f",
+            () -> MenuDejeunerController.show(containerBox.getScene().getWindow())
         );
-        grid.add(reservationContainer, 0, 1);
+        grid.add(menuContainer, 0, 1);
 
-        // Conteneur 4 : Emprunt Matériel 🔧
+        // Conteneur 4 : Vending Machine 🛒
+        VBox vendingContainer = buildContainer(
+            "🛒 Vending Machine",
+            "Snacks et boissons",
+            "#e74c3c",
+            "#ff6b6b",
+            () -> VendingMachineController.show(evenement, containerBox.getScene().getWindow())
+        );
+        grid.add(vendingContainer, 1, 1);
+
+        // Conteneur 5 : Emprunt Matériel 🔧
         VBox empruntContainer = buildContainer(
             "🔧 Emprunt Matériel",
             "Emprunter du matériel",
@@ -101,7 +110,7 @@ public class EspaceParticipantPageController {
             "#4ade80",
             () -> EmpruntMaterielController.show(evenement, containerBox.getScene().getWindow())
         );
-        grid.add(empruntContainer, 1, 1);
+        grid.add(empruntContainer, 0, 2);
 
         containerBox.getChildren().add(grid);
 
