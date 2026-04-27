@@ -55,6 +55,8 @@ import tn.esprit.entities.Option;
 import tn.esprit.entities.Question;
 import tn.esprit.entities.Quiz;
 import tn.esprit.services.EmailService;
+import tn.esprit.services.GeoLocationService;
+import tn.esprit.services.GroqQuizCorrectorService;
 import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 import tn.esprit.services.ServiceQuiz;
@@ -229,6 +231,43 @@ public class FrontQuizController {
 
     /** FlowPane pour afficher les badges en grille. */
     @FXML private javafx.scene.layout.FlowPane flowPaneBadges;
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // CHAMPS FXML — resultat.fxml (CORRECTION IA + GÉO)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /** Conteneur principal de la section correction IA (caché jusqu'au chargement). */
+    @FXML private javafx.scene.layout.VBox containerCorrectionIA;
+
+    /** Message de géolocalisation (ex: "Connecté depuis Tunis, Tunisie 🇹🇳"). */
+    @FXML private Label labelGeoMessage;
+
+    /** Label de chargement IA (spinner textuel). */
+    @FXML private Label labelIALoading;
+
+    /** Conteneur du résumé pédagogique global. */
+    @FXML private javafx.scene.layout.VBox containerResumePedago;
+
+    /** Message général du résumé pédagogique. */
+    @FXML private Label labelResumeGeneral;
+
+    /** Conteneur des points forts. */
+    @FXML private javafx.scene.layout.VBox containerPointsForts;
+
+    /** Liste des points forts (VBox dynamique). */
+    @FXML private javafx.scene.layout.VBox listPointsForts;
+
+    /** Conteneur des points à améliorer. */
+    @FXML private javafx.scene.layout.VBox containerPointsAmeliorer;
+
+    /** Liste des points à améliorer (VBox dynamique). */
+    @FXML private javafx.scene.layout.VBox listPointsAmeliorer;
+
+    /** Message d'encouragement final. */
+    @FXML private Label labelEncouragement;
+
+    /** Conteneur des explications par question (VBox dynamique). */
+    @FXML private javafx.scene.layout.VBox containerExplications;
 
     // ══════════════════════════════════════════════════════════════════════════
     // ÉTAT INTERNE DU CONTRÔLEUR
@@ -1243,18 +1282,35 @@ public class FrontQuizController {
             FXMLLoader loader = new FXMLLoader(vueResultat);
             Parent view = loader.load();
             FrontQuizController ctrl = loader.getController();
+
             // Transfert de l'état complet vers le contrôleur de résultats
             ctrl.quiz = this.quiz;
             ctrl.chapitre = this.chapitre;
             ctrl.questions = this.questions;
             ctrl.totalPoints = this.totalPoints;
+            ctrl.secondesRestantes = this.secondesRestantes;
             ctrl.reponsesChoisies.putAll(this.reponsesChoisies);
             ctrl.optionsParQuestion.putAll(this.optionsParQuestion);
             ctrl.onRetourCallback = this.onRetourCallback;
-            ctrl.sceneRef = this.sceneRef != null ? this.sceneRef : this.labelQuestion;
-            ctrl.afficherResultat();
+
+            // 1. Injecter la vue dans le layout (AVANT afficherResultat)
             setCenter(view);
-        } catch (Exception e) { e.printStackTrace(); }
+
+            // 2. Remplir les labels APRÈS que la vue est dans la scène
+            javafx.application.Platform.runLater(() -> {
+                // Utiliser la vue elle-même comme sceneRef — elle est maintenant dans la scène
+                if (view.getScene() != null) {
+                    ctrl.sceneRef = view;
+                } else if (this.sceneRef != null) {
+                    ctrl.sceneRef = this.sceneRef;
+                }
+                ctrl.afficherResultat();
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("[naviguerVersResultat] Erreur : " + e.getMessage());
+        }
     }
 
     /**
@@ -1477,7 +1533,203 @@ public class FrontQuizController {
                 labelPeutRecommencer.setStyle("-fx-font-size:22;-fx-font-weight:900;-fx-text-fill:#3b82f6;");
             }
         }
-        
+
+        // ── CORRECTION IA + GÉO ──────────────────────────────────────────────
+        // Lance la correction IA et la géolocalisation en parallèle (asynchrone)
+        afficherCorrectionIA(pct);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // CORRECTION IA + GÉOLOCALISATION
+    // Lance en parallèle :
+    //   1. GeoLocationService → personnalise le message d'accueil avec la ville
+    //   2. GroqQuizCorrectorService → génère les explications par question + résumé
+    // Tout est asynchrone pour ne pas bloquer l'UI.
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Lance la correction IA et la géolocalisation en parallèle.
+     * Affiche la section correction IA dès que les données sont disponibles.
+     *
+     * @param pct pourcentage de réussite (0-100)
+     */
+    private void afficherCorrectionIA(double pct) {
+        if (containerCorrectionIA == null) return;
+
+        // Rendre la section visible immédiatement (avec le spinner)
+        containerCorrectionIA.setVisible(true);
+        containerCorrectionIA.setManaged(true);
+
+        // ── 1. Géolocalisation (asynchrone) ──────────────────────────────────
+        GeoLocationService.getLocationAsync().thenAccept(geoInfo -> {
+            javafx.application.Platform.runLater(() -> {
+                if (labelGeoMessage != null) {
+                    if (geoInfo != null) {
+                        String prenom = "";
+                        try {
+                            tn.esprit.entities.User user = tn.esprit.session.SessionManager.getCurrentUser();
+                            if (user != null) prenom = user.getPrenom();
+                        } catch (Exception ignored) {}
+                        labelGeoMessage.setText(geoInfo.getBienvenueMessage(prenom));
+                    } else {
+                        labelGeoMessage.setText("Analyse IA de vos réponses");
+                    }
+                }
+            });
+        });
+
+        // ── 2. Correction IA (asynchrone) ────────────────────────────────────
+        GroqQuizCorrectorService correctorService = new GroqQuizCorrectorService();
+
+        // Appels parallèles : explications par question + résumé global
+        java.util.concurrent.CompletableFuture<java.util.Map<Integer, GroqQuizCorrectorService.ExplicationQuestion>> futureExpl =
+            correctorService.genererExplications(questions, reponsesChoisies, optionsParQuestion);
+
+        java.util.concurrent.CompletableFuture<GroqQuizCorrectorService.ResumePedagogique> futureResume =
+            correctorService.genererResume(questions, reponsesChoisies, optionsParQuestion, pct);
+
+        // Quand les explications sont prêtes → afficher les cartes par question
+        futureExpl.thenAccept(explications -> {
+            javafx.application.Platform.runLater(() -> {
+                if (containerExplications == null) return;
+                containerExplications.getChildren().clear();
+
+                for (Question q : questions) {
+                    GroqQuizCorrectorService.ExplicationQuestion expl = explications.get(q.getId());
+                    if (expl == null) continue;
+
+                    // Couleur de la carte selon correct/incorrect
+                    String bgColor  = expl.isCorrect() ? "#f0fdf4" : "#fef2f2";
+                    String bdColor  = expl.isCorrect() ? "#bbf7d0" : "#fecaca";
+                    String iconText = expl.isCorrect() ? "✅" : "❌";
+                    String iconBg   = expl.isCorrect() ? "#22c55e" : "#ef4444";
+
+                    javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(10);
+                    card.setStyle(
+                        "-fx-background-color:" + bgColor + ";" +
+                        "-fx-background-radius:14;" +
+                        "-fx-border-color:" + bdColor + ";" +
+                        "-fx-border-radius:14; -fx-border-width:1;" +
+                        "-fx-padding:16 18 16 18;"
+                    );
+
+                    // En-tête : icône + texte de la question
+                    javafx.scene.layout.HBox header = new javafx.scene.layout.HBox(10);
+                    header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+                    Label iconLbl = new Label(iconText);
+                    iconLbl.setStyle(
+                        "-fx-font-size:14; -fx-background-color:" + iconBg + ";" +
+                        "-fx-text-fill:white; -fx-background-radius:50%;" +
+                        "-fx-padding:5 7 5 7;"
+                    );
+
+                    Label questionLbl = new Label(q.getTexteQuestion());
+                    questionLbl.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#0f172a;");
+                    questionLbl.setWrapText(true);
+                    questionLbl.setMaxWidth(Double.MAX_VALUE);
+                    javafx.scene.layout.HBox.setHgrow(questionLbl, javafx.scene.layout.Priority.ALWAYS);
+
+                    header.getChildren().addAll(iconLbl, questionLbl);
+                    card.getChildren().add(header);
+
+                    // Message principal
+                    if (!expl.message().isBlank()) {
+                        Label msgLbl = new Label(expl.message());
+                        msgLbl.setStyle("-fx-font-size:12.5; -fx-text-fill:#374151; -fx-font-weight:600;");
+                        msgLbl.setWrapText(true);
+                        card.getChildren().add(msgLbl);
+                    }
+
+                    // Pourquoi incorrect (si applicable)
+                    if (!expl.pourquoiIncorrect().isBlank()) {
+                        Label errLbl = new Label("⚠ " + expl.pourquoiIncorrect());
+                        errLbl.setStyle("-fx-font-size:12; -fx-text-fill:#b91c1c;");
+                        errLbl.setWrapText(true);
+                        card.getChildren().add(errLbl);
+                    }
+
+                    // Pourquoi correct
+                    if (!expl.pourquoiCorrect().isBlank()) {
+                        Label corrLbl = new Label("💡 " + expl.pourquoiCorrect());
+                        corrLbl.setStyle("-fx-font-size:12; -fx-text-fill:#065f46;");
+                        corrLbl.setWrapText(true);
+                        card.getChildren().add(corrLbl);
+                    }
+
+                    // Conseil
+                    if (!expl.conseil().isBlank()) {
+                        Label conseilLbl = new Label("📌 " + expl.conseil());
+                        conseilLbl.setStyle("-fx-font-size:12; -fx-text-fill:#92400e; -fx-font-style:italic;");
+                        conseilLbl.setWrapText(true);
+                        card.getChildren().add(conseilLbl);
+                    }
+
+                    containerExplications.getChildren().add(card);
+                }
+
+                // Masquer le spinner
+                if (labelIALoading != null) {
+                    labelIALoading.setVisible(false);
+                    labelIALoading.setManaged(false);
+                }
+            });
+        }).exceptionally(ex -> {
+            System.err.println("[CorrectionIA] Erreur explications : " + ex.getMessage());
+            javafx.application.Platform.runLater(() -> {
+                if (labelIALoading != null) labelIALoading.setText("⚠ Correction IA indisponible");
+            });
+            return null;
+        });
+
+        // Quand le résumé est prêt → afficher le bilan pédagogique
+        futureResume.thenAccept(resume -> {
+            javafx.application.Platform.runLater(() -> {
+                if (containerResumePedago == null) return;
+                containerResumePedago.setVisible(true);
+                containerResumePedago.setManaged(true);
+
+                if (labelResumeGeneral != null)
+                    labelResumeGeneral.setText(resume.messageGeneral());
+
+                // Points forts
+                if (!resume.pointsForts().isEmpty() && listPointsForts != null) {
+                    listPointsForts.getChildren().clear();
+                    for (String pf : resume.pointsForts()) {
+                        Label l = new Label("• " + pf);
+                        l.setStyle("-fx-font-size:12; -fx-text-fill:#065f46;");
+                        l.setWrapText(true);
+                        listPointsForts.getChildren().add(l);
+                    }
+                    if (containerPointsForts != null) {
+                        containerPointsForts.setVisible(true);
+                        containerPointsForts.setManaged(true);
+                    }
+                }
+
+                // Points à améliorer
+                if (!resume.pointsAmeliorer().isEmpty() && listPointsAmeliorer != null) {
+                    listPointsAmeliorer.getChildren().clear();
+                    for (String pa : resume.pointsAmeliorer()) {
+                        Label l = new Label("• " + pa);
+                        l.setStyle("-fx-font-size:12; -fx-text-fill:#92400e;");
+                        l.setWrapText(true);
+                        listPointsAmeliorer.getChildren().add(l);
+                    }
+                    if (containerPointsAmeliorer != null) {
+                        containerPointsAmeliorer.setVisible(true);
+                        containerPointsAmeliorer.setManaged(true);
+                    }
+                }
+
+                // Encouragement
+                if (labelEncouragement != null && !resume.encouragement().isBlank())
+                    labelEncouragement.setText("✨ " + resume.encouragement());
+            });
+        }).exceptionally(ex -> {
+            System.err.println("[CorrectionIA] Erreur résumé : " + ex.getMessage());
+            return null;
+        });
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -1570,7 +1822,8 @@ public class FrontQuizController {
         } else {
             // Chercher via les labels disponibles
             for (javafx.scene.Node n : new javafx.scene.Node[]{
-                    labelTitreQuiz, labelQuestion, labelTitreResultat}) {
+                    labelTitreQuiz, labelQuestion, labelTitreResultat,
+                    labelTitreHeader, labelTimer, btnSoumettre}) {
                 if (n != null && n.getScene() != null) { scene = n.getScene(); break; }
             }
         }
@@ -1578,11 +1831,15 @@ public class FrontQuizController {
         BorderPane root = null;
         if (scene != null && scene.getRoot() instanceof BorderPane bp) {
             root = bp;
+        } else if (scene != null) {
+            // Le root n'est pas directement un BorderPane — chercher en profondeur
+            root = findBorderPane(scene.getRoot());
         } else {
-            // Fallback : remonter l'arbre jusqu'au BorderPane le plus haut
+            // Fallback : remonter l'arbre depuis sceneRef ou les labels
             javafx.scene.Node ref = sceneRef != null ? sceneRef
                 : labelTitreQuiz != null ? labelTitreQuiz
                 : labelQuestion != null ? labelQuestion
+                : labelTitreHeader != null ? labelTitreHeader
                 : labelTitreResultat;
             if (ref != null) {
                 javafx.scene.Parent current = ref instanceof javafx.scene.Parent p ? p : ref.getParent();
@@ -1598,7 +1855,7 @@ public class FrontQuizController {
             return;
         }
 
-        // Les vues quiz prennent toute la hauteur disponible (pas de ScrollPane wrapper)
+        // Les vues quiz prennent toute la hauteur disponible
         if (view instanceof javafx.scene.layout.Region region) {
             region.prefHeightProperty().unbind();
             region.prefWidthProperty().unbind();
@@ -1606,6 +1863,18 @@ public class FrontQuizController {
             region.setMaxWidth(Double.MAX_VALUE);
         }
         root.setCenter(view);
+    }
+
+    // Cherche récursivement le BorderPane le plus haut dans l'arbre
+    private BorderPane findBorderPane(javafx.scene.Parent node) {
+        if (node instanceof BorderPane bp) return bp;
+        for (javafx.scene.Node child : node.getChildrenUnmodifiable()) {
+            if (child instanceof javafx.scene.Parent p) {
+                BorderPane found = findBorderPane(p);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     // ══════════════════════════════════════════════════════════════════════════
