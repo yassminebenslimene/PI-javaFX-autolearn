@@ -110,6 +110,16 @@
                             <Label text="&#63743;" style="-fx-font-size:18; -fx-text-fill:#1a1a2e;"/>
                         </graphic>
                     </Button>
+                    <!-- Face ID button -->
+                    <Button onAction="#onFaceIdLogin" prefWidth="100" prefHeight="44"
+                            style="-fx-background-color:#f9fafb; -fx-background-radius:10;
+                                   -fx-border-color:#e5e7eb; -fx-border-radius:10; -fx-border-width:1;
+                                   -fx-cursor:hand;">
+                        <graphic>
+                            <Label text="Face ID"
+                                   style="-fx-font-size:10; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                        </graphic>
+                    </Button>
                 </HBox>
             </VBox>
 

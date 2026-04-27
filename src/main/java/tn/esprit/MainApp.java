@@ -84,6 +84,39 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Mon Profil");
     }
 
+    public static void showFaceIdLogin(String prefillEmail) throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+            MainApp.class.getResource("/views/auth/face_id.fxml"));
+        javafx.scene.Parent root = loader.load();
+        tn.esprit.controllers.FaceIdController ctrl = loader.getController();
+        ctrl.setMode(tn.esprit.controllers.FaceIdController.Mode.LOGIN);
+        if (prefillEmail != null && !prefillEmail.isEmpty()) {
+            ctrl.prefillEmail(prefillEmail);
+        }
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(primaryStage);
+        dialog.setTitle("Face ID — Connexion");
+        dialog.setResizable(false);
+        dialog.setScene(new Scene(root));
+        dialog.show();
+    }
+
+    public static void showFaceIdRegister() throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+            MainApp.class.getResource("/views/auth/face_id.fxml"));
+        javafx.scene.Parent root = loader.load();
+        tn.esprit.controllers.FaceIdController ctrl = loader.getController();
+        ctrl.setMode(tn.esprit.controllers.FaceIdController.Mode.REGISTER);
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(primaryStage);
+        dialog.setTitle("Face ID — Enregistrement");
+        dialog.setResizable(false);
+        dialog.setScene(new Scene(root));
+        dialog.show();
+    }
+
     /** Stub — GestionEvenement module fills this in */
     public static void showEvenements() throws Exception {
         load("/views/frontoffice/evenements.fxml");
