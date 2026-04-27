@@ -2,7 +2,9 @@ package tn.esprit.controllers.evenement.front;
 
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
@@ -17,9 +19,12 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.ParticipationService;
+import tn.esprit.session.SessionManager;
 
 import java.util.*;
 
@@ -820,63 +825,78 @@ public class SalleReservationController {
 
     private void drawTable(GraphicsContext g, double x, double y, double w, double h, double lH,
                             String status, int num, int key, double sc) {
-        // Si image disponible, l'afficher en perspective
-        if (imgTable != null) {
-            double iW = w * 1.6, iH = (h + lH) * 1.8;
-            g.drawImage(imgTable, x - iW*0.1, y - iH*0.35, iW, iH);
-            // Indicateur de statut par-dessus l'image
-            Color dc = switch (status) { case "mine" -> MINE; case "occupied" -> OCC; default -> FREE; };
-            double dr = Math.min(w,h) * 0.18;
-            g.setFill(dc); g.fillOval(x+w/2-dr, y+h*0.1, dr*2, dr*2);
-            g.setStroke(Color.WHITE); g.setLineWidth(1.5); g.strokeOval(x+w/2-dr, y+h*0.1, dr*2, dr*2);
-            g.setFill(Color.WHITE); g.setFont(Font.font("Arial", FontWeight.BOLD, Math.max(9,h*0.5)));
-            g.setTextAlign(TextAlignment.CENTER); g.setTextBaseline(VPos.CENTER);
-            g.fillText(String.valueOf(num+1), x+w/2, y+h*0.5);
-            tableHits.add(new double[]{x-iW*0.1, y-iH*0.35, iW, iH, currentRoom, num, key});
-            return;
-        }
-        // Fallback dessin vectoriel 3D
+        // Dessin vectoriel 3D amélioré - toujours visible
         Color top  = switch (status) { case "mine" -> MINE; case "occupied" -> OCC; default -> TBL_L; };
         Color top2 = switch (status) { case "mine" -> MINE.darker(); case "occupied" -> OCC.darker(); default -> TBL_D; };
-        // Ombre
-        g.setFill(Color.web("#000",0.1));
-        g.fillOval(x+w*0.08, y+h+lH-3, w*0.84, 5*sc);
-        // Pieds
-        double lw = w*0.032;
-        g.setFill(new LinearGradient(0,0,1,0,true,CycleMethod.NO_CYCLE,
-            new Stop(0,TBL_LEG.darker()), new Stop(1,TBL_LEG)));
-        g.fillRect(x+w*0.08, y+h, lw, lH);
-        g.fillRect(x+w*0.88-lw, y+h, lw, lH);
+        
+        // Ombre portée
+        g.setFill(Color.web("#000",0.15));
+        g.fillOval(x+w*0.05, y+h+lH-2, w*0.9, 4*sc);
+        
+        // Pieds de table (4 pieds visibles)
+        double lw = w*0.04;
         g.setFill(TBL_LEG.darker());
-        g.fillRect(x+w*0.2, y+h*0.3, lw*0.7, lH*0.5);
-        g.fillRect(x+w*0.76-lw, y+h*0.3, lw*0.7, lH*0.5);
-        // Face avant
+        g.fillRect(x+w*0.1, y+h, lw, lH);
+        g.fillRect(x+w*0.9-lw, y+h, lw, lH);
+        g.setFill(TBL_LEG);
+        g.fillRect(x+w*0.25, y+h*0.5, lw*0.8, lH*0.5);
+        g.fillRect(x+w*0.75-lw*0.8, y+h*0.5, lw*0.8, lH*0.5);
+        
+        // Surface du dessus (plateau) - vue isométrique
+        g.setFill(top.brighter());
+        g.fillPolygon(new double[]{x+w*0.05, x+w*0.95, x+w, x},
+                      new double[]{y+h*0.25, y+h*0.25, y, y}, 4);
+        
+        // Face avant du plateau
         g.setFill(new LinearGradient(0,0,0,1,true,CycleMethod.NO_CYCLE,
             new Stop(0,top), new Stop(1,top2)));
-        g.fillPolygon(new double[]{x,x+w,x+w-w*0.03,x+w*0.03},
-                      new double[]{y+h*0.28,y+h*0.28,y+h,y+h}, 4);
-        // Surface du dessus
-        g.setFill(top.brighter());
-        g.fillPolygon(new double[]{x+w*0.03,x+w-w*0.03,x+w,x},
-                      new double[]{y+h*0.28,y+h*0.28,y,y}, 4);
-        g.setStroke(top2.darker()); g.setLineWidth(0.8);
-        g.strokePolygon(new double[]{x,x+w,x+w-w*0.03,x+w*0.03},
-                        new double[]{y+h*0.28,y+h*0.28,y+h,y+h}, 4);
-        // Chaises
+        g.fillPolygon(new double[]{x, x+w, x+w*0.95, x+w*0.05},
+                      new double[]{y+h*0.25, y+h*0.25, y+h, y+h}, 4);
+        
+        // Bordure du plateau
+        g.setStroke(top2.darker());
+        g.setLineWidth(1.2);
+        g.strokePolygon(new double[]{x+w*0.05, x+w*0.95, x+w, x},
+                        new double[]{y+h*0.25, y+h*0.25, y, y}, 4);
+        g.strokePolygon(new double[]{x, x+w, x+w*0.95, x+w*0.05},
+                        new double[]{y+h*0.25, y+h*0.25, y+h, y+h}, 4);
+        
+        // Chaises autour de la table
         g.setFill(CHR);
-        g.fillRoundRect(x+w*0.12, y+h+lH*0.85, w*0.14, h*0.42, 3, 3);
-        g.fillRoundRect(x+w*0.72, y+h+lH*0.85, w*0.14, h*0.42, 3, 3);
-        g.setFill(CHR.darker());
-        g.fillRoundRect(x+w*0.16, y-h*0.35, w*0.12, h*0.28, 2, 2);
-        g.fillRoundRect(x+w*0.68, y-h*0.35, w*0.12, h*0.28, 2, 2);
-        // Indicateur statut
-        Color dc = switch (status) { case "mine" -> MINE; case "occupied" -> OCC; default -> FREE; };
-        double dr = Math.min(w,h) * 0.14;
-        g.setFill(dc); g.fillOval(x+w/2-dr, y+h*0.05, dr*2, dr*2);
-        g.setStroke(Color.WHITE); g.setLineWidth(1); g.strokeOval(x+w/2-dr, y+h*0.05, dr*2, dr*2);
-        g.setFill(Color.WHITE); g.setFont(Font.font("Arial", FontWeight.BOLD, Math.max(9,h*0.5)));
-        g.setTextAlign(TextAlignment.CENTER); g.setTextBaseline(VPos.CENTER);
-        g.fillText(String.valueOf(num+1), x+w/2, y+h*0.62);
+        // Chaise avant gauche
+        g.fillRoundRect(x+w*0.15, y+h+lH*0.8, w*0.12, h*0.45, 3, 3);
+        // Chaise avant droite
+        g.fillRoundRect(x+w*0.73, y+h+lH*0.8, w*0.12, h*0.45, 3, 3);
+        // Chaise arrière gauche
+        g.fillRoundRect(x+w*0.2, y-h*0.3, w*0.1, h*0.3, 2, 2);
+        // Chaise arrière droite
+        g.fillRoundRect(x+w*0.7, y-h*0.3, w*0.1, h*0.3, 2, 2);
+        
+        // Indicateur de statut (cercle coloré avec numéro)
+        Color statusColor = switch (status) { 
+            case "mine" -> MINE; 
+            case "occupied" -> OCC; 
+            default -> FREE; 
+        };
+        double indicatorRadius = Math.min(w,h) * 0.16;
+        
+        // Fond du cercle d'indicateur
+        g.setFill(statusColor);
+        g.fillOval(x+w/2-indicatorRadius, y+h*0.08, indicatorRadius*2, indicatorRadius*2);
+        
+        // Bordure blanche
+        g.setStroke(Color.WHITE);
+        g.setLineWidth(2);
+        g.strokeOval(x+w/2-indicatorRadius, y+h*0.08, indicatorRadius*2, indicatorRadius*2);
+        
+        // Numéro de table
+        g.setFill(Color.WHITE);
+        g.setFont(Font.font("Arial", FontWeight.BOLD, Math.max(11, h*0.6)));
+        g.setTextAlign(TextAlignment.CENTER);
+        g.setTextBaseline(VPos.CENTER);
+        g.fillText(String.valueOf(num+1), x+w/2, y+h*0.08+indicatorRadius);
+        
+        // Zone de clic
         tableHits.add(new double[]{x, y, w, h+lH, currentRoom, num, key});
     }
 
@@ -1148,94 +1168,125 @@ public class SalleReservationController {
     }
 
     private void showReservationConfirmation() {
-        Dialog<Void> dialog = new Dialog<>();
+        // Récupérer le nom de l'utilisateur courant
+        String userName = "Utilisateur";
+        try {
+            var user = SessionManager.getCurrentUser();
+            if (user != null) {
+                userName = user.getNom() + " " + user.getPrenom();
+            }
+        } catch (Exception ignored) {}
+        
+        Stage dialog = new Stage();
+        dialog.initStyle(StageStyle.TRANSPARENT);
         dialog.setTitle("Confirmation de Réservation");
-        dialog.setHeaderText(null);
-        dialog.getDialogPane().setPrefWidth(500);
-        dialog.getDialogPane().setPrefHeight(300);
         
-        dialog.getDialogPane().setStyle(
-            "-fx-background-color: #2C1A0E; " +
-            "-fx-text-fill: #F5E6C8; " +
-            "-fx-font-family: 'Arial'; " +
-            "-fx-font-size: 12;"
+        VBox content = new VBox(20);
+        content.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #2C1A0E, #1a0e06); " +
+            "-fx-padding: 30; " +
+            "-fx-border-color: #8B6614; " +
+            "-fx-border-width: 2; " +
+            "-fx-border-radius: 15;"
         );
+        content.setAlignment(Pos.TOP_CENTER);
         
-        VBox content = new VBox(15);
-        content.setStyle("-fx-padding: 20; -fx-background-color: #2C1A0E;");
-        
+        // Titre avec animation
         Label titleLabel = new Label("✓ Réservation Confirmée");
         titleLabel.setStyle(
-            "-fx-font-size: 18; " +
+            "-fx-font-size: 22; " +
             "-fx-font-weight: bold; " +
-            "-fx-text-fill: #22c55e;"
+            "-fx-text-fill: #22c55e; " +
+            "-fx-effect: dropshadow(gaussian, rgba(34,197,94,0.5), 10, 0, 0, 2);"
         );
         
-        VBox detailsBox = new VBox(10);
+        // Boîte de détails avec style amélioré
+        VBox detailsBox = new VBox(12);
         detailsBox.setStyle(
-            "-fx-background-color: rgba(139,102,20,0.25); " +
-            "-fx-border-color: #8B6614; " +
-            "-fx-border-radius: 10; " +
+            "-fx-background-color: rgba(139,102,20,0.3); " +
+            "-fx-border-color: #D4A96A; " +
+            "-fx-border-radius: 12; " +
             "-fx-border-width: 1; " +
-            "-fx-padding: 15;"
+            "-fx-padding: 20;"
         );
         
-        HBox nameBox = new HBox(10);
-        nameBox.setStyle("-fx-alignment: CENTER_LEFT;");
-        Label nameLabel = new Label("👤 Nom :");
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #D4A96A; -fx-min-width: 100;");
-        Label nameValue = new Label(equipe != null ? equipe.getNom() : "N/A");
-        nameValue.setStyle("-fx-text-fill: #F5E6C8; -fx-font-size: 13;");
-        nameBox.getChildren().addAll(nameLabel, nameValue);
+        // Nom de l'utilisateur (en gros)
+        HBox userBox = new HBox(12);
+        userBox.setStyle("-fx-alignment: CENTER_LEFT;");
+        Label userIcon = new Label("👤");
+        userIcon.setStyle("-fx-font-size: 16;");
+        Label userLabel = new Label(userName);
+        userLabel.setStyle(
+            "-fx-font-size: 16; " +
+            "-fx-font-weight: bold; " +
+            "-fx-text-fill: #F5E6C8;"
+        );
+        userBox.getChildren().addAll(userIcon, userLabel);
         
-        HBox roomBox = new HBox(10);
+        // Salle
+        HBox roomBox = new HBox(12);
         roomBox.setStyle("-fx-alignment: CENTER_LEFT;");
-        Label roomLabel = new Label("🏛 Salle :");
-        roomLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #D4A96A; -fx-min-width: 100;");
-        Label roomValue = new Label(ROOM_NAMES[pendingSalleIdx]);
-        roomValue.setStyle("-fx-text-fill: #F5E6C8; -fx-font-size: 13;");
-        roomBox.getChildren().addAll(roomLabel, roomValue);
+        Label roomIcon = new Label("🏛");
+        roomIcon.setStyle("-fx-font-size: 14;");
+        Label roomLabel = new Label(ROOM_NAMES[pendingSalleIdx]);
+        roomLabel.setStyle("-fx-font-size: 13; -fx-text-fill: #D4A96A;");
+        roomBox.getChildren().addAll(roomIcon, roomLabel);
         
-        HBox tableBox = new HBox(10);
+        // Table
+        HBox tableBox = new HBox(12);
         tableBox.setStyle("-fx-alignment: CENTER_LEFT;");
-        Label tableLabel = new Label("🪑 Table :");
-        tableLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #D4A96A; -fx-min-width: 100;");
-        Label tableValue = new Label("Table " + (pendingTableNum + 1));
-        tableValue.setStyle("-fx-text-fill: #F5E6C8; -fx-font-size: 13;");
-        tableBox.getChildren().addAll(tableLabel, tableValue);
+        Label tableIcon = new Label("🪑");
+        tableIcon.setStyle("-fx-font-size: 14;");
+        Label tableLabel = new Label("Table " + (pendingTableNum + 1));
+        tableLabel.setStyle("-fx-font-size: 13; -fx-text-fill: #D4A96A;");
+        tableBox.getChildren().addAll(tableIcon, tableLabel);
         
-        HBox eventBox = new HBox(10);
+        // Événement
+        HBox eventBox = new HBox(12);
         eventBox.setStyle("-fx-alignment: CENTER_LEFT;");
-        Label eventLabel = new Label("📅 Événement :");
-        eventLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #D4A96A; -fx-min-width: 100;");
-        Label eventValue = new Label(evenement != null ? evenement.getTitre() : "N/A");
-        eventValue.setStyle("-fx-text-fill: #F5E6C8; -fx-font-size: 13;");
-        eventBox.getChildren().addAll(eventLabel, eventValue);
+        Label eventIcon = new Label("📅");
+        eventIcon.setStyle("-fx-font-size: 14;");
+        Label eventLabel = new Label(evenement != null ? evenement.getTitre() : "N/A");
+        eventLabel.setStyle("-fx-font-size: 13; -fx-text-fill: #D4A96A;");
+        eventBox.getChildren().addAll(eventIcon, eventLabel);
         
-        detailsBox.getChildren().addAll(nameBox, roomBox, tableBox, eventBox);
+        detailsBox.getChildren().addAll(userBox, roomBox, tableBox, eventBox);
         
-        Label confirmLabel = new Label("Votre réservation a été enregistrée avec succès.");
+        // Message de confirmation
+        Label confirmLabel = new Label("Votre réservation a été enregistrée avec succès. Vous pouvez maintenant vous diriger vers votre table.");
         confirmLabel.setStyle(
-            "-fx-text-fill: #D4A96A; " +
+            "-fx-text-fill: #C4956A; " +
             "-fx-font-style: italic; " +
-            "-fx-font-size: 11;"
+            "-fx-font-size: 12;"
         );
         confirmLabel.setWrapText(true);
+        confirmLabel.setMaxWidth(400);
         
-        content.getChildren().addAll(titleLabel, detailsBox, confirmLabel);
-        
-        dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-        
-        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okButton.setStyle(
+        // Bouton de fermeture
+        Button closeBtn = new Button("Fermer");
+        closeBtn.setStyle(
             "-fx-background-color: #8B6614; " +
             "-fx-text-fill: #F5E6C8; " +
             "-fx-font-weight: bold; " +
-            "-fx-padding: 8 30; " +
-            "-fx-font-size: 12;"
+            "-fx-padding: 10 40; " +
+            "-fx-font-size: 13; " +
+            "-fx-background-radius: 8; " +
+            "-fx-cursor: hand;"
         );
+        closeBtn.setOnAction(e -> dialog.close());
         
+        HBox buttonBox = new HBox();
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.getChildren().add(closeBtn);
+        
+        content.getChildren().addAll(titleLabel, detailsBox, confirmLabel, buttonBox);
+        
+        StackPane root = new StackPane(content);
+        root.setStyle("-fx-background-color: rgba(0,0,0,0.7);");
+        
+        Scene scene = new Scene(root, 500, 350);
+        scene.setFill(Color.web("rgba(0,0,0,0)"));
+        dialog.setScene(scene);
         dialog.showAndWait();
     }
 

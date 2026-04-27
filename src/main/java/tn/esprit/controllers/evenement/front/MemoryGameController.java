@@ -36,9 +36,16 @@ public class MemoryGameController {
 
     private static final float SR = 44100f;
     private static final int COLS = 4, ROWS = 3; // 12 cartes = 6 paires
-    private static final String[] FALLBACK_EMOJIS = {"🐱","🐶","🦊","🐼","🐨","🦁"};
+    
+    // Types de cafés avec emojis et couleurs
+    private static final String[] CAFE_TYPES = {
+        "☕ Espresso", "🍵 Cappuccino", "🥛 Latte", "🍶 Americano", "🍫 Mocha", "🧊 Iced Coffee"
+    };
+    private static final String[] CAFE_EMOJIS = {
+        "☕", "🍵", "🥛", "🍶", "🍫", "🧊"
+    };
     private static final String[] CARD_COLORS = {
-        "#ff6b9d","#c44dff","#4ecdc4","#f7b731","#26de81","#fd9644"
+        "#6b3a2a","#c47c3a","#d4a96a","#3e2723","#4e342e","#1565c0"
     };
 
     // État du jeu
@@ -122,9 +129,9 @@ public class MemoryGameController {
 
         VBox headerText = new VBox(2);
         HBox.setHgrow(headerText, Priority.ALWAYS);
-        Label titre = new Label("🃏  Memory Cards");
+        Label titre = new Label("☕  Memory Cafés");
         titre.setStyle("-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;");
-        Label sub = new Label("Trouvez toutes les paires !  •  TheCatAPI");
+        Label sub = new Label("Trouvez toutes les paires de cafés !");
         sub.setStyle("-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.85);");
         headerText.getChildren().addAll(titre, sub);
 
@@ -211,52 +218,19 @@ public class MemoryGameController {
         loadCatImages();
     }
 
-    // ── API : TheCatAPI — images pour les cartes ─────────────────
+    // ── Chargement des images de cafés ─────────────────
 
     private static void loadCatImages() {
-        Task<List<Image>> task = new Task<>() {
-            @Override protected List<Image> call() {
-                List<Image> images = new ArrayList<>();
-                try {
-                    // TheCatAPI — gratuite, no-key pour usage basique
-                    String urlStr = "https://api.thecatapi.com/v1/images/search?limit=6&size=small";
-                    URL url = new URL(urlStr);
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.setConnectTimeout(5000);
-                    conn.setReadTimeout(5000);
-                    conn.setRequestProperty("User-Agent", "AutoLearn-App/1.0");
-
-                    if (conn.getResponseCode() == 200) {
-                        String json = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                        // Extraire les URLs des images
-                        List<String> urls = extractAllJsonValues(json, "url");
-                        for (String imgUrl : urls) {
-                            try {
-                                Image img = new Image(imgUrl, 100, 100, true, true, true);
-                                images.add(img);
-                            } catch (Exception ignored) {}
-                        }
-                    }
-                } catch (Exception ignored) {}
-                return images;
-            }
-        };
-        task.setOnSucceeded(e -> Platform.runLater(() -> {
-            List<Image> images = task.getValue();
-            buildGameGrid(images.isEmpty() ? null : images);
-        }));
-        task.setOnFailed(e -> Platform.runLater(() -> buildGameGrid(null)));
-        Thread t = new Thread(task, "catapi-loader");
-        t.setDaemon(true); t.start();
+        // Charger directement les images de cafés sans API externe
+        buildGameGrid(null);
     }
 
-    private static void buildGameGrid(List<Image> catImages) {
+    private static void buildGameGrid(List<Image> cafeImages) {
         gameBody.getChildren().clear();
         gameGrid.getChildren().clear();
         gameGrid.getColumnConstraints().clear();
 
-        // Créer 6 paires
+        // Créer 6 paires de cafés
         List<Integer> pairIds = new ArrayList<>();
         for (int i = 0; i < 6; i++) { pairIds.add(i); pairIds.add(i); }
         Collections.shuffle(pairIds);
@@ -269,9 +243,8 @@ public class MemoryGameController {
 
         for (int i = 0; i < pairIds.size(); i++) {
             int pairId = pairIds.get(i);
-            Image img = (catImages != null && pairId < catImages.size()) ? catImages.get(pairId) : null;
-            CardData card = new CardData(pairId, img, CARD_COLORS[pairId % CARD_COLORS.length],
-                    FALLBACK_EMOJIS[pairId % FALLBACK_EMOJIS.length]);
+            CardData card = new CardData(pairId, null, CARD_COLORS[pairId % CARD_COLORS.length],
+                    CAFE_EMOJIS[pairId % CAFE_EMOJIS.length]);
             cards.add(card);
             StackPane cardNode = buildCardNode(card);
             card.node = cardNode;

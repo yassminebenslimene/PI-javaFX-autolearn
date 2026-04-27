@@ -15,25 +15,26 @@ import javax.imageio.ImageIO;
 
 /**
  * Service de génération de QR codes pour les participations aux événements.
- * Utilise l'API ZXing (Google) pour générer des QR codes haute qualité.
+ * Génère des QR codes locaux avec contenu simple (pas d'API web).
  */
 public class QrCodeService {
 
     /**
-     * Génère un QR code pointant vers la page de détails de participation.
-     * L'URL pointe vers le mini serveur HTTP embarqué de l'application (port 8765).
+     * Génère un QR code avec les informations de participation.
+     * Contenu local simple : pas de dépendance web.
      * @param participationId  ID de la participation
      * @param etudiantId       ID de l'étudiant
      * @param evenementId      ID de l'événement
      * @return bytes PNG du QR code, ou null en cas d'erreur
      */
     public byte[] generateParticipationQrCode(int participationId, int etudiantId, int evenementId) {
-        String url = ParticipationWebServer.getParticipationUrl(participationId, etudiantId, evenementId);
-        return generateQrCode(url, 300);
+        // Contenu local simple : ID de participation + étudiant + événement
+        String content = String.format("PART:%d|ETU:%d|EV:%d", participationId, etudiantId, evenementId);
+        return generateQrCode(content, 300);
     }
 
     /**
-     * Génère un QR code à partir d'un contenu texte/URL.
+     * Génère un QR code à partir d'un contenu texte.
      * @param content  contenu à encoder
      * @param size     taille en pixels (carré)
      * @return bytes PNG du QR code
@@ -59,9 +60,9 @@ public class QrCodeService {
     }
 
     /**
-     * Retourne l'URL de la page de participation (celle encodée dans le QR code).
+     * Retourne le contenu du QR code (format local simple).
      */
-    public String getParticipationUrl(int participationId, int etudiantId, int evenementId) {
-        return ParticipationWebServer.getParticipationUrl(participationId, etudiantId, evenementId);
+    public String getParticipationContent(int participationId, int etudiantId, int evenementId) {
+        return String.format("PART:%d|ETU:%d|EV:%d", participationId, etudiantId, evenementId);
     }
 }
