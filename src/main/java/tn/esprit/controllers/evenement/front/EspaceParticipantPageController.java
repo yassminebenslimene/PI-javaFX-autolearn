@@ -59,7 +59,7 @@ public class EspaceParticipantPageController {
         Label subtitleLabel = new Label("Bienvenue dans ton espace personnel ! 🎉");
         subtitleLabel.setStyle(
             "-fx-font-size:14; " +
-            "-fx-text-fill:rgba(255,255,255,0.95); " +
+            "-fx-text-fill:#667eea; " +
             "-fx-font-style:italic; " +
             "-fx-font-weight:500;"
         );
@@ -69,7 +69,7 @@ public class EspaceParticipantPageController {
         Label descLabel = new Label("Explore les activités, joue, détends-toi et profite de chaque moment");
         descLabel.setStyle(
             "-fx-font-size:12; " +
-            "-fx-text-fill:rgba(255,255,255,0.85);"
+            "-fx-text-fill:#764ba2;"
         );
         descLabel.setAlignment(Pos.CENTER);
         
@@ -161,10 +161,14 @@ public class EspaceParticipantPageController {
         VBox container = new VBox(14);
         container.setAlignment(Pos.TOP_CENTER);
         container.setPadding(new Insets(24, 20, 24, 20));
+        
+        // Assombrir légèrement les couleurs de fond
+        String darkerBg = darkenColor(bgLight, 0.08);
+        
         container.setStyle(
-            "-fx-background-color:" + bgLight + "; " +
+            "-fx-background-color:" + darkerBg + "; " +
             "-fx-background-radius:18; " +
-            "-fx-border-color:" + colorLight + "66; " +
+            "-fx-border-color:" + colorLight + "88; " +
             "-fx-border-radius:18; " +
             "-fx-border-width:2; " +
             "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.12),12,0,0,4);"
@@ -263,9 +267,9 @@ public class EspaceParticipantPageController {
 
             // Retour au style normal
             container.setStyle(
-                "-fx-background-color:" + bgLight + "; " +
+                "-fx-background-color:" + darkerBg + "; " +
                 "-fx-background-radius:18; " +
-                "-fx-border-color:" + colorLight + "66; " +
+                "-fx-border-color:" + colorLight + "88; " +
                 "-fx-border-radius:18; " +
                 "-fx-border-width:2; " +
                 "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.12),12,0,0,4);"
@@ -295,6 +299,24 @@ public class EspaceParticipantPageController {
         });
 
         return container;
+    }
+
+    // Utilitaire pour assombrir les couleurs
+    private static String darkenColor(String hexColor, double factor) {
+        try {
+            String hex = hexColor.replace("#", "");
+            int r = Integer.parseInt(hex.substring(0, 2), 16);
+            int g = Integer.parseInt(hex.substring(2, 4), 16);
+            int b = Integer.parseInt(hex.substring(4, 6), 16);
+            
+            r = Math.max(0, (int)(r * (1 - factor)));
+            g = Math.max(0, (int)(g * (1 - factor)));
+            b = Math.max(0, (int)(b * (1 - factor)));
+            
+            return String.format("#%02x%02x%02x", r, g, b);
+        } catch (Exception e) {
+            return hexColor;
+        }
     }
 
     private void animateContainers() {
