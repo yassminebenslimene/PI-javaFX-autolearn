@@ -10,7 +10,7 @@ import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.EquipeService;
 import tn.esprit.services.EvenementService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -50,7 +50,7 @@ public class MesEquipesController {
 
     private void loadTeams() {
         teamsContainer.getChildren().clear();
-        var user = SessionManager.getCurrentUser();
+        var user = JwtManager.getCurrentUser();
         if (!(user instanceof Etudiant etudiant)) return;
 
         List<Equipe> equipes = equipeService.getEquipesByEtudiant(etudiant.getId());

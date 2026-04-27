@@ -12,9 +12,10 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.entities.Cours;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -264,7 +265,7 @@ public class CoursController {
     /** Ouvre le formulaire de création (cours = null → mode création). */
     @FXML
     private void onNewCours() {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -273,7 +274,7 @@ public class CoursController {
 
     /** Ouvre le formulaire pré-rempli pour modifier un cours existant. */
     private void onEditCours(Cours cours) {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -282,7 +283,7 @@ public class CoursController {
 
     /** Demande confirmation puis supprime le cours ET ses chapitres (cascade). */
     private void onDeleteCours(Cours cours) {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -292,7 +293,10 @@ public class CoursController {
         confirm.setContentText("Voulez-vous supprimer le cours '" + cours.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                serviceCours.supprimer(cours.getId()); // supprime aussi les chapitres (cascade)
+                var admin = JwtManager.getCurrentUser();
+                if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_cours",
+                    java.util.Map.of("titre", cours.getTitre(), "id", String.valueOf(cours.getId())));
+                serviceCours.supprimer(cours.getId());
                 loadTable();
             }
         });
@@ -377,17 +381,21 @@ public class CoursController {
         int    duree       = Integer.parseInt(fieldDuree.getText().trim());
 
         if (!editMode) {
-            // Création : construire un nouvel objet Cours et l'insérer en BDD
             Cours cours = new Cours(titre, description, matiere, niveau, duree, LocalDateTime.now());
             serviceCours.ajouter(cours);
+            var admin = JwtManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_cours",
+                java.util.Map.of("titre", titre, "matiere", matiere));
         } else {
-            // Modification : mettre à jour les champs de l'objet existant
             editingCours.setTitre(titre);
             editingCours.setMatiere(matiere);
             editingCours.setDescription(description);
             editingCours.setNiveau(niveau);
             editingCours.setDuree(duree);
             serviceCours.modifier(editingCours);
+            var admin = JwtManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_cours",
+                java.util.Map.of("titre", titre, "id", String.valueOf(editingCours.getId())));
         }
 
         // Fermer la fenêtre modale après sauvegarde

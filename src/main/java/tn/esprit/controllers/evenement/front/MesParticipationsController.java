@@ -12,7 +12,7 @@ import tn.esprit.entities.Participation;
 import tn.esprit.services.EquipeService;
 import tn.esprit.services.EvenementService;
 import tn.esprit.services.ParticipationService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -54,7 +54,7 @@ public class MesParticipationsController {
 
     private void loadParticipations() {
         participationsContainer.getChildren().clear();
-        var user = SessionManager.getCurrentUser();
+        var user = JwtManager.getCurrentUser();
         if (!(user instanceof Etudiant etudiant)) return;
 
         List<Participation> participations = participationService.getByEtudiant(etudiant.getId());

@@ -13,8 +13,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -215,7 +216,7 @@ public class ChapitreController {
 
     @FXML
     private void onNewChapitre() {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -223,7 +224,7 @@ public class ChapitreController {
     }
 
     private void onEditChapitre(Chapitre chapitre) {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -231,7 +232,7 @@ public class ChapitreController {
     }
 
     private void onDeleteChapitre(Chapitre chapitre) {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -242,6 +243,9 @@ public class ChapitreController {
         confirm.setContentText("Voulez-vous supprimer '" + chapitre.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
+                var admin = JwtManager.getCurrentUser();
+                if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_chapitre",
+                    java.util.Map.of("titre", chapitre.getTitre()));
                 serviceChapitre.supprimer(chapitre.getId());
                 loadTable();
             }
@@ -304,6 +308,9 @@ public class ChapitreController {
         if (!editMode) {
             Chapitre chapitre = new Chapitre(titre, contenu, ordre, ressources, cours.getId(), type, fichier);
             serviceChapitre.ajouter(chapitre);
+            var admin = JwtManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_chapitre",
+                java.util.Map.of("titre", titre, "cours_id", String.valueOf(cours.getId())));
         } else {
             editingChapitre.setTitre(titre);
             editingChapitre.setContenu(contenu);
@@ -313,6 +320,9 @@ public class ChapitreController {
             editingChapitre.setRessourceFichier(fichier);
             editingChapitre.setCoursId(cours.getId());
             serviceChapitre.modifier(editingChapitre);
+            var admin = JwtManager.getCurrentUser();
+            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_chapitre",
+                java.util.Map.of("titre", titre));
         }
 
         ((Stage) fieldTitre.getScene().getWindow()).close();

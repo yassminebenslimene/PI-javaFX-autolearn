@@ -1,120 +1,223 @@
 package tn.esprit.services;
 
-import tn.esprit.entities.User;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import jakarta.mail.*;
+import jakarta.mail.internet.*;
 
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Sends HTML emails from autolearn66@gmail.com using Gmail SMTP + App Password.
+ * All sends are async (fire-and-forget) so the UI never blocks.
+ */
 public class EmailService {
 
-    // Configuration Brevo
-    private static final String BREVO_API_KEY = "Brevo_API_KEY";
-    private static final String FROM_EMAIL = "autolearn66@gmail.com";
-    private static final String FROM_NAME = "AutoLearn";
-    private static final String API_URL = "https://api.brevo.com/v3/smtp/email";
+    // ── Gmail credentials ─────────────────────────────────────────────────────
+    private static final String FROM_EMAIL    = "autolearn66@gmail.com";
+    private static final String FROM_NAME     = "AutoLearn";
+    // Generate an App Password at https://myaccount.google.com/apppasswords
+    // (2-Step Verification must be enabled on the account)
+    private static final String APP_PASSWORD  = "nnna xrkp hrsv ynci";   // ← replace with real app password
 
-    public void sendChallengeResult(User user, String challengeTitle, int score, int totalPoints, LocalDateTime completedAt) {
+    private static final ExecutorService POOL = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "email-sender");
+        t.setDaemon(true);
+        return t;
+    });
 
-        String toEmail = user.getEmail();
-        String userName = user.getPrenom() + " " + user.getNom();
+    // ── Public API ────────────────────────────────────────────────────────────
 
-        String subject = "📊 Résultat de votre challenge - " + challengeTitle;
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-        String formattedDate = completedAt.format(formatter);
-
-        int percentage = totalPoints > 0 ? (score * 100) / totalPoints : 0;
-        String status = percentage >= 50 ? "✅ Félicitations ! Vous avez réussi !" : "❌ Vous n'avez pas atteint le seuil de réussite.";
-        String stars = getStars(percentage);
-
-        String htmlBody = buildHtmlBody(userName, challengeTitle, score, totalPoints, percentage, formattedDate, status, stars);
-
-        sendEmail(toEmail, subject, htmlBody);
-        System.out.println("Email envoyé à : " + toEmail);
+    /** 1. Confirmation email after self-registration */
+    public static void sendRegistrationConfirmation(String toEmail, String prenom, String nom) {
+        String subject = "Bienvenue sur AutoLearn !";
+        String body = htmlTemplate(
+            "Bienvenue, " + prenom + " !",
+            "Votre compte a été créé avec succès.",
+            "<p>Bonjour <strong>" + prenom + " " + nom + "</strong>,</p>" +
+            "<p>Votre compte étudiant AutoLearn est maintenant actif. " +
+            "Vous pouvez dès maintenant accéder à tous nos cours, challenges et événements.</p>" +
+            "<p>Bonne formation !</p>",
+            "Se connecter", "https://autolearn.tn/login"
+        );
+        sendAsync(toEmail, subject, body);
     }
 
-    private String buildHtmlBody(String userName, String challengeTitle, int score, int totalPoints,
-                                 int percentage, String formattedDate, String status, String stars) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<html><head><style>");
-        sb.append("body{font-family:'Segoe UI',Arial,sans-serif;background-color:#f5f5f5;padding:20px;}");
-        sb.append(".container{max-width:600px;margin:0 auto;background-color:white;border-radius:20px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1);}");
-        sb.append(".header{text-align:center;border-bottom:3px solid #7a6ad8;padding-bottom:20px;margin-bottom:20px;}");
-        sb.append(".logo{font-size:24px;font-weight:bold;color:#7a6ad8;}");
-        sb.append(".score-circle{width:120px;height:120px;margin:20px auto;border-radius:50%;background:linear-gradient(135deg,#7a6ad8,#4e3b9c);display:flex;align-items:center;justify-content:center;}");
-        sb.append(".score-number{font-size:36px;font-weight:bold;color:white;}");
-        sb.append(".score-total{font-size:18px;color:rgba(255,255,255,0.8);}");
-        sb.append(".stars{text-align:center;margin:15px 0;font-size:24px;}");
-        sb.append(".details{background-color:#f8f9fa;padding:20px;border-radius:15px;margin:20px 0;}");
-        sb.append(".detail-row{margin:12px 0;}");
-        sb.append(".status-success{color:#28a745;font-weight:bold;}");
-        sb.append(".status-fail{color:#dc3545;font-weight:bold;}");
-        sb.append(".footer{text-align:center;color:#999;font-size:12px;margin-top:30px;padding-top:20px;border-top:1px solid #eee;}");
-        sb.append("</style></head><body>");
-        sb.append("<div class='container'>");
-        sb.append("<div class='header'><div class='logo'>🎓 AutoLearn</div><h3>Résultat du challenge</h3></div>");
-        sb.append("<div class='score-circle'><div><div class='score-number'>").append(score).append("</div>");
-        sb.append("<div class='score-total'>/").append(totalPoints).append("</div></div></div>");
-        sb.append("<div class='stars'>").append(stars).append("</div>");
-        sb.append("<div class='details'>");
-        sb.append("<div class='detail-row'><strong>👤 Étudiant :</strong> ").append(userName).append("</div>");
-        sb.append("<div class='detail-row'><strong>🏆 Challenge :</strong> ").append(challengeTitle).append("</div>");
-        sb.append("<div class='detail-row'><strong>📊 Pourcentage :</strong> ").append(percentage).append("%</div>");
-        sb.append("<div class='detail-row'><strong>📅 Date de completion :</strong> ").append(formattedDate).append("</div>");
-        sb.append("<div class='detail-row'><strong>✨ Statut :</strong> <span class='").append(percentage >= 50 ? "status-success" : "status-fail").append("'>").append(status).append("</span></div>");
-        sb.append("</div><div class='footer'><p>AutoLearn - Plateforme d'apprentissage intelligent</p>");
-        sb.append("<p>© 2026 AutoLearn. Tous droits réservés.</p></div></div></body></html>");
-
-        return sb.toString();
+    /** 2. Email sent to a new student created by an admin */
+    public static void sendAdminCreatedAccount(String toEmail, String prenom, String nom,
+                                               String plainPassword) {
+        String subject = "Votre compte AutoLearn a été créé";
+        String body = htmlTemplate(
+            "Votre compte a été créé",
+            "Un administrateur AutoLearn a créé votre compte.",
+            "<p>Bonjour <strong>" + prenom + " " + nom + "</strong>,</p>" +
+            "<p>Un administrateur a créé votre compte étudiant sur la plateforme AutoLearn.</p>" +
+            "<table style='border-collapse:collapse;margin:16px 0;'>" +
+            "  <tr><td style='padding:6px 16px 6px 0;color:#888;'>Email</td>" +
+            "      <td style='padding:6px 0;font-weight:600;'>" + toEmail + "</td></tr>" +
+            "  <tr><td style='padding:6px 16px 6px 0;color:#888;'>Mot de passe temporaire</td>" +
+            "      <td style='padding:6px 0;font-weight:600;font-family:monospace;background:#f3f4f6;" +
+            "          padding:4px 10px;border-radius:6px;'>" + plainPassword + "</td></tr>" +
+            "</table>" +
+            "<p style='color:#dc2626;font-size:13px;'>Veuillez changer votre mot de passe dès votre première connexion.</p>",
+            "Se connecter", "https://autolearn.tn/login"
+        );
+        sendAsync(toEmail, subject, body);
     }
 
-    private String getStars(int percentage) {
-        int starCount = percentage / 20;
-        StringBuilder stars = new StringBuilder();
-        for (int i = 1; i <= 5; i++) {
-            stars.append(i <= starCount ? "★" : "☆");
-        }
-        return stars.toString();
+    /** 3. Suspension notification */
+    public static void sendSuspensionNotification(String toEmail, String prenom, String reason) {
+        String subject = "Votre compte AutoLearn a été suspendu";
+        String body = htmlTemplate(
+            "Compte suspendu",
+            "Votre accès à AutoLearn a été temporairement suspendu.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Votre compte a été suspendu pour la raison suivante :</p>" +
+            "<blockquote style='border-left:4px solid #dc2626;margin:16px 0;padding:12px 16px;" +
+            "background:#fef2f2;border-radius:0 8px 8px 0;color:#991b1b;font-style:italic;'>" +
+            reason + "</blockquote>" +
+            "<p>Si vous pensez qu'il s'agit d'une erreur, contactez-nous à " +
+            "<a href='mailto:autolearn66@gmail.com' style='color:#7a6ad8;'>autolearn66@gmail.com</a>.</p>",
+            "Contacter le support", "mailto:autolearn66@gmail.com"
+        );
+        sendAsync(toEmail, subject, body);
     }
 
-    private void sendEmail(String to, String subject, String htmlBody) {
-        try {
-            String jsonBody = "{\n" +
-                    "    \"sender\": {\"email\": \"" + FROM_EMAIL + "\", \"name\": \"" + FROM_NAME + "\"},\n" +
-                    "    \"to\": [{\"email\": \"" + to + "\"}],\n" +
-                    "    \"subject\": \"" + subject + "\",\n" +
-                    "    \"htmlContent\": " + escapeJson(htmlBody) + "\n" +
-                    "}";
+    /** 4. Reactivation notification */
+    public static void sendReactivationNotification(String toEmail, String prenom) {
+        String subject = "Votre compte AutoLearn a été réactivé";
+        String body = htmlTemplate(
+            "Compte réactivé ✓",
+            "Votre accès à AutoLearn a été rétabli.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Bonne nouvelle ! Votre compte a été réactivé. " +
+            "Vous pouvez à nouveau accéder à tous vos cours et challenges.</p>" +
+            "<p>Bienvenue de retour !</p>",
+            "Se connecter", "https://autolearn.tn/login"
+        );
+        sendAsync(toEmail, subject, body);
+    }
 
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(API_URL))
-                    .header("Content-Type", "application/json")
-                    .header("api-key", BREVO_API_KEY)
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .timeout(java.time.Duration.ofSeconds(30))
-                    .build();
+    /** 5. Password reset email with a token/link */
+    public static void sendPasswordReset(String toEmail, String prenom, String resetToken) {
+        String subject = "Réinitialisation de votre mot de passe AutoLearn";
+        // In a real app this would be a deep-link; for desktop we show the token
+        String body = htmlTemplate(
+            "Réinitialisation du mot de passe",
+            "Vous avez demandé à réinitialiser votre mot de passe.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Voici votre code de réinitialisation :</p>" +
+            "<div style='text-align:center;margin:24px 0;'>" +
+            "  <span style='font-size:32px;font-weight:900;letter-spacing:8px;" +
+            "    font-family:monospace;background:#f3f4f6;padding:12px 24px;" +
+            "    border-radius:12px;color:#7a6ad8;'>" + resetToken + "</span>" +
+            "</div>" +
+            "<p style='color:#888;font-size:13px;'>Ce code expire dans <strong>15 minutes</strong>. " +
+            "Si vous n'avez pas fait cette demande, ignorez cet email.</p>",
+            null, null
+        );
+        sendAsync(toEmail, subject, body);
+    }
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    /** 5. Breached password warning (sent after registration if HIBP detects a leak) */
+    public static void sendAsync_BreachedPasswordWarning(String toEmail, String prenom, int breachCount) {
+        String subject = "Securite : votre mot de passe a ete detecte dans des fuites de donnees";
+        String body = htmlTemplate(
+            "Alerte de securite",
+            "Votre mot de passe a ete trouve dans des bases de donnees compromises.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Lors de votre inscription, nous avons verifie votre mot de passe via le service " +
+            "<strong>Have I Been Pwned</strong> (verification anonyme — votre mot de passe n'a jamais quitte votre appareil).</p>" +
+            "<p>Resultat : votre mot de passe a ete trouve dans <strong>" + breachCount +
+            " fuite(s) de donnees</strong> connues.</p>" +
+            "<p style='color:#dc2626;font-weight:bold;'>Nous vous recommandons fortement de changer votre mot de passe immediatement.</p>" +
+            "<p>Choisissez un mot de passe unique que vous n'utilisez nulle part ailleurs.</p>",
+            "Changer mon mot de passe", "https://autolearn.tn/reset-password"
+        );
+        sendAsync(toEmail, subject, body);
+    }
 
-            if (response.statusCode() == 201 || response.statusCode() == 200) {
-                System.out.println("✅ Email envoyé avec succès à " + to);
-            } else {
-                System.err.println("❌ Erreur Brevo: " + response.statusCode() + " - " + response.body());
+    // ── Internal helpers ──────────────────────────────────────────────────────
+
+    private static void sendAsync(String to, String subject, String htmlBody) {
+        POOL.submit(() -> {
+            try {
+                send(to, subject, htmlBody);
+                System.out.println("[Email] Sent to " + to + " — " + subject);
+            } catch (Exception e) {
+                System.err.println("[Email] Failed to send to " + to + ": " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("❌ Erreur lors de l'envoi de l'email : " + e.getMessage());
-            e.printStackTrace();
-        }
+        });
     }
 
-    private String escapeJson(String text) {
-        return "\"" + text.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r") + "\"";
+    private static void send(String to, String subject, String htmlBody) throws MessagingException {
+        Properties props = new Properties();
+        props.put("mail.smtp.auth",            "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host",            "smtp.gmail.com");
+        props.put("mail.smtp.port",            "587");
+        props.put("mail.smtp.ssl.trust",       "smtp.gmail.com");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
+            }
+        });
+
+        Message msg = new MimeMessage(session);
+        msg.setFrom(new InternetAddress(FROM_EMAIL));
+        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+        msg.setSubject(subject);
+        msg.setContent(htmlBody, "text/html; charset=UTF-8");
+        Transport.send(msg);
+    }
+
+    /**
+     * Builds a clean HTML email template matching the AutoLearn violet brand.
+     *
+     * @param title    Big heading inside the card
+     * @param subtitle Smaller subtitle line
+     * @param content  Raw HTML body content
+     * @param btnText  CTA button text (null = no button)
+     * @param btnHref  CTA button href (null = no button)
+     */
+    private static String htmlTemplate(String title, String subtitle,
+                                       String content, String btnText, String btnHref) {
+        String btn = (btnText != null && btnHref != null)
+            ? "<div style='text-align:center;margin:28px 0 8px;'>" +
+              "  <a href='" + btnHref + "' style='background:#7a6ad8;color:white;text-decoration:none;" +
+              "    font-weight:700;font-size:15px;padding:14px 36px;border-radius:8px;" +
+              "    display:inline-block;'>" + btnText + "</a>" +
+              "</div>"
+            : "";
+
+        return "<!DOCTYPE html><html><head><meta charset='UTF-8'></head><body " +
+               "style='margin:0;padding:0;background:#f8f7ff;font-family:Arial,sans-serif;'>" +
+               "<table width='100%' cellpadding='0' cellspacing='0' style='background:#f8f7ff;padding:40px 0;'>" +
+               "<tr><td align='center'>" +
+               "<table width='560' cellpadding='0' cellspacing='0' " +
+               "style='background:white;border-radius:16px;overflow:hidden;" +
+               "box-shadow:0 4px 24px rgba(122,106,216,0.12);'>" +
+               // Header
+               "<tr><td style='background:#7a6ad8;padding:32px 40px;text-align:center;'>" +
+               "  <span style='font-size:24px;font-weight:900;color:white;'>AutoLearn</span><br>" +
+               "  <span style='font-size:13px;color:rgba(255,255,255,0.7);'>Votre plateforme d'apprentissage</span>" +
+               "</td></tr>" +
+               // Body
+               "<tr><td style='padding:36px 40px 28px;'>" +
+               "  <h2 style='margin:0 0 6px;font-size:22px;color:#1a1a2e;'>" + title + "</h2>" +
+               "  <p style='margin:0 0 20px;font-size:14px;color:#888;'>" + subtitle + "</p>" +
+               "  <div style='font-size:14px;color:#444;line-height:1.7;'>" + content + "</div>" +
+               btn +
+               "</td></tr>" +
+               // Footer
+               "<tr><td style='background:#f8f7ff;padding:20px 40px;text-align:center;" +
+               "border-top:1px solid #eeeeee;'>" +
+               "  <p style='margin:0;font-size:12px;color:#aaa;'>" +
+               "    © 2026 AutoLearn — Tunisie — " +
+               "    <a href='mailto:autolearn66@gmail.com' style='color:#7a6ad8;'>autolearn66@gmail.com</a>" +
+               "  </p>" +
+               "</td></tr>" +
+               "</table></td></tr></table></body></html>";
     }
 }

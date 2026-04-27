@@ -38,18 +38,34 @@ public class MainApp extends Application {
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
-        showLogin();
+        primaryStage.setMaximized(true);
+
+        showLanding();
         primaryStage.show();
+    }
+
+    /** Stop resources when app closes */
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+    }
+
+    public static void showLanding() throws Exception {
+        load("/views/landing.fxml");
+        primaryStage.setTitle("AutoLearn — Bienvenue");
+        primaryStage.setMaximized(true);
     }
 
     public static void showRegister() throws Exception {
         load("/views/auth/register.fxml");
         primaryStage.setTitle("AutoLearn — Inscription");
+        primaryStage.setMaximized(true);
     }
 
     public static void showLogin() throws Exception {
         load("/views/auth/login.fxml");
         primaryStage.setTitle("AutoLearn — Connexion");
+        primaryStage.setMaximized(true);
     }
 
     public static void showResetPassword() throws Exception {
@@ -73,6 +89,47 @@ public class MainApp extends Application {
         load("/views/profile.fxml");
         primaryStage.setMaximized(true);
         primaryStage.setTitle("AutoLearn — Mon Profil");
+    }
+
+    /**
+     * Opens Face ID login dialog as a modal popup.
+     */
+    public static void showFaceIdLogin(String prefillEmail) throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+            MainApp.class.getResource("/views/auth/face_id.fxml"));
+        javafx.scene.Parent root = loader.load();
+        tn.esprit.controllers.FaceIdController ctrl = loader.getController();
+        ctrl.setMode(tn.esprit.controllers.FaceIdController.Mode.LOGIN);
+        if (prefillEmail != null && !prefillEmail.isEmpty()) {
+            ctrl.prefillEmail(prefillEmail);
+        }
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(primaryStage);
+        dialog.setTitle("Face ID — Connexion");
+        dialog.setResizable(false);
+        dialog.setScene(new Scene(root));
+        dialog.show();
+    }
+
+    /**
+     * Opens Face ID register dialog as a modal popup (from profile page).
+     */
+    public static void showFaceIdRegister() throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+            MainApp.class.getResource("/views/auth/face_id.fxml"));
+        javafx.scene.Parent root = loader.load();
+        tn.esprit.controllers.FaceIdController ctrl = loader.getController();
+        ctrl.setMode(tn.esprit.controllers.FaceIdController.Mode.REGISTER);
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(primaryStage);
+        dialog.setTitle("Face ID — Enregistrement");
+        dialog.setResizable(false);
+        dialog.setScene(new Scene(root));
+        dialog.show();
     }
 
     /** Stub — GestionEvenement module fills this in */

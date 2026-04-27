@@ -11,7 +11,7 @@ import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.EquipeService;
 import tn.esprit.services.EvenementService;
-import tn.esprit.services.WeatherService;
+import tn.esprit.session.JwtManager;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
