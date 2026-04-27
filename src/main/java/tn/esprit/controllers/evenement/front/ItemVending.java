@@ -1,18 +1,20 @@
 package tn.esprit.controllers.evenement.front;
 
 /**
- * Représente un item (boisson ou snack) dans la vending machine.
- * Données in-memory uniquement — aucune persistance DB.
+ * Classe pour représenter un item de la machine à vendre.
  */
-public record ItemVending(
-        String nom,
-        String emoji,
-        double prixTND,
-        int calories,   // enrichi par OpenFoodFacts, 0 si indisponible
-        int sucreG      // enrichi par OpenFoodFacts, 0 si indisponible
-) {
-    /** Constructeur simplifié sans données nutritionnelles */
+public class ItemVending {
+    private String nom;
+    private String emoji;
+    private double prixTND;
+
     public ItemVending(String nom, String emoji, double prixTND) {
-        this(nom, emoji, prixTND, 0, 0);
+        this.nom = nom;
+        this.emoji = emoji;
+        this.prixTND = prixTND;
     }
+
+    public String nom() { return nom; }
+    public String emoji() { return emoji; }
+    public double prixTND() { return prixTND; }
 }

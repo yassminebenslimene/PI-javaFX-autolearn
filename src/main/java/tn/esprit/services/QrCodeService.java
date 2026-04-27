@@ -28,7 +28,7 @@ public class QrCodeService {
      * @return bytes PNG du QR code, ou null en cas d'erreur
      */
     public byte[] generateParticipationQrCode(int participationId, int etudiantId, int evenementId) {
-        String url = "http://localhost:8765/participation/" + participationId + "?eid=" + evenementId + "&uid=" + etudiantId;
+        String url = ParticipationWebServer.getUrl(participationId, etudiantId, evenementId);
         return generateQrCode(url, 300);
     }
 
@@ -62,6 +62,6 @@ public class QrCodeService {
      * Retourne l'URL de la page de participation (celle encodée dans le QR code).
      */
     public String getParticipationUrl(int participationId, int etudiantId, int evenementId) {
-        return "http://localhost:8765/participation/" + participationId + "?eid=" + evenementId + "&uid=" + etudiantId;
+        return ParticipationWebServer.getUrl(participationId, etudiantId, evenementId);
     }
 }

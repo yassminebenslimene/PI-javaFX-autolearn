@@ -14,11 +14,14 @@ import tn.esprit.services.EvenementService;
 import tn.esprit.services.ParticipationService;
 import tn.esprit.services.WeatherService;
 
+import tn.esprit.entities.Cours;
+import tn.esprit.services.ServiceCours;
+import tn.esprit.session.SessionManager;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class EvenementFrontController {
@@ -32,6 +35,8 @@ public class EvenementFrontController {
     private final EquipeService equipeService = new EquipeService();
     private final WeatherService weatherService = new WeatherService();
     private final ParticipationService participationService = new ParticipationService();
+    private final ServiceCours coursService = new ServiceCours();
+    private final RecommendationService recommendationService = new RecommendationService();
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd MMM yyyy");
     private static final DateTimeFormatter FMT_TIME = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -40,21 +45,21 @@ public class EvenementFrontController {
 
     // ── Couleurs par type ────────────────────────────────────────
     private static String typeColor(String type) {
-        if (type == null) return "#8b6614";
+        if (type == null) return "#7a6ad8";
         return switch (type) {
-            case "Hackathon"  -> "#d4a96a";   // or/gold
-            case "Conference" -> "#a0826d";   // nude
-            case "Workshop"   -> "#f5e6c8";   // beige
-            default           -> "#8b6614";   // marron
+            case "Hackathon"  -> "#16a34a";   // vert
+            case "Conference" -> "#4f46e5";   // indigo
+            case "Workshop"   -> "#f59e0b";   // orange
+            default           -> "#7a6ad8";   // violet
         };
     }
     private static String typeBg(String type) {
-        if (type == null) return "rgba(139,102,20,0.1)";
+        if (type == null) return "rgba(122,106,216,0.1)";
         return switch (type) {
-            case "Hackathon"  -> "rgba(212,169,106,0.1)";
-            case "Conference" -> "rgba(160,130,109,0.1)";
-            case "Workshop"   -> "rgba(245,230,200,0.1)";
-            default           -> "rgba(139,102,20,0.1)";
+            case "Hackathon"  -> "rgba(22,163,74,0.1)";
+            case "Conference" -> "rgba(79,70,229,0.1)";
+            case "Workshop"   -> "rgba(245,158,11,0.1)";
+            default           -> "rgba(122,106,216,0.1)";
         };
     }
     private static String typeIcon(String type) {
@@ -70,6 +75,13 @@ public class EvenementFrontController {
     @FXML
     public void initialize() {
         allEvents = evenementService.getAll();
+        // Tri : événements les plus récents (date_debut la plus grande) en premier
+        allEvents.sort((a, b) -> {
+            if (a.getDateDebut() == null && b.getDateDebut() == null) return 0;
+            if (a.getDateDebut() == null) return 1;
+            if (b.getDateDebut() == null) return -1;
+            return b.getDateDebut().compareTo(a.getDateDebut());
+        });
         buildFilterBar();
         renderGrid(allEvents);
     }
@@ -101,6 +113,7 @@ public class EvenementFrontController {
                 buildFilterBar();
                 List<Evenement> filtered = f.equals("Tous") ? allEvents
                         : allEvents.stream().filter(ev -> f.equals(ev.getType())).collect(Collectors.toList());
+                // Le tri est déjà appliqué sur allEvents, on conserve l'ordre
                 renderGrid(filtered);
             });
             filterBar.getChildren().add(btn);
@@ -627,6 +640,325 @@ public class EvenementFrontController {
 
     @FXML private void onVoirCalendrier() {
         try { MainApp.showCalendrierEvenements(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // ── Recommandations personnalisées ───────────────────────────
+    @FXML
+    private void onRecommandations() {
+        tn.esprit.entities.User user = SessionManager.getCurrentUser();
+        javafx.stage.Window owner = eventsContainer.getScene().getWindow();
+        double winW = owner.getWidth();
+        double winH = owner.getHeight();
+
+        // ── Calcul des recommandations ───────────────────────────
+        List<Evenement> eventsReco = new ArrayList<>();
+        List<Cours> coursReco = new ArrayList<>();
+
+        if (user != null) {
+            try {
+                // Utiliser le service avancé de recommandation
+                RecommendationService.UserProfile profile = recommendationService.buildUserProfile(user.getId());
+
+                // Générer les recommandations via IA
+                eventsReco = recommendationService.generateEventRecommendations(profile, 6);
+                coursReco = recommendationService.generateCourseRecommendations(profile, 4);
+
+            } catch (Exception e) {
+                System.err.println("[EvenementFront] Erreur recommandations avancées: " + e.getMessage());
+                // Fallback : recommandations simples
+                List<tn.esprit.entities.Participation> participations = participationService.getByEtudiant(user.getId());
+                Set<Integer> dejaParticipeIds = new HashSet<>();
+                Map<String, Integer> typeCount = new HashMap<>();
+
+                for (tn.esprit.entities.Participation p : participations) {
+                    dejaParticipeIds.add(p.getEvenementId());
+                    Evenement ev = evenementService.getById(p.getEvenementId());
+                    if (ev != null && ev.getType() != null) {
+                        typeCount.merge(ev.getType(), 1, Integer::sum);
+                    }
+                }
+
+                String topType = typeCount.entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+                        .orElse(null);
+
+                eventsReco = allEvents.stream()
+                        .filter(ev -> !dejaParticipeIds.contains(ev.getId()))
+                        .filter(ev -> !ev.isIsCanceled())
+                        .filter(ev -> ev.getDateDebut() != null && ev.getDateDebut().isAfter(LocalDateTime.now()))
+                        .filter(ev -> topType == null || topType.equals(ev.getType()))
+                        .limit(6)
+                        .collect(Collectors.toList());
+
+                if (eventsReco.size() < 3) {
+                    final List<Evenement> eventsRecoFinal = eventsReco;
+                    final int recoSize = eventsReco.size();
+                    List<Evenement> complement = allEvents.stream()
+                            .filter(ev -> !dejaParticipeIds.contains(ev.getId()))
+                            .filter(ev -> !ev.isIsCanceled())
+                            .filter(ev -> ev.getDateDebut() != null && ev.getDateDebut().isAfter(LocalDateTime.now()))
+                            .filter(ev -> !eventsRecoFinal.contains(ev))
+                            .limit(6 - recoSize)
+                            .collect(Collectors.toList());
+                    eventsReco.addAll(complement);
+                }
+
+                String matiereCible = topType == null ? null : switch (topType) {
+                    case "Hackathon"  -> "Informatique";
+                    case "Workshop"   -> "Développement";
+                    case "Conference" -> "Sciences";
+                    default           -> null;
+                };
+                List<Cours> tousCours = coursService.getAll();
+                if (matiereCible != null) {
+                    final String mc = matiereCible;
+                    coursReco = tousCours.stream()
+                            .filter(c -> c.getMatiere() != null && c.getMatiere().toLowerCase().contains(mc.toLowerCase()))
+                            .limit(4)
+                            .collect(Collectors.toList());
+                }
+                if (coursReco.size() < 2) {
+                    final List<Cours> coursRecoFinal = coursReco;
+                    final int coursRecoSize = coursReco.size();
+                    List<Cours> complement = tousCours.stream()
+                            .filter(c -> !coursRecoFinal.contains(c))
+                            .limit(4 - coursRecoSize)
+                            .collect(Collectors.toList());
+                    coursReco.addAll(complement);
+                }
+            }
+        }
+
+        // ── Construction du modal ────────────────────────────────
+        VBox modal = new VBox(0);
+        modal.setPrefWidth(680);
+        modal.setMaxWidth(680);
+        modal.setPrefHeight(winH * 0.88);
+        modal.setMaxHeight(winH * 0.88);
+        modal.setStyle("-fx-background-color:white; -fx-background-radius:20;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.4),30,0,0,8);");
+
+        // Header doré
+        HBox header = new HBox(12);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(22, 24, 22, 28));
+        header.setStyle("-fx-background-color:linear-gradient(to right,#f59e0b,#d97706);"
+                + "-fx-background-radius:20 20 0 0;");
+        Label titreModal = new Label("✨  Ça pourrait vous intéresser");
+        titreModal.setStyle("-fx-font-size:19; -fx-font-weight:800; -fx-text-fill:white;");
+        HBox.setHgrow(titreModal, Priority.ALWAYS);
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+        dialog.initOwner(owner);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle("-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white;"
+                + "-fx-font-size:15; -fx-font-weight:700; -fx-background-radius:50%;"
+                + "-fx-min-width:34; -fx-min-height:34; -fx-max-width:34; -fx-max-height:34;"
+                + "-fx-cursor:hand; -fx-border-width:0;");
+        header.getChildren().addAll(titreModal, closeBtn);
+
+        // Corps scrollable
+        VBox body = new VBox(20);
+        body.setPadding(new Insets(24, 28, 24, 28));
+
+        if (user == null) {
+            Label msg = new Label("🔒  Connectez-vous pour voir vos recommandations personnalisées.");
+            msg.setWrapText(true);
+            msg.setStyle("-fx-font-size:14; -fx-text-fill:#666; -fx-padding:20;");
+            body.getChildren().add(msg);
+        } else {
+            // Sous-titre personnalisé
+            List<tn.esprit.entities.Participation> participations = participationService.getByEtudiant(user.getId());
+            String subTitle = participations.isEmpty()
+                    ? "Découvrez nos événements et cours pour commencer votre parcours !"
+                    : "Basé sur vos " + participations.size() + " participation(s), voici ce qui pourrait vous plaire :";
+            Label sub = new Label(subTitle);
+            sub.setWrapText(true);
+            sub.setStyle("-fx-font-size:13; -fx-text-fill:#555; -fx-font-style:italic;");
+            body.getChildren().add(sub);
+
+            // ── Section événements recommandés ───────────────────
+            Label secEv = new Label("🎯  Événements recommandés");
+            secEv.setStyle("-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#d97706;"
+                    + "-fx-border-color:#fde68a; -fx-border-width:0 0 2 0; -fx-padding:0 0 6 0;");
+            body.getChildren().add(secEv);
+
+            if (eventsReco.isEmpty()) {
+                Label none = new Label("Vous avez déjà participé à tous les événements disponibles — bravo !");
+                none.setStyle("-fx-font-size:12; -fx-text-fill:#888;");
+                body.getChildren().add(none);
+            } else {
+                for (Evenement ev : eventsReco) {
+                    body.getChildren().add(buildRecoEventCard(ev, dialog));
+                }
+            }
+
+            // ── Section cours recommandés ─────────────────────────
+            Label secCours = new Label("📚  Cours recommandés");
+            secCours.setStyle("-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#7a6ad8;"
+                    + "-fx-border-color:#c4b5fd; -fx-border-width:0 0 2 0; -fx-padding:0 0 6 0;");
+            body.getChildren().add(secCours);
+
+            if (coursReco.isEmpty()) {
+                Label none = new Label("Aucun cours disponible pour le moment.");
+                none.setStyle("-fx-font-size:12; -fx-text-fill:#888;");
+                body.getChildren().add(none);
+            } else {
+                for (Cours c : coursReco) {
+                    body.getChildren().add(buildRecoCoursCard(c));
+                }
+            }
+        }
+
+        ScrollPane scroll = new ScrollPane(body);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setStyle("-fx-background-color:white; -fx-background:white; -fx-border-width:0;");
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+
+        HBox footer = new HBox();
+        footer.setAlignment(Pos.CENTER_RIGHT);
+        footer.setPadding(new Insets(14, 24, 18, 24));
+        footer.setStyle("-fx-background-color:#f8f9fa; -fx-background-radius:0 0 20 20;"
+                + "-fx-border-color:#eeeeee; -fx-border-width:1 0 0 0;");
+        Button fermerBtn = new Button("Fermer");
+        fermerBtn.setStyle("-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:13;"
+                + "-fx-font-weight:600; -fx-padding:10 28 10 28; -fx-background-radius:25;"
+                + "-fx-border-color:#d0d0d0; -fx-border-radius:25; -fx-border-width:1.5;"
+                + "-fx-cursor:hand;");
+        footer.getChildren().add(fermerBtn);
+        modal.getChildren().addAll(header, scroll, footer);
+
+        StackPane root = new StackPane(modal);
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color:rgba(0,0,0,0.62);");
+
+        Runnable close = () -> {
+            FadeTransition ft = new FadeTransition(Duration.millis(180), root);
+            ft.setFromValue(1); ft.setToValue(0);
+            ft.setOnFinished(e -> dialog.close());
+            ft.play();
+        };
+        closeBtn.setOnAction(e -> close.run());
+        fermerBtn.setOnAction(e -> close.run());
+        root.setOnMouseClicked(e -> { if (e.getTarget() == root) close.run(); });
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, winW, winH);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialog.setScene(scene);
+        dialog.setX(owner.getX());
+        dialog.setY(owner.getY());
+
+        root.setOpacity(0);
+        modal.setTranslateY(45);
+        dialog.show();
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(220), root);
+        fadeIn.setFromValue(0); fadeIn.setToValue(1);
+        TranslateTransition slideUp = new TranslateTransition(Duration.millis(260), modal);
+        slideUp.setFromY(45); slideUp.setToY(0);
+        slideUp.setInterpolator(Interpolator.EASE_OUT);
+        new ParallelTransition(fadeIn, slideUp).play();
+    }
+
+    /** Card compacte pour un événement recommandé */
+    private HBox buildRecoEventCard(Evenement ev, javafx.stage.Stage parentDialog) {
+        String color = typeColor(ev.getType());
+        String bg    = typeBg(ev.getType());
+        HBox card = new HBox(14);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setPadding(new Insets(12, 16, 12, 16));
+        card.setStyle("-fx-background-color:white; -fx-background-radius:12;"
+                + "-fx-border-color:#eeeeee; -fx-border-radius:12; -fx-border-width:1;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),8,0,0,2);");
+
+        // Icône type
+        String iconText = switch (ev.getType() != null ? ev.getType() : "") {
+            case "Hackathon" -> "H"; case "Conference" -> "C"; case "Workshop" -> "W"; default -> "E";
+        };
+        Label iconLbl = new Label(iconText);
+        iconLbl.setStyle("-fx-font-size:14; -fx-font-weight:900; -fx-background-color:" + color + ";"
+                + "-fx-background-radius:50%; -fx-padding:8 11 8 11; -fx-text-fill:white;"
+                + "-fx-min-width:38; -fx-min-height:38; -fx-alignment:CENTER;");
+
+        VBox info = new VBox(4);
+        HBox.setHgrow(info, Priority.ALWAYS);
+        Label titre = new Label(ev.getTitre());
+        titre.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        titre.setWrapText(true);
+        HBox meta = new HBox(10);
+        if (ev.getDateDebut() != null) {
+            Label date = new Label("📅 " + ev.getDateDebut().format(FMT));
+            date.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+            meta.getChildren().add(date);
+        }
+        if (ev.getLieu() != null) {
+            Label lieu = new Label("📍 " + ev.getLieu());
+            lieu.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+            meta.getChildren().add(lieu);
+        }
+        Label typeLbl = new Label(ev.getType() != null ? ev.getType() : "");
+        typeLbl.setStyle("-fx-background-color:" + bg + "; -fx-text-fill:" + color + ";"
+                + "-fx-font-size:10; -fx-font-weight:700; -fx-background-radius:20; -fx-padding:2 8 2 8;");
+        info.getChildren().addAll(titre, meta, typeLbl);
+
+        Button voirBtn = new Button("Voir →");
+        voirBtn.setStyle("-fx-background-color:" + color + "; -fx-text-fill:white; -fx-font-size:11;"
+                + "-fx-font-weight:700; -fx-padding:7 14 7 14; -fx-background-radius:20; -fx-cursor:hand;");
+        voirBtn.setOnAction(e -> {
+            parentDialog.close();
+            int nbEq = equipeService.countByEvenement(ev.getId());
+            boolean cancelled = ev.isIsCanceled() || "Annulé".equals(ev.getStatus());
+            boolean past = ev.getDateFin() != null && LocalDateTime.now().isAfter(ev.getDateFin());
+            showDetailsModal(ev, cancelled, past, nbEq, color, bg);
+        });
+
+        card.getChildren().addAll(iconLbl, info, voirBtn);
+        return card;
+    }
+
+    /** Card compacte pour un cours recommandé */
+    private HBox buildRecoCoursCard(Cours c) {
+        HBox card = new HBox(14);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setPadding(new Insets(12, 16, 12, 16));
+        card.setStyle("-fx-background-color:white; -fx-background-radius:12;"
+                + "-fx-border-color:#eeeeee; -fx-border-radius:12; -fx-border-width:1;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),8,0,0,2);");
+
+        Label iconLbl = new Label("📖");
+        iconLbl.setStyle("-fx-font-size:22; -fx-background-color:rgba(122,106,216,0.12);"
+                + "-fx-background-radius:50%; -fx-padding:8 10 8 10;");
+
+        VBox info = new VBox(4);
+        HBox.setHgrow(info, Priority.ALWAYS);
+        Label titre = new Label(c.getTitre() != null ? c.getTitre() : "Cours");
+        titre.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        titre.setWrapText(true);
+        HBox meta = new HBox(10);
+        if (c.getMatiere() != null) {
+            Label mat = new Label("📚 " + c.getMatiere());
+            mat.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+            meta.getChildren().add(mat);
+        }
+        if (c.getNiveau() != null) {
+            Label niv = new Label("⭐ " + c.getNiveau());
+            niv.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+            meta.getChildren().add(niv);
+        }
+        if (c.getDuree() > 0) {
+            Label dur = new Label("⏱ " + c.getDuree() + "h");
+            dur.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+            meta.getChildren().add(dur);
+        }
+        info.getChildren().addAll(titre, meta);
+        card.getChildren().addAll(iconLbl, info);
+        return card;
     }
     @FXML private void onHome() { FrontNavHelper.goHome(); }
     @FXML private void onProfile() { FrontNavHelper.goProfile(); }

@@ -105,6 +105,33 @@
             <artifactId>javase</artifactId>
             <version>3.5.3</version>
         </dependency>
+
+        <!--
+        ═══════════════════════════════════════════════════════════════
+        APIs EXTERNES — Espace Participant (Coin Café + Jeux)
+        Toutes appelées via java.net.HttpURLConnection (JDK standard)
+        Aucune dépendance Maven supplémentaire requise.
+        ───────────────────────────────────────────────────────────────
+        1. Open Food Facts API  https://world.openfoodfacts.org
+           → Infos nutritionnelles du café sélectionné (Coin Café)
+           → Gratuite, no-key, open-source
+
+        2. Quotable API  https://api.quotable.io
+           → Citation motivante après préparation du café (Coin Café)
+           → Gratuite, no-key
+
+        3. TheCatAPI  https://api.thecatapi.com
+           → Images de chats pour les cartes Memory Game
+           → Gratuite, no-key pour usage basique
+
+        4. Numbers API  http://numbersapi.com
+           → Fun fact sur le score final (Memory + Candy Crush)
+           → Gratuite, no-key
+
+        Tous les appels ont un fallback offline complet.
+        Timeout : 3-5s, threads daemon, aucun blocage UI.
+        ═══════════════════════════════════════════════════════════════
+        -->
     </dependencies>
 
     <build>

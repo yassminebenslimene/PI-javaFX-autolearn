@@ -16,12 +16,6 @@ import javafx.util.Duration;
 import tn.esprit.entities.Evenement;
 import tn.esprit.session.SessionManager;
 
-/**
- * Espace Participant Événement — hub principal.
- * Accessible uniquement quand computeStatus() == "En cours" et user connecté.
- * Contient 3 fonctionnalités : Vending Machine, Menu Déjeuner, Emprunt Matériel.
- * Zéro FXML, zéro DB, pattern identique à showDetailsModal().
- */
 public class EspaceParticipantController {
 
     public static void show(Evenement ev, Window owner) {
@@ -37,8 +31,8 @@ public class EspaceParticipantController {
         dialog.initOwner(owner);
 
         VBox modal = buildHubModal(ev, dialog, winH);
-        modal.setPrefWidth(580);
-        modal.setMaxWidth(580);
+        modal.setPrefWidth(620);
+        modal.setMaxWidth(620);
 
         StackPane root = new StackPane(modal);
         root.setAlignment(Pos.CENTER);
@@ -54,9 +48,7 @@ public class EspaceParticipantController {
 
         Scene scene = new Scene(root, winW, winH);
         scene.setFill(Color.TRANSPARENT);
-        scene.setOnKeyPressed(e -> {
-            if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) close.run();
-        });
+        scene.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) close.run(); });
         dialog.setScene(scene);
         dialog.setX(owner.getX());
         dialog.setY(owner.getY());
@@ -75,85 +67,106 @@ public class EspaceParticipantController {
 
     private static VBox buildHubModal(Evenement ev, Stage dialog, double winH) {
         VBox modal = new VBox(0);
-        modal.setStyle("-fx-background-color:white; -fx-background-radius:20;"
+        modal.setStyle("-fx-background-color:white; -fx-background-radius:24;"
                 + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.4),30,0,0,8);");
 
-        // Header gradient violet
+        // Header
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(22, 24, 22, 28));
-        header.setStyle("-fx-background-color:linear-gradient(to right,#667eea,#764ba2);"
-                + "-fx-background-radius:20 20 0 0;");
-
+        header.setStyle("-fx-background-color:linear-gradient(to right,#667eea,#764ba2); -fx-background-radius:24 24 0 0;");
         VBox headerInfo = new VBox(4);
         HBox.setHgrow(headerInfo, Priority.ALWAYS);
-        Label titreLbl = new Label("🎯  Espace Participant");
+        Label titreLbl = new Label("\uD83C\uDFAF  Espace Participant");
         titreLbl.setStyle("-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;");
         Label evLbl = new Label(ev.getTitre());
         evLbl.setStyle("-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-weight:500;");
-        evLbl.setWrapText(true);
-        evLbl.setMaxWidth(420);
+        evLbl.setWrapText(true); evLbl.setMaxWidth(440);
         headerInfo.getChildren().addAll(titreLbl, evLbl);
-
-        Button closeBtn = new Button("✕");
-        closeBtn.setStyle("-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white;"
-                + "-fx-font-size:15; -fx-font-weight:700; -fx-background-radius:50%;"
-                + "-fx-min-width:34; -fx-min-height:34; -fx-max-width:34; -fx-max-height:34;"
-                + "-fx-cursor:hand; -fx-border-width:0;");
+        Button closeBtn = new Button("\u2715");
+        closeBtn.setStyle("-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white; -fx-font-size:15; -fx-font-weight:700; -fx-background-radius:50%; -fx-min-width:34; -fx-min-height:34; -fx-max-width:34; -fx-max-height:34; -fx-cursor:hand; -fx-border-width:0;");
         closeBtn.setOnAction(e -> dialog.close());
         header.getChildren().addAll(headerInfo, closeBtn);
 
-        // Body — 3 cards
-        VBox body = new VBox(16);
-        body.setPadding(new Insets(28, 28, 28, 28));
-        body.setStyle("-fx-background-color:#f5f3ff;");
+        // Body — 3 grandes cards illustrées
+        VBox body = new VBox(14);
+        body.setPadding(new Insets(22, 22, 22, 22));
+        body.setStyle("-fx-background-color:linear-gradient(to bottom,#f8f7ff,#f0ebff);");
 
-        Label subtitle = new Label("Que souhaitez-vous faire ?");
-        subtitle.setStyle("-fx-font-size:14; -fx-font-weight:600; -fx-text-fill:#4a5568;");
+        Label subtitle = new Label("Choisissez votre service \uD83D\uDC47");
+        subtitle.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#5b21b6;");
         body.getChildren().add(subtitle);
 
-        // Card 1 — Vending Machine
-        VBox card1 = buildFeatureCard(
-                "🎰", "Vending Machine",
-                "Boissons & snacks gamifiés avec surprises",
-                "#ff6b9d", "#fce7f3",
-                () -> VendingMachineController.show(ev, dialog.getOwner())
+        // Card 1 — Vending Machine (rose/magenta)
+        VBox card1 = buildBigCard(
+            "\uD83C\uDFB0",
+            "Vending Machine",
+            "Boissons & snacks",
+            "Choisissez parmi nos produits frais !",
+            "#ff6b9d", "#fce7f3", "#fff0f7",
+            new String[]{"\uD83E\uDD64","\u2615","\uD83C\uDF4A","\uD83C\uDF6B"},
+            () -> VendingMachineController.show(ev, dialog.getOwner())
         );
 
-        // Card 2 — Menu Déjeuner
-        VBox card2 = buildFeatureCard(
-                "🍽️", "Menu & Pause Café",
-                "Déjeuner et snacks de la pause café",
-                "#667eea", "#ede9fe",
-                () -> MenuDejeunerController.show(dialog.getOwner())
+        // Card 2 — Menu Dejeuner (violet/bleu)
+        VBox card2 = buildBigCard(
+            "\uD83C\uDF7D\uFE0F",
+            "Menu & Pause Cafe",
+            "Dejeuner et snacks",
+            "Decouvrez le menu du jour !",
+            "#667eea", "#ede9fe", "#f5f3ff",
+            new String[]{"\uD83E\uDD57","\uD83C\uDF55","\u2615","\uD83E\uDDC1"},
+            () -> MenuDejeunerController.show(dialog.getOwner())
         );
 
-        // Card 3 — Emprunt Matériel
-        VBox card3 = buildFeatureCard(
-                "🔌", "Emprunt de Matériel",
-                "Chargeurs, câbles, projecteurs et plus",
-                "#10b981", "#d1fae5",
-                () -> EmpruntMaterielController.show(ev, dialog.getOwner())
+        // Card 3 — Emprunt Materiel (vert/teal)
+        VBox card3 = buildBigCard(
+            "\uD83D\uDD0C",
+            "Emprunt de Materiel",
+            "Equipements disponibles",
+            "Empruntez ce dont vous avez besoin !",
+            "#10b981", "#d1fae5", "#f0fdf4",
+            new String[]{"\uD83D\uDCBB","\uD83D\uDCF1","\uD83C\uDFA7","\uD83D\uDCF7"},
+            () -> EmpruntMaterielController.show(ev, dialog.getOwner())
         );
 
-        // Animations séquentielles
+        // Card 4 — Coin Café (rouge/orange chaud)
+        VBox card4 = buildBigCard(
+            "\u2615",
+            "Coin Caf\u00e9",
+            "Machine \u00e0 caf\u00e9 virtuelle",
+            "Pr\u00e9parez votre caf\u00e9 pr\u00e9f\u00e9r\u00e9 ! \u2615\u2728",
+            "#c0392b", "#fff3e0", "#fff8f0",
+            new String[]{"\u2615","\uD83E\uDD5B","\uD83C\uDF6B","\u2728"},
+            () -> CoinCafeController.show(dialog.getOwner())
+        );
+
+        // Card 5 — Espace Jeux (violet/rose festif)
+        VBox card5 = buildBigCard(
+            "\uD83C\uDFAE",
+            "Espace Jeux",
+            "Mini-jeux amusants",
+            "Memory Cards & Candy Crush ! \uD83C\uDF89",
+            "#7c3aed", "#f3e5f5", "#faf5ff",
+            new String[]{"\uD83C\uDFAE","\uD83C\uDFB4","\uD83C\uDDE8","\uD83C\uDFC6"},
+            () -> EspaceJeuxController.show(dialog.getOwner())
+        );
+
         animateCard(card1, 0);
         animateCard(card2, 100);
         animateCard(card3, 200);
+        animateCard(card4, 300);
+        animateCard(card5, 400);
 
-        body.getChildren().addAll(card1, card2, card3);
+        body.getChildren().addAll(card1, card2, card3, card4, card5);
 
         // Footer
         HBox footer = new HBox();
         footer.setAlignment(Pos.CENTER_RIGHT);
         footer.setPadding(new Insets(14, 24, 18, 24));
-        footer.setStyle("-fx-background-color:#f8f9fa; -fx-background-radius:0 0 20 20;"
-                + "-fx-border-color:#eeeeee; -fx-border-width:1 0 0 0;");
+        footer.setStyle("-fx-background-color:#f8f9fa; -fx-background-radius:0 0 24 24; -fx-border-color:#eeeeee; -fx-border-width:1 0 0 0;");
         Button fermerBtn = new Button("Fermer");
-        fermerBtn.setStyle("-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:13;"
-                + "-fx-font-weight:600; -fx-padding:10 28 10 28; -fx-background-radius:25;"
-                + "-fx-border-color:#d0d0d0; -fx-border-radius:25; -fx-border-width:1.5;"
-                + "-fx-cursor:hand;");
+        fermerBtn.setStyle("-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:13; -fx-font-weight:600; -fx-padding:10 28 10 28; -fx-background-radius:25; -fx-border-color:#d0d0d0; -fx-border-radius:25; -fx-border-width:1.5; -fx-cursor:hand;");
         fermerBtn.setOnAction(e -> dialog.close());
         footer.getChildren().add(fermerBtn);
 
@@ -161,56 +174,81 @@ public class EspaceParticipantController {
         return modal;
     }
 
-    private static VBox buildFeatureCard(String emoji, String titre, String desc,
-                                          String accentColor, String bgColor, Runnable onClick) {
-        VBox card = new VBox(10);
-        card.setPadding(new Insets(20, 22, 20, 22));
-        card.setStyle("-fx-background-color:white; -fx-background-radius:16;"
-                + "-fx-border-color:" + bgColor + "; -fx-border-radius:16; -fx-border-width:2;"
-                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),8,0,0,2);"
-                + "-fx-cursor:hand;");
+    private static VBox buildBigCard(String mainEmoji, String titre, String sousTitre,
+                                      String desc, String accent, String bgLight, String bgCard,
+                                      String[] miniEmojis, Runnable onClick) {
+        VBox card = new VBox(0);
+        card.setStyle("-fx-background-color:" + bgCard + "; -fx-background-radius:20;"
+                + "-fx-border-color:" + accent + "44; -fx-border-radius:20; -fx-border-width:2;"
+                + "-fx-effect:dropshadow(gaussian," + accent + "33,12,0,0,4); -fx-cursor:hand;");
 
-        HBox topRow = new HBox(14);
-        topRow.setAlignment(Pos.CENTER_LEFT);
+        // Bande coloree du haut avec illustration
+        HBox topBand = new HBox(16);
+        topBand.setAlignment(Pos.CENTER_LEFT);
+        topBand.setPadding(new Insets(18, 20, 18, 20));
+        topBand.setStyle("-fx-background-color:linear-gradient(to right," + accent + "22," + bgLight + "); -fx-background-radius:18 18 0 0;");
 
-        // Emoji dans cercle coloré
-        Label emojiLbl = new Label(emoji);
-        emojiLbl.setStyle("-fx-font-size:28; -fx-background-color:" + bgColor + ";"
-                + "-fx-background-radius:50%; -fx-padding:12 14 12 14;"
-                + "-fx-min-width:56; -fx-min-height:56; -fx-alignment:CENTER;");
+        // Grand emoji principal dans cercle
+        Label mainEmojiLbl = new Label(mainEmoji);
+        mainEmojiLbl.setStyle("-fx-font-size:44; -fx-background-color:" + accent + ";"
+                + "-fx-background-radius:50%; -fx-padding:14 16 14 16;"
+                + "-fx-min-width:80; -fx-min-height:80; -fx-alignment:CENTER;");
 
-        VBox info = new VBox(4);
-        HBox.setHgrow(info, Priority.ALWAYS);
+        VBox textBox = new VBox(4);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
         Label titreLbl = new Label(titre);
-        titreLbl.setStyle("-fx-font-size:15; -fx-font-weight:800; -fx-text-fill:#1e1e1e;");
+        titreLbl.setStyle("-fx-font-size:17; -fx-font-weight:800; -fx-text-fill:#1e1e1e;");
+        Label sousTitreLbl = new Label(sousTitre);
+        sousTitreLbl.setStyle("-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:" + accent + ";");
         Label descLbl = new Label(desc);
-        descLbl.setStyle("-fx-font-size:12; -fx-text-fill:#6b7280;");
+        descLbl.setStyle("-fx-font-size:11; -fx-text-fill:#6b7280;");
         descLbl.setWrapText(true);
-        info.getChildren().addAll(titreLbl, descLbl);
+        textBox.getChildren().addAll(titreLbl, sousTitreLbl, descLbl);
 
-        Label arrowLbl = new Label("→");
-        arrowLbl.setStyle("-fx-font-size:20; -fx-font-weight:700; -fx-text-fill:" + accentColor + ";");
+        // Fleche
+        Label arrow = new Label("\u2192");
+        arrow.setStyle("-fx-font-size:22; -fx-font-weight:800; -fx-text-fill:" + accent + ";");
 
-        topRow.getChildren().addAll(emojiLbl, info, arrowLbl);
-        card.getChildren().add(topRow);
+        topBand.getChildren().addAll(mainEmojiLbl, textBox, arrow);
 
-        // Hover
-        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color:" + bgColor + "22;"
-                + "-fx-background-radius:16; -fx-border-color:" + accentColor + ";"
-                + "-fx-border-radius:16; -fx-border-width:2;"
-                + "-fx-effect:dropshadow(gaussian," + accentColor + "44,14,0,0,4);"
-                + "-fx-cursor:hand;"));
-        card.setOnMouseExited(e -> card.setStyle("-fx-background-color:white;"
-                + "-fx-background-radius:16; -fx-border-color:" + bgColor + ";"
-                + "-fx-border-radius:16; -fx-border-width:2;"
-                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),8,0,0,2);"
-                + "-fx-cursor:hand;"));
+        // Bande mini-emojis en bas
+        HBox miniRow = new HBox(8);
+        miniRow.setAlignment(Pos.CENTER_LEFT);
+        miniRow.setPadding(new Insets(10, 20, 10, 20));
+        miniRow.setStyle("-fx-background-color:" + bgLight + "; -fx-background-radius:0 0 18 18;");
+        for (String e : miniEmojis) {
+            Label ml = new Label(e);
+            ml.setStyle("-fx-font-size:22; -fx-background-color:white; -fx-background-radius:50%;"
+                    + "-fx-padding:6 8 6 8; -fx-min-width:38; -fx-min-height:38; -fx-alignment:CENTER;"
+                    + "-fx-effect:dropshadow(gaussian," + accent + "33,6,0,0,2);");
+            miniRow.getChildren().add(ml);
+        }
+        Label plusLbl = new Label("et plus...");
+        plusLbl.setStyle("-fx-font-size:11; -fx-text-fill:" + accent + "; -fx-font-weight:600;");
+        miniRow.getChildren().add(plusLbl);
 
+        card.getChildren().addAll(topBand, miniRow);
+
+        // Hover + animation
+        card.setOnMouseEntered(e -> {
+            card.setStyle("-fx-background-color:" + bgLight + "; -fx-background-radius:20;"
+                    + "-fx-border-color:" + accent + "; -fx-border-radius:20; -fx-border-width:2.5;"
+                    + "-fx-effect:dropshadow(gaussian," + accent + "66,18,0,0,6); -fx-cursor:hand;");
+            ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
+            st.setToX(1.02); st.setToY(1.02); st.play();
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle("-fx-background-color:" + bgCard + "; -fx-background-radius:20;"
+                    + "-fx-border-color:" + accent + "44; -fx-border-radius:20; -fx-border-width:2;"
+                    + "-fx-effect:dropshadow(gaussian," + accent + "33,12,0,0,4); -fx-cursor:hand;");
+            ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
+            st.setToX(1.0); st.setToY(1.0); st.play();
+        });
         card.setOnMouseClicked(e -> {
-            ScaleTransition st = new ScaleTransition(Duration.millis(100), card);
+            ScaleTransition st = new ScaleTransition(Duration.millis(80), card);
             st.setToX(0.97); st.setToY(0.97);
             st.setOnFinished(ev2 -> {
-                ScaleTransition st2 = new ScaleTransition(Duration.millis(100), card);
+                ScaleTransition st2 = new ScaleTransition(Duration.millis(80), card);
                 st2.setToX(1.0); st2.setToY(1.0);
                 st2.setOnFinished(ev3 -> onClick.run());
                 st2.play();
@@ -223,11 +261,11 @@ public class EspaceParticipantController {
 
     private static void animateCard(VBox card, int delayMs) {
         card.setOpacity(0);
-        card.setTranslateY(20);
-        FadeTransition ft = new FadeTransition(Duration.millis(350), card);
+        card.setTranslateY(30);
+        FadeTransition ft = new FadeTransition(Duration.millis(400), card);
         ft.setFromValue(0); ft.setToValue(1);
-        TranslateTransition tt = new TranslateTransition(Duration.millis(350), card);
-        tt.setFromY(20); tt.setToY(0);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(400), card);
+        tt.setFromY(30); tt.setToY(0);
         tt.setInterpolator(Interpolator.EASE_OUT);
         ParallelTransition pt = new ParallelTransition(ft, tt);
         pt.setDelay(Duration.millis(delayMs));

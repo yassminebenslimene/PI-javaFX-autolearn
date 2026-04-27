@@ -1,0 +1,43 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='320' viewBox='0 0 200 320'>
+  <!-- Body -->
+  <rect x='10' y='10' width='150' height='280' rx='8' fill='#F5A623' stroke='#333' stroke-width='3'/>
+  <!-- Side face 3D -->
+  <polygon points='160,10 190,30 190,310 160,290' fill='#D4891A' stroke='#333' stroke-width='2'/>
+  <!-- Top face 3D -->
+  <polygon points='10,10 160,10 190,30 40,30' fill='#FFD080' stroke='#333' stroke-width='2'/>
+  <!-- Glass window -->
+  <rect x='20' y='30' width='120' height='160' rx='4' fill='#B8E8F0' stroke='#333' stroke-width='2'/>
+  <!-- Interior -->
+  <rect x='24' y='34' width='112' height='152' fill='#E8F4D0'/>
+  <!-- Shelves -->
+  <rect x='24' y='80' width='112' height='8' fill='#555'/>
+  <rect x='24' y='130' width='112' height='8' fill='#555'/>
+  <!-- Bottles row 1 -->
+  <rect x='30' y='50' width='18' height='28' rx='3' fill='#E05030'/>
+  <rect x='55' y='48' width='14' height='30' rx='3' fill='#F0F0F0'/>
+  <rect x='75' y='50' width='18' height='28' rx='3' fill='#30A060'/>
+  <rect x='100' y='48' width='14' height='30' rx='3' fill='#3060C0'/>
+  <!-- Bottles row 2 -->
+  <rect x='30' y='95' width='14' height='32' rx='3' fill='#3060C0'/>
+  <rect x='52' y='93' width='18' height='34' rx='3' fill='#F0F0F0'/>
+  <rect x='78' y='95' width='14' height='32' rx='3' fill='#30A060'/>
+  <rect x='100' y='93' width='18' height='34' rx='3' fill='#E05030'/>
+  <!-- Bottles row 3 -->
+  <rect x='30' y='145' width='18' height='28' rx='3' fill='#C0A030'/>
+  <rect x='56' y='143' width='14' height='30' rx='3' fill='#3060C0'/>
+  <rect x='78' y='145' width='18' height='28' rx='3' fill='#F0F0F0'/>
+  <rect x='104' y='143' width='14' height='30' rx='3' fill='#30A060'/>
+  <!-- Cyan accent -->
+  <rect x='10' y='200' width='150' height='25' fill='#5BC8D8' stroke='#333' stroke-width='1'/>
+  <!-- Payment panel -->
+  <rect x='165' y='50' width='22' height='80' rx='3' fill='#5BC8D8' stroke='#333' stroke-width='1'/>
+  <rect x='168' y='55' width='16' height='20' rx='2' fill='#333'/>
+  <rect x='168' y='82' width='16' height='40' rx='2' fill='#444'/>
+  <!-- Slot -->
+  <rect x='40' y='210' width='80' height='8' rx='3' fill='#333'/>
+  <!-- Tray -->
+  <rect x='20' y='240' width='120' height='30' rx='3' fill='#5BC8D8' stroke='#333' stroke-width='1'/>
+  <!-- Feet -->
+  <rect x='25' y='290' width='20' height='15' fill='#888'/>
+  <rect x='115' y='290' width='20' height='15' fill='#888'/>
+</svg>

@@ -109,9 +109,15 @@ public class SalleReservationController {
 
     /** Charge les images PNG/JPG pour tables, étagères, vending machine */
     private void loadImages() {
-        imgTable   = loadImg("/views/frontoffice/3d/table.png");
-        imgShelf   = loadImg("/views/frontoffice/3d/shelf.png");
-        imgVending = loadImg("/views/frontoffice/3d/vending.png");
+        // Essayer SVG d'abord (si converti en PNG), sinon PNG direct
+        imgTable   = loadImg("/views/frontoffice/3d/table.svg");
+        if (imgTable == null) imgTable = loadImg("/views/frontoffice/3d/table.png");
+        
+        imgShelf   = loadImg("/views/frontoffice/3d/shelf.svg");
+        if (imgShelf == null) imgShelf = loadImg("/views/frontoffice/3d/shelf.png");
+        
+        imgVending = loadImg("/views/frontoffice/3d/vending.svg");
+        if (imgVending == null) imgVending = loadImg("/views/frontoffice/3d/vending.png");
     }
 
     private Image loadImg(String path) {
@@ -208,28 +214,102 @@ public class SalleReservationController {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  DRAW CORRIDOR — vue latérale : joueur au milieu du couloir
-    //  Portes sur les MURS LATÉRAUX gauche et droite (pas sur le mur du fond)
+    //  DRAW CORRIDOR — exactement comme la photo de référence :
+    //  Vue frontale du couloir, grandes portes marron sur les murs latéraux
+    //  gauche ET droite, plafond clair avec spots, sol clair, mur du fond
+    //  avec fenêtre. Portes occupent ~80% de la hauteur du mur latéral.
     // ════════════════════════════════════════════════════════════════════════
     private void drawCorridor(GraphicsContext g, double W, double H) {
-        double[] d = geo(W, H);
-        double rL=d[0],rT=d[1],rR=d[2],rB=d[3],bwL=d[4],bwT=d[5],bwR=d[6],hz=d[7],vpX=d[8];
-        drawCeil(g, rL, rT, rR, bwL, bwT, bwR, hz, vpX);
-        drawFloor(g, rL, rB, rR, bwL, hz, bwR);
-        drawLeftWall(g, rL, rT, rB, bwL, bwT, hz);
-        drawRightWall(g, rR, rT, rB, bwR, bwT, hz);
-        drawBackWall(g, bwL, bwT, bwR, hz);
-        drawMoldings(g, rL, rT, rR, rB, bwL, bwT, bwR, hz);
-        drawChandelier(g, W, H, vpX, bwT + H * 0.04);
-        // Portes sur les murs latéraux (perspective réelle)
+        // Couloir : point de fuite FIXE au centre (pas affecté par camPan)
+        // pour que les portes restent bien intégrées dans les murs
+        double rL = W*0.01, rR = W*0.99, rT = H*0.02, rB = H*0.88;
+        double hz  = H*0.30; // horizon couloir légèrement plus haut
+        double vpX = W/2.0;  // point de fuite FIXE au centre pour le couloir
+        double bwHalf = W*0.18;
+        double bwL = vpX - bwHalf, bwR = vpX + bwHalf;
+        double wallH = H*0.20;
+        double bwT = hz - wallH;
+
+        // Sol couloir — clair comme la photo
+        g.setFill(new LinearGradient(0,0,0,1,true,CycleMethod.NO_CYCLE,
+            new Stop(0,Color.web("#e8e4dc")), new Stop(1,Color.web("#c8c0b0"))));
+        g.fillPolygon(new double[]{rL,rR,bwR,bwL}, new double[]{rB,rB,hz,hz}, 4);
+        // Lignes sol
+        g.setStroke(Color.web("#b0a898",0.3)); g.setLineWidth(0.8);
+        for (int i=0;i<=12;i++){double t=(double)i/12;g.strokeLine(bwL+t*(bwR-bwL),hz,rL+t*(rR-rL),rB);}
+        for (int j=1;j<=8;j++){double t=(double)j/9;double y=rB-t*(rB-hz);double lx=rL+t*(bwL-rL);double rx=rR-t*(rR-bwR);g.strokeLine(lx,y,rx,y);}
+
+        // Plafond couloir — clair avec grille
+        g.setFill(new LinearGradient(0,0,0,1,true,CycleMethod.NO_CYCLE,
+            new Stop(0,Color.web("#f0ece4")), new Stop(1,Color.web("#e0dcd4"))));
+        g.fillPolygon(new double[]{rL,rR,bwR,bwL}, new double[]{rT,rT,bwT,bwT}, 4);
+        g.setStroke(Color.web("#c8c4bc",0.4)); g.setLineWidth(0.6);
+        for (int i=0;i<=12;i++){double t=(double)i/12;g.strokeLine(rL+t*(rR-rL),rT,bwL+t*(bwR-bwL),bwT);}
+        for (int j=0;j<=6;j++){double t=(double)j/6;double y=rT+t*(bwT-rT);double lx=rL+t*(bwL-rL);double rx=rR-t*(rR-bwR);g.strokeLine(lx,y,rx,y);}
+
+        // Spots lumineux au plafond (comme la photo)
+        double[] spotXs = {vpX-W*0.18, vpX, vpX+W*0.18};
+        double[] spotYs = {rT+H*0.04, rT+H*0.06, rT+H*0.04};
+        for (int i=0;i<3;i++){
+            g.setFill(new RadialGradient(0,0,spotXs[i],spotYs[i],W*0.04,false,CycleMethod.NO_CYCLE,
+                new Stop(0,Color.web("#ffffff",0.9)),new Stop(1,Color.TRANSPARENT)));
+            g.fillOval(spotXs[i]-W*0.04,spotYs[i]-W*0.04,W*0.08,W*0.08);
+            g.setFill(Color.web("#e8e0d0")); g.fillOval(spotXs[i]-W*0.018,spotYs[i]-W*0.012,W*0.036,W*0.024);
+            g.setStroke(Color.web("#c0b8a8")); g.setLineWidth(1.5);
+            g.strokeOval(spotXs[i]-W*0.018,spotYs[i]-W*0.012,W*0.036,W*0.024);
+        }
+
+        // Mur gauche
+        g.setFill(new LinearGradient(0,0,1,0,true,CycleMethod.NO_CYCLE,
+            new Stop(0,Color.web("#d8d4cc")), new Stop(1,Color.web("#e8e4dc"))));
+        g.fillPolygon(new double[]{rL,bwL,bwL,rL}, new double[]{rT,bwT,hz,rB}, 4);
+        // Mur droit
+        g.setFill(new LinearGradient(0,0,1,0,true,CycleMethod.NO_CYCLE,
+            new Stop(0,Color.web("#e8e4dc")), new Stop(1,Color.web("#d8d4cc"))));
+        g.fillPolygon(new double[]{bwR,rR,rR,bwR}, new double[]{bwT,rT,rB,hz}, 4);
+        // Mur du fond
+        g.setFill(Color.web("#f0ece4"));
+        g.fillRect(bwL, bwT, bwR-bwL, hz-bwT);
+
+        // Plinthe couloir (gris-bleu comme la photo)
+        double ph = (rB-hz)*0.06;
+        g.setFill(Color.web("#8090a0"));
+        g.fillPolygon(new double[]{rL,bwL,bwL,rL},   new double[]{rB-ph,hz,hz+ph*0.3,rB}, 4);
+        g.fillPolygon(new double[]{bwR,rR,rR,bwR},   new double[]{hz,rB-ph,rB,hz+ph*0.3}, 4);
+        g.fillRect(bwL, hz-ph*0.15, bwR-bwL, ph*0.15);
+
+        // Fenêtre sur le mur du fond (comme la photo)
+        double wW=bwR-bwL, wH=hz-bwT;
+        double winW=wW*0.55, winH=wH*0.55;
+        double winX=bwL+wW/2-winW/2, winY=bwT+wH*0.18;
+        g.setFill(Color.web("#d0e8f8")); g.fillRect(winX,winY,winW,winH);
+        g.setFill(Color.web("#e8f4ff",0.8)); g.fillRect(winX+2,winY+2,winW-4,winH-4);
+        // Croisillons fenêtre
+        g.setStroke(Color.web("#a0b0c0")); g.setLineWidth(2);
+        g.strokeRect(winX,winY,winW,winH);
+        g.strokeLine(winX+winW/3,winY,winX+winW/3,winY+winH);
+        g.strokeLine(winX+winW*2/3,winY,winX+winW*2/3,winY+winH);
+        g.strokeLine(winX,winY+winH/2,winX+winW,winY+winH/2);
+
+        // Petits interrupteurs sur les murs (comme la photo)
+        double swY = (rT+rB)/2;
+        // Gauche
+        double swLx = bwL-(bwL-rL)*0.35;
+        g.setFill(Color.web("#c0b8b0")); g.fillRoundRect(swLx-W*0.012,swY-H*0.02,W*0.024,H*0.04,3,3);
+        g.setStroke(Color.web("#a0988e")); g.setLineWidth(1); g.strokeRoundRect(swLx-W*0.012,swY-H*0.02,W*0.024,H*0.04,3,3);
+        // Droit
+        double swRx = bwR+(rR-bwR)*0.35;
+        g.setFill(Color.web("#c0b8b0")); g.fillRoundRect(swRx-W*0.012,swY-H*0.02,W*0.024,H*0.04,3,3);
+        g.setStroke(Color.web("#a0988e")); g.setLineWidth(1); g.strokeRoundRect(swRx-W*0.012,swY-H*0.02,W*0.024,H*0.04,3,3);
+
+        // GRANDES PORTES sur les murs latéraux (comme la photo)
         drawCorridorDoorOnLeftWall(g, W, H, rL, rT, rB, bwL, bwT, hz, vpX);
         drawCorridorDoorOnRightWall(g, W, H, rR, rT, rB, bwR, bwT, hz, vpX);
         drawCorridorDoorBack(g, bwL, bwT, bwR, hz);
-        // Vending machine sur le mur gauche
+
+        // Vending machine
         drawVendingMachine(g, W, H, rL, rT, rB, bwL, hz, vpX);
         drawFloorPlants(g, W, H, rL, rR, rB, vpX);
-        // Dessin minimaliste vending machine sur le mur du fond
-        drawCorridorWallArt(g, bwL, bwT, bwR, hz);
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -554,15 +634,13 @@ public class SalleReservationController {
                               double rL, double rT, double rB,
                               double bwL, double bwT, double hz,
                               double rR, double bwR, double vpX) {
-        // Étagère sur mur gauche — position fixe dans l'espace monde
-        double lwMx = (rL + bwL) / 2;
-        double sW = (bwL - rL) * 0.65, sH = H * 0.01;
-        double sY = hz + (rB - hz) * 0.32;
-        drawShelf(g, lwMx - sW/2, sY, sW, sH, W, H);
-        // Étagère sur mur droit
-        double rwMx = (rR + bwR) / 2;
-        double sW2 = (rR - bwR) * 0.65;
-        drawShelf(g, rwMx - sW2/2, sY, sW2, sH, W, H);
+        // Positions FIXES — ne dépendent PAS de bwL/bwR (qui changent avec camPan)
+        double sY  = hz + (rB - hz) * 0.32;
+        double sWL = W * 0.13, sWR = W * 0.13;
+        double fixedLx = W * 0.07;  // position fixe mur gauche
+        double fixedRx = W * 0.80;  // position fixe mur droit
+        drawShelf(g, fixedLx, sY, sWL, H*0.01, W, H);
+        drawShelf(g, fixedRx, sY, sWR, H*0.01, W, H);
     }
 
     private void drawShelf(GraphicsContext g, double sx, double sy, double sw, double sh, double W, double H) {
@@ -810,77 +888,108 @@ public class SalleReservationController {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  CORRIDOR DOORS — portes sur les MURS LATÉRAUX en perspective réelle
-    //  Vue latérale : porte sur le mur gauche = trapézoïde en perspective
+    //  CORRIDOR DOORS — grandes portes marron intégrées dans les murs latéraux
+    //  Exactement comme la photo : porte occupe ~80% de la hauteur du mur,
+    //  cadre épais, poignée ronde, perspective trapézoïde réelle
     // ════════════════════════════════════════════════════════════════════════
     private void drawCorridorDoorOnLeftWall(GraphicsContext g, double W, double H,
                                              double rL, double rT, double rB,
                                              double bwL, double bwT, double hz, double vpX) {
-        // La porte est sur le mur gauche — vue en perspective latérale
-        // Le mur gauche est le trapézoïde : {rL,rT} → {bwL,bwT} → {bwL,hz} → {rL,rB}
-        // La porte est positionnée au milieu de ce mur
-        double wallH = rB - rT;
-        double doorH = wallH * 0.52;
-        double doorY = rT + wallH * 0.24;
-        // Position horizontale sur le mur gauche (à 40% du fond)
-        double t = 0.42; // 0=fond, 1=devant
-        double doorTopX  = bwL + t * (rL - bwL);
-        double doorBotX  = bwL + t * (rL - bwL);
-        double doorTopY  = bwT + t * (rT - bwT) + (doorY - rT) * (1-t);
-        double doorBotY  = doorTopY + doorH * (0.5 + t*0.5);
-        double doorW     = (bwL - rL) * 0.22 * (0.4 + t*0.6);
-        // Cadre de porte (trapézoïde en perspective)
-        double[] dxs = {doorTopX - doorW*0.5, doorTopX + doorW*0.5,
-                        doorBotX + doorW*0.55, doorBotX - doorW*0.55};
-        double[] dys = {doorTopY, doorTopY, doorBotY, doorBotY};
-        g.setFill(FRAME2);
-        g.fillPolygon(new double[]{dxs[0]-3,dxs[1]+3,dxs[2]+4,dxs[3]-4},
-                      new double[]{dys[0]-3,dys[1]-3,dys[2]+3,dys[3]+3}, 4);
-        // Porte
+        // Le mur gauche est le trapézoïde : coins {rL,rT},{bwL,bwT},{bwL,hz},{rL,rB}
+        // La porte est GRANDE : occupe 80% de la hauteur du mur, centrée verticalement
+        // Position sur le mur : à 35% du fond (t=0.35)
+        double t = 0.35;
+        // Interpolation perspective : position sur le mur gauche
+        double wallTopY  = rT  + t*(bwT-rT);
+        double wallBotY  = rB  + t*(hz-rB);
+        double wallX     = rL  + t*(bwL-rL);
+        double wallH_px  = wallBotY - wallTopY;
+        // Porte : 80% de la hauteur du mur, centrée
+        double doorH = wallH_px * 0.80;
+        double doorY = wallTopY + wallH_px * 0.10;
+        // Largeur de la porte en perspective (plus étroite vers le fond)
+        double doorW = (bwL-rL) * 0.28 * (0.3 + t*0.7);
+        double doorX = wallX - doorW * 0.5;
+        // Cadre extérieur (marron foncé)
+        double frameThick = doorW * 0.08;
+        g.setFill(Color.web("#5a3010"));
+        g.fillRect(doorX - frameThick, doorY - frameThick,
+                   doorW + frameThick*2, doorH + frameThick*2);
+        // Porte principale (marron moyen comme la photo)
         g.setFill(new LinearGradient(0,0,1,0,true,CycleMethod.NO_CYCLE,
-            new Stop(0,DOOR_C2), new Stop(0.5,DOOR_C), new Stop(1,DOOR_C2)));
-        g.fillPolygon(dxs, dys, 4);
-        // Arche
-        double archW = dxs[1] - dxs[0];
-        g.fillArc(dxs[0], doorTopY - archW*0.45, archW, archW, 0, 180, ArcType.CHORD);
-        // Poignée
-        g.setFill(GOLD);
-        g.fillOval(dxs[1] - doorW*0.22, doorTopY + doorH*0.32, doorW*0.07, doorW*0.07);
+            new Stop(0,Color.web("#7a4820")), new Stop(0.4,Color.web("#a06030")),
+            new Stop(1,Color.web("#7a4820"))));
+        g.fillRect(doorX, doorY, doorW, doorH);
+        // Panneau décoratif haut
+        double panW = doorW*0.75, panH = doorH*0.35;
+        double panX = doorX + doorW*0.125, panY = doorY + doorH*0.06;
+        g.setFill(Color.web("#8b5228")); g.fillRect(panX, panY, panW, panH);
+        g.setStroke(Color.web("#5a3010")); g.setLineWidth(1.5);
+        g.strokeRect(panX, panY, panW, panH);
+        // Panneau décoratif bas
+        double panY2 = doorY + doorH*0.52;
+        double panH2 = doorH*0.38;
+        g.setFill(Color.web("#8b5228")); g.fillRect(panX, panY2, panW, panH2);
+        g.setStroke(Color.web("#5a3010")); g.setLineWidth(1.5);
+        g.strokeRect(panX, panY2, panW, panH2);
+        // Poignée ronde (comme la photo)
+        double knobX = doorX + doorW*0.72, knobY = doorY + doorH*0.50;
+        double knobR = doorW*0.07;
+        g.setFill(Color.web("#909090"));
+        g.fillOval(knobX-knobR, knobY-knobR, knobR*2, knobR*2);
+        g.setStroke(Color.web("#606060")); g.setLineWidth(1.5);
+        g.strokeOval(knobX-knobR, knobY-knobR, knobR*2, knobR*2);
+        // Petite plaque de serrure
+        g.setFill(Color.web("#808080"));
+        g.fillRoundRect(knobX-knobR*0.4, knobY+knobR*1.2, knobR*0.8, knobR*1.5, 2, 2);
         // Label
-        g.setFill(Color.web("#f5e6c8")); g.setFont(Font.font("Georgia", FontWeight.BOLD, Math.max(7, doorW*0.18)));
+        g.setFill(Color.web("#f5e6c8")); g.setFont(Font.font("Georgia", FontWeight.BOLD, Math.max(8, doorW*0.16)));
         g.setTextAlign(TextAlignment.CENTER); g.setTextBaseline(VPos.BOTTOM);
-        g.fillText("Salle A", (dxs[0]+dxs[1])/2, doorTopY - archW*0.5);
-        doorHits.add(new double[]{dxs[0], doorTopY-archW*0.5, doorW, doorBotY-doorTopY+archW*0.5, 1});
+        g.fillText("Salle A", doorX+doorW/2, doorY - frameThick - 3);
+        doorHits.add(new double[]{doorX-frameThick, doorY-frameThick,
+                                   doorW+frameThick*2, doorH+frameThick*2, 1});
     }
 
     private void drawCorridorDoorOnRightWall(GraphicsContext g, double W, double H,
                                               double rR, double rT, double rB,
                                               double bwR, double bwT, double hz, double vpX) {
-        double wallH = rB - rT;
-        double doorH = wallH * 0.52;
-        double t = 0.42;
-        double doorTopX = bwR + t * (rR - bwR);
-        double doorBotX = doorTopX;
-        double doorTopY = bwT + t * (rT - bwT) + (rT + wallH*0.24 - rT) * (1-t);
-        double doorBotY = doorTopY + doorH * (0.5 + t*0.5);
-        double doorW    = (rR - bwR) * 0.22 * (0.4 + t*0.6);
-        double[] dxs = {doorTopX - doorW*0.5, doorTopX + doorW*0.5,
-                        doorBotX + doorW*0.55, doorBotX - doorW*0.55};
-        double[] dys = {doorTopY, doorTopY, doorBotY, doorBotY};
-        g.setFill(FRAME2);
-        g.fillPolygon(new double[]{dxs[0]-3,dxs[1]+3,dxs[2]+4,dxs[3]-4},
-                      new double[]{dys[0]-3,dys[1]-3,dys[2]+3,dys[3]+3}, 4);
+        double t = 0.35;
+        double wallTopY = rT  + t*(bwT-rT);
+        double wallBotY = rB  + t*(hz-rB);
+        double wallX    = rR  - t*(rR-bwR);
+        double wallH_px = wallBotY - wallTopY;
+        double doorH = wallH_px * 0.80;
+        double doorY = wallTopY + wallH_px * 0.10;
+        double doorW = (rR-bwR) * 0.28 * (0.3 + t*0.7);
+        double doorX = wallX - doorW * 0.5;
+        double frameThick = doorW * 0.08;
+        // Cadre
+        g.setFill(Color.web("#5a3010"));
+        g.fillRect(doorX-frameThick, doorY-frameThick, doorW+frameThick*2, doorH+frameThick*2);
+        // Porte
         g.setFill(new LinearGradient(0,0,1,0,true,CycleMethod.NO_CYCLE,
-            new Stop(0,DOOR_C2), new Stop(0.5,DOOR_C), new Stop(1,DOOR_C2)));
-        g.fillPolygon(dxs, dys, 4);
-        double archW = dxs[1] - dxs[0];
-        g.fillArc(dxs[0], doorTopY - archW*0.45, archW, archW, 0, 180, ArcType.CHORD);
-        g.setFill(GOLD);
-        g.fillOval(dxs[0] + doorW*0.15, doorTopY + doorH*0.32, doorW*0.07, doorW*0.07);
-        g.setFill(Color.web("#f5e6c8")); g.setFont(Font.font("Georgia", FontWeight.BOLD, Math.max(7, doorW*0.18)));
+            new Stop(0,Color.web("#7a4820")), new Stop(0.6,Color.web("#a06030")),
+            new Stop(1,Color.web("#7a4820"))));
+        g.fillRect(doorX, doorY, doorW, doorH);
+        // Panneaux
+        double panW = doorW*0.75, panX = doorX+doorW*0.125;
+        g.setFill(Color.web("#8b5228")); g.fillRect(panX, doorY+doorH*0.06, panW, doorH*0.35);
+        g.setStroke(Color.web("#5a3010")); g.setLineWidth(1.5);
+        g.strokeRect(panX, doorY+doorH*0.06, panW, doorH*0.35);
+        g.setFill(Color.web("#8b5228")); g.fillRect(panX, doorY+doorH*0.52, panW, doorH*0.38);
+        g.strokeRect(panX, doorY+doorH*0.52, panW, doorH*0.38);
+        // Poignée
+        double knobX = doorX+doorW*0.28, knobY = doorY+doorH*0.50, knobR = doorW*0.07;
+        g.setFill(Color.web("#909090")); g.fillOval(knobX-knobR,knobY-knobR,knobR*2,knobR*2);
+        g.setStroke(Color.web("#606060")); g.setLineWidth(1.5);
+        g.strokeOval(knobX-knobR,knobY-knobR,knobR*2,knobR*2);
+        g.setFill(Color.web("#808080"));
+        g.fillRoundRect(knobX-knobR*0.4,knobY+knobR*1.2,knobR*0.8,knobR*1.5,2,2);
+        // Label
+        g.setFill(Color.web("#f5e6c8")); g.setFont(Font.font("Georgia",FontWeight.BOLD,Math.max(8,doorW*0.16)));
         g.setTextAlign(TextAlignment.CENTER); g.setTextBaseline(VPos.BOTTOM);
-        g.fillText("Salle B", (dxs[0]+dxs[1])/2, doorTopY - archW*0.5);
-        doorHits.add(new double[]{dxs[0], doorTopY-archW*0.5, doorW, doorBotY-doorTopY+archW*0.5, 2});
+        g.fillText("Salle B", doorX+doorW/2, doorY-frameThick-3);
+        doorHits.add(new double[]{doorX-frameThick,doorY-frameThick,doorW+frameThick*2,doorH+frameThick*2,2});
     }
 
     private void drawCorridorDoorBack(GraphicsContext g, double bwL, double bwT, double bwR, double hz) {

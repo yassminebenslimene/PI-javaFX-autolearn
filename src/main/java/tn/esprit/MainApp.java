@@ -39,13 +39,15 @@ public class MainApp extends Application {
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
         primaryStage.setMaximized(true);
+        // Démarrer le serveur HTTP pour les QR codes de participation
+        tn.esprit.services.ParticipationWebServer.start();
         showLanding();
         primaryStage.show();
     }
 
     @Override
     public void stop() {
-        // Cleanup
+        tn.esprit.services.ParticipationWebServer.stop();
     }
 
     // ── Module User — navigation ──────────────────────────────────────────────

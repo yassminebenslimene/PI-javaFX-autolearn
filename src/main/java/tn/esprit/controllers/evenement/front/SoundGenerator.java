@@ -5,99 +5,200 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 /**
- * Générateur de sons synthétiques via javax.sound.sampled (JDK standard).
- * Zéro dépendance externe, zéro fichier externe.
- * Tous les sons sont générés programmatiquement en mémoire.
+ * Générateur de sons pour les jeux et interactions.
+ * Utilise javax.sound.sampled pour générer des sons synthétiques réalistes.
  */
 public class SoundGenerator {
+    private static final float SR = 44100f;
 
-    private static final float SAMPLE_RATE = 44100f;
-    private static final int BITS = 16;
-    private static final int CHANNELS = 1;
+    // ── CANDY CRUSH SOUNDS ──
+    public static void playCandySwap() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Swap sound: quick ascending beep
+                baos.write(genTone(600, 80, 0.3f));
+                baos.write(genTone(800, 80, 0.3f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
 
-    /**
-     * Joue un son de sélection (bip court montant — style jeu).
-     */
+    public static void playCandyMatch() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Match sound: ascending melody
+                baos.write(genTone(523, 100, 0.4f));
+                baos.write(genTone(659, 100, 0.4f));
+                baos.write(genTone(784, 150, 0.5f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    public static void playCandyExplosion() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Explosion: descending noise burst
+                baos.write(genNoise(200, 0.6f));
+                baos.write(genTone(400, 100, 0.3f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    public static void playCandyVictory() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Victory: ascending triumphant melody
+                baos.write(genTone(523, 150, 0.4f));
+                baos.write(genTone(659, 150, 0.4f));
+                baos.write(genTone(784, 150, 0.4f));
+                baos.write(genTone(1047, 300, 0.5f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    // ── COFFEE MACHINE SOUNDS ──
+    public static void playCoffeeGrind() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Grinding sound: noise burst
+                baos.write(genNoise(400, 0.5f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    public static void playCoffeeSteam() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Steam sound: high frequency noise
+                baos.write(genNoise(300, 0.4f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    public static void playCoffeeDing() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Ding sound: bell-like tone
+                baos.write(genTone(1200, 300, 0.4f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    // ── MEMORY GAME SOUNDS ──
+    public static void playMemoryFlip() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Flip sound: quick ascending beep
+                baos.write(genTone(800, 100, 0.3f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    public static void playMemoryMatch() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Match sound: happy ascending melody
+                baos.write(genTone(659, 100, 0.4f));
+                baos.write(genTone(784, 100, 0.4f));
+                baos.write(genTone(1047, 200, 0.5f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    public static void playMemoryVictory() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // Victory: triumphant melody
+                baos.write(genTone(523, 150, 0.4f));
+                baos.write(genTone(659, 150, 0.4f));
+                baos.write(genTone(784, 150, 0.4f));
+                baos.write(genTone(1047, 300, 0.5f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    // ── LEGACY SOUNDS (kept for compatibility) ──
     public static void playSelection() {
-        playAsync(() -> playTone(new double[]{880, 1100}, new int[]{120, 120}, 0.4f));
+        playCandySwap();
     }
 
-    /**
-     * Joue un son de révélation (mélodie joyeuse — style surprise/cadeau).
-     */
     public static void playRevelation() {
-        playAsync(() -> playTone(
-                new double[]{523, 659, 784, 1047},
-                new int[]{120, 120, 120, 300},
-                0.5f));
+        playCandyMatch();
     }
-
-    /**
-     * Joue un son de confirmation (bip de succès).
-     */
-    public static void playConfirmation() {
-        playAsync(() -> playTone(new double[]{660, 880}, new int[]{150, 250}, 0.45f));
-    }
-
-    // ── Implémentation interne ───────────────────────────────────
 
     private static void playAsync(Runnable r) {
-        Thread t = new Thread(r, "sound-player");
+        Thread t = new Thread(r, "sound-gen");
         t.setDaemon(true);
         t.start();
     }
 
-    private static void playTone(double[] frequencies, int[] durationsMs, float volume) {
-        try {
-            AudioFormat format = new AudioFormat(SAMPLE_RATE, BITS, CHANNELS, true, false);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            for (int i = 0; i < frequencies.length; i++) {
-                byte[] samples = generateSamples(frequencies[i], durationsMs[i], volume);
-                baos.write(samples);
-            }
-
-            byte[] audioData = baos.toByteArray();
-            ByteArrayInputStream bais = new ByteArrayInputStream(audioData);
-            AudioInputStream ais = new AudioInputStream(bais, format,
-                    audioData.length / format.getFrameSize());
-
-            DataLine.Info info = new DataLine.Info(Clip.class, format);
-            if (!AudioSystem.isLineSupported(info)) return;
-
-            Clip clip = (Clip) AudioSystem.getLine(info);
-            clip.open(ais);
-            clip.start();
-
-            // Attendre la fin de la lecture
-            Thread.sleep(clip.getMicrosecondLength() / 1000 + 50);
-            clip.close();
-
-        } catch (Exception e) {
-            // Silencieux — le son est optionnel
+    private static byte[] genTone(int freq, int ms, float vol) {
+        int n = (int)(SR * ms / 1000.0);
+        byte[] buf = new byte[n * 2];
+        int fi = Math.max(1, n/8), fo = Math.max(1, n/5);
+        for (int i = 0; i < n; i++) {
+            double t = i / SR;
+            double w = (Math.sin(2*Math.PI*freq*t) + 0.3*Math.sin(4*Math.PI*freq*t)) / 1.3;
+            double env = i < fi ? (double)i/fi : i > n-fo ? (double)(n-i)/fo : 1.0;
+            short s = (short)(w * env * vol * Short.MAX_VALUE);
+            buf[i*2]=(byte)(s&0xFF);
+            buf[i*2+1]=(byte)((s>>8)&0xFF);
         }
+        return buf;
     }
 
-    private static byte[] generateSamples(double frequency, int durationMs, float volume) {
-        int numSamples = (int) (SAMPLE_RATE * durationMs / 1000.0);
-        byte[] buffer = new byte[numSamples * 2]; // 16 bits = 2 bytes par sample
-
-        for (int i = 0; i < numSamples; i++) {
-            // Onde sinusoïdale avec envelope (fade in/out pour éviter les clics)
-            double t = i / SAMPLE_RATE;
-            double wave = Math.sin(2 * Math.PI * frequency * t);
-
-            // Envelope: fade in 10ms, fade out 20ms
-            double fadeInSamples = SAMPLE_RATE * 0.01;
-            double fadeOutSamples = SAMPLE_RATE * 0.02;
-            double envelope = 1.0;
-            if (i < fadeInSamples) envelope = i / fadeInSamples;
-            else if (i > numSamples - fadeOutSamples) envelope = (numSamples - i) / fadeOutSamples;
-
-            short sample = (short) (wave * envelope * volume * Short.MAX_VALUE);
-            buffer[i * 2] = (byte) (sample & 0xFF);
-            buffer[i * 2 + 1] = (byte) ((sample >> 8) & 0xFF);
+    private static byte[] genNoise(int ms, float vol) {
+        int n = (int)(SR * ms / 1000.0);
+        byte[] buf = new byte[n * 2];
+        java.util.Random rand = new java.util.Random();
+        int fi = Math.max(1, n/8), fo = Math.max(1, n/5);
+        for (int i = 0; i < n; i++) {
+            double env = i < fi ? (double)i/fi : i > n-fo ? (double)(n-i)/fo : 1.0;
+            short s = (short)(rand.nextGaussian() * env * vol * Short.MAX_VALUE);
+            buf[i*2]=(byte)(s&0xFF);
+            buf[i*2+1]=(byte)((s>>8)&0xFF);
         }
-        return buffer;
+        return buf;
+    }
+
+    private static void playBytes(byte[] data, AudioFormat fmt) throws Exception {
+        ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        AudioInputStream ais = new AudioInputStream(bais, fmt, data.length / fmt.getFrameSize());
+        DataLine.Info info = new DataLine.Info(Clip.class, fmt);
+        if (!AudioSystem.isLineSupported(info)) return;
+        Clip clip = (Clip) AudioSystem.getLine(info);
+        clip.open(ais);
+        clip.start();
+        Thread.sleep(clip.getMicrosecondLength() / 1000 + 50);
+        clip.close();
     }
 }

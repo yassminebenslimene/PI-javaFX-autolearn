@@ -1,81 +1,95 @@
 package tn.esprit.controllers.evenement.front;
 
 import javax.sound.sampled.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 /**
- * Utilitaire sons synthétiques via javax.sound.sampled (JDK standard).
- * Zéro dépendance externe, zéro fichier audio requis.
- * Tous les sons sont générés programmatiquement.
+ * Utilitaire pour les sons de confirmation et autres effets sonores.
  */
 public class SoundUtil {
+    private static final float SR = 44100f;
 
-    private SoundUtil() {}
-
-    /**
-     * Joue un son selon le type demandé.
-     * @param type "selection", "revelation", "confirmation", ou tout autre (bip simple)
-     */
     public static void playSound(String type) {
-        new Thread(() -> {
+        switch (type) {
+            case "confirmation":
+                playConfirmation();
+                break;
+            case "success":
+                playSuccess();
+                break;
+            case "error":
+                playError();
+                break;
+        }
+    }
+
+    private static void playConfirmation() {
+        playAsync(() -> {
             try {
-                AudioFormat format = new AudioFormat(44100f, 16, 1, true, false);
-                DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
-                if (!AudioSystem.isLineSupported(info)) return;
-
-                SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
-                line.open(format);
-                line.start();
-
-                byte[] data = switch (type) {
-                    case "selection"     -> generateTone(880, 200, 44100, 0.4);
-                    case "revelation"    -> generateMelody(44100);
-                    case "confirmation"  -> generateTone(660, 400, 44100, 0.5);
-                    default              -> generateTone(440, 150, 44100, 0.3);
-                };
-
-                line.write(data, 0, data.length);
-                line.drain();
-                line.close();
-            } catch (Exception ignored) {
-                // Silencieux — le son est optionnel
-            }
-        }, "sound-player").start();
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                for (double[] n : new double[][]{{523,80},{659,80},{784,80},{1047,150}})
+                    baos.write(genTone((int)n[0], (int)n[1], 0.4f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
     }
 
-    static byte[] generateTone(double freq, int durationMs, int sampleRate, double volume) {
-        int samples = (int) (sampleRate * durationMs / 1000.0);
-        byte[] data = new byte[samples * 2];
-        int fadeLen = Math.max(1, samples / 10);
-        for (int i = 0; i < samples; i++) {
-            double angle = 2.0 * Math.PI * i * freq / sampleRate;
-            double env = 1.0;
-            if (i < fadeLen) env = (double) i / fadeLen;
-            else if (i > samples - fadeLen) env = (double) (samples - i) / fadeLen;
-            short val = (short) (Math.sin(angle) * env * volume * Short.MAX_VALUE);
-            data[i * 2]     = (byte) (val & 0xFF);
-            data[i * 2 + 1] = (byte) ((val >> 8) & 0xFF);
-        }
-        return data;
+    private static void playSuccess() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                double[][] notes = {{523,80},{659,80},{784,80},{1047,80},{1319,80},{1568,80},{2093,300}};
+                for (double[] n : notes) baos.write(genTone((int)n[0], (int)n[1], 0.45f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
     }
 
-    private static byte[] generateMelody(int sampleRate) {
-        // do-mi-sol-do (style jeu)
-        double[] freqs = {523.25, 659.25, 783.99, 1046.50};
-        List<byte[]> notes = new ArrayList<>();
-        int total = 0;
-        for (double f : freqs) {
-            byte[] note = generateTone(f, 150, sampleRate, 0.45);
-            notes.add(note);
-            total += note.length;
+    private static void playError() {
+        playAsync(() -> {
+            try {
+                AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                baos.write(genTone(200, 100, 0.3f));
+                baos.write(genTone(150, 100, 0.3f));
+                playBytes(baos.toByteArray(), fmt);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    private static void playAsync(Runnable r) {
+        Thread t = new Thread(r, "sound-util");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private static byte[] genTone(int freq, int ms, float vol) {
+        int n = (int)(SR * ms / 1000.0);
+        byte[] buf = new byte[n * 2];
+        int fi = Math.max(1, n/8), fo = Math.max(1, n/5);
+        for (int i = 0; i < n; i++) {
+            double t = i / SR;
+            double w = (Math.sin(2*Math.PI*freq*t) + 0.3*Math.sin(4*Math.PI*freq*t)) / 1.3;
+            double env = i < fi ? (double)i/fi : i > n-fo ? (double)(n-i)/fo : 1.0;
+            short s = (short)(w * env * vol * Short.MAX_VALUE);
+            buf[i*2]=(byte)(s&0xFF);
+            buf[i*2+1]=(byte)((s>>8)&0xFF);
         }
-        byte[] melody = new byte[total];
-        int pos = 0;
-        for (byte[] note : notes) {
-            System.arraycopy(note, 0, melody, pos, note.length);
-            pos += note.length;
-        }
-        return melody;
+        return buf;
+    }
+
+    private static void playBytes(byte[] data, AudioFormat fmt) throws Exception {
+        ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        AudioInputStream ais = new AudioInputStream(bais, fmt, data.length / fmt.getFrameSize());
+        DataLine.Info info = new DataLine.Info(Clip.class, fmt);
+        if (!AudioSystem.isLineSupported(info)) return;
+        Clip clip = (Clip) AudioSystem.getLine(info);
+        clip.open(ais);
+        clip.start();
+        Thread.sleep(clip.getMicrosecondLength() / 1000 + 50);
+        clip.close();
     }
 }

@@ -407,55 +407,129 @@ public class EmpruntMaterielController {
     // ── QR Code + PDF ────────────────────────────────────────────
 
     private static void showQRAndPDF(ItemMateriel item, Evenement ev, int duree, VBox body) {
-        String content = "EMPRUNT MATERIEL - AutoLearn\n"
-                + "Item: " + item.nom + "\n"
+        String content = "AutoLearn - Recu Emprunt Materiel\n"
+                + "================================\n"
+                + "Item: " + item.emoji + " " + item.nom + "\n"
                 + "Emprunteur: " + item.emprunteurNom + "\n"
-                + "Durée: " + duree + "h\n"
+                + "Duree: " + duree + "h\n"
                 + "Heure: " + LocalDateTime.now().format(FMT) + "\n"
-                + "Événement: " + (ev != null ? ev.getTitre() : "N/A");
+                + "Evenement: " + (ev != null ? ev.getTitre() : "N/A") + "\n"
+                + "================================\n"
+                + "Merci d'utiliser AutoLearn !";
 
-        HBox qrRow = new HBox(16);
-        qrRow.setAlignment(Pos.CENTER_LEFT);
-        qrRow.setPadding(new Insets(12));
-        qrRow.setStyle("-fx-background-color:#f5f3ff; -fx-background-radius:12;"
-                + "-fx-border-color:#c4b5fd; -fx-border-radius:12; -fx-border-width:1.5;");
-
+        // Créer une nouvelle fenêtre popup pour le QR/PDF
+        Stage qrStage = new Stage();
+        qrStage.initStyle(StageStyle.TRANSPARENT);
+        qrStage.setTitle("Confirmation d'emprunt");
+        
+        VBox qrModal = new VBox(0);
+        qrModal.setStyle("-fx-background-color:white; -fx-background-radius:20;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.4),30,0,0,8);");
+        
+        // Header
+        HBox qrHeader = new HBox(12);
+        qrHeader.setAlignment(Pos.CENTER_LEFT);
+        qrHeader.setPadding(new Insets(18, 24, 18, 28));
+        qrHeader.setStyle("-fx-background-color:linear-gradient(to right,#667eea,#764ba2);"
+                + "-fx-background-radius:20 20 0 0;");
+        Label qrTitle = new Label("\uD83D\uDCF1  Confirmation d'emprunt");
+        qrTitle.setStyle("-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;");
+        HBox.setHgrow(qrTitle, Priority.ALWAYS);
+        Button qrCloseBtn = new Button("✕");
+        qrCloseBtn.setStyle("-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white;"
+                + "-fx-font-size:15; -fx-font-weight:700; -fx-background-radius:50%;"
+                + "-fx-min-width:34; -fx-min-height:34; -fx-max-width:34; -fx-max-height:34;"
+                + "-fx-cursor:hand; -fx-border-width:0;");
+        qrCloseBtn.setOnAction(e -> qrStage.close());
+        qrHeader.getChildren().addAll(qrTitle, qrCloseBtn);
+        
+        // Body
+        VBox qrBody = new VBox(16);
+        qrBody.setPadding(new Insets(24));
+        qrBody.setStyle("-fx-background-color:white;");
+        
+        // Titre section
+        Label sectionTitre = new Label("\u2705 Emprunt confirme !");
+        sectionTitre.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:#059669;");
+        
+        // Infos
+        VBox infoBox = new VBox(8);
+        Label itemLbl = new Label(item.emoji + "  " + item.nom);
+        itemLbl.setStyle("-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        Label dureeLabel = new Label("\u23F1  " + duree + " heure(s)");
+        dureeLabel.setStyle("-fx-font-size:12; -fx-text-fill:#6b7280;");
+        Label emprunteurLabel = new Label("\uD83D\uDC64  " + item.emprunteurNom);
+        emprunteurLabel.setStyle("-fx-font-size:12; -fx-text-fill:#6b7280;");
+        infoBox.getChildren().addAll(itemLbl, dureeLabel, emprunteurLabel);
+        
         // QR Code
+        HBox qrRow = new HBox(16);
+        qrRow.setAlignment(Pos.CENTER);
         try {
-            javafx.scene.image.Image qrImg = generateQRCodeImage(content, 120);
+            javafx.scene.image.Image qrImg = generateQRCodeImage(content, 160);
             ImageView qrView = new ImageView(qrImg);
-            qrView.setFitWidth(100);
-            qrView.setFitHeight(100);
+            qrView.setFitWidth(130);
+            qrView.setFitHeight(130);
             qrView.setPreserveRatio(true);
 
-            VBox qrInfo = new VBox(8);
-            HBox.setHgrow(qrInfo, Priority.ALWAYS);
-            Label qrTitre = new Label("📱 QR Code de confirmation");
-            qrTitre.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#4c1d95;");
-            Label qrDesc = new Label("Scannez pour vérifier l'emprunt");
-            qrDesc.setStyle("-fx-font-size:11; -fx-text-fill:#6b7280;");
-
-            Button pdfBtn = new Button("📄  Télécharger le reçu PDF");
-            pdfBtn.setStyle("-fx-background-color:linear-gradient(to right,#667eea,#764ba2);"
-                    + "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;"
-                    + "-fx-padding:8 18 8 18; -fx-background-radius:20; -fx-cursor:hand;"
-                    + "-fx-border-width:0;");
-            pdfBtn.setOnAction(e -> generateAndSavePDF(item, ev, duree, content));
-
-            qrInfo.getChildren().addAll(qrTitre, qrDesc, pdfBtn);
-            qrRow.getChildren().addAll(qrView, qrInfo);
+            VBox qrFrame = new VBox(qrView);
+            qrFrame.setAlignment(Pos.CENTER);
+            qrFrame.setPadding(new Insets(8));
+            qrFrame.setStyle("-fx-background-color:#f5f3ff; -fx-background-radius:12;"
+                    + "-fx-border-color:#7c3aed; -fx-border-radius:12; -fx-border-width:2;");
+            
+            qrRow.getChildren().add(qrFrame);
         } catch (Exception ex) {
             Label errLbl = new Label("QR indisponible");
             errLbl.setStyle("-fx-font-size:11; -fx-text-fill:#9ca3af;");
             qrRow.getChildren().add(errLbl);
         }
-
-        qrRow.setOpacity(0);
-        body.getChildren().add(qrRow);
-        FadeTransition ft = new FadeTransition(Duration.millis(400), qrRow);
-        ft.setFromValue(0); ft.setToValue(1);
-        ft.setDelay(Duration.millis(300));
-        ft.play();
+        
+        // Bouton PDF
+        Button pdfBtn = new Button("\uD83D\uDCC4  Telecharger le recu PDF");
+        pdfBtn.setStyle("-fx-background-color:linear-gradient(to right,#667eea,#764ba2);"
+                + "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;"
+                + "-fx-padding:10 20 10 20; -fx-background-radius:20; -fx-cursor:hand;"
+                + "-fx-border-width:0;");
+        pdfBtn.setOnAction(e -> generateAndSavePDF(item, ev, duree, content));
+        
+        qrBody.getChildren().addAll(sectionTitre, infoBox, qrRow, pdfBtn);
+        
+        // Footer
+        HBox qrFooter = new HBox();
+        qrFooter.setAlignment(Pos.CENTER_RIGHT);
+        qrFooter.setPadding(new Insets(12, 24, 16, 24));
+        qrFooter.setStyle("-fx-background-color:#f8f9fa; -fx-background-radius:0 0 20 20;");
+        Button qrFermerBtn = new Button("Fermer");
+        qrFermerBtn.setStyle("-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:13;"
+                + "-fx-font-weight:600; -fx-padding:10 28 10 28; -fx-background-radius:25;"
+                + "-fx-border-color:#d0d0d0; -fx-border-radius:25; -fx-border-width:1.5;"
+                + "-fx-cursor:hand;");
+        qrFermerBtn.setOnAction(e -> qrStage.close());
+        qrFooter.getChildren().add(qrFermerBtn);
+        
+        qrModal.getChildren().addAll(qrHeader, qrBody, qrFooter);
+        
+        StackPane qrRoot = new StackPane(qrModal);
+        qrRoot.setAlignment(Pos.CENTER);
+        qrRoot.setStyle("-fx-background-color:rgba(0,0,0,0.62);");
+        
+        Scene qrScene = new Scene(qrRoot, 500, 450);
+        qrScene.setFill(Color.TRANSPARENT);
+        qrStage.setScene(qrScene);
+        qrStage.show();
+        
+        // Animation d'entrée
+        qrModal.setOpacity(0);
+        qrModal.setTranslateY(30);
+        FadeTransition ft = new FadeTransition(Duration.millis(300), qrModal);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(300), qrModal);
+        tt.setFromY(30);
+        tt.setToY(0);
+        tt.setInterpolator(Interpolator.EASE_OUT);
+        new ParallelTransition(ft, tt).play();
     }
 
     private static javafx.scene.image.Image generateQRCodeImage(String content, int size)
@@ -471,77 +545,161 @@ public class EmpruntMaterielController {
     private static void generateAndSavePDF(ItemMateriel item, Evenement ev, int duree, String qrContent) {
         new Thread(() -> {
             try {
-                String fileName = "recu_emprunt_" + item.nom.replaceAll("[^a-zA-Z0-9]", "_") + ".pdf";
-                String path = System.getProperty("user.home") + File.separator + fileName;
+                String fileName = "AutoLearn_Recu_" + item.nom.replaceAll("[^a-zA-Z0-9]", "_") + ".pdf";
+                String path = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+                // Fallback si Downloads n'existe pas
+                java.io.File downloadsDir = new java.io.File(System.getProperty("user.home") + File.separator + "Downloads");
+                if (!downloadsDir.exists()) {
+                    path = System.getProperty("user.home") + File.separator + fileName;
+                }
 
                 Document doc = new Document(PageSize.A4);
+                doc.setMargins(40, 40, 40, 40);
                 PdfWriter.getInstance(doc, new FileOutputStream(path));
                 doc.open();
 
-                // Header coloré
+                // ── HEADER GRADIENT VIOLET ──────────────────────────────
                 PdfPTable headerTable = new PdfPTable(1);
                 headerTable.setWidthPercentage(100);
+                headerTable.setSpacingAfter(20);
                 PdfPCell headerCell = new PdfPCell();
                 headerCell.setBackgroundColor(new BaseColor(102, 126, 234));
-                headerCell.setPadding(20);
+                headerCell.setPadding(24);
                 headerCell.setBorder(Rectangle.NO_BORDER);
-                Paragraph headerText = new Paragraph("AutoLearn — Reçu d'Emprunt",
-                        FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.WHITE));
-                headerCell.addElement(headerText);
+
+                Paragraph appName = new Paragraph("AutoLearn",
+                        FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, new BaseColor(200, 210, 255)));
+                appName.setSpacingAfter(4);
+                headerCell.addElement(appName);
+
+                Paragraph headerTitle = new Paragraph("Recu d'Emprunt de Materiel",
+                        FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, BaseColor.WHITE));
+                headerTitle.setSpacingAfter(6);
+                headerCell.addElement(headerTitle);
+
+                Paragraph headerDate = new Paragraph("Genere le : " + LocalDateTime.now().format(FMT),
+                        FontFactory.getFont(FontFactory.HELVETICA, 10, new BaseColor(200, 210, 255)));
+                headerCell.addElement(headerDate);
                 headerTable.addCell(headerCell);
                 doc.add(headerTable);
-                doc.add(new Paragraph(" "));
 
-                // Tableau infos
+                // ── BADGE STATUT ─────────────────────────────────────────
+                PdfPTable statusTable = new PdfPTable(1);
+                statusTable.setWidthPercentage(40);
+                statusTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+                statusTable.setSpacingAfter(16);
+                PdfPCell statusCell = new PdfPCell();
+                statusCell.setBackgroundColor(new BaseColor(209, 250, 229));
+                statusCell.setPadding(10);
+                statusCell.setBorder(Rectangle.NO_BORDER);
+                Paragraph statusText = new Paragraph("EMPRUNT CONFIRME",
+                        FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, new BaseColor(6, 95, 70)));
+                statusCell.addElement(statusText);
+                statusTable.addCell(statusCell);
+                doc.add(statusTable);
+
+                // ── SECTION DETAILS ──────────────────────────────────────
+                Paragraph sectionTitle = new Paragraph("Details de l'emprunt",
+                        FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, new BaseColor(76, 29, 149)));
+                sectionTitle.setSpacingBefore(8);
+                sectionTitle.setSpacingAfter(10);
+                doc.add(sectionTitle);
+
+                // Ligne separatrice violette
+                PdfPTable sepTable = new PdfPTable(1);
+                sepTable.setWidthPercentage(100);
+                sepTable.setSpacingAfter(14);
+                PdfPCell sepCell = new PdfPCell(new Phrase(" "));
+                sepCell.setBackgroundColor(new BaseColor(124, 58, 237));
+                sepCell.setFixedHeight(3);
+                sepCell.setBorder(Rectangle.NO_BORDER);
+                sepTable.addCell(sepCell);
+                doc.add(sepTable);
+
+                // Tableau infos avec alternance de couleurs
                 PdfPTable table = new PdfPTable(2);
                 table.setWidthPercentage(100);
-                table.setWidths(new float[]{1, 2});
-                addTableRow(table, "Item", item.emoji + " " + item.nom);
-                addTableRow(table, "Emprunteur", item.emprunteurNom);
-                addTableRow(table, "Durée", duree + " heure(s)");
-                addTableRow(table, "Heure d'emprunt", LocalDateTime.now().format(FMT));
-                addTableRow(table, "Événement", ev != null ? ev.getTitre() : "N/A");
+                table.setWidths(new float[]{1.2f, 2.5f});
+                table.setSpacingAfter(20);
+                addTableRowStyled(table, "Equipement", item.nom, true);
+                addTableRowStyled(table, "Emprunteur", item.emprunteurNom != null ? item.emprunteurNom : "N/A", false);
+                addTableRowStyled(table, "Duree d'utilisation", duree + " heure(s)", true);
+                addTableRowStyled(table, "Heure d'emprunt", LocalDateTime.now().format(FMT), false);
+                addTableRowStyled(table, "Evenement", ev != null ? ev.getTitre() : "N/A", true);
                 doc.add(table);
-                doc.add(new Paragraph(" "));
 
-                // QR Code
+                // ── QR CODE CENTRE ───────────────────────────────────────
+                Paragraph qrTitle = new Paragraph("Code de verification",
+                        FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, new BaseColor(76, 29, 149)));
+                qrTitle.setSpacingBefore(8);
+                qrTitle.setSpacingAfter(10);
+                doc.add(qrTitle);
+
+                doc.add(sepTable);
+
                 try {
                     QRCodeWriter writer = new QRCodeWriter();
-                    BitMatrix matrix = writer.encode(qrContent, BarcodeFormat.QR_CODE, 150, 150);
+                    BitMatrix matrix = writer.encode(qrContent, BarcodeFormat.QR_CODE, 200, 200);
                     BufferedImage buffered = MatrixToImageWriter.toBufferedImage(matrix);
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     ImageIO.write(buffered, "png", baos);
                     com.itextpdf.text.Image qrImg = com.itextpdf.text.Image.getInstance(baos.toByteArray());
                     qrImg.setAlignment(Element.ALIGN_CENTER);
+                    qrImg.scaleToFit(160, 160);
                     doc.add(qrImg);
+                    Paragraph qrDesc = new Paragraph("Scannez ce QR code pour verifier l'emprunt",
+                            FontFactory.getFont(FontFactory.HELVETICA, 9, BaseColor.GRAY));
+                    qrDesc.setAlignment(Element.ALIGN_CENTER);
+                    qrDesc.setSpacingBefore(6);
+                    doc.add(qrDesc);
                 } catch (Exception ignored) {}
 
-                // Footer
-                doc.add(new Paragraph(" "));
-                Paragraph footer = new Paragraph("Document généré automatiquement par AutoLearn.",
-                        FontFactory.getFont(FontFactory.HELVETICA, 9, BaseColor.GRAY));
-                footer.setAlignment(Element.ALIGN_CENTER);
-                doc.add(footer);
+                // ── FOOTER ───────────────────────────────────────────────
+                doc.add(new Paragraph("\n"));
+                PdfPTable footerTable = new PdfPTable(1);
+                footerTable.setWidthPercentage(100);
+                PdfPCell footerCell = new PdfPCell();
+                footerCell.setBackgroundColor(new BaseColor(245, 243, 255));
+                footerCell.setPadding(12);
+                footerCell.setBorder(Rectangle.NO_BORDER);
+                Paragraph footerText = new Paragraph(
+                        "AutoLearn — Plateforme d'apprentissage | Document genere automatiquement",
+                        FontFactory.getFont(FontFactory.HELVETICA, 8, new BaseColor(107, 114, 128)));
+                footerText.setAlignment(Element.ALIGN_CENTER);
+                footerCell.addElement(footerText);
+                footerTable.addCell(footerCell);
+                doc.add(footerTable);
 
                 doc.close();
 
-                javafx.application.Platform.runLater(() ->
-                        showToast("✅ PDF sauvegardé : " + path));
+                // Ouvrir le PDF automatiquement
+                final String finalPath = path;
+                javafx.application.Platform.runLater(() -> {
+                    try {
+                        java.awt.Desktop.getDesktop().open(new java.io.File(finalPath));
+                    } catch (Exception ignored) {}
+                    showToast("PDF ouvert : " + finalPath);
+                });
+
             } catch (Exception ex) {
                 javafx.application.Platform.runLater(() ->
-                        showToast("❌ Erreur génération PDF"));
+                        showToast("Erreur generation PDF : " + ex.getMessage()));
             }
         }, "pdf-generator").start();
     }
 
-    private static void addTableRow(PdfPTable table, String key, String value) {
+    private static void addTableRowStyled(PdfPTable table, String key, String value, boolean alternate) {
+        BaseColor bg = alternate ? new BaseColor(237, 233, 254) : BaseColor.WHITE;
         PdfPCell keyCell = new PdfPCell(new Phrase(key,
-                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11)));
-        keyCell.setBackgroundColor(new BaseColor(237, 233, 254));
-        keyCell.setPadding(8);
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, new BaseColor(76, 29, 149))));
+        keyCell.setBackgroundColor(bg);
+        keyCell.setPadding(10);
+        keyCell.setBorderColor(new BaseColor(196, 181, 253));
         PdfPCell valCell = new PdfPCell(new Phrase(value != null ? value : "",
-                FontFactory.getFont(FontFactory.HELVETICA, 11)));
-        valCell.setPadding(8);
+                FontFactory.getFont(FontFactory.HELVETICA, 11, new BaseColor(30, 30, 30))));
+        valCell.setBackgroundColor(bg);
+        valCell.setPadding(10);
+        valCell.setBorderColor(new BaseColor(196, 181, 253));
         table.addCell(keyCell);
         table.addCell(valCell);
     }

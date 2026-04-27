@@ -33,6 +33,8 @@ public class ParticipationConfirmationService {
     private final QrCodeService qrCodeService     = new QrCodeService();
     private final BadgePdfService badgePdfService = new BadgePdfService();
     private final EquipeService equipeService     = new EquipeService();
+    private final PlanningPdfService planningPdfService = new PlanningPdfService();
+    private final EventPlanningService eventPlanningService = new EventPlanningService();
 
     private static final String FROM_EMAIL   = System.getenv("AUTOLEARN_EMAIL") != null 
         ? System.getenv("AUTOLEARN_EMAIL") 
@@ -47,6 +49,14 @@ public class ParticipationConfirmationService {
             DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.FRENCH);
 
     public void sendConfirmationToTeam(Equipe equipe, Evenement evenement, int participationId) {
+        sendConfirmationToTeam(equipe, evenement, participationId, null);
+    }
+
+    /**
+     * Envoie la confirmation avec le planning PDF en pièce jointe (optionnel).
+     * @param planningJson JSON du planning généré par l'IA (peut être null)
+     */
+    public void sendConfirmationToTeam(Equipe equipe, Evenement evenement, int participationId, String planningJson) {
         ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r, "email-confirmation-thread");
             t.setDaemon(true);
@@ -60,7 +70,7 @@ public class ParticipationConfirmationService {
                     return;
                 }
 
-                // 1. Météo — extraire la ville du lieu ou utiliser Tunis par défaut
+                // 1. Météo
                 String ville = extractVille(evenement.getLieu());
                 Map<String, Object> weather = null;
                 if (evenement.getDateDebut() != null) {
@@ -69,14 +79,48 @@ public class ParticipationConfirmationService {
                             + (weather.get("error") != null ? " error=" + weather.get("message") : ""));
                 }
 
-                // 2. QR code PNG (sera envoyé en pièce jointe inline cid:qrcode)
+                // 2. QR code PNG
                 byte[] qrBytes = qrCodeService.generateParticipationQrCode(
                         participationId, membres.get(0).getId(), evenement.getId());
 
-                // 3. Email personnalisé pour chaque membre
+                // 3. Planning PDF (généré à la volée si pas fourni)
+                String planningJsonFinal = planningJson;
+                if (planningJsonFinal == null || planningJsonFinal.isBlank()) {
+                    // Générer un planning par défaut basé sur les infos de l'événement
+                    try {
+                        planningJsonFinal = eventPlanningService.generatePlanning(
+                                evenement.getTitre(),
+                                evenement.getType() != null ? evenement.getType() : "Conference",
+                                evenement.getDateDebut(),
+                                evenement.getDateFin() != null ? evenement.getDateFin() : evenement.getDateDebut().plusHours(8),
+                                evenement.getNbMax() * 5
+                        );
+                    } catch (Exception e) {
+                        System.err.println("[Email] Impossible de générer le planning: " + e.getMessage());
+                    }
+                }
+
+                byte[] planningPdf = null;
+                String planningFileName = null;
+                if (planningJsonFinal != null && !planningJsonFinal.isBlank()) {
+                    try {
+                        planningPdf = planningPdfService.generatePlanningPdf(
+                                evenement.getTitre(),
+                                evenement.getType() != null ? evenement.getType() : "Événement",
+                                evenement.getDateDebut(),
+                                evenement.getDateFin() != null ? evenement.getDateFin() : evenement.getDateDebut().plusHours(8),
+                                planningJsonFinal
+                        );
+                        planningFileName = "planning_" + evenement.getTitre()
+                                .replaceAll("[^a-zA-Z0-9]", "_") + ".pdf";
+                    } catch (Exception e) {
+                        System.err.println("[Email] Erreur génération planning PDF: " + e.getMessage());
+                    }
+                }
+
+                // 4. Email personnalisé pour chaque membre
                 for (Etudiant etudiant : membres) {
                     try {
-                        // Badge PDF personnalisé
                         byte[] badgePdf = badgePdfService.generateBadge(
                                 etudiant.getPrenom() + " " + etudiant.getNom(),
                                 equipe.getNom(),
@@ -89,7 +133,7 @@ public class ParticipationConfirmationService {
                         );
 
                         String htmlEmail = buildEmailHtml(etudiant, equipe, evenement,
-                                participationId, weather);
+                                participationId, weather, planningPdf != null);
 
                         String badgeFileName = "badge_" + evenement.getTitre()
                                 .replaceAll("[^a-zA-Z0-9]", "_") + ".pdf";
@@ -101,7 +145,9 @@ public class ParticipationConfirmationService {
                                 htmlEmail,
                                 qrBytes,
                                 badgePdf,
-                                badgeFileName
+                                badgeFileName,
+                                planningPdf,
+                                planningFileName
                         );
                     } catch (Exception e) {
                         System.err.println("[Email] Erreur envoi à " + etudiant.getEmail() + ": " + e.getMessage());
@@ -119,7 +165,8 @@ public class ParticipationConfirmationService {
 
     private void sendMultipartEmail(String toEmail, String toName, String subject,
                                      String htmlBody, byte[] qrBytes,
-                                     byte[] pdfBytes, String pdfFileName) throws MessagingException {
+                                     byte[] pdfBytes, String pdfFileName,
+                                     byte[] planningPdfBytes, String planningFileName) throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.auth",            "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -138,12 +185,6 @@ public class ParticipationConfirmationService {
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         msg.setSubject(subject);
 
-        // Structure : multipart/mixed
-        //   └── multipart/related
-        //         ├── text/html (avec <img src="cid:qrcode">)
-        //         └── image/png (QR code, Content-ID: qrcode)
-        //   └── application/pdf (badge)
-
         MimeMultipart mixedPart = new MimeMultipart("mixed");
 
         // Partie related (HTML + QR inline)
@@ -153,7 +194,6 @@ public class ParticipationConfirmationService {
         htmlPart.setContent(htmlBody, "text/html; charset=UTF-8");
         relatedPart.addBodyPart(htmlPart);
 
-        // QR code en pièce jointe inline avec Content-ID
         if (qrBytes != null && qrBytes.length > 0) {
             MimeBodyPart qrPart = new MimeBodyPart();
             qrPart.setContent(qrBytes, "image/png");
@@ -167,13 +207,22 @@ public class ParticipationConfirmationService {
         relatedWrapper.setContent(relatedPart);
         mixedPart.addBodyPart(relatedWrapper);
 
-        // Badge PDF en pièce jointe
+        // Badge PDF
         if (pdfBytes != null && pdfBytes.length > 0) {
             MimeBodyPart pdfPart = new MimeBodyPart();
             pdfPart.setContent(pdfBytes, "application/pdf");
             pdfPart.setFileName(pdfFileName != null ? pdfFileName : "badge_autolearn.pdf");
             pdfPart.setDisposition(MimeBodyPart.ATTACHMENT);
             mixedPart.addBodyPart(pdfPart);
+        }
+
+        // Planning PDF
+        if (planningPdfBytes != null && planningPdfBytes.length > 0) {
+            MimeBodyPart planningPart = new MimeBodyPart();
+            planningPart.setContent(planningPdfBytes, "application/pdf");
+            planningPart.setFileName(planningFileName != null ? planningFileName : "planning_evenement.pdf");
+            planningPart.setDisposition(MimeBodyPart.ATTACHMENT);
+            mixedPart.addBodyPart(planningPart);
         }
 
         msg.setContent(mixedPart);
@@ -184,7 +233,7 @@ public class ParticipationConfirmationService {
     // ── Construction du HTML de l'email ──────────────────────────────────────
 
     private String buildEmailHtml(Etudiant etudiant, Equipe equipe, Evenement evenement,
-                                   int participationId, Map<String, Object> weather) {
+                                   int participationId, Map<String, Object> weather, boolean hasPlanningPdf) {
 
         String dateStr = evenement.getDateDebut() != null
                 ? evenement.getDateDebut().format(DATE_FMT) : "Date à confirmer";
@@ -321,6 +370,23 @@ public class ParticipationConfirmationService {
             + "    </tr></table>\n"
             + "  </div>\n"
             + "</td></tr>\n"
+
+            // ── PLANNING PDF ──
+            + (hasPlanningPdf
+                ? "<tr><td style=\"padding:16px 48px 0;\">\n"
+                + "  <div style=\"background:#f0ebff;border-radius:12px;padding:20px;"
+                +     "border-left:4px solid #764ba2;\">\n"
+                + "    <table cellpadding=\"0\" cellspacing=\"0\"><tr>\n"
+                + "      <td style=\"font-size:28px;padding-right:16px;\">📋</td>\n"
+                + "      <td><p style=\"margin:0;font-size:15px;font-weight:700;color:#764ba2;\">"
+                +           "Planning de l'événement en pièce jointe</p>\n"
+                + "          <p style=\"margin:4px 0 0;font-size:13px;color:#667eea;\">"
+                +           "Le planning détaillé de l'événement est joint à cet email. "
+                +           "Consultez-le pour préparer votre participation.</p></td>\n"
+                + "    </tr></table>\n"
+                + "  </div>\n"
+                + "</td></tr>\n"
+                : "")
 
             // ── FOOTER ──
             + "<tr><td style=\"padding:36px 48px 40px;\">\n"
