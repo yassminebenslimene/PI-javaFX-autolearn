@@ -10,7 +10,7 @@ import javafx.util.Duration;
 import tn.esprit.MainApp;
 import tn.esprit.entities.*;
 import tn.esprit.services.*;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -95,7 +95,7 @@ public class PlayChallengeController {
         allQuestions.addAll(quizzes);
 
         UserChallenge existing = userChallengeService.findByUserAndChallenge(
-                SessionManager.getCurrentUser().getId(), challenge.getId());
+                JwtManager.getCurrentUser().getId(), challenge.getId());
         if (existing != null && !existing.isCompleted()) {
             currentIndex = existing.getCurrentIndex();
             // Restaurer les réponses sauvegardées
@@ -285,10 +285,10 @@ public class PlayChallengeController {
         }
 
         UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
-                SessionManager.getCurrentUser().getId(), challenge.getId());
+                JwtManager.getCurrentUser().getId(), challenge.getId());
         if (userChallenge == null) {
             userChallenge = new UserChallenge();
-            userChallenge.setUserId(SessionManager.getCurrentUser().getId());
+            userChallenge.setUserId(JwtManager.getCurrentUser().getId());
             userChallenge.setChallengeId(challenge.getId());
         }
         userChallenge.setCurrentIndex(currentIndex);
@@ -479,7 +479,7 @@ public class PlayChallengeController {
 
     private void sendResultEmail() {
         try {
-            User currentUser = SessionManager.getCurrentUser();
+            User currentUser = JwtManager.getCurrentUser();
             if (currentUser != null && currentUser.getEmail() != null && !currentUser.getEmail().isEmpty()) {
                 emailService.sendChallengeResult(currentUser, challenge.getTitre(),
                         score, getTotalPoints(), LocalDateTime.now());

@@ -14,7 +14,7 @@ import javafx.scene.layout.VBox;
 import tn.esprit.MainApp;
 import tn.esprit.entities.LeaderboardEntry;
 import tn.esprit.services.LeaderboardService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 
@@ -38,7 +38,7 @@ public class LeaderboardController {
         leaderboardService = new LeaderboardService();
 
         // Afficher les infos utilisateur dans la navbar
-        var u = SessionManager.getCurrentUser();
+        var u = JwtManager.getCurrentUser();
         if (u != null) {
             String name = u.getPrenom() + " " + u.getNom();
             String initials = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
@@ -239,7 +239,7 @@ public class LeaderboardController {
     }
 
     @FXML private void onLogout() {
-        SessionManager.logout();
+        JwtManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
 }

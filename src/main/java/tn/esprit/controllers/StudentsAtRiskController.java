@@ -10,7 +10,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tn.esprit.entities.StudentRisk;
 import tn.esprit.services.StudentRiskService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 public class StudentsAtRiskController {
 

@@ -631,7 +631,7 @@ public class FrontQuizController {
             try {
                 tn.esprit.services.CourseProgressService progressService =
                     new tn.esprit.services.CourseProgressService();
-                int userId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+                int userId = tn.esprit.session.JwtManager.getCurrentUser().getId();
                 // Utiliser directement coursId depuis l'objet chapitre (déjà chargé)
                 int coursId = chapitre.getCoursId();
                 System.out.println("DEBUG progression: userId=" + userId

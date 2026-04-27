@@ -15,7 +15,7 @@ import tn.esprit.entities.Challenge;
 import tn.esprit.services.VoteService;
 import tn.esprit.services.QuoteService;
 import tn.esprit.services.GiphyService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 
@@ -190,7 +190,7 @@ public class ResultChallengeController {
             return;
         }
         Integer rating = voteService.getUserRatingForChallenge(
-                SessionManager.getCurrentUser().getId(), challenge.getId());
+                JwtManager.getCurrentUser().getId(), challenge.getId());
         if (rating != null) {
             userRating = rating;
             displayStars(rating);
@@ -225,7 +225,7 @@ public class ResultChallengeController {
 
     private void submitRating(int rating) {
         boolean success = voteService.saveOrUpdateVote(
-                SessionManager.getCurrentUser().getId(), challenge.getId(), rating);
+                JwtManager.getCurrentUser().getId(), challenge.getId(), rating);
         if (success) {
             userRating = rating;
             displayStars(rating);

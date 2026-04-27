@@ -12,7 +12,7 @@ import tn.esprit.MainApp;
 import tn.esprit.entities.Challenge;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.VoteService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -37,7 +37,7 @@ public class ShowChallengesController {
         voteService = new VoteService();
 
         // Afficher les infos utilisateur dans la navbar
-        var u = SessionManager.getCurrentUser();
+        var u = JwtManager.getCurrentUser();
         if (u != null) {
             String name = u.getPrenom() + " " + u.getNom();
             if (labelCurrentUser != null) labelCurrentUser.setText(name);
@@ -58,8 +58,8 @@ public class ShowChallengesController {
     private void displayChallenges() {
         challengesContainer.getChildren().clear();
 
-        int currentUserId = SessionManager.getCurrentUser() != null ?
-                SessionManager.getCurrentUser().getId() : -1;
+        int currentUserId = JwtManager.getCurrentUser() != null ?
+                JwtManager.getCurrentUser().getId() : -1;
 
         for (Challenge c : allChallenges) {
             double averageRating = voteService.getAverageRatingForChallenge(c.getId());
@@ -190,7 +190,7 @@ public class ShowChallengesController {
 
     @FXML
     public void onLogout() {
-        SessionManager.logout();
+        JwtManager.logout();
         try {
             MainApp.showLogin();
         } catch (Exception e) {

@@ -15,7 +15,7 @@ import tn.esprit.entities.Challenge;
 import tn.esprit.entities.Exercice;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.ExerciceService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 import tn.esprit.services.ServiceQuiz;
 import java.io.IOException;
 import java.util.HashMap;
@@ -369,7 +369,7 @@ public class ChallengeController {
             dialog.showAndWait().ifPresent(response -> {
                 if (response == saveButton) {
                     Challenge updatedChallenge = formController.getChallenge();
-                    updatedChallenge.setCreatedBy(SessionManager.getCurrentUser().getId());
+                    updatedChallenge.setCreatedBy(JwtManager.getCurrentUser().getId());
 
                     if (isEdit) {
                         challengeService.update(updatedChallenge);
