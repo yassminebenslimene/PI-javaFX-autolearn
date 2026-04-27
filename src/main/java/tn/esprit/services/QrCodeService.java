@@ -34,6 +34,21 @@ public class QrCodeService {
     }
 
     /**
+     * Génère un QR code avec les noms réels (étudiant et événement).
+     * @param participationId  ID de la participation
+     * @param etudiantNom      Nom de l'étudiant
+     * @param evenementNom     Nom de l'événement
+     * @return bytes PNG du QR code, ou null en cas d'erreur
+     */
+    public byte[] generateParticipationQrCodeWithNames(int participationId, String etudiantNom, String evenementNom) {
+        String content = String.format("AutoLearn Participation\nRef:%d\nEtudiant:%s\nEvenement:%s", 
+            participationId, 
+            etudiantNom != null ? etudiantNom : "Inconnu",
+            evenementNom != null ? evenementNom : "Inconnu");
+        return generateQrCode(content, 300);
+    }
+
+    /**
      * Génère un QR code à partir d'un contenu texte.
      * @param content  contenu à encoder
      * @param size     taille en pixels (carré)
@@ -64,5 +79,15 @@ public class QrCodeService {
      */
     public String getParticipationContent(int participationId, int etudiantId, int evenementId) {
         return String.format("AutoLearn Participation\nRef:%d\nEtudiant:%d\nEvenement:%d", participationId, etudiantId, evenementId);
+    }
+
+    /**
+     * Retourne le contenu du QR code avec noms réels.
+     */
+    public String getParticipationContentWithNames(int participationId, String etudiantNom, String evenementNom) {
+        return String.format("AutoLearn Participation\nRef:%d\nEtudiant:%s\nEvenement:%s", 
+            participationId,
+            etudiantNom != null ? etudiantNom : "Inconnu",
+            evenementNom != null ? evenementNom : "Inconnu");
     }
 }

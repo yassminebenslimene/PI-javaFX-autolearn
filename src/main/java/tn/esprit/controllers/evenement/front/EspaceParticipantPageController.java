@@ -34,149 +34,263 @@ public class EspaceParticipantPageController {
     private void buildContainers() {
         containerBox.getChildren().clear();
 
-        // Titre principal
+        // ═══════════════════════════════════════════════════════════════════════════
+        // HEADER SECTION - Professionnel et accueillant
+        // ═══════════════════════════════════════════════════════════════════════════
+        VBox headerBox = new VBox(12);
+        headerBox.setAlignment(Pos.CENTER);
+        headerBox.setPadding(new Insets(40, 30, 35, 30));
+        headerBox.setStyle(
+            "-fx-background-color:#e8e4f3; " +
+            "-fx-background-radius:0 0 30 30;"
+        );
+        
+        // Titre principal avec animation
         Label titleLabel = new Label("✨ Espace Participant ✨");
         titleLabel.setStyle(
-            "-fx-font-size:28; " +
+            "-fx-font-size:36; " +
             "-fx-font-weight:bold; " +
-            "-fx-text-fill:#D4A96A; " +
-            "-fx-effect:dropshadow(gaussian, rgba(212,169,106,0.5), 15, 0, 0, 3); " +
-            "-fx-padding:20 0 20 0;"
+            "-fx-text-fill:#667eea; " +
+            "-fx-effect:dropshadow(gaussian, rgba(102,126,234,0.2), 8, 0, 0, 2);"
         );
         titleLabel.setAlignment(Pos.CENTER);
-        containerBox.getChildren().add(titleLabel);
+        
+        // Sous-titre accueillant
+        Label subtitleLabel = new Label("Bienvenue dans ton espace personnel ! 🎉");
+        subtitleLabel.setStyle(
+            "-fx-font-size:14; " +
+            "-fx-text-fill:rgba(255,255,255,0.95); " +
+            "-fx-font-style:italic; " +
+            "-fx-font-weight:500;"
+        );
+        subtitleLabel.setAlignment(Pos.CENTER);
+        
+        // Description courte
+        Label descLabel = new Label("Explore les activités, joue, détends-toi et profite de chaque moment");
+        descLabel.setStyle(
+            "-fx-font-size:12; " +
+            "-fx-text-fill:rgba(255,255,255,0.85);"
+        );
+        descLabel.setAlignment(Pos.CENTER);
+        
+        headerBox.getChildren().addAll(titleLabel, subtitleLabel, descLabel);
+        containerBox.getChildren().add(headerBox);
 
-        // Grille 2x3 pour les 6 fonctionnalités
+        // ═══════════════════════════════════════════════════════════════════════════
+        // MAIN CONTENT - Grille 2x3 avec design moderne
+        // ═══════════════════════════════════════════════════════════════════════════
+        VBox contentBox = new VBox(0);
+        contentBox.setPadding(new Insets(35, 25, 40, 25));
+        contentBox.setStyle("-fx-background-color:#f8f7ff;");
+        
         GridPane grid = new GridPane();
-        grid.setHgap(20);
-        grid.setVgap(20);
+        grid.setHgap(22);
+        grid.setVgap(22);
         grid.setAlignment(Pos.TOP_CENTER);
-        grid.setPadding(new Insets(0, 20, 20, 20));
 
-        // Colonne 1 et 2 avec même largeur
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setHgrow(Priority.ALWAYS);
-        col1.setPercentWidth(50);
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setHgrow(Priority.ALWAYS);
-        col2.setPercentWidth(50);
-        grid.getColumnConstraints().addAll(col1, col2);
+        // 2 colonnes égales
+        for (int i = 0; i < 2; i++) {
+            ColumnConstraints col = new ColumnConstraints();
+            col.setHgrow(Priority.ALWAYS);
+            col.setPercentWidth(50);
+            grid.getColumnConstraints().add(col);
+        }
 
         // Conteneur 1 : Coin Café ☕
         VBox cafeContainer = buildContainer(
-            "☕ Coin Café",
+            "☕", "Coin Café",
             "Votre pause café virtuelle",
-            "#c0392b",
-            "#e74c3c",
+            "#c0392b", "#e74c3c", "#fff3e0",
             () -> CoinCafeController.show(containerBox.getScene().getWindow())
         );
         grid.add(cafeContainer, 0, 0);
 
         // Conteneur 2 : Espace Jeux 🎮
         VBox jeuxContainer = buildContainer(
-            "🎮 Espace Jeux",
+            "🎮", "Espace Jeux",
             "Jeux amusants et relaxants",
-            "#7c3aed",
-            "#c44dff",
+            "#7c3aed", "#c44dff", "#f3e5f5",
             () -> EspaceJeuxController.show(containerBox.getScene().getWindow())
         );
         grid.add(jeuxContainer, 1, 0);
 
         // Conteneur 3 : Menu Déjeuner 🍽️
         VBox menuContainer = buildContainer(
-            "🍽️ Menu Déjeuner",
-            "Découvrez nos plats",
-            "#f39c12",
-            "#f1c40f",
+            "🍽️", "Menu Déjeuner",
+            "Découvrez nos plats délicieux",
+            "#f39c12", "#f1c40f", "#fff8e1",
             () -> MenuDejeunerController.show(containerBox.getScene().getWindow())
         );
         grid.add(menuContainer, 0, 1);
 
         // Conteneur 4 : Vending Machine 🛒
         VBox vendingContainer = buildContainer(
-            "🛒 Vending Machine",
-            "Snacks et boissons",
-            "#e74c3c",
-            "#ff6b6b",
+            "🛒", "Vending Machine",
+            "Snacks et boissons variés",
+            "#e74c3c", "#ff6b6b", "#ffebee",
             () -> VendingMachineController.show(evenement, containerBox.getScene().getWindow())
         );
         grid.add(vendingContainer, 1, 1);
 
         // Conteneur 5 : Emprunt Matériel 🔧
         VBox empruntContainer = buildContainer(
-            "🔧 Emprunt Matériel",
-            "Emprunter du matériel",
-            "#22c55e",
-            "#4ade80",
+            "🔧", "Emprunt Matériel",
+            "Emprunter du matériel facilement",
+            "#22c55e", "#4ade80", "#e8f5e9",
             () -> EmpruntMaterielController.show(evenement, containerBox.getScene().getWindow())
         );
         grid.add(empruntContainer, 0, 2);
 
-        containerBox.getChildren().add(grid);
+        // Conteneur 6 : Réservation Salle 📍 (optionnel)
+        VBox reservationContainer = buildContainer(
+            "📍", "Réservation Salle",
+            "Réserve ta place facilement",
+            "#2196f3", "#03a9f4", "#e3f2fd",
+            () -> FrontNavHelper.goSalleReservation(evenement)
+        );
+        grid.add(reservationContainer, 1, 2);
 
-        // Animer l'apparition des containers
+        contentBox.getChildren().add(grid);
+        containerBox.getChildren().add(contentBox);
+
+        // Animer l'apparition
         animateContainers();
     }
 
-    private VBox buildContainer(String title, String subtitle, String colorDark, String colorLight, Runnable onAction) {
-        VBox container = new VBox(12);
-        container.setAlignment(Pos.CENTER);
-        container.setPadding(new Insets(24));
+    private VBox buildContainer(String emoji, String title, String subtitle, String colorDark, String colorLight, String bgLight, Runnable onAction) {
+        VBox container = new VBox(14);
+        container.setAlignment(Pos.TOP_CENTER);
+        container.setPadding(new Insets(24, 20, 24, 20));
         container.setStyle(
-            "-fx-background-color:linear-gradient(to bottom right," + colorDark + "," + colorLight + "); " +
-            "-fx-background-radius:20; " +
-            "-fx-border-color:#ffffff44; " +
-            "-fx-border-radius:20; " +
+            "-fx-background-color:" + bgLight + "; " +
+            "-fx-background-radius:18; " +
+            "-fx-border-color:" + colorLight + "66; " +
+            "-fx-border-radius:18; " +
             "-fx-border-width:2; " +
-            "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.4),20,0,0,8); " +
-            "-fx-cursor:hand;"
+            "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.12),12,0,0,4);"
         );
-        container.setPrefHeight(200);
+        container.setPrefHeight(240);
+        container.setCursor(javafx.scene.Cursor.HAND);
+
+        // Emoji grand et coloré
+        Label emojiLabel = new Label(emoji);
+        emojiLabel.setStyle(
+            "-fx-font-size:48; " +
+            "-fx-background-color:linear-gradient(135deg," + colorDark + "," + colorLight + "); " +
+            "-fx-background-radius:50%; " +
+            "-fx-padding:16 18 16 18; " +
+            "-fx-min-width:80; " +
+            "-fx-min-height:80; " +
+            "-fx-alignment:CENTER; " +
+            "-fx-effect:dropshadow(gaussian," + colorLight + "88,10,0,0,3);"
+        );
 
         // Titre
         Label titleLabel = new Label(title);
         titleLabel.setStyle(
-            "-fx-font-size:20; " +
+            "-fx-font-size:18; " +
             "-fx-font-weight:bold; " +
-            "-fx-text-fill:white;"
+            "-fx-text-fill:#1a1a1a;"
         );
+        titleLabel.setAlignment(Pos.CENTER);
 
         // Sous-titre
         Label subtitleLabel = new Label(subtitle);
         subtitleLabel.setStyle(
-            "-fx-font-size:13; " +
-            "-fx-text-fill:rgba(255,255,255,0.85); " +
+            "-fx-font-size:12; " +
+            "-fx-text-fill:#666666; " +
             "-fx-font-style:italic;"
         );
+        subtitleLabel.setAlignment(Pos.CENTER);
+        subtitleLabel.setWrapText(true);
+        subtitleLabel.setMaxWidth(180);
 
-        // Bouton d'action
+        // Spacer pour pousser le bouton en bas
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+
+        // Bouton d'action - design moderne
         Button actionBtn = new Button("Accéder →");
         actionBtn.setStyle(
-            "-fx-background-color:rgba(255,255,255,0.25); " +
+            "-fx-background-color:linear-gradient(135deg," + colorDark + "," + colorLight + "); " +
             "-fx-text-fill:white; " +
-            "-fx-font-size:12; " +
+            "-fx-font-size:13; " +
             "-fx-font-weight:bold; " +
-            "-fx-padding:8 20 8 20; " +
-            "-fx-background-radius:20; " +
+            "-fx-padding:11 26 11 26; " +
+            "-fx-background-radius:22; " +
             "-fx-cursor:hand; " +
-            "-fx-border-width:0;"
+            "-fx-border-width:0; " +
+            "-fx-effect:dropshadow(gaussian," + colorLight + "66,8,0,0,2);"
         );
         actionBtn.setOnAction(e -> onAction.run());
 
-        container.getChildren().addAll(titleLabel, subtitleLabel, actionBtn);
+        container.getChildren().addAll(emojiLabel, titleLabel, subtitleLabel, spacer, actionBtn);
 
-        // Hover effect
+        // Animations au survol
         container.setOnMouseEntered(e -> {
-            ScaleTransition st = new ScaleTransition(Duration.millis(150), container);
-            st.setToX(1.05);
-            st.setToY(1.05);
+            // Agrandissement du conteneur
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), container);
+            st.setToX(1.04);
+            st.setToY(1.04);
+            st.setInterpolator(Interpolator.EASE_OUT);
             st.play();
+
+            // Changement de style
+            container.setStyle(
+                "-fx-background-color:" + colorLight + "15; " +
+                "-fx-background-radius:18; " +
+                "-fx-border-color:" + colorLight + "; " +
+                "-fx-border-radius:18; " +
+                "-fx-border-width:2.5; " +
+                "-fx-effect:dropshadow(gaussian," + colorLight + "99,16,0,0,6);"
+            );
+
+            // Animation de l'emoji
+            ScaleTransition emojiScale = new ScaleTransition(Duration.millis(200), emojiLabel);
+            emojiScale.setToX(1.12);
+            emojiScale.setToY(1.12);
+            emojiScale.setInterpolator(Interpolator.EASE_OUT);
+            emojiScale.play();
         });
 
         container.setOnMouseExited(e -> {
-            ScaleTransition st = new ScaleTransition(Duration.millis(150), container);
+            // Retour à la taille normale
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), container);
             st.setToX(1.0);
             st.setToY(1.0);
+            st.setInterpolator(Interpolator.EASE_OUT);
+            st.play();
+
+            // Retour au style normal
+            container.setStyle(
+                "-fx-background-color:" + bgLight + "; " +
+                "-fx-background-radius:18; " +
+                "-fx-border-color:" + colorLight + "66; " +
+                "-fx-border-radius:18; " +
+                "-fx-border-width:2; " +
+                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.12),12,0,0,4);"
+            );
+
+            // Retour de l'emoji
+            ScaleTransition emojiScale = new ScaleTransition(Duration.millis(200), emojiLabel);
+            emojiScale.setToX(1.0);
+            emojiScale.setToY(1.0);
+            emojiScale.setInterpolator(Interpolator.EASE_OUT);
+            emojiScale.play();
+        });
+
+        // Animation au clic
+        container.setOnMousePressed(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(100), container);
+            st.setToX(0.98);
+            st.setToY(0.98);
+            st.play();
+        });
+
+        container.setOnMouseReleased(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(100), container);
+            st.setToX(1.04);
+            st.setToY(1.04);
             st.play();
         });
 
@@ -187,22 +301,25 @@ public class EspaceParticipantPageController {
         for (int i = 0; i < containerBox.getChildren().size(); i++) {
             javafx.scene.Node node = containerBox.getChildren().get(i);
             if (node instanceof GridPane) {
+                int delay = 0;
                 for (javafx.scene.Node child : ((GridPane) node).getChildren()) {
                     child.setOpacity(0);
-                    child.setTranslateY(30);
+                    child.setTranslateY(40);
 
-                    FadeTransition ft = new FadeTransition(Duration.millis(400), child);
+                    FadeTransition ft = new FadeTransition(Duration.millis(500), child);
                     ft.setFromValue(0);
                     ft.setToValue(1);
-                    ft.setDelay(Duration.millis(GridPane.getRowIndex(child) * 150 + GridPane.getColumnIndex(child) * 100));
+                    ft.setDelay(Duration.millis(delay));
+                    ft.setInterpolator(Interpolator.EASE_OUT);
 
-                    TranslateTransition tt = new TranslateTransition(Duration.millis(400), child);
-                    tt.setFromY(30);
+                    TranslateTransition tt = new TranslateTransition(Duration.millis(500), child);
+                    tt.setFromY(40);
                     tt.setToY(0);
-                    tt.setDelay(Duration.millis(GridPane.getRowIndex(child) * 150 + GridPane.getColumnIndex(child) * 100));
+                    tt.setDelay(Duration.millis(delay));
                     tt.setInterpolator(Interpolator.EASE_OUT);
 
                     new ParallelTransition(ft, tt).play();
+                    delay += 80;
                 }
             }
         }
