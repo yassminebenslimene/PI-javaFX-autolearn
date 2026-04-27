@@ -717,8 +717,16 @@ public class FrontofficeController {
                             FrontChapitreDetailController detailCtrl = detailLoader.getController();
                             detailCtrl.setChapitre(c, chapitre, () -> setCenter(chapView));
                             detailCtrl.setOnQuizCallback(() -> {
-                                if (chapCtrl.getOnPasserQuiz() != null)
-                                    chapCtrl.getOnPasserQuiz().accept(chapitre);
+                                try {
+                                    // Lancer le quiz avec retour vers le détail du chapitre
+                                    FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                                    Parent quizView = quizLoader.load();
+                                    FrontQuizController quizCtrl = quizLoader.getController();
+                                    quizCtrl.setSceneRef(labelCurrentUser);
+                                    quizCtrl.setChapitre(chapitre, () -> setCenter(detailView));
+                                    setCenterDirect(quizView);
+                                    javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                                } catch (Exception ex) { ex.printStackTrace(); }
                             });
                             setCenter(detailView);
                         } catch (Exception ex) { ex.printStackTrace(); }
@@ -734,6 +742,7 @@ public class FrontofficeController {
                             javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
                         } catch (Exception ex) { ex.printStackTrace(); }
                     });
+                    chapCtrl.setOnRetourCours(() -> setCenter(view));
                     chapCtrl.setCours(cours);
                     setCenter(chapView);
                 } catch (Exception ex) { ex.printStackTrace(); }

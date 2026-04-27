@@ -417,23 +417,31 @@ public class FrontQuizController {
 
     private void afficherSelectionQuizFiltre(List<Quiz> quizActifs, String filtreActif) {
         try {
-            // ── Fond violet dégradé (même style que intro.fxml) ──────────────
-            javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane();
-            root.setStyle("-fx-background-color:linear-gradient(to bottom right,#7c3aed,#a78bfa);");
+            // ── Conteneur racine : fond blanc ─────────────────────────────────
+            javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(0);
+            root.setStyle("-fx-background-color:#f8fafc;");
+            root.setFillWidth(true);
 
-            // Décorations cercles
+            // ── HEADER VIOLET ─────────────────────────────────────────────────
+            javafx.scene.layout.StackPane header = new javafx.scene.layout.StackPane();
+            header.setStyle("-fx-background-color:linear-gradient(to bottom right,#7c3aed,#a78bfa);");
+            header.setPrefHeight(160);
+            header.setMinHeight(160);
+            header.setMaxHeight(160);
+
+            // Décorations cercles dans le header
             for (double[] c : new double[][]{
-                {200,-340,-200,0.06},{170,360,-190,0.05},{150,-380,230,0.07},
-                {100,-100,280,0.05},{110,200,260,0.06},{75,180,-230,0.08},
-                {65,-280,60,0.09},{60,280,100,0.07}}) {
+                {100,-340,-60,0.06},{80,360,-50,0.05},{70,-380,60,0.07},
+                {60,-100,70,0.05},{65,200,60,0.06},{50,180,-60,0.08},
+                {45,-280,20,0.09},{40,280,40,0.07}}) {
                 javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(c[0]);
                 circle.setFill(javafx.scene.paint.Color.rgb(255,255,255,c[3]));
                 circle.setTranslateX(c[1]); circle.setTranslateY(c[2]);
                 circle.setMouseTransparent(true);
-                root.getChildren().add(circle);
+                header.getChildren().add(circle);
             }
 
-            // ── Bouton retour en haut à gauche ────────────────────────────────
+            // Bouton retour en haut à gauche
             javafx.scene.control.Button btnRetour = new javafx.scene.control.Button("← Retour aux chapitres");
             btnRetour.setStyle("-fx-background-color:rgba(255,255,255,0.14); -fx-text-fill:white;" +
                 "-fx-font-size:13; -fx-font-weight:800; -fx-padding:10 18; -fx-background-radius:999;" +
@@ -443,35 +451,41 @@ public class FrontQuizController {
             javafx.scene.layout.HBox topBar = new javafx.scene.layout.HBox(btnRetour);
             topBar.setPadding(new Insets(18, 0, 0, 18));
             javafx.scene.layout.StackPane.setAlignment(topBar, javafx.geometry.Pos.TOP_LEFT);
-            root.getChildren().add(topBar);
 
-            // ── Contenu central ───────────────────────────────────────────────
-            javafx.scene.layout.VBox centerBox = new javafx.scene.layout.VBox(20);
-            centerBox.setAlignment(javafx.geometry.Pos.CENTER);
-            centerBox.setMaxWidth(960);
-
-            // ── Titre ─────────────────────────────────────────────────────────
+            // Titre centré dans le header
             javafx.scene.control.Label titre = new javafx.scene.control.Label("Choisissez votre Quiz");
             titre.setStyle(
-                "-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:white;" +
+                "-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:white;" +
                 "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),8,0,0,2);"
             );
+            javafx.scene.layout.StackPane.setAlignment(titre, javafx.geometry.Pos.CENTER);
 
-            // ── Barre de filtres sur fond blanc arrondi (style page Cours) ──────
+            header.getChildren().addAll(topBar, titre);
+            root.getChildren().add(header);
+
+            // ── SECTION BLANCHE (filtres + cartes) ───────────────────────────
+            javafx.scene.layout.VBox whiteSection = new javafx.scene.layout.VBox(24);
+            whiteSection.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+            whiteSection.setStyle("-fx-background-color:#f8fafc;");
+            whiteSection.setPadding(new Insets(32, 40, 40, 40));
+            javafx.scene.layout.VBox.setVgrow(whiteSection, javafx.scene.layout.Priority.ALWAYS);
+
+            // ── Barre de filtres ──────────────────────────────────────────────
             javafx.scene.layout.HBox filtreBox = new javafx.scene.layout.HBox(10);
             filtreBox.setAlignment(javafx.geometry.Pos.CENTER);
             filtreBox.setStyle(
-                "-fx-background-color:rgba(255,255,255,0.95);" +
+                "-fx-background-color:white;" +
                 "-fx-background-radius:999;" +
                 "-fx-padding:8 16 8 16;" +
-                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.10),12,0,0,3);"
+                "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,3);" +
+                "-fx-border-color:#e2e8f0; -fx-border-radius:999; -fx-border-width:1;"
             );
 
             String[][] filtres = {
-                {"tous",      "Tous",      "#7c3aed", "#7c3aed"},
-                {"facile",    "Facile",    "#22c55e", "#22c55e"},
-                {"moyen",     "Moyen",     "#f59e0b", "#f59e0b"},
-                {"difficile", "Difficile", "#ef4444", "#ef4444"}
+                {"tous",      "Tous",      "#7c3aed"},
+                {"facile",    "Facile",    "#22c55e"},
+                {"moyen",     "Moyen",     "#f59e0b"},
+                {"difficile", "Difficile", "#ef4444"}
             };
 
             for (String[] f : filtres) {
@@ -480,7 +494,6 @@ public class FrontQuizController {
 
                 javafx.scene.control.Button btnFiltre = new javafx.scene.control.Button(fLabel);
                 if (isActive) {
-                    // Bouton actif : fond plein coloré, texte blanc
                     btnFiltre.setStyle(
                         "-fx-background-color:" + fColor + ";" +
                         "-fx-text-fill:white;" +
@@ -490,7 +503,6 @@ public class FrontQuizController {
                         "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),8,0,0,2);"
                     );
                 } else {
-                    // Bouton inactif : fond blanc, bordure colorée, texte coloré
                     btnFiltre.setStyle(
                         "-fx-background-color:white;" +
                         "-fx-text-fill:" + fColor + ";" +
@@ -500,7 +512,6 @@ public class FrontQuizController {
                         "-fx-border-width:2; -fx-border-color:" + fColor + ";" +
                         "-fx-border-radius:999;"
                     );
-                    // Hover : fond légèrement coloré
                     btnFiltre.setOnMouseEntered(ev -> btnFiltre.setStyle(
                         "-fx-background-color:" + fColor + "18;" +
                         "-fx-text-fill:" + fColor + ";" +
@@ -524,38 +535,34 @@ public class FrontQuizController {
                 filtreBox.getChildren().add(btnFiltre);
             }
 
-            // Compteur de quiz filtrés
+            whiteSection.getChildren().add(filtreBox);
+
+            // Cartes quiz filtrées
             List<Quiz> quizFiltres = filtreActif.equals("tous") ? quizActifs
                 : quizActifs.stream()
                     .filter(q -> detecterNiveau(q).equals(filtreActif))
                     .collect(java.util.stream.Collectors.toList());
 
-            javafx.scene.layout.HBox filtreRow = new javafx.scene.layout.HBox(14);
-            filtreRow.setAlignment(javafx.geometry.Pos.CENTER);
-            filtreRow.getChildren().add(filtreBox);
-
-            centerBox.getChildren().addAll(titre, filtreRow);
-
-            // ── Cartes quiz filtrées ───────────────────────────────────────────
             if (quizFiltres.isEmpty()) {
                 javafx.scene.layout.VBox videBox = new javafx.scene.layout.VBox(12);
                 videBox.setAlignment(javafx.geometry.Pos.CENTER);
                 videBox.setStyle(
-                    "-fx-background-color:rgba(255,255,255,0.15);" +
-                    "-fx-background-radius:20; -fx-padding:40 60 40 60;"
+                    "-fx-background-color:white;" +
+                    "-fx-background-radius:20; -fx-padding:40 60 40 60;" +
+                    "-fx-border-color:#e2e8f0; -fx-border-radius:20; -fx-border-width:1;" +
+                    "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),12,0,0,4);"
                 );
                 javafx.scene.control.Label videIcon = new javafx.scene.control.Label("🔍");
                 videIcon.setStyle("-fx-font-size:36;");
                 javafx.scene.control.Label vide = new javafx.scene.control.Label(
                     "Aucun quiz de niveau \"" + filtreActif + "\" disponible");
-                vide.setStyle("-fx-font-size:15; -fx-text-fill:white; -fx-font-weight:700;");
+                vide.setStyle("-fx-font-size:15; -fx-text-fill:#0f172a; -fx-font-weight:700;");
                 javafx.scene.control.Label videHint = new javafx.scene.control.Label(
                     "Essayez un autre niveau ou sélectionnez \"Tous\"");
-                videHint.setStyle("-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.7);");
+                videHint.setStyle("-fx-font-size:12; -fx-text-fill:#94a3b8;");
                 videBox.getChildren().addAll(videIcon, vide, videHint);
-                centerBox.getChildren().add(videBox);
+                whiteSection.getChildren().add(videBox);
             } else {
-                // Cartes en HBox (côte à côte) — toutes à la même hauteur
                 javafx.scene.layout.HBox cardsRow = new javafx.scene.layout.HBox(20);
                 cardsRow.setAlignment(javafx.geometry.Pos.TOP_CENTER);
                 cardsRow.setFillHeight(true);
@@ -729,11 +736,10 @@ public class FrontQuizController {
 
                     cardsRow.getChildren().add(card);
                 }
-                centerBox.getChildren().add(cardsRow);
+                whiteSection.getChildren().add(cardsRow);
             } // fin else (quizFiltres non vide)
 
-            root.getChildren().add(centerBox);
-            javafx.scene.layout.StackPane.setAlignment(centerBox, javafx.geometry.Pos.CENTER);
+            root.getChildren().add(whiteSection);
 
             // Afficher la vue
             if (sceneRef != null && sceneRef.getScene() != null) {
