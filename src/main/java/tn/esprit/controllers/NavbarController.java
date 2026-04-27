@@ -35,10 +35,10 @@ public class NavbarController {
         "-fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;";
     private static final String ACTIVE_FRONT =
         "-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-weight:700;" +
-        "-fx-font-size:13; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0; -fx-background-radius:8;";
+        "-fx-font-size:13; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0; -fx-background-radius:8;";
     private static final String INACTIVE_FRONT =
-        "-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75);" +
-        "-fx-font-size:13; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;";
+        "-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85);" +
+        "-fx-font-size:13; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
 
     @FXML
     public void initialize() {

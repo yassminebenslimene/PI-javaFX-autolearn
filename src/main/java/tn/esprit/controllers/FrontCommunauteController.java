@@ -177,7 +177,8 @@ public class FrontCommunauteController {
             tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(view);
         } catch (Exception e) {
             e.printStackTrace();
-            String details = e.getMessage() != null ? ("\n\nDétail: " + e.getMessage()) : "";
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            String details = cause.getMessage() != null ? ("\n\nDétail: " + cause.getMessage()) : "";
             showUiError("Impossible d'ouvrir la communauté", "Une erreur est survenue pendant le chargement de la page détail." + details);
         }
     }

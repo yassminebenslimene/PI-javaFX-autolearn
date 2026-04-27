@@ -16,6 +16,7 @@ import tn.esprit.services.ServiceCommunaute;
 import tn.esprit.services.ServicePost;
 import tn.esprit.services.UserService;
 import tn.esprit.services.ResourceRecommendationService;
+import tn.esprit.services.TrendAnalyzerService;
 import tn.esprit.session.SessionManager;
 
 import java.time.LocalDateTime;
@@ -48,10 +49,12 @@ public class FrontCommunauteDetailController {
     @FXML private VBox      similarPostsList;
     @FXML private VBox      resourcesBox;
     @FXML private VBox      resourcesList;
+    @FXML private VBox      trendingBox;
+    @FXML private VBox      trendingList;
     @FXML private ScrollPane mainScrollPane;
 
-    private final ResourceRecommendationService recommendationService = new ResourceRecommendationService();
-
+    private ResourceRecommendationService recommendationService;
+    private TrendAnalyzerService          trendAnalyzerService;
     /** Maps postId → its card VBox for scroll-to navigation */
     private final java.util.Map<Integer, VBox> postCardMap = new java.util.HashMap<>();
 
@@ -105,6 +108,7 @@ public class FrontCommunauteDetailController {
             btnGererMembres.setManaged(true);
         }
         loadPosts();
+        loadTrends();
     }
 
     private void loadPosts() {
@@ -815,10 +819,66 @@ public class FrontCommunauteDetailController {
         return "Utilisateur #" + userId;
     }
 
+    /** Analyzes last-24h posts+comments and shows trending keywords in sidebar */
+    private void loadTrends() {
+        if (trendingBox == null || trendingList == null) return;
+        try {
+            if (trendAnalyzerService == null) trendAnalyzerService = new TrendAnalyzerService();
+            List<TrendAnalyzerService.TrendWord> trends = trendAnalyzerService.getTrends(communaute.getId());
+        if (trends.isEmpty()) return;
+
+        trendingList.getChildren().clear();
+        for (TrendAnalyzerService.TrendWord tw : trends) {
+            // Tag chip
+            Label chip = new Label("#" + tw.word());
+            chip.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                          "-fx-font-size:12; -fx-font-weight:800;" +
+                          "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;");
+            chip.setOnMouseEntered(e -> chip.setStyle(
+                    "-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white;" +
+                    "-fx-font-size:12; -fx-font-weight:800;" +
+                    "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;"));
+            chip.setOnMouseExited(e -> chip.setStyle(
+                    "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                    "-fx-font-size:12; -fx-font-weight:800;" +
+                    "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;"));
+
+            // Count badge
+            Label countBadge = new Label(tw.count() + "×");
+            countBadge.setStyle("-fx-background-color:#fef3c7; -fx-text-fill:#d97706;" +
+                                "-fx-font-size:10; -fx-font-weight:800;" +
+                                "-fx-padding:3 8; -fx-background-radius:20;");
+
+            // Score bar
+            double pct = Math.min(tw.score() / 10.0, 1.0);
+            HBox barBg = new HBox();
+            barBg.setStyle("-fx-background-color:#f0eeff; -fx-background-radius:4; -fx-pref-height:3;");
+            HBox barFill = new HBox();
+            barFill.setPrefWidth(pct * 220);
+            barFill.setStyle("-fx-background-color:linear-gradient(to right,#f59e0b,#ef4444);" +
+                             "-fx-background-radius:4; -fx-pref-height:3;");
+            barBg.getChildren().add(barFill);
+
+            HBox row = new HBox(8, chip, countBadge);
+            row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+            VBox item = new VBox(6, row, barBg);
+            trendingList.getChildren().add(item);
+        }
+
+        trendingBox.setVisible(true);
+        trendingBox.setManaged(true);
+        } catch (Exception e) {
+            System.err.println("[Trends] loadTrends error: " + e.getMessage());
+        }
+    }
+
     /** Shows recommended courses & quizzes in the sidebar based on post keywords */
     private void showResourceRecommendations(Post source) {
         if (resourcesBox == null || resourcesList == null) return;
-        var results = recommendationService.recommend(source, 5);
+        try {
+            if (recommendationService == null) recommendationService = new ResourceRecommendationService();
+            var results = recommendationService.recommend(source, 5);
         if (results.isEmpty()) return;
 
         resourcesList.getChildren().clear();
@@ -877,6 +937,9 @@ public class FrontCommunauteDetailController {
 
         resourcesBox.setVisible(true);
         resourcesBox.setManaged(true);
+        } catch (Exception e) {
+            System.err.println("[Recommend] error: " + e.getMessage());
+        }
     }
 
     /** Shows top-3 similar posts in the sidebar when user likes a post */
@@ -1190,10 +1253,6 @@ public class FrontCommunauteDetailController {
         }
     }
 
-    @FXML public void onRefresh() { loadPosts(); }
-
-    @FXML
-    public void onRetour() {
-        if (onRetour != null) onRetour.run();
-    }
+    @FXML public void onRefresh() { loadPosts(); loadTrends(); }
+    @FXML public void onRetour() { if (onRetour != null) onRetour.run(); }
 }
