@@ -76,7 +76,7 @@ public class EspaceParticipantPageController {
             "Jeux amusants et relaxants",
             "#7c3aed",
             "#c44dff",
-            () -> EspaceJeuxController.show(containerBox.getScene().getWindow(), evenement)
+            () -> EspaceJeuxController.show(containerBox.getScene().getWindow())
         );
         grid.add(jeuxContainer, 1, 0);
 
@@ -87,8 +87,8 @@ public class EspaceParticipantPageController {
             "#8B6614",
             "#D4A96A",
             () -> {
-                // Naviguer vers la page de réservation
-                FrontNavHelper.goSalleReservation(evenement);
+                try { tn.esprit.MainApp.showSalleReservation(evenement, null); }
+                catch (Exception ex) { ex.printStackTrace(); }
             }
         );
         grid.add(reservationContainer, 0, 1);
@@ -99,7 +99,7 @@ public class EspaceParticipantPageController {
             "Emprunter du matériel",
             "#22c55e",
             "#4ade80",
-            () -> EmpruntMaterielController.show(containerBox.getScene().getWindow(), evenement)
+            () -> EmpruntMaterielController.show(evenement, containerBox.getScene().getWindow())
         );
         grid.add(empruntContainer, 1, 1);
 

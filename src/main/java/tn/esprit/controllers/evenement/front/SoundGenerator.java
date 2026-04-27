@@ -67,14 +67,16 @@ public class SoundGenerator {
         });
     }
 
-    // ── COFFEE MACHINE SOUNDS ──
+    // ── COFFEE MACHINE SOUNDS ── (sons doux et agréables)
     public static void playCoffeeGrind() {
         playAsync(() -> {
             try {
                 AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                // Grinding sound: noise burst
-                baos.write(genNoise(400, 0.5f));
+                // Son doux de mouture : tons graves harmonieux
+                baos.write(genTone(180, 200, 0.2f));
+                baos.write(genTone(220, 200, 0.2f));
+                baos.write(genTone(180, 200, 0.15f));
                 playBytes(baos.toByteArray(), fmt);
             } catch (Exception ignored) {}
         });
@@ -85,8 +87,10 @@ public class SoundGenerator {
             try {
                 AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                // Steam sound: high frequency noise
-                baos.write(genNoise(300, 0.4f));
+                // Son de vapeur : mélodie douce montante
+                baos.write(genTone(440, 150, 0.2f));
+                baos.write(genTone(494, 150, 0.2f));
+                baos.write(genTone(523, 200, 0.2f));
                 playBytes(baos.toByteArray(), fmt);
             } catch (Exception ignored) {}
         });
@@ -97,8 +101,10 @@ public class SoundGenerator {
             try {
                 AudioFormat fmt = new AudioFormat(SR, 16, 1, true, false);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                // Ding sound: bell-like tone
-                baos.write(genTone(1200, 300, 0.4f));
+                // Ding final : son de cloche agréable
+                baos.write(genTone(1047, 120, 0.35f));
+                baos.write(genTone(1319, 120, 0.35f));
+                baos.write(genTone(1568, 250, 0.4f));
                 playBytes(baos.toByteArray(), fmt);
             } catch (Exception ignored) {}
         });

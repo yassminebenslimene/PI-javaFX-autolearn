@@ -52,7 +52,7 @@ public class FrontNavHelper {
     }
 
     public static void goSalleReservation(tn.esprit.entities.Evenement ev) {
-        try { MainApp.showSalleReservation(ev); } catch (Exception e) { e.printStackTrace(); }
+        try { MainApp.showSalleReservation(ev, null); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void goEspaceParticipant(tn.esprit.entities.Evenement ev) {

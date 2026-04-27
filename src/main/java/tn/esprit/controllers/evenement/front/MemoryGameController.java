@@ -37,12 +37,15 @@ public class MemoryGameController {
     private static final float SR = 44100f;
     private static final int COLS = 4, ROWS = 3; // 12 cartes = 6 paires
     
-    // Types de cafés avec emojis et couleurs
+    // Types de cafés avec emojis et descriptions
     private static final String[] CAFE_TYPES = {
-        "☕ Espresso", "🍵 Cappuccino", "🥛 Latte", "🍶 Americano", "🍫 Mocha", "🧊 Iced Coffee"
+        "Espresso", "Cappuccino", "Latte", "Americano", "Mocha", "Iced Coffee"
     };
     private static final String[] CAFE_EMOJIS = {
-        "☕", "🍵", "🥛", "🍶", "🍫", "🧊"
+        "\u2615", "\uD83E\uDD5B", "\uD83C\uDF75", "\uD83E\uDDCB", "\uD83C\uDF6B", "\uD83E\uDDCA"
+    };
+    private static final String[] CAFE_DESCRIPTIONS = {
+        "Court, intense", "Mousse onctueuse", "Lait chaud", "Long, leger", "Chocolat & cafe", "Frais, glace"
     };
     private static final String[] CARD_COLORS = {
         "#6b3a2a","#c47c3a","#d4a96a","#3e2723","#4e342e","#1565c0"
@@ -270,12 +273,12 @@ public class MemoryGameController {
         back.setStyle("-fx-background-color:linear-gradient(to bottom right,#7c3aed,#c44dff);"
                 + "-fx-background-radius:14; -fx-border-color:#ffffff44; -fx-border-radius:14; -fx-border-width:2;"
                 + "-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.5),12,0,0,4);");
-        Label backLabel = new Label("🃏");
+        Label backLabel = new Label("\u3010");
         backLabel.setStyle("-fx-font-size:36;");
         back.getChildren().add(backLabel);
 
-        // Face visible
-        VBox front = new VBox(6);
+        // Face visible avec type de café
+        VBox front = new VBox(4);
         front.setAlignment(Pos.CENTER);
         front.setPrefSize(130, 110);
         front.setStyle("-fx-background-color:" + card.color + "22; -fx-background-radius:14;"
@@ -283,16 +286,25 @@ public class MemoryGameController {
                 + "-fx-effect:dropshadow(gaussian," + card.color + "88,14,0,0,4);");
         front.setVisible(false);
 
-        if (card.image != null) {
-            ImageView iv = new ImageView(card.image);
-            iv.setFitWidth(70); iv.setFitHeight(70); iv.setPreserveRatio(true);
-            iv.setStyle("-fx-background-radius:10;");
-            front.getChildren().add(iv);
-        } else {
-            Label emojiLbl = new Label(card.fallbackEmoji);
-            emojiLbl.setStyle("-fx-font-size:44;");
-            front.getChildren().add(emojiLbl);
-        }
+        // Emoji du café (grand)
+        Label emojiLbl = new Label(card.fallbackEmoji);
+        emojiLbl.setStyle("-fx-font-size:40;");
+        
+        // Nom du café
+        Label nameLbl = new Label(CAFE_TYPES[card.pairId % CAFE_TYPES.length]);
+        nameLbl.setStyle("-fx-font-size:11; -fx-font-weight:bold; -fx-text-fill:#1e1e1e;");
+        nameLbl.setWrapText(true);
+        nameLbl.setMaxWidth(100);
+        nameLbl.setAlignment(Pos.CENTER);
+        
+        // Description
+        Label descLbl = new Label(CAFE_DESCRIPTIONS[card.pairId % CAFE_DESCRIPTIONS.length]);
+        descLbl.setStyle("-fx-font-size:9; -fx-text-fill:#6b7280; -fx-font-style:italic;");
+        descLbl.setWrapText(true);
+        descLbl.setMaxWidth(100);
+        descLbl.setAlignment(Pos.CENTER);
+        
+        front.getChildren().addAll(emojiLbl, nameLbl, descLbl);
 
         stack.getChildren().addAll(back, front);
         card.backNode = back; card.frontNode = front;

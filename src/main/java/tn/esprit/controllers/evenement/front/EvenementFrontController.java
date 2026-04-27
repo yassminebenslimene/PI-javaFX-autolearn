@@ -309,9 +309,10 @@ public class EvenementFrontController {
                     + "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;"
                     + "-fx-padding:10 16 10 16; -fx-background-radius:0 0 18 18;"
                     + "-fx-cursor:hand; -fx-border-width:0; -fx-max-width:Infinity;");
-            espaceBtn.setOnAction(e ->
-                    tn.esprit.controllers.evenement.front.EspaceParticipantController
-                            .show(ev, card.getScene().getWindow()));
+            espaceBtn.setOnAction(e -> {
+                try { tn.esprit.MainApp.showEspaceParticipant(ev); }
+                catch (Exception ex) { ex.printStackTrace(); }
+            });
             body.getChildren().add(espaceBtn);
         }
 

@@ -236,6 +236,14 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Plan de la Salle");
     }
 
+    public static void showEspaceParticipant(Evenement ev) throws Exception {
+        FXMLLoader loader = getLoader("/views/frontoffice/espace_participant.fxml");
+        setScene(loader);
+        tn.esprit.controllers.evenement.front.EspaceParticipantPageController ctrl = loader.getController();
+        ctrl.setData(ev);
+        primaryStage.setTitle("AutoLearn — Espace Participant");
+    }
+
     // ── Autres modules ────────────────────────────────────────────────────────
 
     public static void showChallengesFront() throws Exception {
