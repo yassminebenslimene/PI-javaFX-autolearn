@@ -369,12 +369,8 @@ public class FrontQuizController {
             .filter(q -> "actif".equals(q.getEtat()))
             .collect(java.util.stream.Collectors.toList());
 
-        if (quizActifs.isEmpty()) {
-            if (labelTitreQuiz != null) labelTitreQuiz.setText("Aucun quiz disponible pour ce chapitre");
-        } else {
-            // Toujours afficher la page de sélection avec les cartes (même avec 1 seul quiz)
-            javafx.application.Platform.runLater(() -> afficherSelectionQuiz(quizActifs));
-        }
+        // Toujours afficher la page de sélection (avec cartes ou message vide)
+        javafx.application.Platform.runLater(() -> afficherSelectionQuiz(quizActifs));
     }
 
     /**
