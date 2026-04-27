@@ -382,16 +382,43 @@ public class FrontCommunauteDetailController {
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
         if (p.getUserId() == currentUserId) {
-            Button btnMenu = new Button("⋯");
-            btnMenu.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed; -fx-font-size:16; " +
-                             "-fx-cursor:hand; -fx-border-width:0; -fx-padding:6 14 6 14; -fx-background-radius:30;");
-            ContextMenu menu = new ContextMenu();
-            MenuItem itemModifier  = new MenuItem("✏  Modifier");
-            MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
-            menu.getItems().addAll(itemModifier, itemSupprimer);
+            MenuButton menuBtn = new MenuButton("⋮");
+            menuBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#999; " +
+                           "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+                           "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;");
+            
+            menuBtn.setOnMouseEntered(e -> menuBtn.setStyle(
+                "-fx-background-color:#f5f5f5; -fx-text-fill:#333; " +
+                "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+                "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+            menuBtn.setOnMouseExited(e -> menuBtn.setStyle(
+                "-fx-background-color:transparent; -fx-text-fill:#999; " +
+                "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+                "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+
+            MenuItem itemModifier  = new MenuItem("✏️  Modifier");
+            itemModifier.setStyle("-fx-padding:10 18 10 18; -fx-font-size:13; -fx-font-weight:500; -fx-text-fill:#374151;");
+            
+            MenuItem itemSupprimer = new MenuItem("🗑️  Supprimer");
+            itemSupprimer.setStyle("-fx-padding:10 18 10 18; -fx-font-size:13; -fx-font-weight:500; -fx-text-fill:#374151;");
+            
+            menuBtn.getItems().addAll(itemModifier, itemSupprimer);
+            
+            // Apply custom styling to the context menu when it's shown
+            menuBtn.setOnShowing(e -> {
+                if (menuBtn.getContextMenu() != null) {
+                    menuBtn.getContextMenu().setStyle(
+                        "-fx-background-color:white; " +
+                        "-fx-background-radius:8; " +
+                        "-fx-effect:dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3); " +
+                        "-fx-padding:4;"
+                    );
+                }
+            });
+            
             itemModifier.setOnAction(e -> onModifierPost(p, card, null, null, null));
-            itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
-            topRow.getChildren().add(btnMenu);
+            itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));
+            topRow.getChildren().add(menuBtn);
         }
 
         VBox contentBox = new VBox(10);
@@ -769,14 +796,49 @@ public class FrontCommunauteDetailController {
 
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
-        if (c.getUserId() == currentUserId) {
-            Button btnEdit = new Button("✏");
-            btnEdit.setStyle("-fx-background-color:transparent; -fx-text-fill:#7c3aed; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 6 0 6;");
-            btnEdit.setOnAction(e -> onModifierComment(c, bubble, lblContenu));
+        
+        // Always show menu button, but only enable actions for owner
+        MenuButton menuBtn = new MenuButton("⋮");
+        menuBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#999; " +
+                       "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+                       "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;");
+        
+        menuBtn.setOnMouseEntered(e -> menuBtn.setStyle(
+            "-fx-background-color:#f5f5f5; -fx-text-fill:#333; " +
+            "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+            "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+        menuBtn.setOnMouseExited(e -> menuBtn.setStyle(
+            "-fx-background-color:transparent; -fx-text-fill:#999; " +
+            "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+            "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
 
-            Button btnDel = new Button("🗑");
-            btnDel.setStyle("-fx-background-color:transparent; -fx-text-fill:#e94560; -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0; -fx-padding:0 6 0 6;");
-            btnDel.setOnAction(e -> {
+        MenuItem itemModifier  = new MenuItem("✏️  Modifier");
+        itemModifier.setStyle("-fx-padding:10 18 10 18; -fx-font-size:13; -fx-font-weight:500; -fx-text-fill:#374151;");
+        
+        MenuItem itemSupprimer = new MenuItem("🗑️  Supprimer");
+        itemSupprimer.setStyle("-fx-padding:10 18 10 18; -fx-font-size:13; -fx-font-weight:500; -fx-text-fill:#374151;");
+        
+        menuBtn.getItems().addAll(itemModifier, itemSupprimer);
+        
+        // Apply custom styling to the context menu when it's shown
+        menuBtn.setOnShowing(e -> {
+            if (menuBtn.getContextMenu() != null) {
+                menuBtn.getContextMenu().setStyle(
+                    "-fx-background-color:white; " +
+                    "-fx-background-radius:8; " +
+                    "-fx-effect:dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3); " +
+                    "-fx-padding:4;"
+                );
+            }
+        });
+        
+        row.getChildren().add(menuBtn);
+        
+        // Only enable actions if user is the owner
+        if (c.getUserId() == currentUserId) {
+            itemModifier.setOnAction(e -> onModifierComment(c, bubble, lblContenu));
+
+            itemSupprimer.setOnAction(e -> {
                 Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Supprimer ce commentaire ?", ButtonType.YES, ButtonType.NO);
                 confirm.setHeaderText(null);
                 confirm.showAndWait().ifPresent(btn -> {
@@ -786,11 +848,12 @@ public class FrontCommunauteDetailController {
                     }
                 });
             });
-
-            HBox commActions = new HBox(2, btnEdit, btnDel);
-            commActions.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
-            row.getChildren().add(commActions);
+        } else {
+            // Disable menu items for non-owners
+            itemModifier.setDisable(true);
+            itemSupprimer.setDisable(true);
         }
+        
         return row;
     }
     private void onModifierComment(Commentaire c, VBox bubble, Label lblContenu) {

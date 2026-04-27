@@ -170,17 +170,29 @@ public class FrontCommunauteDetailController {
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
         if (p.getUserId() == currentUserId) {
-            Button btnMenu = new Button("⋮");
-            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#bbb; -fx-font-size:18; " +
-                             "-fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 4;");
-            ContextMenu menu = new ContextMenu();
-            MenuItem itemModifier  = new MenuItem("✏  Modifier");
-            MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
-            menu.getItems().addAll(itemModifier, itemSupprimer);
+            MenuButton menuBtn = new MenuButton("⋮");
+            menuBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#999; " +
+                           "-fx-font-size:24; -fx-font-weight:bold; -fx-padding:0 8 0 8; " +
+                           "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;");
+            
+            menuBtn.setOnMouseEntered(e -> menuBtn.setStyle(
+                "-fx-background-color:#f5f5f5; -fx-text-fill:#333; " +
+                "-fx-font-size:24; -fx-font-weight:bold; -fx-padding:0 8 0 8; " +
+                "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+            menuBtn.setOnMouseExited(e -> menuBtn.setStyle(
+                "-fx-background-color:transparent; -fx-text-fill:#999; " +
+                "-fx-font-size:24; -fx-font-weight:bold; -fx-padding:0 8 0 8; " +
+                "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+            
+            MenuItem itemModifier  = new MenuItem("✏️  Modifier");
+            itemModifier.setStyle("-fx-padding:10 20 10 20; -fx-font-size:13;");
+            MenuItem itemSupprimer = new MenuItem("🗑️  Supprimer");
+            itemSupprimer.setStyle("-fx-padding:10 20 10 20; -fx-font-size:13;");
+            
+            menuBtn.getItems().addAll(itemModifier, itemSupprimer);
             itemModifier.setOnAction(e -> onModifierPost(p, card, lblTitre, lblContenu));
             itemSupprimer.setOnAction(e -> onSupprimerPost(p, card));
-            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
-            topRow.getChildren().add(btnMenu);
+            topRow.getChildren().add(menuBtn);
         }
 
         // Commentaires
@@ -322,37 +334,82 @@ public class FrontCommunauteDetailController {
         HBox row = new HBox(8, avatar, bubble);
         row.setAlignment(javafx.geometry.Pos.TOP_LEFT);
         row.setPadding(new Insets(2, 0, 2, 0));
-
+        
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
+        
+        // Always show menu button, but only enable actions for owner
+        MenuButton menuBtn = new MenuButton("⋮");
+        menuBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#999; " +
+                       "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+                       "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;");
+        
+        menuBtn.setOnMouseEntered(e -> menuBtn.setStyle(
+            "-fx-background-color:#f5f5f5; -fx-text-fill:#333; " +
+            "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+            "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+        menuBtn.setOnMouseExited(e -> menuBtn.setStyle(
+            "-fx-background-color:transparent; -fx-text-fill:#999; " +
+            "-fx-font-size:20; -fx-font-weight:bold; -fx-padding:0 6 0 6; " +
+            "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+
+        MenuItem itemModifier  = new MenuItem("✏️  Modifier");
+        itemModifier.setStyle("-fx-padding:10 20 10 20; -fx-font-size:13;");
+        MenuItem itemSupprimer = new MenuItem("🗑️  Supprimer");
+        itemSupprimer.setStyle("-fx-padding:10 20 10 20; -fx-font-size:13;");
+        
+        menuBtn.getItems().addAll(itemModifier, itemSupprimer);
+        row.getChildren().add(menuBtn);
+        
+        // Only enable actions if user is the owner
         if (c.getUserId() == currentUserId) {
-            Button btnMenu = new Button("⋮");
-            btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#888; -fx-font-size:15; " +
-                             "-fx-cursor:hand; -fx-border-width:0; -fx-padding:0 4 0 4;");
-
-            ContextMenu menu = new ContextMenu();
-            MenuItem itemModifier  = new MenuItem("✏  Modifier");
-            MenuItem itemSupprimer = new MenuItem("🗑  Supprimer");
-            menu.getItems().addAll(itemModifier, itemSupprimer);
-
             itemModifier.setOnAction(e -> {
-                TextInputDialog inputDialog = new TextInputDialog(c.getContenu());
-                inputDialog.setTitle("Modifier le commentaire");
-                inputDialog.setHeaderText(null);
-                inputDialog.setContentText("Contenu :");
-                inputDialog.showAndWait().ifPresent(txt -> {
-                    String trimmed = txt.trim();
+                // Remplacer la bulle par un champ d'édition
+                TextField editField = new TextField(c.getContenu());
+                editField.setStyle("-fx-background-color:#fff; -fx-background-radius:18; " +
+                                 "-fx-border-color:#7a6ad8; -fx-border-width:2; -fx-border-radius:18; " +
+                                 "-fx-padding:8 14 8 14; -fx-font-size:12;");
+                HBox.setHgrow(editField, Priority.ALWAYS);
+                
+                Button btnSave = new Button("✓");
+                btnSave.setStyle("-fx-background-color:#059669; -fx-text-fill:white; " +
+                               "-fx-font-size:14; -fx-font-weight:bold; -fx-padding:6 12 6 12; " +
+                               "-fx-background-radius:50; -fx-cursor:hand; -fx-border-width:0;");
+                
+                Button btnCancel = new Button("✕");
+                btnCancel.setStyle("-fx-background-color:#e94560; -fx-text-fill:white; " +
+                                 "-fx-font-size:14; -fx-font-weight:bold; -fx-padding:6 12 6 12; " +
+                                 "-fx-background-radius:50; -fx-cursor:hand; -fx-border-width:0;");
+                
+                HBox editRow = new HBox(8, avatar, editField, btnSave, btnCancel);
+                editRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                editRow.setPadding(new Insets(2, 0, 2, 0));
+                
+                VBox parent = (VBox) row.getParent();
+                int index = parent.getChildren().indexOf(row);
+                parent.getChildren().set(index, editRow);
+                editField.requestFocus();
+                editField.selectAll();
+                
+                btnSave.setOnAction(ev -> {
+                    String trimmed = editField.getText().trim();
                     if (trimmed.length() < 2 || trimmed.length() > 500) {
-                        Alert err = new Alert(Alert.AlertType.WARNING,
-                            "Le commentaire doit contenir entre 2 et 500 caractères.", ButtonType.OK);
-                        err.setHeaderText(null);
-                        err.showAndWait();
+                        editField.setStyle("-fx-background-color:#ffe0e0; -fx-background-radius:18; " +
+                                         "-fx-border-color:#e94560; -fx-border-width:2; -fx-border-radius:18; " +
+                                         "-fx-padding:8 14 8 14; -fx-font-size:12;");
                         return;
                     }
                     c.setContenu(trimmed);
                     serviceCommentaire.modifier(c);
                     lblContenu.setText(c.getContenu());
+                    parent.getChildren().set(index, row);
                 });
+                
+                btnCancel.setOnAction(ev -> {
+                    parent.getChildren().set(index, row);
+                });
+                
+                editField.setOnAction(ev -> btnSave.fire());
             });
 
             itemSupprimer.setOnAction(e -> {
@@ -366,10 +423,12 @@ public class FrontCommunauteDetailController {
                     }
                 });
             });
-
-            btnMenu.setOnAction(e -> menu.show(btnMenu, javafx.geometry.Side.BOTTOM, 0, 0));
-            row.getChildren().add(btnMenu);
+        } else {
+            // Disable menu items for non-owners
+            itemModifier.setDisable(true);
+            itemSupprimer.setDisable(true);
         }
+        
         return row;
     }
 

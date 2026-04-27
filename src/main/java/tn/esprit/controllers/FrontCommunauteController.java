@@ -5,9 +5,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
+import javafx.scene.layout.Priority;
 import tn.esprit.entities.Communaute;
 import tn.esprit.services.ServiceCommunaute;
 import tn.esprit.session.SessionManager;
@@ -24,8 +28,10 @@ public class FrontCommunauteController {
     private final ServiceCommunaute service = new ServiceCommunaute();
     private List<Communaute> allCommunautes;
     private Runnable onRetour;
+    private java.util.function.Consumer<Communaute> onOuvrirDetail;
 
     public void setOnRetour(Runnable r) { this.onRetour = r; }
+    public void setOnOuvrirDetail(java.util.function.Consumer<Communaute> cb) { this.onOuvrirDetail = cb; }
 
     @FXML
     public void initialize() {
@@ -60,7 +66,7 @@ public class FrontCommunauteController {
                       "-fx-border-color:#ede9fe; -fx-border-radius:24; -fx-border-width:1.5; " +
                       "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.1),22,0,0,7); -fx-padding:28;");
 
-        // Icône + badge cadenas si accès restreint
+        // ── Card header: icon + 3-dot menu (owner only) ──────────────────
         HBox iconRow = new HBox(10);
         iconRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label icon = new Label("👥");
@@ -71,6 +77,48 @@ public class FrontCommunauteController {
             Label lock = new Label("🔒");
             lock.setStyle("-fx-font-size:14; -fx-text-fill:#e94560;");
             iconRow.getChildren().add(lock);
+        }
+
+        // 3-dot menu for owner
+        boolean isOwner = c.getOwnerId() == currentUserId;
+        if (isOwner) {
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            javafx.scene.control.Button btnDots = new javafx.scene.control.Button("⋯");
+            btnDots.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                             "-fx-font-size:16; -fx-font-weight:900;" +
+                             "-fx-padding:4 12; -fx-background-radius:20;" +
+                             "-fx-cursor:hand; -fx-border-width:0;");
+            btnDots.setOnMouseEntered(e -> btnDots.setStyle(
+                    "-fx-background-color:#ede9fe; -fx-text-fill:#6d28d9;" +
+                    "-fx-font-size:16; -fx-font-weight:900;" +
+                    "-fx-padding:4 12; -fx-background-radius:20;" +
+                    "-fx-cursor:hand; -fx-border-width:0;"));
+            btnDots.setOnMouseExited(e -> btnDots.setStyle(
+                    "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                    "-fx-font-size:16; -fx-font-weight:900;" +
+                    "-fx-padding:4 12; -fx-background-radius:20;" +
+                    "-fx-cursor:hand; -fx-border-width:0;"));
+
+            ContextMenu menu = new ContextMenu();
+            menu.setStyle("-fx-background-color:white; -fx-background-radius:14;" +
+                          "-fx-border-color:#ede9fe; -fx-border-radius:14; -fx-border-width:1.5;" +
+                          "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.15),16,0,0,4);" +
+                          "-fx-padding:6 0 6 0;");
+
+            MenuItem itemEdit = new MenuItem("  ✏  Modifier");
+            itemEdit.setStyle("-fx-font-size:13; -fx-padding:10 20 10 20;");
+            itemEdit.setOnAction(e -> onModifier(c));
+
+            MenuItem itemDel = new MenuItem("  🗑  Supprimer");
+            itemDel.setStyle("-fx-font-size:13; -fx-padding:10 20 10 20; -fx-text-fill:#e94560;");
+            itemDel.setOnAction(e -> onSupprimer(c));
+
+            menu.getItems().addAll(itemEdit, new SeparatorMenuItem(), itemDel);
+            btnDots.setOnAction(e -> menu.show(btnDots, javafx.geometry.Side.BOTTOM, 0, 4));
+
+            iconRow.getChildren().addAll(spacer, btnDots);
         }
 
         Label nom = new Label(c.getNom());
@@ -95,7 +143,10 @@ public class FrontCommunauteController {
                                                    "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:900; " +
                                                    "-fx-padding:13 30; -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:0; " +
                                                    "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),14,0,0,5);"));
-            btn.setOnAction(e -> ouvrirDetail(c));
+            btn.setOnAction(e -> {
+                if (onOuvrirDetail != null) onOuvrirDetail.accept(c);
+                else ouvrirDetail(c);
+            });
         } else {
             btn = new javafx.scene.control.Button("🔒  Accès restreint");
             btn.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#c4b5fd; -fx-font-size:12; " +
@@ -104,27 +155,6 @@ public class FrontCommunauteController {
         }
 
         card.getChildren().addAll(iconRow, nom, desc, btn);
-
-        boolean isOwner = c.getOwnerId() == currentUserId;
-        if (isOwner) {
-            HBox ownerActions = new HBox(8);
-            ownerActions.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-            javafx.scene.control.Button btnEdit = new javafx.scene.control.Button("✏ Modifier");
-            btnEdit.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed; -fx-font-size:11; " +
-                             "-fx-font-weight:700; -fx-padding:7 14; -fx-background-radius:9; " +
-                             "-fx-cursor:hand; -fx-border-width:0;");
-            btnEdit.setOnAction(e -> onModifier(c));
-
-            javafx.scene.control.Button btnDel = new javafx.scene.control.Button("🗑 Supprimer");
-            btnDel.setStyle("-fx-background-color:#fff1f2; -fx-text-fill:#e94560; -fx-font-size:11; " +
-                            "-fx-font-weight:700; -fx-padding:7 14; -fx-background-radius:9; " +
-                            "-fx-cursor:hand; -fx-border-width:0;");
-            btnDel.setOnAction(e -> onSupprimer(c));
-
-            ownerActions.getChildren().addAll(btnEdit, btnDel);
-            card.getChildren().add(ownerActions);
-        }
 
         return card;
     }
@@ -143,38 +173,33 @@ public class FrontCommunauteController {
             FrontCommunauteDetailController ctrl = loader.getController();
             ctrl.setCommunaute(fresh, () -> {
                 try {
-                    tn.esprit.MainApp.showCommunauteFront();
+                    // Go back to layout with community list
+                    FrontofficeController.setPendingSection("communaute");
+                    tn.esprit.MainApp.showFrontoffice();
                 } catch (Exception ex) { ex.printStackTrace(); }
             });
 
             // ── Resource navigation callbacks ──────────────────────────────
             ctrl.setOnNavigateToCours(coursId -> {
                 try {
-                    FXMLLoader coursLoader = new FXMLLoader(
-                        getClass().getResource("/views/frontoffice/cours/index.fxml"));
-                    javafx.scene.Parent coursView = coursLoader.load();
-                    FrontCoursController coursCtrl = coursLoader.getController();
-                    coursCtrl.loadData();
-                    tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(coursView);
+                    FrontofficeController.setPendingSection("cours");
+                    tn.esprit.MainApp.showFrontoffice();
                 } catch (Exception ex) { ex.printStackTrace(); }
             });
 
             ctrl.setOnNavigateToQuiz(quizId -> {
-                // Quiz belongs to a chapitre — navigate to cours list as entry point
                 try {
-                    FXMLLoader coursLoader = new FXMLLoader(
-                        getClass().getResource("/views/frontoffice/cours/index.fxml"));
-                    javafx.scene.Parent coursView = coursLoader.load();
-                    FrontCoursController coursCtrl = coursLoader.getController();
-                    coursCtrl.loadData();
-                    tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(coursView);
+                    FrontofficeController.setPendingSection("cours");
+                    tn.esprit.MainApp.showFrontoffice();
                 } catch (Exception ex) { ex.printStackTrace(); }
             });
-            if (tn.esprit.MainApp.getPrimaryStage() == null || tn.esprit.MainApp.getPrimaryStage().getScene() == null) {
-                showUiError("Navigation impossible", "La scène principale n'est pas encore disponible.");
-                return;
+            
+            // Load detail inside layout's center (extract center from BorderPane)
+            if (view instanceof BorderPane bp && bp.getCenter() != null) {
+                setCenter((Parent) bp.getCenter());
+            } else {
+                setCenter(view);
             }
-            tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(view);
         } catch (Exception e) {
             e.printStackTrace();
             Throwable cause = e.getCause() != null ? e.getCause() : e;

@@ -287,9 +287,14 @@ public class MainApp extends Application {
     }
 
     public static void showCommunauteFront() throws Exception {
-        load("/views/frontoffice/communaute/index.fxml");
+        tn.esprit.controllers.FrontofficeController.setPendingSection("communaute");
+        showFrontoffice();
+    }
+
+    public static void showCoursFront() throws Exception {
+        load("/views/frontoffice/cours/index.fxml");
         primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — Communauté");
+        primaryStage.setTitle("AutoLearn — Cours");
     }
 
     public static void showFeedback(Participation p, Evenement ev) throws Exception {

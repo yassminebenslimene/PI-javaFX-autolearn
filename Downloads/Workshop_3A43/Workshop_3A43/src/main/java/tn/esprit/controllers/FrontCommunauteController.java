@@ -4,6 +4,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import tn.esprit.entities.Communaute;
@@ -49,6 +51,7 @@ public class FrontCommunauteController {
                 ? SessionManager.getCurrentUser().getId() : -1;
         boolean hasAccess = c.getOwnerId() == currentUserId
                 || c.getMemberIds().contains(currentUserId);
+        boolean isOwner = c.getOwnerId() == currentUserId;
 
         VBox card = new VBox(10);
         card.setPrefWidth(300);
@@ -56,9 +59,15 @@ public class FrontCommunauteController {
                       "-fx-border-color:#eeeeee; -fx-border-radius:14; " +
                       "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3); -fx-padding:22;");
 
+        // Header row avec icône + menu 3 points
+        HBox headerRow = new HBox();
+        headerRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        HBox.setHgrow(headerRow, Priority.ALWAYS);
+
         // Icône + badge cadenas si accès restreint
         HBox iconRow = new HBox(8);
         iconRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        HBox.setHgrow(iconRow, Priority.ALWAYS);
         Label icon = new Label("👥");
         icon.setStyle("-fx-font-size:28; -fx-background-color:rgba(122,106,216,0.1); " +
                       "-fx-background-radius:12; -fx-padding:10 12 10 12;");
@@ -67,6 +76,37 @@ public class FrontCommunauteController {
             Label lock = new Label("🔒");
             lock.setStyle("-fx-font-size:14; -fx-text-fill:#e94560;");
             iconRow.getChildren().add(lock);
+        }
+
+        headerRow.getChildren().add(iconRow);
+
+        // Menu 3 points pour le propriétaire
+        if (isOwner) {
+            javafx.scene.control.MenuButton menuBtn = new javafx.scene.control.MenuButton("⋮");
+            menuBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:#666; " +
+                           "-fx-font-size:24; -fx-font-weight:bold; -fx-padding:0 8 0 8; " +
+                           "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;");
+            
+            // Hover effect
+            menuBtn.setOnMouseEntered(e -> menuBtn.setStyle(
+                "-fx-background-color:#f5f5f5; -fx-text-fill:#333; " +
+                "-fx-font-size:24; -fx-font-weight:bold; -fx-padding:0 8 0 8; " +
+                "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+            menuBtn.setOnMouseExited(e -> menuBtn.setStyle(
+                "-fx-background-color:transparent; -fx-text-fill:#666; " +
+                "-fx-font-size:24; -fx-font-weight:bold; -fx-padding:0 8 0 8; " +
+                "-fx-cursor:hand; -fx-border-width:0; -fx-background-radius:8;"));
+            
+            javafx.scene.control.MenuItem editItem = new javafx.scene.control.MenuItem("✏️  Modifier");
+            editItem.setStyle("-fx-padding:10 20 10 20; -fx-font-size:13;");
+            editItem.setOnAction(e -> onModifier(c));
+            
+            javafx.scene.control.MenuItem deleteItem = new javafx.scene.control.MenuItem("🗑️  Supprimer");
+            deleteItem.setStyle("-fx-padding:10 20 10 20; -fx-font-size:13;");
+            deleteItem.setOnAction(e -> onSupprimer(c));
+            
+            menuBtn.getItems().addAll(editItem, deleteItem);
+            headerRow.getChildren().add(menuBtn);
         }
 
         Label nom = new Label(c.getNom());
@@ -90,29 +130,7 @@ public class FrontCommunauteController {
             btn.setDisable(true);
         }
 
-        card.getChildren().addAll(iconRow, nom, desc, btn);
-
-        // Boutons modifier / supprimer visibles uniquement pour le créateur
-        boolean isOwner = c.getOwnerId() == currentUserId;
-        if (isOwner) {
-            HBox ownerActions = new HBox(8);
-            ownerActions.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-            javafx.scene.control.Button btnEdit = new javafx.scene.control.Button("✏ Modifier");
-            btnEdit.setStyle("-fx-background-color:#f0eeff; -fx-text-fill:#7a6ad8; -fx-font-size:11; " +
-                             "-fx-font-weight:700; -fx-padding:6 14 6 14; -fx-background-radius:8; " +
-                             "-fx-cursor:hand; -fx-border-width:0;");
-            btnEdit.setOnAction(e -> onModifier(c));
-
-            javafx.scene.control.Button btnDel = new javafx.scene.control.Button("🗑 Supprimer");
-            btnDel.setStyle("-fx-background-color:#fff0f0; -fx-text-fill:#e94560; -fx-font-size:11; " +
-                            "-fx-font-weight:700; -fx-padding:6 14 6 14; -fx-background-radius:8; " +
-                            "-fx-cursor:hand; -fx-border-width:0;");
-            btnDel.setOnAction(e -> onSupprimer(c));
-
-            ownerActions.getChildren().addAll(btnEdit, btnDel);
-            card.getChildren().add(ownerActions);
-        }
+        card.getChildren().addAll(headerRow, nom, desc, btn);
 
         return card;
     }

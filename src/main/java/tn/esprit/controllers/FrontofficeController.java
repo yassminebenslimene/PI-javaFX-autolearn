@@ -94,6 +94,10 @@ public class FrontofficeController {
     private javafx.scene.Node homeCenter;
     private int currentSlide = 0;
     private Timeline sliderTimeline;
+    
+    // Pending navigation from external pages (e.g., community detail)
+    private static String pendingSection = null;
+    public static void setPendingSection(String section) { pendingSection = section; }
 
     private final ServiceCours serviceCours = new ServiceCours();
     private final ChallengeService challengeService = new ChallengeService();
@@ -164,6 +168,20 @@ public class FrontofficeController {
                 animateSlideIn(sectionEvenementsHome, 450);
 
             } catch (Exception e) { e.printStackTrace(); }
+
+            // Handle pending navigation from external pages
+            if (pendingSection != null) {
+                String section = pendingSection;
+                pendingSection = null;
+                switch (section) {
+                    case "cours"      -> onCours();
+                    case "challenges" -> onChallenges();
+                    case "evenements" -> onEvenements();
+                    case "communaute" -> onCommunaute();
+                    case "github"     -> onGitHubExamples();
+                    case "todo"       -> onTodo();
+                }
+            }
         });
     }
 
@@ -649,6 +667,9 @@ public class FrontofficeController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/communaute/index.fxml"));
             Parent root = loader.load();
+            FrontCommunauteController ctrl = loader.getController();
+            // Wire "Rejoindre" to open detail inside this layout
+            ctrl.setOnOuvrirDetail(c -> ouvrirCommunauteDetail(c));
             if (root instanceof BorderPane bp && bp.getCenter() != null)
                 setCenter((Parent) bp.getCenter());
             else
@@ -657,6 +678,24 @@ public class FrontofficeController {
             e.printStackTrace();
             try { MainApp.showCommunauteFront(); } catch (Exception ex) { ex.printStackTrace(); }
         }
+    }
+
+    private void ouvrirCommunauteDetail(tn.esprit.entities.Communaute c) {
+        try {
+            tn.esprit.services.ServiceCommunaute svc = new tn.esprit.services.ServiceCommunaute();
+            tn.esprit.entities.Communaute fresh = svc.getById(c.getId());
+            if (fresh == null) fresh = c;
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/communaute/detail.fxml"));
+            Parent view = loader.load();
+            FrontCommunauteDetailController ctrl = loader.getController();
+            ctrl.setCommunaute(fresh, () -> onCommunaute());
+            ctrl.setOnNavigateToCours(id -> onCours());
+            ctrl.setOnNavigateToQuiz(id -> onCours());
+            if (view instanceof BorderPane bp && bp.getCenter() != null)
+                setCenter((Parent) bp.getCenter());
+            else
+                setCenter(view);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML public void onChallenges() {

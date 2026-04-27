@@ -1,0 +1,71 @@
+/* ===== Modern & Sleek Dropdown Menu ===== */
+
+.menu-button {
+    -fx-background-color: transparent;
+}
+
+.menu-button .label {
+    -fx-text-fill: #999;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.menu-button:hover {
+    -fx-background-color: #f5f5f5;
+    -fx-background-radius: 8px;
+}
+
+.menu-button:hover .label {
+    -fx-text-fill: #333;
+}
+
+/* Context Menu - Modern & Sleek */
+.context-menu {
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #fafafa);
+    -fx-background-radius: 10px;
+    -fx-border-color: #e5e7eb;
+    -fx-border-radius: 10px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 20, 0, 0, 5);
+    -fx-padding: 6px;
+}
+
+/* Menu Items - Modern Style */
+.menu-item {
+    -fx-padding: 12px 20px;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6px;
+}
+
+.menu-item .label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+/* Modifier Item */
+.menu-item:nth-child(1) .label {
+    -fx-text-fill: #1f2937;
+}
+
+.menu-item:nth-child(1):hover {
+    -fx-background-color: #f3f4f6;
+}
+
+/* Supprimer Item - Red accent */
+.menu-item:nth-child(2) .label {
+    -fx-text-fill: #dc2626;
+}
+
+.menu-item:nth-child(2):hover {
+    -fx-background-color: #fee2e2;
+}
+
+/* Focused state */
+.menu-item:focused {
+    -fx-background-color: #e5e7eb;
+}
+
+/* Disabled items */
+.menu-item:disabled {
+    -fx-opacity: 0.5;
+}
