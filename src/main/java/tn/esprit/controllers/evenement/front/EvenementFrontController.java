@@ -6,13 +6,16 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.util.Duration;import tn.esprit.MainApp;
+import javafx.util.Duration;
+
+import tn.esprit.MainApp;
 import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.EquipeService;
 import tn.esprit.services.EvenementService;
 import tn.esprit.services.ParticipationService;
 import tn.esprit.services.WeatherService;
+import tn.esprit.services.RecommendationService;
 
 import tn.esprit.entities.Cours;
 import tn.esprit.services.ServiceCours;

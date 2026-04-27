@@ -547,24 +547,6 @@ public class MemoryGameController {
     private static void playVictorySound() {
         SoundGenerator.playMemoryVictory();
     }
-            double w = Math.sin(2*Math.PI*vib*t);
-            double env = i > n-fo ? (double)(n-i)/fo : 1.0;
-            short s = (short)(w * env * vol * Short.MAX_VALUE);
-            buf[i*2]=(byte)(s&0xFF); buf[i*2+1]=(byte)((s>>8)&0xFF);
-        }
-        return buf;
-    }
-
-    private static void playBytes(byte[] data, AudioFormat fmt) throws Exception {
-        ByteArrayInputStream bais = new ByteArrayInputStream(data);
-        AudioInputStream ais = new AudioInputStream(bais, fmt, data.length / fmt.getFrameSize());
-        DataLine.Info info = new DataLine.Info(Clip.class, fmt);
-        if (!AudioSystem.isLineSupported(info)) return;
-        Clip clip = (Clip) AudioSystem.getLine(info);
-        clip.open(ais); clip.start();
-        Thread.sleep(clip.getMicrosecondLength() / 1000 + 50);
-        clip.close();
-    }
 
     // ── Utilitaires JSON ─────────────────────────────────────────
 

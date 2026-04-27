@@ -795,23 +795,21 @@ public class SalleReservationController {
     private void drawTablesSpacious(GraphicsContext g, double W, double H,
                                      double rL, double rR, double rB, double hz, double vpX) {
         double floorH = rB - hz;
-        // 6 tables réparties sur toute la surface du sol
+        // 6 tables réparties sur toute la surface du sol avec espacement optimal
         // Position fixe dans l'espace monde : {relX, relY, scale}
         // relX = 0..1 (gauche→droite), relY = 0..1 (fond→devant)
         double[][] positions = {
-            {0.20, 0.22, 0.58}, {0.50, 0.20, 0.58}, {0.80, 0.22, 0.58},
-            {0.20, 0.65, 1.00}, {0.50, 0.62, 1.00}, {0.80, 0.65, 1.00},
+            {0.15, 0.25, 0.55}, {0.50, 0.25, 0.55}, {0.85, 0.25, 0.55},
+            {0.15, 0.70, 1.05}, {0.50, 0.70, 1.05}, {0.85, 0.70, 1.05},
         };
-        double baseW = W*0.17, baseH = H*0.048, baseLeg = H*0.055;
+        double baseW = W*0.15, baseH = H*0.045, baseLeg = H*0.050;
         for (int i = 0; i < positions.length; i++) {
             double relX = positions[i][0], relY = positions[i][1], sc = positions[i][2];
-            // Projection perspective : la position X est calculée par rapport au point de fuite
-            // La table est à une position fixe dans l'espace monde
-            // On projette depuis le point de fuite (vpX) vers la position de la table
+            // Projection perspective correcte
             double worldX = rL + relX * (rR - rL); // position monde fixe
             double worldY = hz + relY * floorH;     // position monde fixe
-            // Décalage perspective : plus la table est loin du point de fuite, plus elle est décalée
-            double perspShift = (worldX - vpX) * relY * 0.0; // 0 = pas de distorsion supplémentaire
+            // Décalage perspective basé sur la profondeur
+            double perspShift = (worldX - vpX) * relY * 0.15;
             double tx = worldX + perspShift;
             double ty = worldY;
             double tw = baseW * sc, th = baseH * sc, tl = baseLeg * sc;
@@ -1143,8 +1141,102 @@ public class SalleReservationController {
             setStatus("Table "+(pendingTableNum+1)+" réservée !","#3b82f6");
             if (btnReserver != null) btnReserver.setDisable(true);
             if (btnLiberer  != null) btnLiberer.setDisable(false);
-            pendingSalleIdx = -1; redraw();
+            pendingSalleIdx = -1;
+            showReservationConfirmation();
+            redraw();
         } else setStatus("Table déjà prise !","#ef4444");
+    }
+
+    private void showReservationConfirmation() {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Confirmation de Réservation");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setPrefWidth(500);
+        dialog.getDialogPane().setPrefHeight(300);
+        
+        dialog.getDialogPane().setStyle(
+            "-fx-background-color: #2C1A0E; " +
+            "-fx-text-fill: #F5E6C8; " +
+            "-fx-font-family: 'Arial'; " +
+            "-fx-font-size: 12;"
+        );
+        
+        VBox content = new VBox(15);
+        content.setStyle("-fx-padding: 20; -fx-background-color: #2C1A0E;");
+        
+        Label titleLabel = new Label("✓ Réservation Confirmée");
+        titleLabel.setStyle(
+            "-fx-font-size: 18; " +
+            "-fx-font-weight: bold; " +
+            "-fx-text-fill: #22c55e;"
+        );
+        
+        VBox detailsBox = new VBox(10);
+        detailsBox.setStyle(
+            "-fx-background-color: rgba(139,102,20,0.25); " +
+            "-fx-border-color: #8B6614; " +
+            "-fx-border-radius: 10; " +
+            "-fx-border-width: 1; " +
+            "-fx-padding: 15;"
+        );
+        
+        HBox nameBox = new HBox(10);
+        nameBox.setStyle("-fx-alignment: CENTER_LEFT;");
+        Label nameLabel = new Label("👤 Nom :");
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #D4A96A; -fx-min-width: 100;");
+        Label nameValue = new Label(equipe != null ? equipe.getNom() : "N/A");
+        nameValue.setStyle("-fx-text-fill: #F5E6C8; -fx-font-size: 13;");
+        nameBox.getChildren().addAll(nameLabel, nameValue);
+        
+        HBox roomBox = new HBox(10);
+        roomBox.setStyle("-fx-alignment: CENTER_LEFT;");
+        Label roomLabel = new Label("🏛 Salle :");
+        roomLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #D4A96A; -fx-min-width: 100;");
+        Label roomValue = new Label(ROOM_NAMES[pendingSalleIdx]);
+        roomValue.setStyle("-fx-text-fill: #F5E6C8; -fx-font-size: 13;");
+        roomBox.getChildren().addAll(roomLabel, roomValue);
+        
+        HBox tableBox = new HBox(10);
+        tableBox.setStyle("-fx-alignment: CENTER_LEFT;");
+        Label tableLabel = new Label("🪑 Table :");
+        tableLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #D4A96A; -fx-min-width: 100;");
+        Label tableValue = new Label("Table " + (pendingTableNum + 1));
+        tableValue.setStyle("-fx-text-fill: #F5E6C8; -fx-font-size: 13;");
+        tableBox.getChildren().addAll(tableLabel, tableValue);
+        
+        HBox eventBox = new HBox(10);
+        eventBox.setStyle("-fx-alignment: CENTER_LEFT;");
+        Label eventLabel = new Label("📅 Événement :");
+        eventLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #D4A96A; -fx-min-width: 100;");
+        Label eventValue = new Label(evenement != null ? evenement.getTitre() : "N/A");
+        eventValue.setStyle("-fx-text-fill: #F5E6C8; -fx-font-size: 13;");
+        eventBox.getChildren().addAll(eventLabel, eventValue);
+        
+        detailsBox.getChildren().addAll(nameBox, roomBox, tableBox, eventBox);
+        
+        Label confirmLabel = new Label("Votre réservation a été enregistrée avec succès.");
+        confirmLabel.setStyle(
+            "-fx-text-fill: #D4A96A; " +
+            "-fx-font-style: italic; " +
+            "-fx-font-size: 11;"
+        );
+        confirmLabel.setWrapText(true);
+        
+        content.getChildren().addAll(titleLabel, detailsBox, confirmLabel);
+        
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setStyle(
+            "-fx-background-color: #8B6614; " +
+            "-fx-text-fill: #F5E6C8; " +
+            "-fx-font-weight: bold; " +
+            "-fx-padding: 8 30; " +
+            "-fx-font-size: 12;"
+        );
+        
+        dialog.showAndWait();
     }
 
     @FXML private void onLiberer() {

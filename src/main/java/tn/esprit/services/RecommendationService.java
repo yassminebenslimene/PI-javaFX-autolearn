@@ -174,18 +174,22 @@ public class RecommendationService {
 
             // Trier par pertinence : d'abord les types recommandés, puis les autres
             for (String type : recommendedTypes) {
-                allFutureEvents.stream()
-                        .filter(ev -> type.equalsIgnoreCase(ev.getType()))
-                        .limit(limit - recommendations.size())
-                        .forEach(recommendations::add);
+                for (Evenement ev : allFutureEvents) {
+                    if (recommendations.size() >= limit) break;
+                    if (type.equalsIgnoreCase(ev.getType()) && !recommendations.contains(ev)) {
+                        recommendations.add(ev);
+                    }
+                }
             }
 
             // Compléter avec d'autres événements si nécessaire
             if (recommendations.size() < limit) {
-                allFutureEvents.stream()
-                        .filter(ev -> !recommendations.contains(ev))
-                        .limit(limit - recommendations.size())
-                        .forEach(recommendations::add);
+                for (Evenement ev : allFutureEvents) {
+                    if (recommendations.size() >= limit) break;
+                    if (!recommendations.contains(ev)) {
+                        recommendations.add(ev);
+                    }
+                }
             }
 
         } catch (Exception e) {
@@ -222,18 +226,22 @@ public class RecommendationService {
 
             // Trier par pertinence
             for (String subject : recommendedSubjects) {
-                allCourses.stream()
-                        .filter(c -> c.getMatiere() != null && c.getMatiere().toLowerCase().contains(subject.toLowerCase()))
-                        .limit(limit - recommendations.size())
-                        .forEach(recommendations::add);
+                for (Cours c : allCourses) {
+                    if (recommendations.size() >= limit) break;
+                    if (c.getMatiere() != null && c.getMatiere().toLowerCase().contains(subject.toLowerCase()) && !recommendations.contains(c)) {
+                        recommendations.add(c);
+                    }
+                }
             }
 
             // Compléter si nécessaire
             if (recommendations.size() < limit) {
-                allCourses.stream()
-                        .filter(c -> !recommendations.contains(c))
-                        .limit(limit - recommendations.size())
-                        .forEach(recommendations::add);
+                for (Cours c : allCourses) {
+                    if (recommendations.size() >= limit) break;
+                    if (!recommendations.contains(c)) {
+                        recommendations.add(c);
+                    }
+                }
             }
 
         } catch (Exception e) {
