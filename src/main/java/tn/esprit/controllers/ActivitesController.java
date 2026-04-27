@@ -9,7 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ApiService;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -63,7 +63,7 @@ public class ActivitesController {
     @FXML
     public void initialize() {
         // Get current admin info
-        var admin = JwtManager.getCurrentUser();
+        var admin = SessionManager.getCurrentUser();
         if (admin != null) {
             currentAdminId   = admin.getId();
             currentAdminName = admin.getPrenom() + " " + admin.getNom();

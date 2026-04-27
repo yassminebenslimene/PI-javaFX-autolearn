@@ -15,6 +15,22 @@ public class MainApp extends Application {
 
     private static Stage primaryStage;
     private static BackofficeController backofficeController;
+    private static javafx.application.HostServices hostServices;
+
+    /** Ouvre une URL dans le navigateur par défaut du système. */
+    public static void openUrl(String url) {
+        if (url == null || url.isBlank() || "#".equals(url)) return;
+        try {
+            if (hostServices != null) {
+                hostServices.showDocument(url);
+            } else {
+                // Fallback : java.awt.Desktop
+                java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+            }
+        } catch (Exception e) {
+            System.err.println("[MainApp] Impossible d'ouvrir l'URL : " + e.getMessage());
+        }
+    }
 
     public static void setBackofficeController(BackofficeController c) {
         backofficeController = c;
@@ -34,19 +50,90 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         primaryStage = stage;
+        hostServices = getHostServices();
+        // Vider les caches des services API au démarrage
+        tn.esprit.services.TechNewsService.clearCache();
+        tn.esprit.services.GeoLocationService.clearCache();
         primaryStage.setTitle("AutoLearn");
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
         primaryStage.setMaximized(true);
 
+        // Auto-start Face ID Python server in background
+        startFaceIdServer();
+
         showLanding();
         primaryStage.show();
     }
 
-    /** Stop resources when app closes */
+    /**
+     * Starts the Python Face ID server automatically if not already running.
+     * Looks for faceid_server.py in the project directory.
+     */
+    private static Process faceIdProcess;
+
+    private static void startFaceIdServer() {
+        // Check if already running
+        if (tn.esprit.services.FaceIdService.isServerRunning()) {
+            System.out.println("[FaceID] Server already running");
+            return;
+        }
+
+        Thread t = new Thread(() -> {
+            try {
+                // Find faceid_server.py — try project root first, then user home
+                java.nio.file.Path serverScript = null;
+                String[] searchPaths = {
+                    "faceid_server.py",
+                    System.getProperty("user.dir") + "/faceid_server.py",
+                    System.getProperty("user.home") + "/faceid_server.py"
+                };
+                for (String path : searchPaths) {
+                    if (java.nio.file.Files.exists(java.nio.file.Path.of(path))) {
+                        serverScript = java.nio.file.Path.of(path);
+                        break;
+                    }
+                }
+
+                if (serverScript == null) {
+                    System.err.println("[FaceID] faceid_server.py not found - Face ID disabled");
+                    return;
+                }
+
+                System.out.println("[FaceID] Starting server: " + serverScript);
+
+                ProcessBuilder pb = new ProcessBuilder("python", serverScript.toString());
+                pb.directory(serverScript.getParent().toFile());
+                pb.redirectErrorStream(true);
+                faceIdProcess = pb.start();
+
+                // Wait up to 5 seconds for server to start
+                for (int i = 0; i < 10; i++) {
+                    Thread.sleep(500);
+                    if (tn.esprit.services.FaceIdService.isServerRunning()) {
+                        System.out.println("[FaceID] Server started successfully");
+                        return;
+                    }
+                }
+                System.err.println("[FaceID] Server did not start in time");
+
+            } catch (Exception e) {
+                System.err.println("[FaceID] Could not start server: " + e.getMessage());
+            }
+        });
+        t.setDaemon(true);
+        t.setName("faceid-server-starter");
+        t.start();
+    }
+
+    /** Stop the Face ID server when app closes */
     @Override
     public void stop() throws Exception {
+        if (faceIdProcess != null && faceIdProcess.isAlive()) {
+            faceIdProcess.destroy();
+            System.out.println("[FaceID] Server stopped");
+        }
         super.stop();
     }
 

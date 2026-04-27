@@ -51,20 +51,98 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.shape.Ellipse?>
 
 <!-- Conteneur racine : fond dégradé violet (du haut-gauche vers le bas-droit) -->
 <StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="tn.esprit.controllers.FrontQuizController"
-           style="-fx-background-color:linear-gradient(to bottom right,#4c1d95,#7c3aed,#6d28d9);">
+           style="-fx-background-color: linear-gradient(to bottom right, #7c3aed, #a78bfa);">
 
-    <!-- Contenu principal centré, largeur maximale 680 px -->
-    <VBox alignment="CENTER" spacing="20" maxWidth="680">
-        <padding><Insets top="30" bottom="30"/></padding>
+    <!-- ── Éléments décoratifs de fond ── -->
+    <!-- Grands cercles pleins -->
+    <Circle radius="200" fill="rgba(255,255,255,0.06)" translateX="-380" translateY="-200"/>
+    <Circle radius="170" fill="rgba(255,255,255,0.05)" translateX="380"  translateY="-190"/>
+    <Circle radius="150" fill="rgba(255,255,255,0.07)" translateX="-370" translateY="230"/>
+    <Circle radius="180" fill="rgba(255,255,255,0.04)" translateX="370"  translateY="220"/>
+    <Circle radius="130" fill="rgba(255,255,255,0.06)" translateX="0"    translateY="-270"/>
+    <Circle radius="100" fill="rgba(255,255,255,0.05)" translateX="-100" translateY="290"/>
+    <Circle radius="110" fill="rgba(255,255,255,0.06)" translateX="200"  translateY="270"/>
+    <!-- Cercles moyens -->
+    <Circle radius="75"  fill="rgba(255,255,255,0.08)" translateX="180"  translateY="-240"/>
+    <Circle radius="65"  fill="rgba(255,255,255,0.09)" translateX="-280" translateY="70"/>
+    <Circle radius="60"  fill="rgba(255,255,255,0.07)" translateX="280"  translateY="110"/>
+    <Circle radius="55"  fill="rgba(255,255,255,0.08)" translateX="-180" translateY="-110"/>
+    <Circle radius="50"  fill="rgba(255,255,255,0.07)" translateX="150"  translateY="240"/>
+    <Circle radius="45"  fill="rgba(255,255,255,0.09)" translateX="-350" translateY="-60"/>
+    <Circle radius="40"  fill="rgba(255,255,255,0.08)" translateX="350"  translateY="-60"/>
+    <Circle radius="35"  fill="rgba(255,255,255,0.10)" translateX="0"    translateY="210"/>
+    <Circle radius="30"  fill="rgba(255,255,255,0.09)" translateX="-150" translateY="-210"/>
+    <Circle radius="28"  fill="rgba(255,255,255,0.08)" translateX="320"  translateY="-230"/>
+    <!-- Anneaux -->
+    <Circle radius="120" fill="transparent" stroke="rgba(255,255,255,0.10)" strokeWidth="2"
+            translateX="-250" translateY="190"/>
+    <Circle radius="90"  fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="2"
+            translateX="260"  translateY="-160"/>
+    <Circle radius="70"  fill="transparent" stroke="rgba(255,255,255,0.09)" strokeWidth="1.5"
+            translateX="-100" translateY="-230"/>
+    <Circle radius="55"  fill="transparent" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5"
+            translateX="320"  translateY="160"/>
+    <Circle radius="40"  fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="1"
+            translateX="80"   translateY="280"/>
+    <!-- Rectangles -->
+    <Rectangle width="90" height="90" arcWidth="22" arcHeight="22"
+               fill="rgba(255,255,255,0.05)" rotate="30" translateX="-310" translateY="-130"/>
+    <Rectangle width="70" height="70" arcWidth="16" arcHeight="16"
+               fill="rgba(255,255,255,0.06)" rotate="45" translateX="320"  translateY="180"/>
+    <Rectangle width="55" height="55" arcWidth="12" arcHeight="12"
+               fill="rgba(255,255,255,0.06)" rotate="20" translateX="200"  translateY="-190"/>
+    <Rectangle width="40" height="40" arcWidth="10" arcHeight="10"
+               fill="rgba(255,255,255,0.08)" rotate="60" translateX="-200" translateY="230"/>
+    <!-- Ellipses -->
+    <Ellipse radiusX="220" radiusY="65" fill="rgba(255,255,255,0.04)" translateX="0"    translateY="300"/>
+    <Ellipse radiusX="150" radiusY="50" fill="rgba(255,255,255,0.05)" translateX="-150" translateY="-280"/>
+    <Ellipse radiusX="110" radiusY="38" fill="rgba(255,255,255,0.06)" translateX="300"  translateY="270"/>
+    <!-- Points lumineux -->
+    <Circle radius="7" fill="rgba(255,255,255,0.28)" translateX="-210" translateY="-270"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.22)" translateX="260"  translateY="-110"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.25)" translateX="-160" translateY="210"/>
+    <Circle radius="8" fill="rgba(255,255,255,0.20)" translateX="210"  translateY="260"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.28)" translateX="110"  translateY="-290"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.22)" translateX="-330" translateY="160"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.35)" translateX="390"  translateY="60"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.25)" translateX="-80"  translateY="280"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="320"  translateY="-270"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.40)" translateX="60"   translateY="-300"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="-60"  translateY="300"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.25)" translateX="240"  translateY="190"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.35)" translateX="-240" translateY="-190"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.28)" translateX="160"  translateY="-170"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.38)" translateX="340"  translateY="110"/>
+
+    <!-- Contenu principal centré, largeur maximale 680 px, scrollable -->
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                maxHeight="620"
+                style="-fx-background:transparent; -fx-background-color:transparent;
+                       -fx-border-width:0; -fx-padding:0;
+                       -fx-scrollbar-track-color:rgba(255,255,255,0.15);
+                       -fx-scrollbar-thumb-color:rgba(255,255,255,0.55);">
+    <VBox alignment="CENTER" fillWidth="true"
+          style="-fx-background-color:transparent;">
+    <VBox alignment="CENTER" spacing="28"
+          maxWidth="900" minWidth="0"
+          style="-fx-background-color:transparent;"
+          VBox.vgrow="ALWAYS">
+        <VBox.margin><Insets top="0"/></VBox.margin>
+        <padding><Insets top="36" bottom="36" left="32" right="32"/></padding>
 
         <!--
             CARTE RÉSULTATS PRINCIPAUX
@@ -72,71 +150,45 @@
             Affiche le titre, le score en 3 colonnes et le message contextuel.
         -->
         <!-- ── Carte résultats principaux ── -->
-        <VBox alignment="CENTER" spacing="16"
-              style="-fx-background-color:white; -fx-background-radius:20;
-                     -fx-padding:36 40 32 40;
-                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),24,0,0,8);">
+        <VBox alignment="CENTER" spacing="24"
+              style="-fx-background-color:white; -fx-background-radius:24;
+                     -fx-padding:48 56 44 56;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),28,0,0,10);">
 
-            <!-- Titre fixe de la section résultats -->
             <!-- Titre -->
             <Label text="📊  Résultats du Quiz"
-                   style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
-            <!-- Nom du quiz : rempli avec "Quiz - [titre]" par afficherResultat() -->
+                   style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
+            <!-- Nom du quiz -->
             <Label fx:id="labelTitreResultat" text=""
-                   style="-fx-font-size:14; -fx-text-fill:#7c3aed; -fx-font-weight:700;"/>
+                   style="-fx-font-size:17; -fx-text-fill:#7c3aed; -fx-font-weight:700;"/>
 
-            <!--
-                SCORE PRINCIPAL : 3 grandes valeurs côte à côte.
-                Espacement de 48 px entre les colonnes.
-            -->
             <!-- Score principal -->
-            <HBox alignment="CENTER" spacing="48" style="-fx-padding:8 0 8 0;">
-                <!--
-                    Points obtenus : grand chiffre violet.
-                    Calculé dans afficherResultat() en comparant les réponses
-                    choisies avec les options correctes.
-                -->
-                <VBox alignment="CENTER" spacing="4">
+            <HBox alignment="CENTER" spacing="72" style="-fx-padding:12 0 12 0;">
+                <VBox alignment="CENTER" spacing="8">
                     <Label fx:id="labelPointsObtenus" text="0"
-                           style="-fx-font-size:48; -fx-font-weight:900; -fx-text-fill:#7c3aed;"/>
+                           style="-fx-font-size:62; -fx-font-weight:900; -fx-text-fill:#7c3aed;"/>
                     <Label text="POINTS OBTENUS"
-                           style="-fx-font-size:10; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
+                           style="-fx-font-size:13; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
                 </VBox>
-                <!--
-                    Pourcentage de réussite : grand chiffre orange.
-                    Format : "XX%" (arrondi à l'entier).
-                    Calculé : (pointsObtenus / totalPoints) × 100.
-                -->
-                <VBox alignment="CENTER" spacing="4">
+                <VBox alignment="CENTER" spacing="8">
                     <Label fx:id="labelPourcentage" text="0%"
-                           style="-fx-font-size:48; -fx-font-weight:900; -fx-text-fill:#f59e0b;"/>
+                           style="-fx-font-size:62; -fx-font-weight:900; -fx-text-fill:#f59e0b;"/>
                     <Label text="RÉUSSITE"
-                           style="-fx-font-size:10; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
+                           style="-fx-font-size:13; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
                 </VBox>
-                <!--
-                    Total des points possibles : grand chiffre noir.
-                    Somme des points de toutes les questions du quiz.
-                -->
-                <VBox alignment="CENTER" spacing="4">
+                <VBox alignment="CENTER" spacing="8">
                     <Label fx:id="labelPointsTotal" text="0"
-                           style="-fx-font-size:48; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
+                           style="-fx-font-size:62; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
                     <Label text="POINTS TOTAL"
-                           style="-fx-font-size:10; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
+                           style="-fx-font-size:13; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
                 </VBox>
             </HBox>
 
-            <!--
-                Message contextuel : fond et couleur changent selon le résultat.
-                - Vert  (#059669) : réussite (pct >= seuil)
-                - Orange (#d97706): encouragement (pct >= seuil/2)
-                - Rouge (#dc2626) : échec (pct < seuil/2)
-                Le style inline est appliqué dynamiquement par afficherResultat().
-            -->
             <!-- Message résultat -->
             <Label fx:id="labelMessage" text=""
-                   style="-fx-font-size:14; -fx-font-weight:700;
-                          -fx-background-color:#f1f5f9; -fx-background-radius:10;
-                          -fx-padding:10 20 10 20;"
+                   style="-fx-font-size:16; -fx-font-weight:700;
+                          -fx-background-color:#f1f5f9; -fx-background-radius:12;
+                          -fx-padding:14 28 14 28;"
                    wrapText="true"/>
         </VBox>
 
@@ -146,89 +198,128 @@
             Affiche 3 tuiles : tentative, meilleur score, peut recommencer.
         -->
         <!-- ── Carte statistiques ── -->
-        <VBox spacing="16"
-              style="-fx-background-color:white; -fx-background-radius:20;
-                     -fx-padding:28 32 28 32;
-                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),24,0,0,8);">
+        <VBox spacing="22"
+              style="-fx-background-color:white; -fx-background-radius:24;
+                     -fx-padding:36 44 36 44;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),28,0,0,10);">
 
             <!-- Titre de la section statistiques -->
             <Label text="📈  Vos statistiques pour ce quiz"
-                   style="-fx-font-size:16; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
+                   style="-fx-font-size:20; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
 
             <!-- 3 tuiles de statistiques côte à côte -->
-            <HBox spacing="16" alignment="CENTER">
+            <HBox spacing="20" alignment="CENTER">
 
-                <!--
-                    Tuile 1 : Numéro de tentative
-                    labelTentative     : numéro de la tentative actuelle (toujours "1")
-                    labelMaxTentatives : "TENTATIVE / X" ou "TENTATIVE / ∞"
-                    Fond violet clair, bordure violette.
-                -->
                 <!-- Tentative -->
-                <HBox spacing="14" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"
-                      style="-fx-background-color:#f8f7ff; -fx-background-radius:12;
-                             -fx-border-color:#e0d9ff; -fx-border-radius:12; -fx-border-width:1;
-                             -fx-padding:16 20 16 20;">
+                <HBox spacing="18" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color:#f8f7ff; -fx-background-radius:16;
+                             -fx-border-color:#e0d9ff; -fx-border-radius:16; -fx-border-width:1;
+                             -fx-padding:22 26 22 26;">
                     <Label text="▶"
-                           style="-fx-font-size:18; -fx-background-color:#7c3aed;
+                           style="-fx-font-size:22; -fx-background-color:#7c3aed;
                                   -fx-text-fill:white; -fx-background-radius:50%;
-                                  -fx-padding:8 10 8 10;"/>
-                    <VBox spacing="2">
-                        <!-- Numéro de la tentative actuelle -->
+                                  -fx-padding:10 13 10 13;"/>
+                    <VBox spacing="5">
                         <Label fx:id="labelTentative" text="1"
-                               style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
-                        <!-- Sous-titre : "TENTATIVE / [max]" ou "TENTATIVE / ∞" -->
+                               style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
                         <Label fx:id="labelMaxTentatives" text="TENTATIVE / ∞"
-                               style="-fx-font-size:10; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
+                               style="-fx-font-size:12; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
                     </VBox>
                 </HBox>
 
-                <!--
-                    Tuile 2 : Meilleur score
-                    labelMeilleurScore : pourcentage du meilleur score (= score actuel dans cette version)
-                    Fond jaune clair, bordure jaune.
-                -->
                 <!-- Meilleur score -->
-                <HBox spacing="14" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"
-                      style="-fx-background-color:#fffbf0; -fx-background-radius:12;
-                             -fx-border-color:#fde68a; -fx-border-radius:12; -fx-border-width:1;
-                             -fx-padding:16 20 16 20;">
+                <HBox spacing="18" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color:#fffbf0; -fx-background-radius:16;
+                             -fx-border-color:#fde68a; -fx-border-radius:16; -fx-border-width:1;
+                             -fx-padding:22 26 22 26;">
                     <Label text="●"
-                           style="-fx-font-size:28; -fx-text-fill:#f59e0b;"/>
-                    <VBox spacing="2">
-                        <!-- Meilleur score en pourcentage (ex : "75%") -->
+                           style="-fx-font-size:34; -fx-text-fill:#f59e0b;"/>
+                    <VBox spacing="5">
                         <Label fx:id="labelMeilleurScore" text="0%"
-                               style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#f59e0b;"/>
+                               style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:#f59e0b;"/>
                         <Label text="MEILLEUR SCORE"
-                               style="-fx-font-size:10; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
+                               style="-fx-font-size:12; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
                     </VBox>
                 </HBox>
 
-                <!--
-                    Tuile 3 : Peut recommencer
-                    labelPeutRecommencer : "OUI" (bleu) ou "NON" (rouge)
-                    Logique : peut recommencer si maxTentatives est null ou > 1.
-                    Fond bleu clair, bordure bleue.
-                -->
                 <!-- Peut recommencer -->
-                <HBox spacing="14" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"
-                      style="-fx-background-color:#f0fbff; -fx-background-radius:12;
-                             -fx-border-color:#bae6fd; -fx-border-radius:12; -fx-border-width:1;
-                             -fx-padding:16 20 16 20;">
+                <HBox spacing="18" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color:#f0fbff; -fx-background-radius:16;
+                             -fx-border-color:#bae6fd; -fx-border-radius:16; -fx-border-width:1;
+                             -fx-padding:22 26 22 26;">
                     <Label text="↺"
-                           style="-fx-font-size:20; -fx-background-color:#0ea5e9;
+                           style="-fx-font-size:24; -fx-background-color:#0ea5e9;
                                   -fx-text-fill:white; -fx-background-radius:50%;
-                                  -fx-padding:8 10 8 10;"/>
-                    <VBox spacing="2">
-                        <!-- "OUI" en bleu si l'étudiant peut recommencer, "NON" en rouge sinon -->
+                                  -fx-padding:10 13 10 13;"/>
+                    <VBox spacing="5">
                         <Label fx:id="labelPeutRecommencer" text="OUI"
-                               style="-fx-font-size:22; -fx-font-weight:900; -fx-text-fill:#0ea5e9;"/>
+                               style="-fx-font-size:28; -fx-font-weight:900; -fx-text-fill:#0ea5e9;"/>
                         <Label text="PEUT RECOMMENCER"
-                               style="-fx-font-size:10; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
+                               style="-fx-font-size:12; -fx-text-fill:#94a3b8; -fx-font-weight:700;"/>
                     </VBox>
                 </HBox>
 
             </HBox>
+        </VBox>
+
+        <!--
+            CARTE CORRECTION IA + GÉO
+            Affiche les explications IA par question et le résumé pédagogique global.
+            Remplie dynamiquement par afficherCorrectionIA() dans FrontQuizController.
+        -->
+        <!-- ── Carte Correction IA ── -->
+        <VBox fx:id="containerCorrectionIA" spacing="18" visible="false" managed="false"
+              style="-fx-background-color:white; -fx-background-radius:24;
+                     -fx-padding:36 44 36 44;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),28,0,0,10);">
+
+            <!-- En-tête avec localisation géo -->
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <Label text="🤖"
+                       style="-fx-font-size:30; -fx-background-color:#7c3aed;
+                              -fx-background-radius:50%; -fx-padding:10 13 10 13;"/>
+                <VBox spacing="4">
+                    <Label text="Correction IA personnalisée"
+                           style="-fx-font-size:20; -fx-font-weight:900; -fx-text-fill:#0f172a;"/>
+                    <Label fx:id="labelGeoMessage" text="Analyse en cours..."
+                           style="-fx-font-size:14; -fx-text-fill:#7c3aed; -fx-font-weight:600;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="labelIALoading" text="⏳ Génération des explications..."
+                       style="-fx-font-size:13; -fx-text-fill:#94a3b8; -fx-font-style:italic;"/>
+            </HBox>
+
+            <Separator/>
+
+            <!-- Résumé pédagogique global -->
+            <VBox fx:id="containerResumePedago" spacing="14" visible="false" managed="false"
+                  style="-fx-background-color:#f8f7ff; -fx-background-radius:16;
+                         -fx-border-color:#e0d9ff; -fx-border-radius:16; -fx-border-width:1;
+                         -fx-padding:22 26 22 26;">
+                <Label text="📋  Bilan pédagogique"
+                       style="-fx-font-size:17; -fx-font-weight:900; -fx-text-fill:#7c3aed;"/>
+                <Label fx:id="labelResumeGeneral" text=""
+                       style="-fx-font-size:15; -fx-text-fill:#1e293b; -fx-wrap-text:true;"
+                       wrapText="true"/>
+                <VBox fx:id="containerPointsForts" spacing="6" visible="false" managed="false">
+                    <Label text="✅  Points forts"
+                           style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#059669;"/>
+                    <VBox fx:id="listPointsForts" spacing="4"/>
+                </VBox>
+                <VBox fx:id="containerPointsAmeliorer" spacing="6" visible="false" managed="false">
+                    <Label text="📌  À améliorer"
+                           style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#d97706;"/>
+                    <VBox fx:id="listPointsAmeliorer" spacing="4"/>
+                </VBox>
+                <Label fx:id="labelEncouragement" text=""
+                       style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#7c3aed;
+                              -fx-font-style:italic;"
+                       wrapText="true"/>
+            </VBox>
+
+            <!-- Liste des explications par question -->
+            <VBox fx:id="containerExplications" spacing="14"/>
+
         </VBox>
 
         <!--
@@ -238,28 +329,27 @@
             - "🏠 Accueil"             : onAccueil() → navigue vers la page d'accueil
         -->
         <!-- ── Boutons ── -->
-        <HBox spacing="14" alignment="CENTER">
-            <!-- Bouton "Refaire" : dégradé cyan-bleu, coins très arrondis -->
+        <HBox spacing="20" alignment="CENTER">
             <Button text="↺   Refaire le quiz" onAction="#onRefaire"
                     style="-fx-background-color:linear-gradient(to right,#06b6d4,#0ea5e9);
-                           -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;
-                           -fx-padding:13 28 13 28; -fx-background-radius:30;
+                           -fx-text-fill:white; -fx-font-size:15; -fx-font-weight:700;
+                           -fx-padding:16 36 16 36; -fx-background-radius:30;
                            -fx-cursor:hand; -fx-border-width:0;"/>
-            <!-- Bouton "Retour" : transparent avec bordure blanche -->
             <Button text="← Retour aux chapitres" onAction="#onRetour"
                     style="-fx-background-color:transparent; -fx-text-fill:white;
-                           -fx-font-size:13; -fx-font-weight:700;
-                           -fx-padding:13 28 13 28; -fx-background-radius:30;
+                           -fx-font-size:15; -fx-font-weight:700;
+                           -fx-padding:16 36 16 36; -fx-background-radius:30;
                            -fx-cursor:hand; -fx-border-color:white; -fx-border-radius:30;
                            -fx-border-width:2;"/>
-            <!-- Bouton "Accueil" : dégradé vert, coins très arrondis -->
             <Button text="🏠  Accueil" onAction="#onAccueil"
                     style="-fx-background-color:linear-gradient(to right,#22c55e,#16a34a);
-                           -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;
-                           -fx-padding:13 28 13 28; -fx-background-radius:30;
+                           -fx-text-fill:white; -fx-font-size:15; -fx-font-weight:700;
+                           -fx-padding:16 36 16 36; -fx-background-radius:30;
                            -fx-cursor:hand; -fx-border-width:0;"/>
         </HBox>
 
     </VBox>
+    </VBox>
+    </ScrollPane>
 </StackPane>
 

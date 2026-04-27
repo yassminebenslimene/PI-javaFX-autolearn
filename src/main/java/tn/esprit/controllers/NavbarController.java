@@ -6,7 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 public class NavbarController {
 
@@ -42,7 +42,7 @@ public class NavbarController {
 
     @FXML
     public void initialize() {
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u == null) return;
         String name = u.getPrenom() + " " + u.getNom();
         String initials = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
@@ -67,32 +67,32 @@ public class NavbarController {
     }
 
     @FXML private void onAccueil() {
-        if (JwtManager.isAdmin()) navigate(() -> MainApp.showBackoffice());
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackoffice());
         else navigate(() -> MainApp.showFrontoffice());
     }
     @FXML private void onCours() {
-        if (JwtManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/cours/index.fxml", "Cours"));
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeView("/views/backoffice/cours/index.fxml", "Cours"));
         else navigate(() -> MainApp.showFrontoffice());
     }
     @FXML private void onEvenements() {
-        if (JwtManager.isAdmin())
+        if (SessionManager.isAdmin())
             navigate(() -> MainApp.showBackofficeView("/views/backoffice/evenement/index.fxml", "Evenements"));
         else navigate(() -> MainApp.showEvenementsFront());
     }
     @FXML private void onCommunaute() {
-        if (JwtManager.isAdmin())
+        if (SessionManager.isAdmin())
             navigate(() -> MainApp.showBackofficeView("/views/backoffice/communaute/index.fxml", "Communauté"));
         else navigate(() -> MainApp.showCommunauteFront());
     }
     @FXML private void onChallenges() {
-        if (JwtManager.isAdmin())
+        if (SessionManager.isAdmin())
             navigate(() -> MainApp.showBackofficeView("/views/backoffice/challenge/challenges.fxml", "Challenges"));
         else navigate(() -> MainApp.showChallengesFront());
     }
     @FXML private void onDashboard() { navigate(() -> MainApp.showBackoffice()); }
     @FXML private void onUsers()     { navigate(() -> MainApp.showBackoffice()); }
     @FXML private void onProfile() {
-        if (JwtManager.isAdmin()) navigate(() -> MainApp.showBackofficeProfile());
+        if (SessionManager.isAdmin()) navigate(() -> MainApp.showBackofficeProfile());
         else navigate(() -> MainApp.showProfile());
     }
     @FXML private void onMesParticipations() {
@@ -102,7 +102,7 @@ public class NavbarController {
         navigate(() -> MainApp.showMesEquipes(null));
     }
     @FXML private void onLogout() {
-        JwtManager.logout();
+        SessionManager.logout();
         navigate(() -> MainApp.showLogin());
     }
 

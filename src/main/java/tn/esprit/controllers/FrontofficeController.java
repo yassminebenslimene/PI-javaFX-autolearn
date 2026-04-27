@@ -21,10 +21,10 @@ import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.EvenementService;
 import tn.esprit.services.ServiceCours;
+import tn.esprit.services.TechNewsService;
 import tn.esprit.services.UserService;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
-import java.io.IOException;
 import java.util.List;
 
 public class FrontofficeController {
@@ -48,6 +48,9 @@ public class FrontofficeController {
     // Sections
     @FXML private VBox sectionCours;
     @FXML private VBox sectionFeatures;
+    @FXML private VBox sectionActualites;
+    @FXML private ScrollPane newsScrollPane;
+    @FXML private HBox newsCardsContainer;
     @FXML private HBox featureCardsContainer;
     @FXML private StackPane sectionEvenementsHome;
     @FXML private HBox evenementsHomeContainer;
@@ -88,6 +91,7 @@ public class FrontofficeController {
     private List<VBox> challengeCardsList = new java.util.ArrayList<>();
     private int currentChallengeIdx = 0;
     private Timeline challengeCarouselTimeline;
+    private Timeline newsScrollTimeline;
     @FXML private ScrollPane mainScrollPane;
 
     private javafx.scene.Node homeCenter;
@@ -101,7 +105,7 @@ public class FrontofficeController {
 
     @FXML
     public void initialize() {
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u == null) return;
 
         String name = u.getPrenom() + " " + u.getNom();
@@ -109,9 +113,24 @@ public class FrontofficeController {
         if (labelCurrentUser != null) labelCurrentUser.setText(name);
         if (labelAvatarNav   != null) labelAvatarNav.setText(initials);
         if (menuUser         != null) menuUser.setText(initials + " \u25be");
-        if (welcomeLabel     != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Pret a apprendre aujourd'hui !");
+        // Message par défaut — sera remplacé par la géolocalisation
+        if (welcomeLabel != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Pret a apprendre aujourd'hui !");
         if (u instanceof Etudiant e && e.getNiveau() != null)
             if (labelNiveauUser != null) labelNiveauUser.setText("Niveau : " + e.getNiveau());
+
+        // ── Géolocalisation asynchrone ────────────────────────────────────────
+        // Appel API ipapi.co en arrière-plan — met à jour le message de bienvenue
+        // sans bloquer le chargement de la page
+        tn.esprit.services.GeoLocationService.getLocationAsync().thenAccept(geo -> {
+            javafx.application.Platform.runLater(() -> {
+                if (welcomeLabel != null) {
+                    if (geo != null) {
+                        welcomeLabel.setText(geo.getBienvenueMessage(u.getPrenom()));
+                    }
+                    // Si geo == null (pas de connexion), le message par défaut reste affiché
+                }
+            });
+        });
 
         // Emojis dans les slides
         if (slide1Icon != null) slide1Icon.setText("\uD83D\uDCDA");
@@ -132,7 +151,7 @@ public class FrontofficeController {
                 int nbCours = serviceCours.consulter().size();
                 int nbChallenges = challengeService.getAll().size();
                 long nbEtudiants = userService.afficher().stream()
-                        .filter(usr -> usr instanceof Etudiant).count();
+                    .filter(usr -> usr instanceof Etudiant).count();
                 String niveau = (u instanceof Etudiant e && e.getNiveau() != null) ? e.getNiveau() : "—";
 
                 if (labelNiveauStat      != null) labelNiveauStat.setText(niveau);
@@ -143,6 +162,8 @@ public class FrontofficeController {
 
                 // Charger les vraies cartes de cours
                 if (coursCardsContainer != null) loadCoursCards();
+
+                // Charger les cartes de challenges
                 if (challengeCarouselPane != null) loadChallengeCarousel();
 
                 // Charger les evenements
@@ -151,14 +172,18 @@ public class FrontofficeController {
                 // Construire les feature cards
                 if (featureCardsContainer != null) buildFeatureCards();
 
+                // Charger les actualités tech (asynchrone)
+                if (newsCardsContainer != null) loadNewsCards();
+
                 // Démarrer le slider automatique
                 startSlider();
 
                 // Animations d'entree sur les sections
                 animateSlideIn(sectionFeatures,       0);
                 animateSlideIn(sectionCours,        150);
-                animateSlideIn(sectionChallenges,   300);
-                animateSlideIn(sectionEvenementsHome, 450);
+                animateSlideIn(sectionActualites,   300);
+                animateSlideIn(sectionChallenges,   450);
+                animateSlideIn(sectionEvenementsHome, 600);
 
             } catch (Exception e) { e.printStackTrace(); }
         });
@@ -185,6 +210,107 @@ public class FrontofficeController {
             empty.setStyle("-fx-text-fill:#aaa; -fx-font-size:13;");
             coursCardsContainer.getChildren().add(empty);
         }
+    }
+
+    // ── Actualités Tech ───────────────────────────────────────────────────────
+
+    // ── Actualités Tech — Bande défilante horizontale ────────────────────────
+
+    private void loadNewsCards() {
+        newsCardsContainer.getChildren().clear();
+        Label loading = new Label("⏳ Chargement des actualités...");
+        loading.setStyle("-fx-text-fill:#aaa; -fx-font-size:13; -fx-padding:0 0 0 80;");
+        newsCardsContainer.getChildren().add(loading);
+
+        TechNewsService.getTopTechNewsAsync().thenAccept(articles -> {
+            javafx.application.Platform.runLater(() -> {
+                newsCardsContainer.getChildren().clear();
+                if (articles == null || articles.isEmpty()) return;
+
+                int max = Math.min(articles.size(), 6);
+
+                // 3 copies des cartes pour un défilement infini sans saut
+                for (int pass = 0; pass < 3; pass++) {
+                    for (int i = 0; i < max; i++) {
+                        newsCardsContainer.getChildren().add(buildNewsCard(articles.get(i), i));
+                    }
+                }
+
+                // ScrollPane gère le clip naturellement — on lance juste l'animation
+                javafx.application.Platform.runLater(() -> startNewsScroll(max));
+            });
+        });
+    }
+
+    private void startNewsScroll(int nbArticles) {
+        if (newsScrollTimeline != null) newsScrollTimeline.stop();
+
+        final double CARD_W  = 316.0;              // 300px carte + 16px spacing
+        final double SPEED   = 0.6;                // pixels par frame
+        final double totalW  = CARD_W * nbArticles; // largeur d'une copie
+
+        newsCardsContainer.setTranslateX(0);
+
+        newsScrollTimeline = new Timeline(
+            new KeyFrame(Duration.millis(16), e -> {
+                double x = newsCardsContainer.getTranslateX() - SPEED;
+                if (x <= -totalW) x += totalW;    // retour fluide à 0
+                newsCardsContainer.setTranslateX(x);
+            })
+        );
+        newsScrollTimeline.setCycleCount(Timeline.INDEFINITE);
+        newsScrollTimeline.play();
+    }
+
+    private VBox buildNewsCard(TechNewsService.NewsArticle article, int index) {
+        String[] accents  = {"#0ea5e9", "#7a6ad8", "#10b981", "#f59e0b", "#ec4899", "#6366f1"};
+        String[] lightBgs = {"#e0f2fe", "#ede9ff", "#dcfce7", "#fef3c7", "#fce7f3", "#e0e7ff"};
+        String accent  = accents[index % accents.length];
+        String lightBg = lightBgs[index % lightBgs.length];
+
+        HBox topBar = new HBox();
+        topBar.setPrefHeight(5);
+        topBar.setStyle("-fx-background-color:" + accent + "; -fx-background-radius:12 12 0 0;");
+
+        Label sourceLbl = new Label("📰 " + (article.source().isBlank() ? "Tech" : article.source()));
+        sourceLbl.setStyle("-fx-font-size:10; -fx-font-weight:700; -fx-text-fill:" + accent + ";" +
+                           "-fx-background-color:" + lightBg + ";" +
+                           "-fx-background-radius:6; -fx-padding:2 8 2 8;");
+        Label dateLbl = new Label(article.getFormattedDate());
+        dateLbl.setStyle("-fx-font-size:10; -fx-text-fill:#bbb;");
+        HBox meta = new HBox(8, sourceLbl, dateLbl);
+        meta.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        Label titleLbl = new Label(article.getShortTitle());
+        titleLbl.setStyle("-fx-font-size:12; -fx-font-weight:800; -fx-text-fill:#1a1a2e; -fx-line-spacing:2;");
+        titleLbl.setWrapText(true);
+        titleLbl.setMaxWidth(270);
+
+        Label descLbl = new Label(article.getShortDescription());
+        descLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666; -fx-line-spacing:2;");
+        descLbl.setWrapText(true);
+        descLbl.setMaxWidth(270);
+
+        Button readBtn = new Button("Lire →");
+        readBtn.setStyle("-fx-background-color:" + accent + "; -fx-text-fill:white;" +
+                         "-fx-font-size:11; -fx-font-weight:700; -fx-cursor:hand;" +
+                         "-fx-border-width:0; -fx-background-radius:6; -fx-padding:5 14 5 14;");
+        readBtn.setOnAction(e -> MainApp.openUrl(article.url()));
+
+        VBox content = new VBox(8, meta, titleLbl, descLbl, readBtn);
+        content.setPadding(new Insets(12));
+
+        VBox card = new VBox(0, topBar, content);
+        card.setPrefWidth(300);
+        card.setMaxWidth(300);
+        card.setMinWidth(300);
+        card.setPrefHeight(200);
+        card.setMaxHeight(200);
+        card.setStyle("-fx-background-color:white; -fx-background-radius:12;" +
+                      "-fx-border-color:#eeeeee; -fx-border-radius:12;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3);");
+        card.setOnMouseClicked(e -> MainApp.openUrl(article.url()));
+        return card;
     }
 
     /** Image card with colored gradient overlay — rich visual style */
@@ -549,7 +675,7 @@ public class FrontofficeController {
 
     /** Returns true if user is logged in, otherwise redirects to login and returns false */
     private boolean requireLogin() {
-        if (JwtManager.isLoggedIn()) return true;
+        if (SessionManager.isLoggedIn()) return true;
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
@@ -567,12 +693,12 @@ public class FrontofficeController {
 
     @FXML public void onCours() { setActiveNav(btnNavCours); naviguerVersCours(); }
 
-    @FXML public void onViewCourses() { setActiveNav(btnNavCours); naviguerVersCours(); }
+    @FXML public void onViewCourses() { naviguerVersCours(); }
 
     private void naviguerVersCours() {
         if (!requireLogin()) return;
         // Track student action
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_cours",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -591,8 +717,16 @@ public class FrontofficeController {
                             FrontChapitreDetailController detailCtrl = detailLoader.getController();
                             detailCtrl.setChapitre(c, chapitre, () -> setCenter(chapView));
                             detailCtrl.setOnQuizCallback(() -> {
-                                if (chapCtrl.getOnPasserQuiz() != null)
-                                    chapCtrl.getOnPasserQuiz().accept(chapitre);
+                                try {
+                                    // Lancer le quiz avec retour vers le détail du chapitre
+                                    FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                                    Parent quizView = quizLoader.load();
+                                    FrontQuizController quizCtrl = quizLoader.getController();
+                                    quizCtrl.setSceneRef(labelCurrentUser);
+                                    quizCtrl.setChapitre(chapitre, () -> setCenter(detailView));
+                                    setCenterDirect(quizView);
+                                    javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                                } catch (Exception ex) { ex.printStackTrace(); }
                             });
                             setCenter(detailView);
                         } catch (Exception ex) { ex.printStackTrace(); }
@@ -602,23 +736,13 @@ public class FrontofficeController {
                             FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
                             Parent quizView = quizLoader.load();
                             FrontQuizController quizCtrl = quizLoader.getController();
-                            quizCtrl.setChapitre(chapitre, () -> {
-                                try {
-                                    FXMLLoader newChapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
-                                    Parent newChapView = newChapLoader.load();
-                                    FrontChapitreController newChapCtrl = newChapLoader.getController();
-                                    newChapCtrl.setOnLireChapitre(chapCtrl.getOnLireChapitre());
-                                    newChapCtrl.setOnPasserQuiz(chapCtrl.getOnPasserQuiz());
-                                    newChapCtrl.setOnRetourCours(() -> naviguerVersCours());
-                                    newChapCtrl.setCours(cours);
-                                    setCenter(newChapView);
-                                } catch (Exception ex) { setCenter(chapView); }
-                            });
+                            quizCtrl.setSceneRef(labelCurrentUser);
+                            quizCtrl.setChapitre(chapitre, () -> setCenter(chapView));
                             setCenterDirect(quizView);
                             javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
                         } catch (Exception ex) { ex.printStackTrace(); }
                     });
-                    chapCtrl.setOnRetourCours(() -> naviguerVersCours());
+                    chapCtrl.setOnRetourCours(() -> setCenter(view));
                     chapCtrl.setCours(cours);
                     setCenter(chapView);
                 } catch (Exception ex) { ex.printStackTrace(); }
@@ -632,7 +756,7 @@ public class FrontofficeController {
         if (!requireLogin()) return;
         setActiveNav(btnNavEvenements);
         // Track student action
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_evenements",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -652,7 +776,7 @@ public class FrontofficeController {
     @FXML public void onCommunaute() {
         if (!requireLogin()) return;
         setActiveNav(btnNavCommunaute);
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_communaute",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -671,7 +795,7 @@ public class FrontofficeController {
     @FXML public void onChallenges() {
         if (!requireLogin()) return;
         setActiveNav(btnNavChallenges);
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_challenges",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -687,18 +811,9 @@ public class FrontofficeController {
         }
     }
 
-    @FXML public void onLeaderboard() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/leaderboard.fxml"));
-            MainApp.getPrimaryStage().getScene().setRoot(loader.load());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     @FXML public void onProfile() {
         try {
-            var u = JwtManager.getCurrentUser();
+            var u = SessionManager.getCurrentUser();
             if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_profile",
                 java.util.Map.of("email", u.getEmail()));
             MainApp.showProfile();
@@ -717,8 +832,32 @@ public class FrontofficeController {
     }
 
     @FXML public void onLogout() {
-        JwtManager.logout();
+        SessionManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    /** Ouvre la messagerie en temps réel. */
+    @FXML public void onMessagerie() {
+        if (!requireLogin()) return;
+        setActiveNav(null);
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/views/frontoffice/messagerie/chat.fxml"));
+            Parent view = loader.load();
+            BorderPane root = (BorderPane) labelCurrentUser.getScene().getRoot();
+            // Détacher tout binding précédent et laisser le BorderPane gérer la taille
+            if (view instanceof javafx.scene.layout.Region region) {
+                region.prefHeightProperty().unbind();
+                region.prefWidthProperty().unbind();
+                region.setMaxHeight(Double.MAX_VALUE);
+                region.setMaxWidth(Double.MAX_VALUE);
+                region.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+                region.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+            }
+            root.setCenter(view);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -747,9 +886,9 @@ public class FrontofficeController {
             var url = getClass().getResource(bgImages[index]);
             if (url != null) {
                 heroSlider.setStyle(
-                        "-fx-background-image: url('" + url.toExternalForm() + "');" +
-                                "-fx-background-size: cover; -fx-background-position: center;" +
-                                "-fx-background-color: rgba(78,59,156,0.7);"
+                    "-fx-background-image: url('" + url.toExternalForm() + "');" +
+                    "-fx-background-size: cover; -fx-background-position: center;" +
+                    "-fx-background-color: rgba(78,59,156,0.7);"
                 );
             }
         } catch (Exception ignored) {
@@ -996,6 +1135,7 @@ public class FrontofficeController {
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
         BorderPane root = (BorderPane) scene.getRoot();
+        // Si la vue est déjà un ScrollPane, la mettre directement
         if (view instanceof ScrollPane) {
             ((ScrollPane) view).setFitToWidth(true);
             root.setCenter(view);
@@ -1012,6 +1152,14 @@ public class FrontofficeController {
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();
         if (scene == null) return;
-        ((BorderPane) scene.getRoot()).setCenter(view);
+        BorderPane root = (BorderPane) scene.getRoot();
+        // Forcer la vue à prendre toute la hauteur du center
+        if (view instanceof javafx.scene.layout.Region region) {
+            region.prefHeightProperty().unbind();
+            region.prefWidthProperty().unbind();
+            region.setMaxHeight(Double.MAX_VALUE);
+            region.setMaxWidth(Double.MAX_VALUE);
+        }
+        root.setCenter(view);
     }
 }

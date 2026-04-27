@@ -30,6 +30,9 @@
                 <Button fx:id="btnNavCommunaute" text="Communaute" onAction="#onCommunaute"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button fx:id="btnNavMessagerie" text="Messages" onAction="#onMessagerie"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
             </HBox>
             <Region HBox.hgrow="ALWAYS"/>
             <HBox alignment="CENTER" spacing="12">
@@ -223,7 +226,33 @@
                     <HBox fx:id="coursCardsContainer" spacing="20" alignment="CENTER"/>
                 </VBox>
 
-                <!-- SECTION 3: CHALLENGES CTA - split violet left + carousel right -->
+                <!-- SECTION 3: ACTUALITÉS TECH - Bande défilante -->
+                <VBox fx:id="sectionActualites" spacing="20"
+                      style="-fx-padding:48 0 48 0; -fx-background-color:white;
+                             -fx-border-color:#eeeeee transparent transparent transparent;
+                             -fx-border-width:1 0 0 0;">
+                    <VBox spacing="6" style="-fx-padding:0 80 0 80;">
+                        <Label text="&#128240;  Actualités Tech"
+                               style="-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#0ea5e9;
+                                      -fx-background-color:rgba(14,165,233,0.1); -fx-background-radius:20;
+                                      -fx-padding:3 14 3 14;"/>
+                        <Label text="Les dernières nouvelles en programmation"
+                               style="-fx-font-size:26; -fx-font-weight:900; -fx-text-fill:#1a1a2e;"/>
+                        <Label text="Restez à jour avec les tendances du monde tech"
+                               style="-fx-font-size:13; -fx-text-fill:#888;"/>
+                    </VBox>
+                    <!-- ScrollPane horizontal sans scrollbar — clip naturel -->
+                    <ScrollPane fx:id="newsScrollPane" fitToHeight="true"
+                                hbarPolicy="NEVER" vbarPolicy="NEVER"
+                                prefHeight="220" maxHeight="220" focusTraversable="false"
+                                style="-fx-background-color:transparent; -fx-background:transparent;
+                                       -fx-border-width:0; -fx-padding:0;">
+                        <HBox fx:id="newsCardsContainer" spacing="16" alignment="CENTER_LEFT"
+                              style="-fx-padding:8 0 8 0;"/>
+                    </ScrollPane>
+                </VBox>
+
+                <!-- SECTION 4: CHALLENGES CTA - split violet left + carousel right -->
                 <HBox fx:id="sectionChallenges" spacing="0" minHeight="320">
                     <VBox spacing="20" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT"
                           style="-fx-padding:56 60 56 80; -fx-background-color:#7a6ad8;">

@@ -15,7 +15,7 @@ import tn.esprit.entities.Cours;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -265,7 +265,7 @@ public class CoursController {
     /** Ouvre le formulaire de création (cours = null → mode création). */
     @FXML
     private void onNewCours() {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -274,7 +274,7 @@ public class CoursController {
 
     /** Ouvre le formulaire pré-rempli pour modifier un cours existant. */
     private void onEditCours(Cours cours) {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -283,7 +283,7 @@ public class CoursController {
 
     /** Demande confirmation puis supprime le cours ET ses chapitres (cascade). */
     private void onDeleteCours(Cours cours) {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -293,7 +293,7 @@ public class CoursController {
         confirm.setContentText("Voulez-vous supprimer le cours '" + cours.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                var admin = JwtManager.getCurrentUser();
+                var admin = SessionManager.getCurrentUser();
                 if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_cours",
                     java.util.Map.of("titre", cours.getTitre(), "id", String.valueOf(cours.getId())));
                 serviceCours.supprimer(cours.getId());
@@ -383,7 +383,7 @@ public class CoursController {
         if (!editMode) {
             Cours cours = new Cours(titre, description, matiere, niveau, duree, LocalDateTime.now());
             serviceCours.ajouter(cours);
-            var admin = JwtManager.getCurrentUser();
+            var admin = SessionManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_cours",
                 java.util.Map.of("titre", titre, "matiere", matiere));
         } else {
@@ -393,7 +393,7 @@ public class CoursController {
             editingCours.setNiveau(niveau);
             editingCours.setDuree(duree);
             serviceCours.modifier(editingCours);
-            var admin = JwtManager.getCurrentUser();
+            var admin = SessionManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_cours",
                 java.util.Map.of("titre", titre, "id", String.valueOf(editingCours.getId())));
         }

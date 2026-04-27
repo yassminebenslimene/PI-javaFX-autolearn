@@ -15,7 +15,7 @@ import tn.esprit.entities.User;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.FaceIdService;
 import tn.esprit.services.UserService;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,11 +38,12 @@ public class FaceIdController {
     @FXML private Button      btnCancel;
 
     private Mode mode = Mode.LOGIN;
+    private Timeline previewTimeline;
     private Timeline monitorTimeline;
     private final UserService userService = new UserService();
+
     private final AtomicBoolean faceDetected = new AtomicBoolean(false);
     private final AtomicBoolean capturing    = new AtomicBoolean(false);
-    private final AtomicBoolean previewActive = new AtomicBoolean(false);
     private final AtomicInteger countdown    = new AtomicInteger(0);
 
     public void setMode(Mode mode) {
@@ -68,6 +69,10 @@ public class FaceIdController {
 
     @FXML
     private void onStart() {
+        if (!FaceIdService.isServerRunning()) {
+            showResult("Serveur Face ID non demarre.\nLancez: python faceid_server.py", false);
+            return;
+        }
         btnStart.setDisable(true);
         if (statusOverlay != null) { statusOverlay.setVisible(false); statusOverlay.setManaged(false); }
         startPreview();
@@ -75,26 +80,24 @@ public class FaceIdController {
         else { setStatus("Placez votre visage dans le cercle"); monitorForRegistration(); }
     }
 
+    // ── Preview — fetches frames from Python server ───────────────────────────
+
     private void startPreview() {
-        previewActive.set(true);
-        // Single background thread reads frames continuously and updates UI
-        Thread previewThread = new Thread(() -> {
-            while (previewActive.get()) {
-                try {
-                    FaceIdService.FrameResult result = FaceIdService.getFrame();
-                    if (result != null && previewActive.get()) {
+        previewTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
+            // Fetch frame in background to avoid blocking FX thread
+            CompletableFuture.supplyAsync(() -> FaceIdService.getFrame())
+                .thenAccept(result -> {
+                    if (result != null) {
                         faceDetected.set(result.faceDetected());
                         Platform.runLater(() -> cameraView.setImage(result.image()));
                     }
-                    Thread.sleep(80);
-                } catch (InterruptedException e) {
-                    break;
-                } catch (Exception ignored) {}
-            }
-        }, "faceid-preview");
-        previewThread.setDaemon(true);
-        previewThread.start();
+                });
+        }));
+        previewTimeline.setCycleCount(Timeline.INDEFINITE);
+        previewTimeline.play();
     }
+
+    // ── LOGIN ─────────────────────────────────────────────────────────────────
 
     private void doLogin() {
         String email = fieldEmail.getText().trim();
@@ -115,7 +118,7 @@ public class FaceIdController {
                 stopPreview();
                 if (result.success()) {
                     showResult("Bienvenue " + finalUser.getPrenom() + " !", true);
-                    JwtManager.login(finalUser);
+                    SessionManager.login(finalUser);
                     ActivityApiClient.logAsync(finalUser.getId(), "user.login",
                         java.util.Map.of("method", "face_id", "email", finalUser.getEmail()));
                     new Timeline(new KeyFrame(Duration.millis(1500), ev -> {
@@ -133,9 +136,12 @@ public class FaceIdController {
         });
     }
 
+    // ── REGISTER ──────────────────────────────────────────────────────────────
+
     private void monitorForRegistration() {
         AtomicInteger stable = new AtomicInteger(0);
         AtomicBoolean started = new AtomicBoolean(false);
+
         monitorTimeline = new Timeline(new KeyFrame(Duration.millis(200), e -> {
             if (capturing.get()) return;
             if (faceDetected.get()) {
@@ -174,7 +180,7 @@ public class FaceIdController {
         progressBar.setProgress(0);
         setStatus("Enregistrement en cours...");
 
-        User user = JwtManager.getCurrentUser();
+        User user = SessionManager.getCurrentUser();
         if (user == null) { showResult("Session perdue.", false); return; }
 
         CompletableFuture.runAsync(() -> {
@@ -182,15 +188,16 @@ public class FaceIdController {
                 pct -> Platform.runLater(() -> {
                     progressBar.setProgress(pct / 100.0);
                     setStatus("Enregistrement... " + pct + "%");
-                }));
+                })
+            );
             Platform.runLater(() -> {
                 progressBar.setVisible(false);
                 progressBar.setManaged(false);
                 if (result.success()) {
-                    showResult("Face ID active !\nVous pouvez maintenant vous connecter avec votre visage.", true);
+                    showResult("Face ID active avec succes !\nVous pouvez maintenant vous connecter avec votre visage.", true);
                     btnStart.setText("Fermer");
                     btnStart.setDisable(false);
-                    btnStart.setOnAction(ev -> { FaceIdService.stopCamera(); closeDialog(); });
+                    btnStart.setOnAction(ev -> closeDialog());
                 } else {
                     showResult(result.message(), false);
                     btnStart.setDisable(false);
@@ -201,17 +208,14 @@ public class FaceIdController {
     }
 
     private void stopPreview() {
-        previewActive.set(false);
         if (monitorTimeline != null) { monitorTimeline.stop(); monitorTimeline = null; }
-        // previewTimeline replaced by daemon thread — stopped via previewActive flag
+        if (previewTimeline != null) { previewTimeline.stop(); previewTimeline = null; }
         faceDetected.set(false);
-        Platform.runLater(() -> {
-            cameraView.setImage(null);
-            if (faceOverlay != null) faceOverlay.setVisible(false);
-        });
+        Platform.runLater(() -> { cameraView.setImage(null); if (faceOverlay != null) faceOverlay.setVisible(false); });
     }
+
+    @FXML private void onCancel() { stopPreview(); closeDialog(); }
     private void closeDialog() { try { ((Stage) btnCancel.getScene().getWindow()).close(); } catch (Exception ignored) {} }
-    @FXML private void onCancel() { stopPreview(); FaceIdService.stopCamera(); closeDialog(); }
     private void setStatus(String t) { Platform.runLater(() -> { if (labelCameraStatus != null) labelCameraStatus.setText(t); }); }
 
     private void showResult(String msg, boolean ok) {

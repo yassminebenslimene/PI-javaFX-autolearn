@@ -20,7 +20,7 @@ import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.ServiceChapitre;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -68,10 +68,10 @@ public class FrontChapitreController {
             + "  |  Durée: " + cours.getDuree() + "h");
 
         // Charger les chapitres complétés par l'étudiant
-        if (JwtManager.getCurrentUser() != null) {
+        if (SessionManager.getCurrentUser() != null) {
             completedIds = new HashSet<>(
                 progressService.getCompletedChapitreIds(
-                    JwtManager.getCurrentUser().getId(), cours.getId()));
+                    SessionManager.getCurrentUser().getId(), cours.getId()));
         }
 
         List<Chapitre> chapitres = serviceChapitre.consulterParCoursId(cours.getId());

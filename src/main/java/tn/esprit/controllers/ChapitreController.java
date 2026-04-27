@@ -15,7 +15,7 @@ import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -216,7 +216,7 @@ public class ChapitreController {
 
     @FXML
     private void onNewChapitre() {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -224,7 +224,7 @@ public class ChapitreController {
     }
 
     private void onEditChapitre(Chapitre chapitre) {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -232,7 +232,7 @@ public class ChapitreController {
     }
 
     private void onDeleteChapitre(Chapitre chapitre) {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -243,7 +243,7 @@ public class ChapitreController {
         confirm.setContentText("Voulez-vous supprimer '" + chapitre.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                var admin = JwtManager.getCurrentUser();
+                var admin = SessionManager.getCurrentUser();
                 if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_chapitre",
                     java.util.Map.of("titre", chapitre.getTitre()));
                 serviceChapitre.supprimer(chapitre.getId());
@@ -274,17 +274,16 @@ public class ChapitreController {
         this.editingChapitre = chapitre;
         this.editMode = chapitre != null;
 
-        // Vérifier que les champs FXML existent avant de les utiliser
         if (formTitle == null) return;
 
         if (editMode) {
             formTitle.setText("Modifier chapitre");
-            if (fieldTitre != null) fieldTitre.setText(chapitre.getTitre());
-            if (areaContenu != null) areaContenu.setText(chapitre.getContenu());
-            if (fieldOrdre != null) fieldOrdre.setText(String.valueOf(chapitre.getOrdre()));
-            if (fieldRessources != null) fieldRessources.setText(chapitre.getRessources());
-            if (comboRessourceType != null) comboRessourceType.setValue(chapitre.getRessourceType());
-            if (fieldRessourceFichier != null) fieldRessourceFichier.setText(chapitre.getRessourceFichier());
+            fieldTitre.setText(chapitre.getTitre());
+            areaContenu.setText(chapitre.getContenu());
+            fieldOrdre.setText(String.valueOf(chapitre.getOrdre()));
+            fieldRessources.setText(chapitre.getRessources());
+            comboRessourceType.setValue(chapitre.getRessourceType());
+            fieldRessourceFichier.setText(chapitre.getRessourceFichier());
         } else {
             formTitle.setText("Nouveau chapitre");
         }
@@ -308,7 +307,7 @@ public class ChapitreController {
         if (!editMode) {
             Chapitre chapitre = new Chapitre(titre, contenu, ordre, ressources, cours.getId(), type, fichier);
             serviceChapitre.ajouter(chapitre);
-            var admin = JwtManager.getCurrentUser();
+            var admin = SessionManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_chapitre",
                 java.util.Map.of("titre", titre, "cours_id", String.valueOf(cours.getId())));
         } else {
@@ -320,7 +319,7 @@ public class ChapitreController {
             editingChapitre.setRessourceFichier(fichier);
             editingChapitre.setCoursId(cours.getId());
             serviceChapitre.modifier(editingChapitre);
-            var admin = JwtManager.getCurrentUser();
+            var admin = SessionManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_chapitre",
                 java.util.Map.of("titre", titre));
         }

@@ -2,7 +2,7 @@ package tn.esprit.services;
 
 import com.google.gson.JsonObject;
 import tn.esprit.entities.*;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 import tn.esprit.tools.PasswordUtil;
 
 import java.time.LocalDate;
@@ -407,7 +407,7 @@ public class ChatbotActionExecutor {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private int currentUserId() {
-        var user = JwtManager.getCurrentUser();
+        var user = SessionManager.getCurrentUser();
         return user != null ? user.getId() : 0;
     }
 

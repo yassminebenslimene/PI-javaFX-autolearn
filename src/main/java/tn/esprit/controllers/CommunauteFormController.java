@@ -6,7 +6,7 @@ import javafx.scene.layout.StackPane;
 import tn.esprit.entities.Communaute;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceCommunaute;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 public class CommunauteFormController {
 
@@ -66,7 +66,7 @@ public class CommunauteFormController {
 
         if (communaute == null) {
             service.ajouter(new Communaute(nom, desc, ownerId));
-            var admin = JwtManager.getCurrentUser();
+            var admin = SessionManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_communaute",
                 java.util.Map.of("nom", nom));
         } else {
@@ -74,7 +74,7 @@ public class CommunauteFormController {
             communaute.setDescription(desc);
             communaute.setOwnerId(ownerId);
             service.modifier(communaute);
-            var admin = JwtManager.getCurrentUser();
+            var admin = SessionManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_communaute",
                 java.util.Map.of("nom", nom));
         }

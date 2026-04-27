@@ -11,12 +11,12 @@ import tn.esprit.services.ServiceQuestion;
 import tn.esprit.services.ServiceQuiz;
 
 /**
- * Controller du formulaire Question (question_form.fxml).
- * Gère la création d'une nouvelle question et la modification d'une question existante.
- * Si questionAModifier == null → mode création, sinon → mode modification.
+ * QuestionController — formulaire de création et modification d'une question.
+ * Mode création si questionAModifier == null, sinon mode modification.
  */
 public class QuestionController {
 
+    // Champs FXML
     @FXML private Label pageTitle;
     @FXML private Label cardTitle;
     @FXML private Label cardSubtitle;
@@ -42,9 +42,10 @@ public class QuestionController {
 
     private final ServiceQuestion serviceQuestion = new ServiceQuestion();
     private final ServiceQuiz serviceQuiz = new ServiceQuiz();
-    private Question questionAModifier = null;
+    private Question questionAModifier = null; // null = création, sinon = modification
     private int quizId;
 
+    // Initialisation : remplit la ComboBox quiz et attache les listeners
     @FXML
     public void initialize() {
         // Remplir la ComboBox quiz
@@ -53,12 +54,14 @@ public class QuestionController {
             @Override protected void updateItem(Quiz item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item.getTitre());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         quizCombo.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(Quiz item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? "Choisissez le quiz auquel appartient cette question" : item.getTitre());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         quizCombo.valueProperty().addListener((o, ov, nv) -> {
@@ -78,12 +81,14 @@ public class QuestionController {
         pointField.textProperty().addListener((o, ov, nv) -> resetField(pointField));
     }
 
+    // Pré-sélectionne le quiz pour une nouvelle question
     public void initNouvelle(int quizId) {
         this.quizId = quizId;
         // Pré-sélectionner le quiz dans la ComboBox
         quizCombo.getItems().stream().filter(q -> q.getId() == quizId).findFirst().ifPresent(quizCombo::setValue);
     }
 
+    // Pré-remplit le formulaire avec les données de la question à modifier
     public void initModifier(Question question) {
         this.questionAModifier = question;
         this.quizId = question.getQuizId();
@@ -96,7 +101,7 @@ public class QuestionController {
         quizCombo.getItems().stream().filter(q -> q.getId() == question.getQuizId()).findFirst().ifPresent(quizCombo::setValue);
     }
 
-    // ── Sauvegarder : appelé quand on clique sur le bouton Enregistrer ────────
+    // Valide les champs et sauvegarde la question (création ou modification)
     @FXML
     public void sauvegarder() {
         resetAll(); // effacer les erreurs précédentes
@@ -183,7 +188,7 @@ public class QuestionController {
         if (ok) retour();
     }
 
-    // ── Retour : revenir à la liste sans sauvegarder ─────────────────────────
+    // Retourne à la liste des quiz sans sauvegarder
     @FXML
     public void retour() {
         try {
@@ -205,8 +210,9 @@ public class QuestionController {
         alert.showAndWait();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
+    // Marque un champ en erreur et affiche le message
     private void markError(Control field, String msg) {
         field.setStyle(FIELD_ERROR);
         showError(msg);
@@ -221,7 +227,7 @@ public class QuestionController {
             "-fx-border-radius:8; -fx-border-width:1; -fx-wrap-text:true;");
     }
 
-    // Remet un champ à son style normal
+    // Remet un champ à son style normal et efface le message d'erreur
     private void resetField(Control field) {
         field.setStyle(FIELD_NORMAL);
         messageLabel.setText("");

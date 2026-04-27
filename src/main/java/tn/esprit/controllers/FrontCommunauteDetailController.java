@@ -15,7 +15,7 @@ import tn.esprit.services.ServiceCommentaire;
 import tn.esprit.services.ServiceCommunaute;
 import tn.esprit.services.ServicePost;
 import tn.esprit.services.UserService;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,8 +43,8 @@ public class FrontCommunauteDetailController {
         this.onRetour   = retour;
         labelNom.setText(c.getNom());
         labelDescription.setText(c.getDescription() != null ? c.getDescription() : "");
-        int currentUserId = JwtManager.getCurrentUser() != null
-                ? JwtManager.getCurrentUser().getId() : -1;
+        int currentUserId = SessionManager.getCurrentUser() != null
+                ? SessionManager.getCurrentUser().getId() : -1;
         if (currentUserId == c.getOwnerId()) {
             btnGererMembres.setVisible(true);
             btnGererMembres.setManaged(true);
@@ -88,8 +88,8 @@ public class FrontCommunauteDetailController {
             return;
         }
 
-        int userId = JwtManager.getCurrentUser() != null
-                ? JwtManager.getCurrentUser().getId() : 0;
+        int userId = SessionManager.getCurrentUser() != null
+                ? SessionManager.getCurrentUser().getId() : 0;
         Post p = new Post(contenu, titre, communaute.getId(), userId);
         p.setCreatedAt(LocalDateTime.now());
         servicePost.ajouter(p);
@@ -167,8 +167,8 @@ public class FrontCommunauteDetailController {
         javafx.scene.control.Separator sep = new javafx.scene.control.Separator();
         sep.setStyle("-fx-background-color:#f0f0f0;");
 
-        int currentUserId = JwtManager.getCurrentUser() != null
-                ? JwtManager.getCurrentUser().getId() : -1;
+        int currentUserId = SessionManager.getCurrentUser() != null
+                ? SessionManager.getCurrentUser().getId() : -1;
         if (p.getUserId() == currentUserId) {
             Button btnMenu = new Button("⋮");
             btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#bbb; -fx-font-size:18; " +
@@ -222,7 +222,7 @@ public class FrontCommunauteDetailController {
             }
             commentField.setStyle("-fx-background-color:#f0f2f5; -fx-background-radius:20; " +
                                   "-fx-border-width:0; -fx-padding:9 16 9 16; -fx-font-size:12;");
-            int uid = JwtManager.getCurrentUser() != null ? JwtManager.getCurrentUser().getId() : 0;
+            int uid = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
             Commentaire newC = new Commentaire(txt, p.getId(), uid);
             serviceCommentaire.ajouter(newC);
             commentField.clear();
@@ -323,8 +323,8 @@ public class FrontCommunauteDetailController {
         row.setAlignment(javafx.geometry.Pos.TOP_LEFT);
         row.setPadding(new Insets(2, 0, 2, 0));
 
-        int currentUserId = JwtManager.getCurrentUser() != null
-                ? JwtManager.getCurrentUser().getId() : -1;
+        int currentUserId = SessionManager.getCurrentUser() != null
+                ? SessionManager.getCurrentUser().getId() : -1;
         if (c.getUserId() == currentUserId) {
             Button btnMenu = new Button("⋮");
             btnMenu.setStyle("-fx-background-color:transparent; -fx-text-fill:#888; -fx-font-size:15; " +
