@@ -8,7 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import tn.esprit.entities.Communaute;
 import tn.esprit.services.ServiceCommunaute;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.List;
 
@@ -45,8 +45,8 @@ public class FrontCommunauteController {
     }
 
     private VBox buildCard(Communaute c) {
-        int currentUserId = SessionManager.getCurrentUser() != null
-                ? SessionManager.getCurrentUser().getId() : -1;
+        int currentUserId = JwtManager.getCurrentUser() != null
+                ? JwtManager.getCurrentUser().getId() : -1;
         boolean hasAccess = c.getOwnerId() == currentUserId
                 || c.getMemberIds().contains(currentUserId);
 
@@ -136,7 +136,7 @@ public class FrontCommunauteController {
 
     @FXML
     public void onCreer() {
-        if (SessionManager.getCurrentUser() == null) return;
+        if (JwtManager.getCurrentUser() == null) return;
 
         javafx.scene.control.Dialog<Communaute> dialog = new javafx.scene.control.Dialog<>();
         dialog.setTitle("Nouvelle Communauté");
@@ -176,7 +176,7 @@ public class FrontCommunauteController {
         dialog.setResultConverter(btn -> {
             if (btn == javafx.scene.control.ButtonType.OK) {
                 return new Communaute(fNom.getText().trim(), fDesc.getText().trim(),
-                                      SessionManager.getCurrentUser().getId());
+                                      JwtManager.getCurrentUser().getId());
             }
             return null;
         });

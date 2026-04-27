@@ -17,7 +17,6 @@ import tn.esprit.services.GoogleOAuthService;
 import tn.esprit.services.FacebookOAuthService;
 import tn.esprit.services.GitHubOAuthService;
 import tn.esprit.session.JwtManager;
-import tn.esprit.session.SessionManager;
 import tn.esprit.tools.PasswordUtil;
 
 import java.sql.Timestamp;
@@ -245,14 +244,11 @@ public class LoginController {
 
         // 5. Generate JWT token and store it
         User loggedUser = JwtManager.login(found);  // Generates JWT automatically
-        
+
         if (loggedUser == null) {
             showError("Erreur lors de la génération du token. Veuillez réessayer.");
             return;
         }
-        
-        // Also keep SessionManager for backward compatibility (optional)
-        SessionManager.login(found);
         
         // 6. Remember Me
         addToHistory(email);
@@ -408,8 +404,8 @@ public class LoginController {
                     // Remember email
                     addToHistory(email);
 
-                    // Login
-                    SessionManager.login(found);
+                    // Login via JWT
+                    JwtManager.login(found);
 
                     ActivityApiClient.logAsync(found.getId(), "user.login_oauth",
                         java.util.Map.of("provider", provider, "email", email));

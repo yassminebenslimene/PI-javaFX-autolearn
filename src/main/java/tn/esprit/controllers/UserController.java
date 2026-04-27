@@ -17,7 +17,7 @@ import tn.esprit.entities.User;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -229,8 +229,8 @@ public class UserController {
 
         // New user button visibility
         if (adminToolbarNew != null) {
-            adminToolbarNew.setVisible(SessionManager.isAdmin());
-            adminToolbarNew.setManaged(SessionManager.isAdmin());
+            adminToolbarNew.setVisible(JwtManager.isAdmin());
+            adminToolbarNew.setManaged(JwtManager.isAdmin());
         }
 
         try { loadTable(); } catch (Exception e) {
@@ -296,17 +296,17 @@ public class UserController {
     // CRUD actions
     // ─────────────────────────────────────────────────────────────────────────
     @FXML private void onNewUser() {
-        if (!SessionManager.isAdmin()) { showAlert(Alert.AlertType.WARNING, "Accès refusé", "Réservé aux administrateurs."); return; }
+        if (!JwtManager.isAdmin()) { showAlert(Alert.AlertType.WARNING, "Accès refusé", "Réservé aux administrateurs."); return; }
         openFormWindow(null);
     }
 
     private void onEditUser(User sel) {
-        if (!SessionManager.isAdmin()) { showAlert(Alert.AlertType.WARNING, "Accès refusé", "Réservé aux administrateurs."); return; }
+        if (!JwtManager.isAdmin()) { showAlert(Alert.AlertType.WARNING, "Accès refusé", "Réservé aux administrateurs."); return; }
         openFormWindow(sel);
     }
 
     private void onSuspendUser(User sel) {
-        if (!SessionManager.isAdmin()) { showAlert(Alert.AlertType.WARNING, "Accès refusé", "Réservé aux administrateurs."); return; }
+        if (!JwtManager.isAdmin()) { showAlert(Alert.AlertType.WARNING, "Accès refusé", "Réservé aux administrateurs."); return; }
         if (!(sel instanceof tn.esprit.entities.Etudiant)) {
             showAlert(Alert.AlertType.WARNING, "Action impossible", "Seul un étudiant peut être suspendu."); return;
         }
@@ -409,7 +409,7 @@ public class UserController {
             service.ajouter(newUser);
             EmailService.sendAdminCreatedAccount(email, prenom, nom, plainPassword);
             // Log under ADMIN's ID
-            var admin = tn.esprit.session.SessionManager.getCurrentUser();
+            var admin = tn.esprit.session.JwtManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_student",
                 java.util.Map.of("student_email", email, "student_name", prenom + " " + nom,
                                  "niveau", niveau != null ? niveau : ""));
@@ -422,7 +422,7 @@ public class UserController {
             if (editingUser instanceof Etudiant e && niveau != null) e.setNiveau(niveau);
             service.modifier(editingUser);
             // Log under ADMIN's ID
-            var admin = tn.esprit.session.SessionManager.getCurrentUser();
+            var admin = tn.esprit.session.JwtManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_student",
                 java.util.Map.of("student_email", email, "student_id", String.valueOf(editingUser.getId())));
             showAlert(Alert.AlertType.INFORMATION, "Succès", "Utilisateur modifié avec succès.");

@@ -10,7 +10,7 @@ import tn.esprit.entities.Challenge;
 import tn.esprit.entities.UserChallenge;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.UserChallengeService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -70,10 +70,10 @@ public class ChallengeDetailController {
     }
 
     private void checkIfCompleted() {
-        if (SessionManager.getCurrentUser() == null) return;
+        if (JwtManager.getCurrentUser() == null) return;
 
         UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
-                SessionManager.getCurrentUser().getId(), challenge.getId());
+                JwtManager.getCurrentUser().getId(), challenge.getId());
 
         if (userChallenge != null && userChallenge.isCompleted()) {
             if (resultContainer != null) {
@@ -131,7 +131,7 @@ public class ChallengeDetailController {
 
             // Récupérer et passer le score
             UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
-                    SessionManager.getCurrentUser().getId(), challenge.getId());
+                    JwtManager.getCurrentUser().getId(), challenge.getId());
 
             if (userChallenge != null) {
                 controller.setScore(userChallenge.getScore(), userChallenge.getTotalPoints());

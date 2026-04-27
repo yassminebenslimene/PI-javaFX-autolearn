@@ -13,7 +13,7 @@ import tn.esprit.entities.Exercice;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.ExerciceService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -152,17 +152,17 @@ public class ChallengeController {
             dialog.showAndWait().ifPresent(response -> {
                 if (response == saveButton && formController.validateFields()) {
                     Challenge updatedChallenge = formController.getChallenge();
-                    updatedChallenge.setCreatedBy(SessionManager.getCurrentUser().getId());
+                    updatedChallenge.setCreatedBy(JwtManager.getCurrentUser().getId());
 
                     if (isEdit) {
                         challengeService.update(updatedChallenge);
-                        var admin = SessionManager.getCurrentUser();
+                        var admin = JwtManager.getCurrentUser();
                         if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_challenge",
                             java.util.Map.of("titre", updatedChallenge.getTitre() != null ? updatedChallenge.getTitre() : ""));
                         showSuccessMessage("Challenge modifié avec succès !");
                     } else {
                         challengeService.add(updatedChallenge);
-                        var admin = SessionManager.getCurrentUser();
+                        var admin = JwtManager.getCurrentUser();
                         if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_challenge",
                             java.util.Map.of("titre", updatedChallenge.getTitre() != null ? updatedChallenge.getTitre() : ""));
                         showSuccessMessage("Challenge ajouté avec succès !");
@@ -196,7 +196,7 @@ public class ChallengeController {
 
         if (confirmation.showAndWait().get() == ButtonType.OK) {
             try {
-                var admin = SessionManager.getCurrentUser();
+                var admin = JwtManager.getCurrentUser();
                 if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_challenge",
                     java.util.Map.of("titre", selectedChallenge.getTitre() != null ? selectedChallenge.getTitre() : ""));
                 challengeService.delete(selectedChallenge.getId());

@@ -9,7 +9,7 @@ import javafx.scene.layout.VBox;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Challenge;
 import tn.esprit.services.ChallengeService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.time.LocalDate;

@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import tn.esprit.MainApp;
 import tn.esprit.services.ActivityApiClient;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 public class BackofficeController {
 
@@ -42,13 +42,13 @@ public class BackofficeController {
     @FXML
     public void initialize() {
         MainApp.setBackofficeController(this);
-        if (SessionManager.getCurrentUser() != null) {
-            String name = SessionManager.getCurrentUser().getPrenom() + " " + SessionManager.getCurrentUser().getNom();
+        if (JwtManager.getCurrentUser() != null) {
+            String name = JwtManager.getCurrentUser().getPrenom() + " " + JwtManager.getCurrentUser().getNom();
             if (labelCurrentUser != null) labelCurrentUser.setText(name);
-            if (labelCurrentRole != null) labelCurrentRole.setText(SessionManager.getCurrentUser().getRole());
+            if (labelCurrentRole != null) labelCurrentRole.setText(JwtManager.getCurrentUser().getRole());
             if (labelAvatarSidebar != null) {
-                String initials = SessionManager.getCurrentUser().getPrenom().substring(0,1).toUpperCase()
-                                + SessionManager.getCurrentUser().getNom().substring(0,1).toUpperCase();
+                String initials = JwtManager.getCurrentUser().getPrenom().substring(0,1).toUpperCase()
+                                + JwtManager.getCurrentUser().getNom().substring(0,1).toUpperCase();
                 labelAvatarSidebar.setText(initials);
             }
         }
@@ -64,7 +64,7 @@ public class BackofficeController {
 
     /** Log admin navigation action */
     private void logNav(String section) {
-        var admin = SessionManager.getCurrentUser();
+        var admin = JwtManager.getCurrentUser();
         if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.view_" + section,
             java.util.Map.of("section", section));
     }
@@ -151,7 +151,7 @@ public class BackofficeController {
     }
 
     @FXML public void onLogout() {
-        SessionManager.logout();
+        JwtManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
 

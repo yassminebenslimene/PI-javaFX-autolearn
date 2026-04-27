@@ -10,7 +10,7 @@ import tn.esprit.entities.Quiz;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceQuiz;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.List;
 
@@ -250,7 +250,7 @@ public class QuizFormController {
                 showError("❌ Échec de l'ajout — vérifiez que la table 'quiz' existe et que le chapitre_id est valide.");
                 return;
             }
-            var admin = SessionManager.getCurrentUser();
+            var admin = JwtManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_quiz",
                 java.util.Map.of("titre", titre));
             showAlert(true, "Quiz ajouté avec succès !", "");
@@ -264,7 +264,7 @@ public class QuizFormController {
             quizAModifier.setChapitreId(chapitreSelectionne.getId());
             ok = serviceQuiz.modifier(quizAModifier);
             if (ok) {
-                var admin = SessionManager.getCurrentUser();
+                var admin = JwtManager.getCurrentUser();
                 if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_quiz",
                     java.util.Map.of("titre", titre));
             }

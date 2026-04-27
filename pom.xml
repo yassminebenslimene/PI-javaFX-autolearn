@@ -68,6 +68,13 @@
             <artifactId>webcam-capture</artifactId>
             <version>0.3.12</version>
         </dependency>
+
+        <!-- SLF4J no-op: silences webcam-capture SLF4J warning -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>1.7.36</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -82,6 +89,8 @@
                     <options>
                         <option>--add-modules</option>
                         <option>javafx.controls,javafx.fxml,javafx.graphics</option>
+                        <option>-Djna.nosys=true</option>
+                        <option>-Dwebcam.driver=com.github.sarxos.webcam.ds.buildin.WebcamDefaultDriver</option>
                     </options>
                 </configuration>
                 <executions>

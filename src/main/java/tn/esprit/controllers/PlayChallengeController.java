@@ -13,7 +13,7 @@ import tn.esprit.entities.Exercice;
 import tn.esprit.entities.UserChallenge;
 import tn.esprit.services.ExerciceService;
 import tn.esprit.services.UserChallengeService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -67,7 +67,7 @@ public class PlayChallengeController {
 
         // Vérifier si déjà commencé
         UserChallenge existing = userChallengeService.findByUserAndChallenge(
-                SessionManager.getCurrentUser().getId(), challenge.getId());
+                JwtManager.getCurrentUser().getId(), challenge.getId());
         if (existing != null && !existing.isCompleted()) {
             answers = existing.getAnswersMap();
             currentIndex = existing.getCurrentIndex();
@@ -174,10 +174,10 @@ public class PlayChallengeController {
             answers.put(exercices.get(currentIndex).getId(), answer);
 
             UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
-                    SessionManager.getCurrentUser().getId(), challenge.getId());
+                    JwtManager.getCurrentUser().getId(), challenge.getId());
             if (userChallenge == null) {
                 userChallenge = new UserChallenge();
-                userChallenge.setUserId(SessionManager.getCurrentUser().getId());
+                userChallenge.setUserId(JwtManager.getCurrentUser().getId());
                 userChallenge.setChallengeId(challenge.getId());
             }
             userChallenge.setAnswersMap(answers);
@@ -234,10 +234,10 @@ public class PlayChallengeController {
         }
 
         UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
-                SessionManager.getCurrentUser().getId(), challenge.getId());
+                JwtManager.getCurrentUser().getId(), challenge.getId());
         if (userChallenge == null) {
             userChallenge = new UserChallenge();
-            userChallenge.setUserId(SessionManager.getCurrentUser().getId());
+            userChallenge.setUserId(JwtManager.getCurrentUser().getId());
             userChallenge.setChallengeId(challenge.getId());
         }
         userChallenge.setAnswersMap(answers);

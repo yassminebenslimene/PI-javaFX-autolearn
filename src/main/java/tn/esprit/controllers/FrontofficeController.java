@@ -22,7 +22,7 @@ import tn.esprit.services.ChallengeService;
 import tn.esprit.services.EvenementService;
 import tn.esprit.services.ServiceCours;
 import tn.esprit.services.UserService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.List;
 
@@ -100,7 +100,7 @@ public class FrontofficeController {
 
     @FXML
     public void initialize() {
-        var u = SessionManager.getCurrentUser();
+        var u = JwtManager.getCurrentUser();
         if (u == null) return;
 
         String name = u.getPrenom() + " " + u.getNom();
@@ -550,7 +550,7 @@ public class FrontofficeController {
 
     /** Returns true if user is logged in, otherwise redirects to login and returns false */
     private boolean requireLogin() {
-        if (SessionManager.isLoggedIn()) return true;
+        if (JwtManager.isLoggedIn()) return true;
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
@@ -573,7 +573,7 @@ public class FrontofficeController {
     private void naviguerVersCours() {
         if (!requireLogin()) return;
         // Track student action
-        var u = SessionManager.getCurrentUser();
+        var u = JwtManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_cours",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -621,7 +621,7 @@ public class FrontofficeController {
         if (!requireLogin()) return;
         setActiveNav(btnNavEvenements);
         // Track student action
-        var u = SessionManager.getCurrentUser();
+        var u = JwtManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_evenements",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -641,7 +641,7 @@ public class FrontofficeController {
     @FXML public void onCommunaute() {
         if (!requireLogin()) return;
         setActiveNav(btnNavCommunaute);
-        var u = SessionManager.getCurrentUser();
+        var u = JwtManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_communaute",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -660,7 +660,7 @@ public class FrontofficeController {
     @FXML public void onChallenges() {
         if (!requireLogin()) return;
         setActiveNav(btnNavChallenges);
-        var u = SessionManager.getCurrentUser();
+        var u = JwtManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_challenges",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -678,7 +678,7 @@ public class FrontofficeController {
 
     @FXML public void onProfile() {
         try {
-            var u = SessionManager.getCurrentUser();
+            var u = JwtManager.getCurrentUser();
             if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_profile",
                 java.util.Map.of("email", u.getEmail()));
             MainApp.showProfile();
@@ -697,7 +697,7 @@ public class FrontofficeController {
     }
 
     @FXML public void onLogout() {
-        SessionManager.logout();
+        JwtManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
 
