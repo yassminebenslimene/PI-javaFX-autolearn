@@ -2101,30 +2101,25 @@ public class FrontQuizController {
      */
     @FXML
     private void onRefaire() {
+        if (timerTimeline != null) timerTimeline.stop();
         indexQuestion = 0;
         reponsesChoisies.clear();
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
-            Parent view = loader.load();
-            FrontQuizController ctrl = loader.getController();
-
-            // Transfert complet de l'état
-            ctrl.quiz = this.quiz;
-            ctrl.chapitre = this.chapitre;
-            ctrl.questions = this.questions;
-            ctrl.totalPoints = this.totalPoints;
-            ctrl.onRetourCallback = this.onRetourCallback;
-            // Transmettre la référence de scène stable (labelCurrentUser ou sceneRef)
-            ctrl.sceneRef = this.sceneRef;
-
-            // Injecter la vue dans le layout principal
-            setCenter(view);
-
-            // Remplir les labels de l'intro (la vue est maintenant dans la scène)
-            javafx.application.Platform.runLater(ctrl::afficherIntro);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Erreur lors du rechargement du quiz : " + e.getMessage());
+        // Retourner à la page de sélection du chapitre (nouveau design)
+        if (chapitre != null) {
+            javafx.application.Platform.runLater(() -> {
+                List<Quiz> quizDuChapitre = serviceQuiz.findByChapitreId(chapitre.getId());
+                List<Quiz> quizActifs = quizDuChapitre.stream()
+                    .filter(q -> "actif".equals(q.getEtat()))
+                    .collect(java.util.stream.Collectors.toList());
+                afficherSelectionQuiz(quizActifs);
+            });
+        } else {
+            // Fallback : relancer directement le même quiz
+            try {
+                this.questions = serviceQuestion.findByQuizIdAleatoire(quiz.getId(), 0);
+                this.totalPoints = questions.stream().mapToInt(Question::getPoint).sum();
+                naviguerVersQuestion();
+            } catch (Exception e) { e.printStackTrace(); }
         }
     }
 
