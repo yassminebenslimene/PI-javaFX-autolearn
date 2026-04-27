@@ -43,6 +43,8 @@ public class FrontofficeController {
     @FXML private Button btnNavChallenges;
     @FXML private Button btnNavEvenements;
     @FXML private Button btnNavCommunaute;
+    @FXML private Button btnNavGitHub;
+    @FXML private Button btnNavTodo;
 
     // Sections
     @FXML private VBox sectionCours;
@@ -699,6 +701,26 @@ public class FrontofficeController {
     @FXML public void onLogout() {
         SessionManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML public void onGitHubExamples() {
+        try {
+            setActiveNav(btnNavGitHub);
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                getClass().getResource("/views/frontoffice/github_examples.fxml"));
+            javafx.scene.Parent view = loader.load();
+            setCenter(view);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML public void onTodo() {
+        try {
+            setActiveNav(btnNavTodo);
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                getClass().getResource("/views/frontoffice/todo.fxml"));
+            javafx.scene.Parent view = loader.load();
+            setCenter(view);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
