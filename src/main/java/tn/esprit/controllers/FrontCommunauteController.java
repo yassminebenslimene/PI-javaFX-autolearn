@@ -11,6 +11,7 @@ import javafx.scene.layout.*;
 import tn.esprit.entities.Communaute;
 import tn.esprit.services.ServiceCommunaute;
 import tn.esprit.session.SessionManager;
+import tn.esprit.controllers.FrontCoursController;
 
 import java.util.List;
 
@@ -143,6 +144,30 @@ public class FrontCommunauteController {
             ctrl.setCommunaute(fresh, () -> {
                 try {
                     tn.esprit.MainApp.showCommunauteFront();
+                } catch (Exception ex) { ex.printStackTrace(); }
+            });
+
+            // ── Resource navigation callbacks ──────────────────────────────
+            ctrl.setOnNavigateToCours(coursId -> {
+                try {
+                    FXMLLoader coursLoader = new FXMLLoader(
+                        getClass().getResource("/views/frontoffice/cours/index.fxml"));
+                    javafx.scene.Parent coursView = coursLoader.load();
+                    FrontCoursController coursCtrl = coursLoader.getController();
+                    coursCtrl.loadData();
+                    tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(coursView);
+                } catch (Exception ex) { ex.printStackTrace(); }
+            });
+
+            ctrl.setOnNavigateToQuiz(quizId -> {
+                // Quiz belongs to a chapitre — navigate to cours list as entry point
+                try {
+                    FXMLLoader coursLoader = new FXMLLoader(
+                        getClass().getResource("/views/frontoffice/cours/index.fxml"));
+                    javafx.scene.Parent coursView = coursLoader.load();
+                    FrontCoursController coursCtrl = coursLoader.getController();
+                    coursCtrl.loadData();
+                    tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(coursView);
                 } catch (Exception ex) { ex.printStackTrace(); }
             });
             if (tn.esprit.MainApp.getPrimaryStage() == null || tn.esprit.MainApp.getPrimaryStage().getScene() == null) {

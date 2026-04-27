@@ -15,6 +15,7 @@ import tn.esprit.services.ServiceCommentaire;
 import tn.esprit.services.ServiceCommunaute;
 import tn.esprit.services.ServicePost;
 import tn.esprit.services.UserService;
+import tn.esprit.services.ResourceRecommendationService;
 import tn.esprit.session.SessionManager;
 
 import java.time.LocalDateTime;
@@ -45,7 +46,11 @@ public class FrontCommunauteDetailController {
     @FXML private VBox      postsPane;
     @FXML private VBox      similarPostsBox;
     @FXML private VBox      similarPostsList;
+    @FXML private VBox      resourcesBox;
+    @FXML private VBox      resourcesList;
     @FXML private ScrollPane mainScrollPane;
+
+    private final ResourceRecommendationService recommendationService = new ResourceRecommendationService();
 
     /** Maps postId → its card VBox for scroll-to navigation */
     private final java.util.Map<Integer, VBox> postCardMap = new java.util.HashMap<>();
@@ -58,6 +63,13 @@ public class FrontCommunauteDetailController {
     private Communaute communaute;
     private Runnable   onRetour;
     private Label      emptyLabel;
+
+    // Navigation callbacks injected by parent
+    private java.util.function.Consumer<Integer> onNavigateToCours;
+    private java.util.function.Consumer<Integer> onNavigateToQuiz;
+
+    public void setOnNavigateToCours(java.util.function.Consumer<Integer> cb) { this.onNavigateToCours = cb; }
+    public void setOnNavigateToQuiz(java.util.function.Consumer<Integer> cb)  { this.onNavigateToQuiz  = cb; }
 
     public void setCommunaute(Communaute c, Runnable retour) {
         this.communaute = c;
@@ -449,6 +461,7 @@ public class FrontCommunauteDetailController {
             pause.play();
             // ── Trigger similarity recommendation ──
             showSimilarPosts(p);
+            showResourceRecommendations(p);
         });
 
         // Comment count chip
@@ -800,6 +813,70 @@ public class FrontCommunauteDetailController {
         User u = userService.trouver(userId);
         if (u != null) return u.getPrenom() + " " + u.getNom();
         return "Utilisateur #" + userId;
+    }
+
+    /** Shows recommended courses & quizzes in the sidebar based on post keywords */
+    private void showResourceRecommendations(Post source) {
+        if (resourcesBox == null || resourcesList == null) return;
+        var results = recommendationService.recommend(source, 5);
+        if (results.isEmpty()) return;
+
+        resourcesList.getChildren().clear();
+        for (var r : results) {
+            boolean isCours = r.type().equals("cours");
+
+            // Icon + type badge
+            Label typeBadge = new Label(isCours ? "📚 Cours" : "🧠 Quiz");
+            typeBadge.setStyle(isCours
+                ? "-fx-background-color:#ede9fe; -fx-text-fill:#7c3aed;" +
+                  "-fx-font-size:9; -fx-font-weight:800; -fx-padding:3 10; -fx-background-radius:20;"
+                : "-fx-background-color:#fef3c7; -fx-text-fill:#d97706;" +
+                  "-fx-font-size:9; -fx-font-weight:800; -fx-padding:3 10; -fx-background-radius:20;");
+
+            Label lblTitle = new Label(r.titre());
+            lblTitle.setWrapText(true);
+            lblTitle.setStyle("-fx-font-size:12; -fx-font-weight:800; -fx-text-fill:#1e1b4b;");
+
+            Label lblSub = new Label(r.subtitle());
+            lblSub.setStyle("-fx-font-size:10; -fx-text-fill:#a78bfa;");
+
+            // Score bar
+            double pct = Math.min(r.score(), 1.0);
+            HBox scoreBar = new HBox();
+            scoreBar.setStyle("-fx-background-color:#f0eeff; -fx-background-radius:4; -fx-pref-height:4;");
+            HBox fill = new HBox();
+            fill.setPrefWidth(pct * 220);
+            fill.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5);" +
+                          "-fx-background-radius:4; -fx-pref-height:4;");
+            scoreBar.getChildren().add(fill);
+
+            VBox card = new VBox(6, new HBox(6, typeBadge), lblTitle, lblSub, scoreBar);
+            card.setStyle("-fx-background-color:#faf8ff; -fx-background-radius:14;" +
+                          "-fx-border-color:#ede9fe; -fx-border-radius:14; -fx-border-width:1;" +
+                          "-fx-padding:12 14; -fx-cursor:hand;");
+            card.setOnMouseClicked(e -> {
+                if (r.type().equals("cours") && onNavigateToCours != null) {
+                    onNavigateToCours.accept(r.id());
+                } else if (r.type().equals("quiz") && onNavigateToQuiz != null) {
+                    onNavigateToQuiz.accept(r.id());
+                } else {
+                    try { tn.esprit.MainApp.showCommunauteFront(); } catch (Exception ex) { ex.printStackTrace(); }
+                }
+            });
+            card.setOnMouseEntered(e -> card.setStyle(
+                    "-fx-background-color:#f0eeff; -fx-background-radius:14;" +
+                    "-fx-border-color:#7c3aed; -fx-border-radius:14; -fx-border-width:1.5;" +
+                    "-fx-padding:12 14; -fx-cursor:hand;"));
+            card.setOnMouseExited(e -> card.setStyle(
+                    "-fx-background-color:#faf8ff; -fx-background-radius:14;" +
+                    "-fx-border-color:#ede9fe; -fx-border-radius:14; -fx-border-width:1;" +
+                    "-fx-padding:12 14; -fx-cursor:hand;"));
+
+            resourcesList.getChildren().add(card);
+        }
+
+        resourcesBox.setVisible(true);
+        resourcesBox.setManaged(true);
     }
 
     /** Shows top-3 similar posts in the sidebar when user likes a post */
