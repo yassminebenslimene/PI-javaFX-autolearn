@@ -19,6 +19,7 @@ import tn.esprit.services.UserService;
 import tn.esprit.services.ResourceRecommendationService;
 import tn.esprit.services.TrendAnalyzerService;
 import tn.esprit.services.GroqTopicService;
+import tn.esprit.services.CommentSentimentService;
 import tn.esprit.session.SessionManager;
 
 import java.time.LocalDateTime;
@@ -615,7 +616,25 @@ public class FrontCommunauteDetailController {
             Commentaire newC = new Commentaire(txt, p.getId(), uid);
             serviceCommentaire.ajouter(newC);
             commentField.clear();
-            commentsBox.getChildren().add(buildCommentRow(newC));
+            HBox commentRow = buildCommentRow(newC);
+            commentsBox.getChildren().add(commentRow);
+
+            // ── AI Feedback Loop ──────────────────────────────────────────
+            final String commentText = txt;
+            System.out.println("[AI-Feedback] Comment submitted: " + commentText);
+            System.out.println("[AI-Feedback] API_KEY_PLACEHOLDER=" + GroqTopicService.API_KEY_PLACEHOLDER);
+            System.out.println("[AI-Feedback] API_KEY starts with: " + GroqTopicService.API_KEY.substring(0, Math.min(8, GroqTopicService.API_KEY.length())));
+            new Thread(() -> {
+                System.out.println("[AI-Feedback] Background thread started");
+                CommentSentimentService sentimentSvc = new CommentSentimentService();
+                CommentSentimentService.AnalysisResult result = sentimentSvc.analyze(commentText);
+                System.out.println("[AI-Feedback] Result: sentiment=" + result.sentiment() + " topic=" + result.topic() + " shouldSuggest=" + result.shouldSuggest());
+                if (result.shouldSuggest()) {
+                    javafx.application.Platform.runLater(() ->
+                        showAiFeedbackBanner(commentsBox, result.topic(), result.quizTitle())
+                    );
+                }
+            }).start();
         });
         commentField.setOnAction(e -> btnSend.fire());
 
@@ -849,6 +868,72 @@ public class FrontCommunauteDetailController {
         
         return row;
     }
+
+    /**
+     * Shows an AI-powered feedback banner below the comments when negative sentiment is detected.
+     * Suggests a quiz to help the student reinforce the concept they're struggling with.
+     */
+    private void showAiFeedbackBanner(VBox commentsBox, String topic, String quizTitle) {
+        // Avoid duplicate banners
+        commentsBox.getChildren().removeIf(n -> "ai-feedback-banner".equals(n.getId()));
+
+        VBox banner = new VBox(8);
+        banner.setId("ai-feedback-banner");
+        banner.setStyle(
+            "-fx-background-color:linear-gradient(to right,#fef3c7,#fffbeb);" +
+            "-fx-background-radius:16; -fx-border-color:#fde68a;" +
+            "-fx-border-radius:16; -fx-border-width:1.5; -fx-padding:16 18 16 18;" +
+            "-fx-effect:dropshadow(gaussian,rgba(245,158,11,0.2),12,0,0,4);");
+
+        HBox titleRow = new HBox(8);
+        titleRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        Label aiIcon = new Label("🤖");
+        aiIcon.setStyle("-fx-font-size:18;");
+
+        Label aiTitle = new Label("AutoLearn AI détecte une difficulté");
+        aiTitle.setStyle("-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#92400e;");
+
+        Button btnClose = new Button("✕");
+        btnClose.setStyle("-fx-background-color:transparent; -fx-text-fill:#b45309; -fx-cursor:hand; -fx-font-size:11; -fx-padding:0 4;");
+        btnClose.setOnAction(e -> commentsBox.getChildren().remove(banner));
+
+        Region spacer = new Region();
+        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+        titleRow.getChildren().addAll(aiIcon, aiTitle, spacer, btnClose);
+
+        Label topicLabel = new Label("📌  Sujet détecté : " + topic);
+        topicLabel.setStyle("-fx-font-size:12; -fx-text-fill:#78350f; -fx-font-weight:600;");
+
+        Label suggestion = new Label("💡  Il semble que tu aies du mal avec ce concept. Voici un quiz rapide pour t'aider !");
+        suggestion.setWrapText(true);
+        suggestion.setStyle("-fx-font-size:12; -fx-text-fill:#92400e;");
+
+        String displayQuiz = quizTitle != null ? quizTitle : "Quiz : " + topic + " — 5 questions rapides";
+
+        Button btnQuiz = new Button("🎯  " + displayQuiz);
+        btnQuiz.setStyle(
+            "-fx-background-color:linear-gradient(to right,#f59e0b,#d97706);" +
+            "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:800;" +
+            "-fx-padding:10 20 10 20; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;" +
+            "-fx-effect:dropshadow(gaussian,rgba(245,158,11,0.4),10,0,0,3);");
+        btnQuiz.setOnMouseEntered(e -> btnQuiz.setOpacity(0.88));
+        btnQuiz.setOnMouseExited(e -> btnQuiz.setOpacity(1.0));
+        btnQuiz.setOnAction(e -> {
+            // Navigate to quiz section — search for matching quiz
+            FrontofficeController.setPendingSection("cours");
+            try { tn.esprit.MainApp.showFrontoffice(); } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        banner.getChildren().addAll(titleRow, topicLabel, suggestion, btnQuiz);
+
+        // Animate in
+        banner.setOpacity(0);
+        commentsBox.getChildren().add(banner);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(400), banner);
+        ft.setFromValue(0); ft.setToValue(1); ft.play();
+    }
+
     private void onModifierComment(Commentaire c, VBox bubble, Label lblContenu) {
         lblContenu.setVisible(false);
         lblContenu.setManaged(false);

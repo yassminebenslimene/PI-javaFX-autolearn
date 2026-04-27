@@ -51,3 +51,5 @@ session3.md
 ### Local secrets (never commit these) ###
 .hf_token
 *.env.local
+groq.properties
+*.properties.local

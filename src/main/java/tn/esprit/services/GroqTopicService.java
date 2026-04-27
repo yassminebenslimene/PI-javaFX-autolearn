@@ -23,10 +23,26 @@ import java.util.*;
 public class GroqTopicService {
 
     // ── Config ────────────────────────────────────────────────────────────────
-    public static final String  API_KEY             = System.getenv("GROQ_API_KEY") != null
-            ? System.getenv("GROQ_API_KEY")
-            : "gsk_placeholder";
-    public static final boolean API_KEY_PLACEHOLDER = API_KEY.equals("gsk_placeholder");
+    public static final String API_KEY;
+    public static final boolean API_KEY_PLACEHOLDER;
+
+    static {
+        // 1. Try environment variable
+        String key = System.getenv("GROQ_API_KEY");
+        // 2. Try config file (not committed to git)
+        if (key == null || key.isBlank()) {
+            try {
+                java.util.Properties props = new java.util.Properties();
+                java.io.File f = new java.io.File("groq.properties");
+                if (f.exists()) {
+                    props.load(new java.io.FileInputStream(f));
+                    key = props.getProperty("GROQ_API_KEY");
+                }
+            } catch (Exception ignored) {}
+        }
+        API_KEY = (key != null && !key.isBlank()) ? key : "gsk_placeholder";
+        API_KEY_PLACEHOLDER = API_KEY.equals("gsk_placeholder");
+    }
     private static final String ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
     private static final String MODEL    = "llama-3.3-70b-versatile";
 
