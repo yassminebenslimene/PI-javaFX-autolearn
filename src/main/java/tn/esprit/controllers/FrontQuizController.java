@@ -267,7 +267,9 @@ public class FrontQuizController {
      * @param onRetour   callback à exécuter quand l'étudiant clique "Retour aux chapitres"
      */
     public void setChapitre(Chapitre chapitre, Runnable onRetour) {
-        this.chapitre = chapitre;
+        // Recharger depuis BDD pour avoir coursId correct
+        tn.esprit.entities.Chapitre chapFull = new tn.esprit.services.ServiceChapitre().getById(chapitre.getId());
+        this.chapitre = (chapFull != null && chapFull.getCoursId() > 0) ? chapFull : chapitre;
         this.onRetourCallback = onRetour;
         List<Quiz> quizDuChapitre = serviceQuiz.findByChapitreId(chapitre.getId());
         Quiz trouve = quizDuChapitre.isEmpty() ? null : quizDuChapitre.get(0);
@@ -627,7 +629,7 @@ public class FrontQuizController {
         labelPointsTotal.setText(String.valueOf(totalPoints));
 
         // ── PROGRESSION : marquer le chapitre comme complété si quiz réussi ──
-        if (pct >= seuil && chapitre != null) {
+        if (pct >= seuil && chapitre != null && tn.esprit.session.SessionManager.getCurrentUser() != null) {
             try {
                 tn.esprit.services.CourseProgressService progressService =
                     new tn.esprit.services.CourseProgressService();

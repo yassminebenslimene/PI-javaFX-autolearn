@@ -13,7 +13,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
-import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.session.SessionManager;
 
@@ -223,6 +222,202 @@ public class ChapitreController {
         openFormWindow(null);
     }
 
+    @FXML
+    private void onGenerateWithAI() {
+        if (!SessionManager.isAdmin()) {
+            showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
+            return;
+        }
+        if (cours == null) {
+            showAlert(Alert.AlertType.ERROR, "Cours manquant", "Aucun cours sélectionné.");
+            return;
+        }
+        showAIGeneratorDialog();
+    }
+
+    private void showAIGeneratorDialog() {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle("🤖 Générer un chapitre avec l'IA");
+        dialog.setResizable(false);
+
+        javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(0);
+        root.setStyle("-fx-background-color:#1a1a2e;");
+
+        // Header
+        javafx.scene.layout.VBox header = new javafx.scene.layout.VBox(6);
+        header.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#a855f7); -fx-padding:24 28 24 28;");
+        Label headerTitle = new Label("🤖 Génération IA de Chapitre");
+        headerTitle.setStyle("-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;");
+        Label headerSub = new Label("Powered by Llama 3.3 70B via Groq API");
+        headerSub.setStyle("-fx-font-size:11; -fx-text-fill:rgba(255,255,255,0.7);");
+        header.getChildren().addAll(headerTitle, headerSub);
+
+        // Body
+        javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(18);
+        body.setStyle("-fx-padding:28 28 20 28;");
+
+        // Cours info
+        javafx.scene.layout.VBox coursInfo = new javafx.scene.layout.VBox(4);
+        coursInfo.setStyle("-fx-background-color:rgba(168,85,247,0.12); -fx-background-radius:10; -fx-padding:12 16 12 16; -fx-border-color:rgba(168,85,247,0.3); -fx-border-radius:10;");
+        Label coursLabel = new Label("📚 Cours : " + cours.getTitre());
+        coursLabel.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#c4b5fd;");
+        Label matiereLabel = new Label("📖 " + cours.getMatiere() + "   •   ⭐ Niveau global : " + cours.getNiveau());
+        matiereLabel.setStyle("-fx-font-size:11; -fx-text-fill:rgba(196,181,253,0.7);");
+        coursInfo.getChildren().addAll(coursLabel, matiereLabel);
+
+        // Titre field
+        javafx.scene.layout.VBox titreBox = new javafx.scene.layout.VBox(8);
+        Label titreLabel = new Label("Titre du chapitre *");
+        titreLabel.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:rgba(245,245,244,0.8);");
+        TextField titreField = new TextField();
+        titreField.setPromptText("Ex: Introduction aux variables, Les boucles for...");
+        titreField.setStyle("-fx-background-color:rgba(255,255,255,0.07); -fx-text-fill:white; -fx-prompt-text-fill:rgba(245,245,244,0.3); -fx-border-color:rgba(255,255,255,0.15); -fx-border-radius:10; -fx-background-radius:10; -fx-padding:10 14 10 14; -fx-font-size:13;");
+        Label titreError = new Label("");
+        titreError.setStyle("-fx-text-fill:#f87171; -fx-font-size:11;");
+        titreBox.getChildren().addAll(titreLabel, titreField, titreError);
+
+        // Niveau ComboBox
+        javafx.scene.layout.VBox niveauBox = new javafx.scene.layout.VBox(8);
+        Label niveauLabel = new Label("Niveau de difficulté *");
+        niveauLabel.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:rgba(245,245,244,0.8);");
+        ComboBox<String> niveauCombo = new ComboBox<>();
+        niveauCombo.setItems(FXCollections.observableArrayList("🟢 Débutant", "🟡 Intermédiaire", "🔴 Avancé"));
+        niveauCombo.setValue("🟢 Débutant");
+        niveauCombo.setMaxWidth(Double.MAX_VALUE);
+        niveauCombo.setStyle("-fx-background-color:rgba(255,255,255,0.07); -fx-text-fill:white; -fx-border-color:rgba(255,255,255,0.15); -fx-border-radius:10; -fx-background-radius:10; -fx-font-size:13;");
+        niveauBox.getChildren().addAll(niveauLabel, niveauCombo);
+
+        // Status label
+        Label statusLabel = new Label("");
+        statusLabel.setStyle("-fx-font-size:12; -fx-text-fill:#a78bfa; -fx-font-weight:600;");
+        statusLabel.setWrapText(true);
+
+        // Buttons
+        javafx.scene.layout.HBox btnBox = new javafx.scene.layout.HBox(12);
+        btnBox.setAlignment(Pos.CENTER_RIGHT);
+        btnBox.setStyle("-fx-padding:8 0 0 0;");
+
+        Button btnCancel = new Button("Annuler");
+        btnCancel.setStyle("-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:rgba(245,245,244,0.7); -fx-font-size:13; -fx-padding:10 20 10 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+        btnCancel.setOnAction(e -> dialog.close());
+
+        Button btnGenerate = new Button("🤖  Générer le chapitre");
+        btnGenerate.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#a855f7); -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13; -fx-padding:10 24 10 24; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+
+        btnGenerate.setOnAction(e -> {
+            String titre = titreField.getText().trim();
+            if (titre.isEmpty()) {
+                titreError.setText("Le titre est obligatoire");
+                return;
+            }
+            if (titre.length() < 3) {
+                titreError.setText("Le titre doit contenir au moins 3 caractères");
+                return;
+            }
+            titreError.setText("");
+
+            String niveauRaw = niveauCombo.getValue();
+            String niveau = niveauRaw.contains("Débutant") ? "Débutant"
+                          : niveauRaw.contains("Intermédiaire") ? "Intermédiaire" : "Avancé";
+
+            btnGenerate.setDisable(true);
+            btnCancel.setDisable(true);
+            statusLabel.setText("⏳ Génération en cours avec Llama 3.3 70B...");
+
+            new Thread(() -> {
+                try {
+                    String apiKey = tn.esprit.tools.ConfigLoader.getGroqApiKey();
+                    String model  = tn.esprit.tools.ConfigLoader.getGroqModel();
+                    tn.esprit.services.GroqTranslationService groq = new tn.esprit.services.GroqTranslationService(apiKey, model);
+
+                    String prompt = buildAIPrompt(titre, niveau);
+                    String generated = groq.translate(prompt, "");
+
+                    // L'IA retourne directement du HTML - pas besoin de parser
+                    String contenu = generated.trim();
+                    // Nettoyer si l'IA a ajouté des marqueurs
+                    if (contenu.contains("CONTENU:")) {
+                        contenu = extractSection(contenu, "CONTENU:", "RESSOURCES:");
+                    }
+                    if (contenu.length() < 100) {
+                        contenu = generated; // fallback
+                    }
+
+                    // Calculer l'ordre (dernier + 1)
+                    List<Chapitre> existing = serviceChapitre.consulterParCoursId(cours.getId());
+                    int ordre = existing.size() + 1;
+
+                    final String finalContenu = contenu;
+                    final int finalOrdre = ordre;
+                    final String finalTitre = titre;
+
+                    javafx.application.Platform.runLater(() -> {
+                        Chapitre newChapitre = new Chapitre(finalTitre, finalContenu, finalOrdre,
+                            "", cours.getId(), "AUTRE", "");
+                        serviceChapitre.ajouter(newChapitre);
+                        loadTable();
+                        dialog.close();
+                        showAlert(Alert.AlertType.INFORMATION, "✅ Chapitre généré",
+                            "Le chapitre \"" + finalTitre + "\" a été généré et sauvegardé avec succès!");
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        statusLabel.setText("❌ Erreur: " + ex.getMessage());
+                        btnGenerate.setDisable(false);
+                        btnCancel.setDisable(false);
+                    });
+                }
+            }).start();
+        });
+
+        btnBox.getChildren().addAll(btnCancel, btnGenerate);
+        body.getChildren().addAll(coursInfo, titreBox, niveauBox, statusLabel, btnBox);
+        root.getChildren().addAll(header, body);
+
+        dialog.setScene(new Scene(root, 560, 520));
+        dialog.show();
+    }
+
+    private String buildAIPrompt(String titre, String niveau) {
+        String niveauDesc = switch (niveau) {
+            case "Débutant" -> "vocabulaire simple, exemples basiques, aucun jargon technique, explications détaillées pour débutants complets";
+            case "Intermédiaire" -> "concepts avancés, terminologie technique appropriée, exemples pratiques concrets, bonnes pratiques";
+            default -> "cas d'usage complexes, optimisations de performance, bonnes pratiques professionnelles, patterns avancés";
+        };
+
+        return String.format(
+            "Tu es un expert pédagogique spécialisé en '%s'.\n\n" +
+            "Génère un chapitre de cours COMPLET et DÉTAILLÉ sur le sujet suivant:\n" +
+            "- Cours: %s\n" +
+            "- Matière: %s\n" +
+            "- Titre du chapitre: %s\n" +
+            "- Niveau: %s (%s)\n\n" +
+            "RÈGLES STRICTES:\n" +
+            "1. Le contenu doit être UNIQUEMENT sur '%s' dans le contexte de '%s'\n" +
+            "2. NE PAS mentionner de vidéos, liens YouTube ou ressources externes\n" +
+            "3. Génère du contenu HTML structuré avec <h2>, <h3>, <p>, <ul>, <li>, <pre><code>\n" +
+            "4. Minimum 600 caractères de contenu pédagogique\n" +
+            "5. Langue: Français\n" +
+            "6. Inclure des exemples concrets liés au sujet '%s'\n\n" +
+            "RÉPONDS UNIQUEMENT avec le contenu HTML, sans introduction ni explication:",
+            cours.getMatiere(),
+            cours.getTitre(), cours.getMatiere(),
+            titre, niveau, niveauDesc,
+            titre, cours.getTitre(),
+            titre
+        );
+    }
+
+    private String extractSection(String text, String startMarker, String endMarker) {
+        int start = text.indexOf(startMarker);
+        if (start < 0) return "";
+        start += startMarker.length();
+        int end = endMarker != null ? text.indexOf(endMarker, start) : text.length();
+        if (end < 0) end = text.length();
+        return text.substring(start, end).trim();
+    }
+
     private void onEditChapitre(Chapitre chapitre) {
         if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
@@ -243,9 +438,6 @@ public class ChapitreController {
         confirm.setContentText("Voulez-vous supprimer '" + chapitre.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                var admin = SessionManager.getCurrentUser();
-                if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_chapitre",
-                    java.util.Map.of("titre", chapitre.getTitre()));
                 serviceChapitre.supprimer(chapitre.getId());
                 loadTable();
             }
@@ -307,9 +499,6 @@ public class ChapitreController {
         if (!editMode) {
             Chapitre chapitre = new Chapitre(titre, contenu, ordre, ressources, cours.getId(), type, fichier);
             serviceChapitre.ajouter(chapitre);
-            var admin = SessionManager.getCurrentUser();
-            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_chapitre",
-                java.util.Map.of("titre", titre, "cours_id", String.valueOf(cours.getId())));
         } else {
             editingChapitre.setTitre(titre);
             editingChapitre.setContenu(contenu);
@@ -319,9 +508,6 @@ public class ChapitreController {
             editingChapitre.setRessourceFichier(fichier);
             editingChapitre.setCoursId(cours.getId());
             serviceChapitre.modifier(editingChapitre);
-            var admin = SessionManager.getCurrentUser();
-            if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_chapitre",
-                java.util.Map.of("titre", titre));
         }
 
         ((Stage) fieldTitre.getScene().getWindow()).close();

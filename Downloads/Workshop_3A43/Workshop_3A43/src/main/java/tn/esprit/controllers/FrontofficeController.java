@@ -113,6 +113,23 @@ public class FrontofficeController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    @FXML
+    public void onGitHubExamples() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/github_examples.fxml"));
+            Parent view = loader.load();
+            setCenter(view);
+        } catch (Exception e) { 
+            e.printStackTrace();
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setHeaderText("Impossible de charger les exemples GitHub");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
     private void setCenter(Parent view) {
         if (labelCurrentUser == null) return;
         var scene = labelCurrentUser.getScene();

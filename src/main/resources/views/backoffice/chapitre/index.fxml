@@ -58,6 +58,13 @@
                            -fx-border-width:0;
                            -fx-effect:dropshadow(gaussian,rgba(37,99,235,0.5),10,0,0,3);"
                     text="＋  Nouveau chapitre"/>
+            <Button onAction="#onGenerateWithAI"
+                    style="-fx-background-color:linear-gradient(to bottom right,#a855f7,#7c3aed);
+                           -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:12;
+                           -fx-padding:10 20 10 20; -fx-background-radius:12; -fx-cursor:hand;
+                           -fx-border-width:0;
+                           -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.5),10,0,0,3);"
+                    text="🤖  Générer avec l'IA"/>
             <Button onAction="#onCloseWindow"
                     style="-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:rgba(245,245,244,0.7);
                            -fx-font-size:12; -fx-padding:10 16 10 16; -fx-background-radius:12;
