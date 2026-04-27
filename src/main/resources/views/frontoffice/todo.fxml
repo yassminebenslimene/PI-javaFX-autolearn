@@ -18,12 +18,14 @@
                          -fx-padding:28 48 28 48;">
                 <HBox alignment="CENTER_LEFT" spacing="12">
                     <Label text="📋" style="-fx-font-size:26;"/>
-                    <VBox spacing="2">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
                         <Label text="Ma Liste d'Apprentissage"
                                style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:900;"/>
                         <Label text="Suivez votre progression, débloquez des badges et atteignez vos objectifs"
                                style="-fx-text-fill:rgba(255,255,255,0.7); -fx-font-size:12;"/>
                     </VBox>
+                    <Button text="← Retour aux Cours" onAction="#onRetourCours"
+                            style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 20; -fx-background-radius:25; -fx-cursor:hand; -fx-border-width:1; -fx-border-color:rgba(255,255,255,0.3); -fx-border-radius:25;"/>
                 </HBox>
                 <!-- 4 stats rapides -->
                 <HBox spacing="12">

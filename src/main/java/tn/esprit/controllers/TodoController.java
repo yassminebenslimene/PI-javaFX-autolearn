@@ -299,6 +299,15 @@ public class TodoController {
         }
     }
 
+    @FXML
+    private void onRetourCours() {
+        try {
+            tn.esprit.MainApp.showCoursPage();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private HBox buildRecoCard(String icon, String accent, String bg, String titre, String detail) {
         HBox card = new HBox(12);
         card.setAlignment(Pos.CENTER_LEFT);

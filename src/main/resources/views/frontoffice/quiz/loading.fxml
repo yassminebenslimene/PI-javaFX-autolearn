@@ -1,106 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-    ============================================================
-    loading.fxml — Écran de chargement animé du quiz
-    ============================================================
-
-    Rôle :
-      Affiche une animation de transition de 2 secondes entre
-      l'écran d'introduction et l'écran de questions.
-      Donne un retour visuel à l'étudiant pendant le chargement
-      des données du quiz.
-
-    Contrôleur associé : FrontQuizController
-      - startLoading(titre, onFinished) : lance toutes les animations
-        et programme la transition vers l'écran de questions.
-
-    Animations déclenchées par startLoading() :
-      1. Rotation continue du logoContainer (360° / 1,5 s, infinie)
-      2. Pulsation de chaque carré (scale 1.0 → 1.15, délais décalés)
-         - squareBlue   : délai 0,0 s
-         - squareGreen  : délai 0,2 s
-         - squareRed    : délai 0,4 s
-         - squareOrange : délai 0,6 s
-      3. Clignotement du label "Chargement du Quiz..." (fade 1.0 → 0.4)
-      4. Pause de 2 secondes, puis fondu sortant (fade 1.0 → 0.0 en 400 ms)
-         → exécute le callback onFinished (naviguerVersQuestion)
-
-    Structure de la vue :
-      StackPane (rootPane — fond dégradé bleu-violet)
-      └── VBox (centré)
-          ├── StackPane (logoContainer — 4 carrés colorés)
-          │   ├── Rectangle bleu   (squareBlue,   haut-gauche)
-          │   ├── Rectangle vert   (squareGreen,  haut-droit)
-          │   ├── Rectangle rouge  (squareRed,    bas-gauche)
-          │   └── Rectangle orange (squareOrange, bas-droit)
-          ├── Label "Chargement du Quiz..." (loadingLabel)
-          └── Label nom du quiz (quizNameLabel)
--->
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.shape.Circle?>
 
-<!--
-    rootPane : conteneur racine de l'écran de chargement.
-    fx:id utilisé par startLoading() pour appliquer le fondu sortant final.
-    prefWidth/prefHeight définissent la taille initiale de la vue.
--->
 <StackPane fx:id="rootPane"
            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="tn.esprit.controllers.FrontQuizController"
-           style="-fx-background-color:linear-gradient(to bottom right,#667eea,#764ba2);"
+           style="-fx-background-color: linear-gradient(to bottom right, #7c3aed, #a78bfa);"
            prefWidth="1000" prefHeight="700">
 
-    <!-- Contenu centré verticalement et horizontalement -->
+    <!-- ── Décorations de fond (bulles) — même style que intro/sélection ── -->
+
+    <!-- Grands cercles pleins -->
+    <Circle radius="200" fill="rgba(255,255,255,0.06)" translateX="-380" translateY="-200" mouseTransparent="true"/>
+    <Circle radius="170" fill="rgba(255,255,255,0.05)" translateX="380"  translateY="-190" mouseTransparent="true"/>
+    <Circle radius="150" fill="rgba(255,255,255,0.07)" translateX="-370" translateY="230"  mouseTransparent="true"/>
+    <Circle radius="180" fill="rgba(255,255,255,0.04)" translateX="370"  translateY="220"  mouseTransparent="true"/>
+    <Circle radius="130" fill="rgba(255,255,255,0.06)" translateX="0"    translateY="-270" mouseTransparent="true"/>
+    <Circle radius="100" fill="rgba(255,255,255,0.05)" translateX="-100" translateY="290"  mouseTransparent="true"/>
+    <Circle radius="110" fill="rgba(255,255,255,0.06)" translateX="200"  translateY="270"  mouseTransparent="true"/>
+
+    <!-- Cercles moyens -->
+    <Circle radius="75"  fill="rgba(255,255,255,0.08)" translateX="180"  translateY="-240" mouseTransparent="true"/>
+    <Circle radius="65"  fill="rgba(255,255,255,0.09)" translateX="-280" translateY="70"   mouseTransparent="true"/>
+    <Circle radius="60"  fill="rgba(255,255,255,0.07)" translateX="280"  translateY="110"  mouseTransparent="true"/>
+    <Circle radius="55"  fill="rgba(255,255,255,0.08)" translateX="-180" translateY="-110" mouseTransparent="true"/>
+    <Circle radius="50"  fill="rgba(255,255,255,0.07)" translateX="150"  translateY="240"  mouseTransparent="true"/>
+    <Circle radius="45"  fill="rgba(255,255,255,0.09)" translateX="-350" translateY="-60"  mouseTransparent="true"/>
+    <Circle radius="40"  fill="rgba(255,255,255,0.08)" translateX="350"  translateY="-60"  mouseTransparent="true"/>
+    <Circle radius="35"  fill="rgba(255,255,255,0.10)" translateX="0"    translateY="210"  mouseTransparent="true"/>
+    <Circle radius="30"  fill="rgba(255,255,255,0.09)" translateX="-150" translateY="-210" mouseTransparent="true"/>
+    <Circle radius="28"  fill="rgba(255,255,255,0.08)" translateX="320"  translateY="-230" mouseTransparent="true"/>
+
+    <!-- Anneaux -->
+    <Circle radius="120" fill="transparent" stroke="rgba(255,255,255,0.10)" strokeWidth="2"   translateX="-250" translateY="190"  mouseTransparent="true"/>
+    <Circle radius="90"  fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="2"   translateX="260"  translateY="-160" mouseTransparent="true"/>
+    <Circle radius="70"  fill="transparent" stroke="rgba(255,255,255,0.09)" strokeWidth="1.5" translateX="-100" translateY="-230" mouseTransparent="true"/>
+    <Circle radius="55"  fill="transparent" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" translateX="320"  translateY="160"  mouseTransparent="true"/>
+
+    <!-- Points lumineux -->
+    <Circle radius="7" fill="rgba(255,255,255,0.28)" translateX="-210" translateY="-270" mouseTransparent="true"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.22)" translateX="260"  translateY="-110" mouseTransparent="true"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.25)" translateX="-160" translateY="210"  mouseTransparent="true"/>
+    <Circle radius="8" fill="rgba(255,255,255,0.20)" translateX="210"  translateY="260"  mouseTransparent="true"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.28)" translateX="110"  translateY="-290" mouseTransparent="true"/>
+    <Circle radius="6" fill="rgba(255,255,255,0.22)" translateX="-330" translateY="160"  mouseTransparent="true"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.35)" translateX="390"  translateY="60"   mouseTransparent="true"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.25)" translateX="-80"  translateY="280"  mouseTransparent="true"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="320"  translateY="-270" mouseTransparent="true"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.40)" translateX="60"   translateY="-300" mouseTransparent="true"/>
+    <Circle radius="4" fill="rgba(255,255,255,0.30)" translateX="-60"  translateY="300"  mouseTransparent="true"/>
+    <Circle radius="5" fill="rgba(255,255,255,0.25)" translateX="240"  translateY="190"  mouseTransparent="true"/>
+    <Circle radius="3" fill="rgba(255,255,255,0.35)" translateX="-240" translateY="-190" mouseTransparent="true"/>
+
+    <!-- ── Contenu centré ── -->
     <VBox alignment="CENTER" spacing="24">
 
-        <!--
-            logoContainer : conteneur des 4 carrés colorés.
-            La rotation continue est appliquée sur ce StackPane entier
-            (pas sur les carrés individuellement) pour un effet de logo tournant.
-            Les 4 carrés sont positionnés aux 4 coins via translateX/translateY.
-        -->
-        <!-- Logo 4 carrés -->
+        <!-- Logo 4 carrés animés -->
         <StackPane fx:id="logoContainer" prefWidth="120" prefHeight="120">
-
-            <!-- Carré bleu : coin supérieur gauche (translateX=-28, translateY=-28) -->
             <Rectangle fx:id="squareBlue"
                        width="55" height="55" arcWidth="12" arcHeight="12"
                        fill="#3498db" translateX="-28" translateY="-28"/>
-
-            <!-- Carré vert : coin supérieur droit (translateX=+28, translateY=-28) -->
             <Rectangle fx:id="squareGreen"
                        width="55" height="55" arcWidth="12" arcHeight="12"
                        fill="#2ecc71" translateX="28" translateY="-28"/>
-
-            <!-- Carré rouge : coin inférieur gauche (translateX=-28, translateY=+28) -->
             <Rectangle fx:id="squareRed"
                        width="55" height="55" arcWidth="12" arcHeight="12"
                        fill="#e74c3c" translateX="-28" translateY="28"/>
-
-            <!-- Carré orange : coin inférieur droit (translateX=+28, translateY=+28) -->
             <Rectangle fx:id="squareOrange"
                        width="55" height="55" arcWidth="12" arcHeight="12"
                        fill="#f39c12" translateX="28" translateY="28"/>
-
         </StackPane>
 
-        <!--
-            loadingLabel : texte principal de l'écran de chargement.
-            Animé par un FadeTransition (clignotement) dans startLoading().
-            Taille 28px, gras, blanc.
-        -->
         <!-- Texte principal -->
         <Label fx:id="loadingLabel" text="Chargement du Quiz..."
                style="-fx-text-fill:white; -fx-font-size:28; -fx-font-weight:bold;"/>
 
-        <!--
-            quizNameLabel : affiche le nom du quiz en cours de chargement.
-            Rempli par startLoading(titre, ...) avec "Quiz - [titre]".
-            Blanc semi-transparent (80 % d'opacité), taille 16px.
-        -->
         <!-- Nom du quiz -->
         <Label fx:id="quizNameLabel" text=""
                style="-fx-text-fill:rgba(255,255,255,0.8); -fx-font-size:16;"/>
@@ -108,4 +86,3 @@
     </VBox>
 
 </StackPane>
-

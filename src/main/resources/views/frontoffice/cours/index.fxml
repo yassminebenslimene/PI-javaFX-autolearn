@@ -14,10 +14,26 @@
             <VBox spacing="10" alignment="CENTER_LEFT"
                   style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
                          -fx-padding:36 60 36 60;">
-                <Label text="Catalogue des Cours"
-                       style="-fx-text-fill:white; -fx-font-size:30; -fx-font-weight:900;"/>
-                <Label text="Explorez toutes nos formations et commencez votre apprentissage"
-                       style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:14;"/>
+                <HBox alignment="CENTER" spacing="0" HBox.hgrow="ALWAYS">
+                    <VBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                        <Label text="Catalogue des Cours"
+                               style="-fx-text-fill:white; -fx-font-size:30; -fx-font-weight:900;"/>
+                        <Label text="Explorez toutes nos formations et commencez votre apprentissage"
+                               style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:14;"/>
+                    </VBox>
+                    <HBox spacing="12" alignment="CENTER_RIGHT">
+                        <Button text="💻 GitHub" onAction="#onGitHub"
+                                style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
+                                       -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 20 10 20;
+                                       -fx-background-radius:25; -fx-cursor:hand; -fx-border-width:1;
+                                       -fx-border-color:rgba(255,255,255,0.3); -fx-border-radius:25;"/>
+                        <Button text="📋 Ma Liste" onAction="#onMaListe"
+                                style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
+                                       -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 20 10 20;
+                                       -fx-background-radius:25; -fx-cursor:hand; -fx-border-width:1;
+                                       -fx-border-color:rgba(255,255,255,0.3); -fx-border-radius:25;"/>
+                    </HBox>
+                </HBox>
                 <HBox spacing="20" style="-fx-padding:10 0 0 0;">
                     <VBox alignment="CENTER" spacing="2"
                           style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:12; -fx-padding:10 20 10 20;">

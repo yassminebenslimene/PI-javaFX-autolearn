@@ -10,12 +10,12 @@ import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 
 /**
- * Controller du formulaire Option (option_form.fxml).
- * Gère la création d'une nouvelle option et la modification d'une option existante.
- * Si optionAModifier == null → mode création, sinon → mode modification.
+ * OptionController — formulaire de création et modification d'une option de réponse.
+ * Mode création si optionAModifier == null, sinon mode modification.
  */
 public class OptionController {
 
+    // Champs FXML
     @FXML private Label pageTitle;
     @FXML private Label cardTitle;
     @FXML private TextField texteField;
@@ -42,9 +42,10 @@ public class OptionController {
 
     private final ServiceOption serviceOption = new ServiceOption();
     private final ServiceQuestion serviceQuestion = new ServiceQuestion();
-    private Option optionAModifier = null;
+    private Option optionAModifier = null; // null = création, sinon = modification
     private int questionId;
 
+    // Initialisation : remplit la ComboBox questions et attache les listeners
     @FXML
     public void initialize() {
         // Remplir la ComboBox questions
@@ -53,12 +54,14 @@ public class OptionController {
             @Override protected void updateItem(Question item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item.getTexteQuestion());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         questionCombo.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(Question item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? "Choisissez la question à laquelle appartient cette option" : item.getTexteQuestion());
+                setStyle("-fx-text-fill:#f5f5f4;");
             }
         });
         questionCombo.valueProperty().addListener((o, ov, nv) -> {
@@ -74,11 +77,13 @@ public class OptionController {
         });
     }
 
+    // Pré-sélectionne la question pour une nouvelle option
     public void initNouvelle(int questionId) {
         this.questionId = questionId;
         questionCombo.getItems().stream().filter(q -> q.getId() == questionId).findFirst().ifPresent(questionCombo::setValue);
     }
 
+    // Pré-remplit le formulaire avec les données de l'option à modifier
     public void initModifier(Option option) {
         this.optionAModifier = option;
         this.questionId = option.getQuestionId();
@@ -90,7 +95,7 @@ public class OptionController {
         questionCombo.getItems().stream().filter(q -> q.getId() == option.getQuestionId()).findFirst().ifPresent(questionCombo::setValue);
     }
 
-    // ── Sauvegarder : appelé quand on clique sur le bouton Enregistrer ────────
+    // Valide les champs et sauvegarde l'option (création ou modification)
     @FXML
     public void sauvegarder() {
         // Réinitialiser le style et le message d'erreur
@@ -154,7 +159,7 @@ public class OptionController {
         if (ok) retour();
     }
 
-    // ── Retour : revenir à la liste sans sauvegarder ─────────────────────────
+    // Retourne à la liste des quiz sans sauvegarder
     @FXML
     public void retour() {
         try {

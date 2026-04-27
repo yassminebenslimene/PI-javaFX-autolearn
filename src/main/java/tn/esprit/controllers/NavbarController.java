@@ -15,6 +15,8 @@ public class NavbarController {
     @FXML private Button btnEvenements;
     @FXML private Button btnCommunaute;
     @FXML private Button btnChallenges;
+    @FXML private Button btnGitHub;
+    @FXML private Button btnMaListe;
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
     @FXML private Button btnProfile;
@@ -88,6 +90,12 @@ public class NavbarController {
         if (SessionManager.isAdmin())
             navigate(() -> MainApp.showBackofficeView("/views/backoffice/challenge/challenges.fxml", "Challenges"));
         else navigate(() -> MainApp.showChallengesFront());
+    }
+    @FXML private void onGitHub() {
+        navigate(() -> MainApp.showGitHubExamples());
+    }
+    @FXML private void onMaListe() {
+        navigate(() -> MainApp.showTodoList());
     }
     @FXML private void onDashboard() { navigate(() -> MainApp.showBackoffice()); }
     @FXML private void onUsers()     { navigate(() -> MainApp.showBackoffice()); }

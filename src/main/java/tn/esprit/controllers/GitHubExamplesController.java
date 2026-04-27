@@ -281,6 +281,15 @@ public class GitHubExamplesController {
         }
     }
 
+    @FXML
+    private void onRetourCours() {
+        try {
+            tn.esprit.MainApp.showCoursPage();
+        } catch (Exception e) {
+            showAlert("Erreur", "Impossible de retourner aux cours: " + e.getMessage());
+        }
+    }
+
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

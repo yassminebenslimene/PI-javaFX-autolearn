@@ -12,6 +12,12 @@
     <!-- Header avec gradient -->
     <HBox alignment="CENTER_LEFT" spacing="15" 
           style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-padding: 25 30;">
+        <Button text="← Retour aux Cours" onAction="#onRetourCours"
+                style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white;
+                       -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 8 16;
+                       -fx-background-radius: 20; -fx-cursor: hand; -fx-border-width: 1;
+                       -fx-border-color: rgba(255,255,255,0.3); -fx-border-radius: 20;"/>
+        <Region HBox.hgrow="ALWAYS"/>
         <Label text="💻" style="-fx-font-size: 32px;"/>
         <VBox spacing="3">
             <Label text="GitHub Code Explorer" 
