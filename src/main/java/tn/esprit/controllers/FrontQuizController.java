@@ -1594,77 +1594,254 @@ public class FrontQuizController {
                 if (containerExplications == null) return;
                 containerExplications.getChildren().clear();
 
-                for (Question q : questions) {
+                for (int qi = 0; qi < questions.size(); qi++) {
+                    Question q = questions.get(qi);
                     GroqQuizCorrectorService.ExplicationQuestion expl = explications.get(q.getId());
-                    if (expl == null) continue;
+                    Integer choisiId = reponsesChoisies.get(q.getId());
+                    List<Option> opts = optionsParQuestion.getOrDefault(q.getId(),
+                        serviceOption.findByQuestionId(q.getId()));
 
-                    // Couleur de la carte selon correct/incorrect
-                    String bgColor  = expl.isCorrect() ? "#f0fdf4" : "#fef2f2";
-                    String bdColor  = expl.isCorrect() ? "#bbf7d0" : "#fecaca";
-                    String iconText = expl.isCorrect() ? "✅" : "❌";
-                    String iconBg   = expl.isCorrect() ? "#22c55e" : "#ef4444";
+                    // Trouver la bonne réponse
+                    Option bonneReponse = opts.stream()
+                        .filter(Option::isEstCorrecte).findFirst().orElse(null);
+                    boolean correct = expl != null ? expl.isCorrect()
+                        : (bonneReponse != null && choisiId != null
+                           && bonneReponse.getId() == choisiId.intValue());
 
-                    javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(10);
+                    // ── Carte principale ──────────────────────────────────────
+                    javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(0);
                     card.setStyle(
-                        "-fx-background-color:" + bgColor + ";" +
-                        "-fx-background-radius:14;" +
-                        "-fx-border-color:" + bdColor + ";" +
-                        "-fx-border-radius:14; -fx-border-width:1;" +
-                        "-fx-padding:16 18 16 18;"
+                        "-fx-background-color:white;" +
+                        "-fx-background-radius:16;" +
+                        "-fx-border-color:#e2e8f0;" +
+                        "-fx-border-radius:16; -fx-border-width:1;" +
+                        "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);"
                     );
 
-                    // En-tête : icône + texte de la question
-                    javafx.scene.layout.HBox header = new javafx.scene.layout.HBox(10);
+                    // ── En-tête : numéro + badge correct/incorrect ────────────
+                    javafx.scene.layout.HBox header = new javafx.scene.layout.HBox();
                     header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                    header.setStyle("-fx-padding:14 18 14 18;");
 
-                    Label iconLbl = new Label(iconText);
-                    iconLbl.setStyle(
-                        "-fx-font-size:14; -fx-background-color:" + iconBg + ";" +
-                        "-fx-text-fill:white; -fx-background-radius:50%;" +
-                        "-fx-padding:5 7 5 7;"
+                    Label numLbl = new Label("Question " + (qi + 1));
+                    numLbl.setStyle(
+                        "-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7c3aed;" +
+                        "-fx-background-color:#f3f0ff; -fx-background-radius:20;" +
+                        "-fx-padding:4 12 4 12;"
                     );
 
-                    Label questionLbl = new Label(q.getTexteQuestion());
-                    questionLbl.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#0f172a;");
-                    questionLbl.setWrapText(true);
-                    questionLbl.setMaxWidth(Double.MAX_VALUE);
-                    javafx.scene.layout.HBox.setHgrow(questionLbl, javafx.scene.layout.Priority.ALWAYS);
+                    javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                    javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-                    header.getChildren().addAll(iconLbl, questionLbl);
+                    Label badgeLbl = new Label(correct ? "✓  Correct" : "✗  Incorrect");
+                    badgeLbl.setStyle(correct
+                        ? "-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#059669;" +
+                          "-fx-background-color:#d1fae5; -fx-background-radius:20; -fx-padding:4 12 4 12;"
+                        : "-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#dc2626;" +
+                          "-fx-background-color:#fee2e2; -fx-background-radius:20; -fx-padding:4 12 4 12;"
+                    );
+
+                    header.getChildren().addAll(numLbl, spacer, badgeLbl);
                     card.getChildren().add(header);
 
-                    // Message principal
-                    if (!expl.message().isBlank()) {
-                        Label msgLbl = new Label(expl.message());
-                        msgLbl.setStyle("-fx-font-size:12.5; -fx-text-fill:#374151; -fx-font-weight:600;");
-                        msgLbl.setWrapText(true);
-                        card.getChildren().add(msgLbl);
+                    // ── Séparateur ────────────────────────────────────────────
+                    javafx.scene.layout.Region sep1 = new javafx.scene.layout.Region();
+                    sep1.setPrefHeight(1);
+                    sep1.setStyle("-fx-background-color:#f1f5f9;");
+                    card.getChildren().add(sep1);
+
+                    // ── Texte de la question ──────────────────────────────────
+                    javafx.scene.layout.VBox bodyBox = new javafx.scene.layout.VBox(12);
+                    bodyBox.setStyle("-fx-padding:16 18 16 18;");
+
+                    Label questionLbl = new Label(q.getTexteQuestion());
+                    questionLbl.setStyle(
+                        "-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#0f172a;"
+                    );
+                    questionLbl.setWrapText(true);
+                    bodyBox.getChildren().add(questionLbl);
+
+                    // ── Options avec couleurs ─────────────────────────────────
+                    javafx.scene.layout.VBox optionsBox = new javafx.scene.layout.VBox(8);
+                    for (Option opt : opts) {
+                        boolean isBonne   = opt.isEstCorrecte();
+                        boolean isChoisie = choisiId != null && opt.getId() == choisiId.intValue();
+
+                        // Style de l'option
+                        String optBg, optBorder, optTextColor, optIconBg, optIcon;
+                        String labelDroite = null;
+
+                        if (isBonne) {
+                            optBg        = "#f0fdf4";
+                            optBorder    = "#86efac";
+                            optTextColor = "#166534";
+                            optIconBg    = "#22c55e";
+                            optIcon      = "✓";
+                            labelDroite  = "Bonne réponse";
+                        } else if (isChoisie) {
+                            optBg        = "#fef2f2";
+                            optBorder    = "#fca5a5";
+                            optTextColor = "#991b1b";
+                            optIconBg    = "#ef4444";
+                            optIcon      = "✗";
+                            labelDroite  = "Votre réponse";
+                        } else {
+                            optBg        = "#f8fafc";
+                            optBorder    = "#e2e8f0";
+                            optTextColor = "#64748b";
+                            optIconBg    = "#cbd5e1";
+                            optIcon      = "•";
+                            labelDroite  = null;
+                        }
+
+                        javafx.scene.layout.HBox optRow = new javafx.scene.layout.HBox(10);
+                        optRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        optRow.setStyle(
+                            "-fx-background-color:" + optBg + ";" +
+                            "-fx-background-radius:10;" +
+                            "-fx-border-color:" + optBorder + ";" +
+                            "-fx-border-radius:10; -fx-border-width:1.5;" +
+                            "-fx-padding:10 14 10 14;"
+                        );
+
+                        Label iconOpt = new Label(optIcon);
+                        iconOpt.setStyle(
+                            "-fx-font-size:11; -fx-font-weight:900;" +
+                            "-fx-background-color:" + optIconBg + ";" +
+                            "-fx-text-fill:white; -fx-background-radius:50%;" +
+                            "-fx-min-width:22; -fx-min-height:22;" +
+                            "-fx-alignment:center; -fx-padding:3 5 3 5;"
+                        );
+
+                        Label textOpt = new Label(opt.getTexteOption());
+                        textOpt.setStyle(
+                            "-fx-font-size:13; -fx-font-weight:" + (isBonne || isChoisie ? "700" : "400") + ";" +
+                            "-fx-text-fill:" + optTextColor + ";"
+                        );
+                        textOpt.setWrapText(true);
+                        javafx.scene.layout.HBox.setHgrow(textOpt, javafx.scene.layout.Priority.ALWAYS);
+
+                        optRow.getChildren().addAll(iconOpt, textOpt);
+
+                        if (labelDroite != null) {
+                            javafx.scene.layout.Region sp = new javafx.scene.layout.Region();
+                            javafx.scene.layout.HBox.setHgrow(sp, javafx.scene.layout.Priority.ALWAYS);
+                            Label tagLbl = new Label(labelDroite);
+                            tagLbl.setStyle(
+                                "-fx-font-size:11; -fx-font-weight:700;" +
+                                "-fx-text-fill:" + optTextColor + ";" +
+                                "-fx-background-color:" + optBorder + ";" +
+                                "-fx-background-radius:20; -fx-padding:3 10 3 10;"
+                            );
+                            optRow.getChildren().addAll(sp, tagLbl);
+                        }
+
+                        optionsBox.getChildren().add(optRow);
+                    }
+                    bodyBox.getChildren().add(optionsBox);
+
+                    // ── Section Explication IA ────────────────────────────────
+                    if (expl != null) {
+                        javafx.scene.layout.VBox explBox = new javafx.scene.layout.VBox(10);
+                        explBox.setStyle(
+                            "-fx-background-color:#faf5ff;" +
+                            "-fx-background-radius:12;" +
+                            "-fx-border-color:#e9d5ff;" +
+                            "-fx-border-radius:12; -fx-border-width:1;" +
+                            "-fx-padding:14 16 14 16;"
+                        );
+
+                        // Titre section IA
+                        javafx.scene.layout.HBox explHeader = new javafx.scene.layout.HBox(8);
+                        explHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        Label iaIcon = new Label("🤖");
+                        iaIcon.setStyle("-fx-font-size:14;");
+                        Label iaTitre = new Label("Explication de votre professeur IA");
+                        iaTitre.setStyle(
+                            "-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#7c3aed;"
+                        );
+                        explHeader.getChildren().addAll(iaIcon, iaTitre);
+                        explBox.getChildren().add(explHeader);
+
+                        // Message principal
+                        if (!expl.message().isBlank()) {
+                            Label msgLbl = new Label((correct ? "✅ " : "❌ ") + expl.message());
+                            msgLbl.setStyle(
+                                "-fx-font-size:13; -fx-text-fill:#374151; -fx-font-weight:600;"
+                            );
+                            msgLbl.setWrapText(true);
+                            explBox.getChildren().add(msgLbl);
+                        }
+
+                        // Pourquoi incorrect
+                        if (!expl.pourquoiIncorrect().isBlank()) {
+                            javafx.scene.layout.VBox errBox = new javafx.scene.layout.VBox(4);
+                            errBox.setStyle(
+                                "-fx-background-color:#fff1f2;" +
+                                "-fx-background-radius:8;" +
+                                "-fx-border-color:#fecdd3;" +
+                                "-fx-border-radius:8; -fx-border-width:1;" +
+                                "-fx-padding:10 12 10 12;"
+                            );
+                            Label errTitre = new Label("✗  Pourquoi c'est incorrect :");
+                            errTitre.setStyle(
+                                "-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#be123c;"
+                            );
+                            Label errLbl = new Label(expl.pourquoiIncorrect());
+                            errLbl.setStyle("-fx-font-size:12; -fx-text-fill:#9f1239;");
+                            errLbl.setWrapText(true);
+                            errBox.getChildren().addAll(errTitre, errLbl);
+                            explBox.getChildren().add(errBox);
+                        }
+
+                        // Pourquoi correct
+                        if (!expl.pourquoiCorrect().isBlank()) {
+                            javafx.scene.layout.VBox corrBox = new javafx.scene.layout.VBox(4);
+                            corrBox.setStyle(
+                                "-fx-background-color:#f0fdf4;" +
+                                "-fx-background-radius:8;" +
+                                "-fx-border-color:#bbf7d0;" +
+                                "-fx-border-radius:8; -fx-border-width:1;" +
+                                "-fx-padding:10 12 10 12;"
+                            );
+                            Label corrTitre = new Label("✓  Pourquoi c'est correct :");
+                            corrTitre.setStyle(
+                                "-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#15803d;"
+                            );
+                            Label corrLbl = new Label(expl.pourquoiCorrect());
+                            corrLbl.setStyle("-fx-font-size:12; -fx-text-fill:#166534;");
+                            corrLbl.setWrapText(true);
+                            corrBox.getChildren().addAll(corrTitre, corrLbl);
+                            explBox.getChildren().add(corrBox);
+                        }
+
+                        // Recommandation
+                        if (!expl.conseil().isBlank()) {
+                            javafx.scene.layout.VBox conseilBox = new javafx.scene.layout.VBox(4);
+                            conseilBox.setStyle(
+                                "-fx-background-color:#fffbeb;" +
+                                "-fx-background-radius:8;" +
+                                "-fx-border-color:#fde68a;" +
+                                "-fx-border-radius:8; -fx-border-width:1;" +
+                                "-fx-padding:10 12 10 12;"
+                            );
+                            Label conseilTitre = new Label("📌  Recommandation :");
+                            conseilTitre.setStyle(
+                                "-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#b45309;"
+                            );
+                            Label conseilLbl = new Label(expl.conseil());
+                            conseilLbl.setStyle(
+                                "-fx-font-size:12; -fx-text-fill:#92400e; -fx-font-style:italic;"
+                            );
+                            conseilLbl.setWrapText(true);
+                            conseilBox.getChildren().addAll(conseilTitre, conseilLbl);
+                            explBox.getChildren().add(conseilBox);
+                        }
+
+                        bodyBox.getChildren().add(explBox);
                     }
 
-                    // Pourquoi incorrect (si applicable)
-                    if (!expl.pourquoiIncorrect().isBlank()) {
-                        Label errLbl = new Label("⚠ " + expl.pourquoiIncorrect());
-                        errLbl.setStyle("-fx-font-size:12; -fx-text-fill:#b91c1c;");
-                        errLbl.setWrapText(true);
-                        card.getChildren().add(errLbl);
-                    }
-
-                    // Pourquoi correct
-                    if (!expl.pourquoiCorrect().isBlank()) {
-                        Label corrLbl = new Label("💡 " + expl.pourquoiCorrect());
-                        corrLbl.setStyle("-fx-font-size:12; -fx-text-fill:#065f46;");
-                        corrLbl.setWrapText(true);
-                        card.getChildren().add(corrLbl);
-                    }
-
-                    // Conseil
-                    if (!expl.conseil().isBlank()) {
-                        Label conseilLbl = new Label("📌 " + expl.conseil());
-                        conseilLbl.setStyle("-fx-font-size:12; -fx-text-fill:#92400e; -fx-font-style:italic;");
-                        conseilLbl.setWrapText(true);
-                        card.getChildren().add(conseilLbl);
-                    }
-
+                    card.getChildren().add(bodyBox);
                     containerExplications.getChildren().add(card);
                 }
 
