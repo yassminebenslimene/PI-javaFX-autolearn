@@ -326,6 +326,28 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Communauté");
     }
 
+    public static void showGitHubExamples() throws Exception {
+        load("/views/frontoffice/github_examples.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — GitHub Code Explorer");
+    }
+
+    public static void showTodoList() throws Exception {
+        load("/views/frontoffice/todo.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Ma Liste");
+    }
+
+    public static void showCoursPage() throws Exception {
+        load("/views/frontoffice/layout.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Cours");
+        // Après le chargement du layout, naviguer vers la page cours
+        javafx.application.Platform.runLater(() -> {
+            tn.esprit.controllers.FrontofficeController.navigateToCoursPage();
+        });
+    }
+
     public static void showFeedback(Participation p, Evenement ev) throws Exception {
         FXMLLoader loader = getLoader("/views/frontoffice/feedback.fxml");
         setScene(loader);

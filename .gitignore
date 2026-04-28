@@ -54,3 +54,4 @@ Downloads/
 ### Local secrets (never commit these) ###
 .hf_token
 *.env.local
+src/main/resources/config.properties

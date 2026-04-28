@@ -29,6 +29,8 @@ import java.util.List;
 
 public class FrontofficeController {
 
+    private static FrontofficeController instance;
+
     // Navbar labels
     @FXML private Label welcomeLabel;
     @FXML private Label labelNiveauStat;
@@ -107,6 +109,7 @@ public class FrontofficeController {
 
     @FXML
     public void initialize() {
+        instance = this;
         var u = SessionManager.getCurrentUser();
         if (u == null) return;
 
@@ -691,6 +694,12 @@ public class FrontofficeController {
     @FXML public void onCours() { setActiveNav(btnNavCours); naviguerVersCours(); }
 
     @FXML public void onViewCourses() { naviguerVersCours(); }
+
+    public static void navigateToCoursPage() {
+        if (instance != null) {
+            instance.onCours();
+        }
+    }
 
     private void naviguerVersCours() {
         if (!requireLogin()) return;

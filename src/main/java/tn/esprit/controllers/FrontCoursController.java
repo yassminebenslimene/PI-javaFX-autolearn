@@ -251,6 +251,22 @@ public class FrontCoursController {
     @FXML private void onFilterInter()    { setActiveFilter(btnInter);    filterByNiveau("INTERMEDIAIRE"); }
     @FXML private void onFilterAvance()   { setActiveFilter(btnAvance);   filterByNiveau("AVANCE"); }
 
+    @FXML private void onGitHub() {
+        try {
+            tn.esprit.MainApp.showGitHubExamples();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML private void onMaListe() {
+        try {
+            tn.esprit.MainApp.showTodoList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void filterByNiveau(String niveau) {
         afficher(allCours.stream().filter(c ->
             c.getNiveau() != null && c.getNiveau().toUpperCase().contains(niveau)
