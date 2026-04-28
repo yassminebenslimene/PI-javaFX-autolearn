@@ -69,6 +69,7 @@
         </HBox>
     </top>
     <center>
+        <StackPane>
         <ScrollPane fx:id="mainScrollPane" fitToWidth="true" fitToHeight="false"
                     vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" 
                     pannable="false" focusTraversable="false"
@@ -398,6 +399,11 @@
                 </VBox>
             </VBox>
         </ScrollPane>
+
+        <!-- Floating Student AI Assistant -->
+        <fx:include source="student_assistant.fxml" fx:id="studentAssistant"/>
+
+        </StackPane>
     </center>
 </BorderPane>
 

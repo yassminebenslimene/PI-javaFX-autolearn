@@ -53,6 +53,9 @@ public class FrontofficeController {
     @FXML private Button btnNavCommunaute;
     @FXML private Button btnNavMessagerie;
 
+    // Student AI Assistant (injected via fx:include)
+    @FXML private StudentAssistantController studentAssistantController;
+
     // Sections
     @FXML private VBox sectionCours;
     @FXML private VBox sectionFeatures;
@@ -114,6 +117,22 @@ public class FrontofficeController {
     @FXML
     public void initialize() {
         instance = this;
+
+        // Wire student AI assistant navigation callback
+        if (studentAssistantController != null) {
+            studentAssistantController.setOnNavigate(section -> {
+                switch (section) {
+                    case "cours"               -> onCours();
+                    case "evenements"          -> onEvenements();
+                    case "challenges"          -> onChallenges();
+                    case "communaute"          -> onCommunaute();
+                    case "classement"          -> onLeaderboard();
+                    case "profil"              -> onProfile();
+                    case "mes_participations"  -> onMesParticipations();
+                    case "mes_equipes"         -> onMesEquipes();
+                }
+            });
+        }
         var u = SessionManager.getCurrentUser();
         if (u == null) return;
 
