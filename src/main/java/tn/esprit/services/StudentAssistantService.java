@@ -31,30 +31,30 @@ public class StudentAssistantService {
         "Tu aides les étudiants à naviguer, apprendre, et effectuer des actions sur la plateforme. " +
         "\n\nPour les ACTIONS, réponds UNIQUEMENT avec du JSON: " +
         "{\"intent\": \"ACTION\", \"params\": {}, \"message\": \"message amical\"} " +
-        "\n\nActions disponibles pour les étudiants:" +
-        "\n- NAVIGATE_COURS : voir les cours disponibles" +
-        "\n- NAVIGATE_EVENEMENTS : voir les événements" +
-        "\n- NAVIGATE_CHALLENGES : voir les challenges" +
-        "\n- NAVIGATE_COMMUNAUTE : voir les communautés" +
-        "\n- NAVIGATE_CLASSEMENT : voir le classement" +
-        "\n- NAVIGATE_PROFIL : voir mon profil" +
-        "\n- NAVIGATE_MES_PARTICIPATIONS : voir mes participations aux événements" +
-        "\n- NAVIGATE_MES_EQUIPES : voir mes équipes" +
-        "\n- LIST_EVENEMENTS : lister les événements disponibles" +
-        "\n- LIST_COURS : lister les cours disponibles" +
-        "\n- LIST_CHALLENGES : lister les challenges disponibles" +
-        "\n- LIST_COMMUNAUTES : lister les communautés disponibles" +
+        "\n\nActions disponibles:" +
+        "\n- LIST_EVENEMENTS : lister les événements (affiche dans le chat)" +
+        "\n- LIST_COURS : lister les cours (affiche dans le chat)" +
+        "\n- LIST_CHALLENGES : lister les challenges (affiche dans le chat)" +
+        "\n- LIST_COMMUNAUTES : lister les communautés (affiche dans le chat)" +
         "\n- JOIN_EVENEMENT(evenement_id) : s'inscrire à un événement" +
         "\n- CREATE_EQUIPE(nom, evenement_id) : créer une équipe pour un événement" +
         "\n- JOIN_COMMUNAUTE(communaute_id) : rejoindre une communauté" +
         "\n- CREATE_COMMUNAUTE(nom, description) : créer une nouvelle communauté" +
-        "\n\nRÈGLES:" +
+        "\n- NAVIGATE_COURS : UNIQUEMENT si l'étudiant dit explicitement 'aller aux cours', 'ouvrir cours', 'naviguer vers cours'" +
+        "\n- NAVIGATE_EVENEMENTS : UNIQUEMENT si l'étudiant dit explicitement 'aller aux événements', 'ouvrir événements'" +
+        "\n- NAVIGATE_CHALLENGES : UNIQUEMENT si l'étudiant dit explicitement 'aller aux challenges', 'ouvrir challenges'" +
+        "\n- NAVIGATE_COMMUNAUTE : UNIQUEMENT si l'étudiant dit explicitement 'aller à la communauté', 'ouvrir communauté'" +
+        "\n- NAVIGATE_CLASSEMENT : UNIQUEMENT si l'étudiant dit explicitement 'aller au classement'" +
+        "\n- NAVIGATE_PROFIL : UNIQUEMENT si l'étudiant dit explicitement 'aller à mon profil'" +
+        "\n- NAVIGATE_MES_PARTICIPATIONS : UNIQUEMENT si l'étudiant dit explicitement 'voir mes participations'" +
+        "\n- NAVIGATE_MES_EQUIPES : UNIQUEMENT si l'étudiant dit explicitement 'voir mes équipes'" +
+        "\n\nRÈGLES IMPORTANTES:" +
         "\n1. Pour les salutations et questions générales → intent CHAT, réponds naturellement." +
-        "\n2. Pour les actions avec toutes les infos → retourne le JSON immédiatement." +
-        "\n3. Pour les actions avec infos manquantes → demande les infos manquantes (pas de JSON)." +
-        "\n4. Sois toujours encourageant et positif." +
-        "\n5. Utilise des emojis pour rendre les réponses plus conviviales." +
-        "\n6. Si l'étudiant demande de l'aide pour apprendre → suggère des cours ou challenges adaptés.";
+        "\n2. Si l'étudiant demande 'quels sont les cours?' ou 'liste les cours' → utilise LIST_COURS (affiche dans le chat, NE NAVIGUE PAS)." +
+        "\n3. NAVIGATE_* UNIQUEMENT si l'étudiant dit explicitement 'aller à', 'ouvrir', 'naviguer vers'." +
+        "\n4. Pour les actions avec infos manquantes → demande les infos (pas de JSON)." +
+        "\n5. Sois toujours encourageant, utilise des emojis." +
+        "\n6. Réponds TOUJOURS en français sauf si l'étudiant écrit en anglais.";
 
     public record ChatResponse(String intent, JsonObject params, String message, boolean success) {}
     public record ChatMessage(String role, String content) {}
@@ -176,37 +176,38 @@ public class StudentAssistantService {
             return new ChatResponse("CHAT", p,
                 "Bonjour ! 👋 Je suis votre assistant AutoLearn. Comment puis-je vous aider aujourd'hui ?", true);
 
-        if (lower.contains("cours") && (lower.contains("voir") || lower.contains("liste") || lower.contains("affiche")))
-            return new ChatResponse("NAVIGATE_COURS", p, "Je vous emmène vers les cours ! 📚", true);
+        // LIST actions - show in chat, don't navigate
+        if (lower.contains("cours") && (lower.contains("liste") || lower.contains("quels") || lower.contains("voir") || lower.contains("affiche")))
+            return new ChatResponse("LIST_COURS", p, "Voici les cours disponibles 📚", true);
 
-        if (lower.contains("evenement") || lower.contains("événement"))
-            return new ChatResponse("NAVIGATE_EVENEMENTS", p, "Voici les événements disponibles ! 🎉", true);
+        if ((lower.contains("evenement") || lower.contains("événement")) && (lower.contains("liste") || lower.contains("quels") || lower.contains("voir")))
+            return new ChatResponse("LIST_EVENEMENTS", p, "Voici les événements disponibles 🎉", true);
 
-        if (lower.contains("challenge"))
-            return new ChatResponse("NAVIGATE_CHALLENGES", p, "Prêt pour un challenge ? 🏆", true);
+        if (lower.contains("challenge") && (lower.contains("liste") || lower.contains("quels") || lower.contains("voir")))
+            return new ChatResponse("LIST_CHALLENGES", p, "Voici les challenges disponibles 🏆", true);
 
-        if (lower.contains("communaute") || lower.contains("communauté"))
-            return new ChatResponse("NAVIGATE_COMMUNAUTE", p, "Rejoignez la communauté ! 👥", true);
+        if ((lower.contains("communaute") || lower.contains("communauté")) && (lower.contains("liste") || lower.contains("quels") || lower.contains("voir")))
+            return new ChatResponse("LIST_COMMUNAUTES", p, "Voici les communautés disponibles 👥", true);
 
-        if (lower.contains("classement") || lower.contains("leaderboard"))
-            return new ChatResponse("NAVIGATE_CLASSEMENT", p, "Voyons votre classement ! 🏅", true);
-
-        if (lower.contains("profil") || lower.contains("profile"))
-            return new ChatResponse("NAVIGATE_PROFIL", p, "Voici votre profil ! 👤", true);
-
-        if (lower.contains("participation") || lower.contains("mes event"))
-            return new ChatResponse("NAVIGATE_MES_PARTICIPATIONS", p, "Vos participations aux événements ! 📋", true);
-
-        if (lower.contains("equipe") || lower.contains("équipe") || lower.contains("team"))
-            return new ChatResponse("NAVIGATE_MES_EQUIPES", p, "Vos équipes ! 👫", true);
+        // NAVIGATE actions - only when explicitly asked
+        if (lower.contains("aller") || lower.contains("ouvrir") || lower.contains("naviguer") || lower.contains("go to")) {
+            if (lower.contains("cours"))       return new ChatResponse("NAVIGATE_COURS", p, "Je vous emmène vers les cours ! 📚", true);
+            if (lower.contains("evenement") || lower.contains("événement")) return new ChatResponse("NAVIGATE_EVENEMENTS", p, "Je vous emmène vers les événements ! 🎉", true);
+            if (lower.contains("challenge"))   return new ChatResponse("NAVIGATE_CHALLENGES", p, "Je vous emmène vers les challenges ! 🏆", true);
+            if (lower.contains("communaute") || lower.contains("communauté")) return new ChatResponse("NAVIGATE_COMMUNAUTE", p, "Je vous emmène vers la communauté ! 👥", true);
+            if (lower.contains("classement") || lower.contains("leaderboard")) return new ChatResponse("NAVIGATE_CLASSEMENT", p, "Je vous emmène vers le classement ! 🏅", true);
+            if (lower.contains("profil"))      return new ChatResponse("NAVIGATE_PROFIL", p, "Je vous emmène vers votre profil ! 👤", true);
+            if (lower.contains("participation")) return new ChatResponse("NAVIGATE_MES_PARTICIPATIONS", p, "Vos participations ! 📋", true);
+            if (lower.contains("equipe") || lower.contains("équipe")) return new ChatResponse("NAVIGATE_MES_EQUIPES", p, "Vos équipes ! 👫", true);
+        }
 
         return new ChatResponse("CHAT", p,
             "Je peux vous aider à :\n" +
-            "📚 Voir les **cours** disponibles\n" +
-            "🎉 Voir les **événements** et s'inscrire\n" +
-            "🏆 Voir les **challenges**\n" +
-            "👥 Rejoindre des **communautés**\n" +
-            "🏅 Voir le **classement**\n\n" +
+            "📚 **Lister** les cours, événements, challenges\n" +
+            "🎉 **S'inscrire** à un événement\n" +
+            "👥 **Rejoindre** une communauté\n" +
+            "👫 **Créer** une équipe\n" +
+            "🧭 **Naviguer** : dites 'aller aux cours', 'ouvrir les événements'...\n\n" +
             "Que souhaitez-vous faire ?", true);
     }
 

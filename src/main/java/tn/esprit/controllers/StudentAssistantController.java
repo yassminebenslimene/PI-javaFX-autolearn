@@ -15,62 +15,54 @@ import java.util.List;
 
 /**
  * Student AI Assistant Controller
- * Floating chat bubble in the frontoffice for student actions.
+ * Floating chat bubble - always visible on all frontoffice pages.
+ * - Shows data in chat (LIST actions)
+ * - Navigates ONLY when user explicitly asks to go somewhere
+ * - Vertical layout for suggestions
  */
 public class StudentAssistantController {
 
-    @FXML private VBox      chatPanel;
+    @FXML private VBox       chatPanel;
     @FXML private ScrollPane scrollPane;
-    @FXML private VBox      messagesBox;
-    @FXML private TextField inputField;
-    @FXML private Button    btnSend;
-    @FXML private Button    btnToggle;
-    @FXML private Label     labelStatus;
-    @FXML private HBox      suggestionsBox;
+    @FXML private VBox       messagesBox;
+    @FXML private TextField  inputField;
+    @FXML private Button     btnSend;
+    @FXML private Button     btnToggle;
+    @FXML private Label      labelStatus;
 
     private final List<StudentAssistantService.ChatMessage> history = new ArrayList<>();
     private final StudentAssistantExecutor executor = new StudentAssistantExecutor();
     private boolean isOpen = false;
+    private boolean welcomeShown = false;
 
-    // Callback to FrontofficeController for navigation
     private java.util.function.Consumer<String> onNavigate;
-
-    public void setOnNavigate(java.util.function.Consumer<String> cb) {
-        this.onNavigate = cb;
-    }
+    public void setOnNavigate(java.util.function.Consumer<String> cb) { this.onNavigate = cb; }
 
     @FXML
     public void initialize() {
         chatPanel.setVisible(false);
         chatPanel.setManaged(false);
 
-        // Show welcome on first open
+        inputField.setOnKeyPressed(e -> {
+            if (e.getCode() == javafx.scene.input.KeyCode.ENTER) onSend();
+        });
+    }
+
+    private void showWelcome() {
+        if (welcomeShown) return;
+        welcomeShown = true;
+
         String name = SessionManager.getCurrentUser() != null
             ? SessionManager.getCurrentUser().getPrenom() : "étudiant";
 
         addBotMessage(
-            "Bonjour **" + name + "** ! 👋 Je suis votre assistant AutoLearn.\n\n" +
-            "Je peux vous aider à :\n" +
-            "📚 Voir et accéder aux **cours**\n" +
-            "🎉 S'inscrire aux **événements**\n" +
-            "🏆 Rejoindre des **challenges**\n" +
-            "👥 Rejoindre des **communautés**\n" +
-            "👫 Créer ou rejoindre des **équipes**\n\n" +
-            "Que souhaitez-vous faire ?"
+            "Bonjour **" + name + "** ! 👋\n\n" +
+            "Je suis votre assistant AutoLearn.\n" +
+            "Posez-moi n'importe quelle question !"
         );
 
-        // Quick suggestion chips
-        addSuggestions(new String[]{
-            "📚 Voir les cours",
-            "🎉 Voir les événements",
-            "👥 Voir les communautés",
-            "🏆 Challenges"
-        });
-
-        // Send on Enter
-        inputField.setOnKeyPressed(e -> {
-            if (e.getCode() == javafx.scene.input.KeyCode.ENTER) onSend();
-        });
+        // Vertical quick actions
+        addQuickActions();
     }
 
     // ── Toggle ────────────────────────────────────────────────────────────────
@@ -82,7 +74,11 @@ public class StudentAssistantController {
         chatPanel.setManaged(isOpen);
         btnToggle.setText(isOpen ? "✕" : "💬");
         if (isOpen) {
-            Platform.runLater(() -> inputField.requestFocus());
+            showWelcome();
+            Platform.runLater(() -> {
+                inputField.requestFocus();
+                scrollToBottom();
+            });
         }
     }
 
@@ -98,14 +94,21 @@ public class StudentAssistantController {
         addUserMessage(text);
         history.add(new StudentAssistantService.ChatMessage("user", text));
 
-        labelStatus.setText("⏳ En train de réfléchir...");
+        // Typing indicator
+        VBox typingIndicator = addTypingIndicator();
+        labelStatus.setText("⏳ Réflexion...");
 
         StudentAssistantService.sendMessage(text, history).thenAccept(response -> {
             Platform.runLater(() -> {
-                labelStatus.setText("🟢 En ligne");
+                // Remove typing indicator
+                messagesBox.getChildren().remove(typingIndicator);
+                labelStatus.setText("● En ligne");
+
+                // Always show message in chat
                 addBotMessage(response.message());
                 history.add(new StudentAssistantService.ChatMessage("assistant", response.message()));
 
+                // Execute action (LIST shows in chat, NAVIGATE goes to page)
                 if (!"CHAT".equals(response.intent())) {
                     executeAction(response.intent(), response.params());
                 }
@@ -120,7 +123,8 @@ public class StudentAssistantController {
     public void onClear() {
         messagesBox.getChildren().clear();
         history.clear();
-        initialize();
+        welcomeShown = false;
+        showWelcome();
     }
 
     // ── Execute action ────────────────────────────────────────────────────────
@@ -128,14 +132,14 @@ public class StudentAssistantController {
     private void executeAction(String intent, com.google.gson.JsonObject params) {
         StudentAssistantExecutor.ActionResult result = executor.execute(intent, params);
 
-        // Show result message if any
+        // Show result message in chat if different from AI message
         if (result.message() != null && !result.message().isEmpty()) {
             addBotMessage(result.message());
             history.add(new StudentAssistantService.ChatMessage("assistant", result.message()));
         }
 
-        // Navigate if needed
-        if (result.navigateTo() != null && onNavigate != null) {
+        // Navigate ONLY for NAVIGATE_* intents (not LIST_*)
+        if (result.navigateTo() != null && onNavigate != null && intent.startsWith("NAVIGATE_")) {
             Platform.runLater(() -> onNavigate.accept(result.navigateTo()));
         }
     }
@@ -144,46 +148,45 @@ public class StudentAssistantController {
 
     private void addBotMessage(String text) {
         HBox row = new HBox(10);
-        row.setAlignment(Pos.CENTER_LEFT);
+        row.setAlignment(Pos.TOP_LEFT);
+        row.setStyle("-fx-padding:2 0 2 0;");
 
-        // Avatar
+        // Avatar circle
         StackPane avatar = new StackPane();
-        Circle circle = new Circle(18);
-        circle.setStyle("-fx-fill:linear-gradient(to bottom right,#7c3aed,#4f46e5);");
-        Label avatarLabel = new Label("AI");
-        avatarLabel.setStyle("-fx-font-size:9; -fx-font-weight:900; -fx-text-fill:white;");
-        avatar.getChildren().addAll(circle, avatarLabel);
-        avatar.setMinWidth(36);
-        avatar.setMaxWidth(36);
+        Circle bg = new Circle(16);
+        bg.setStyle("-fx-fill:linear-gradient(to bottom right,#7c3aed,#4f46e5);");
+        Label ai = new Label("AI");
+        ai.setStyle("-fx-font-size:8; -fx-font-weight:900; -fx-text-fill:white;");
+        avatar.getChildren().addAll(bg, ai);
+        avatar.setMinWidth(32); avatar.setMaxWidth(32);
+        avatar.setMinHeight(32); avatar.setMaxHeight(32);
         avatar.setAlignment(Pos.CENTER);
 
-        // Bubble
-        VBox bubble = new VBox(4);
-        bubble.setMaxWidth(280);
+        // Message bubble
+        VBox bubble = new VBox(3);
+        bubble.setMaxWidth(240);
         bubble.setStyle(
             "-fx-background-color:white;" +
-            "-fx-background-radius:18 18 18 4;" +
-            "-fx-padding:12 16 12 16;" +
-            "-fx-border-color:#ede9fe; -fx-border-radius:18 18 18 4; -fx-border-width:1;" +
-            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.1),8,0,0,3);"
+            "-fx-background-radius:4 16 16 16;" +
+            "-fx-padding:10 14 10 14;" +
+            "-fx-border-color:#ede9fe; -fx-border-radius:4 16 16 16; -fx-border-width:1;" +
+            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.08),6,0,0,2);"
         );
 
-        // Parse markdown-like bold (**text**)
         for (String line : text.split("\n")) {
             if (line.isBlank()) {
-                Region spacer = new Region();
-                spacer.setPrefHeight(4);
-                bubble.getChildren().add(spacer);
+                Region sp = new Region(); sp.setPrefHeight(3);
+                bubble.getChildren().add(sp);
                 continue;
             }
-            Label lbl = new Label(line.replaceAll("\\*\\*([^*]+)\\*\\*", "$1"));
+            String clean = line.replaceAll("\\*\\*([^*]+)\\*\\*", "$1");
+            Label lbl = new Label(clean);
             lbl.setWrapText(true);
-            lbl.setMaxWidth(260);
-            if (line.contains("**")) {
-                lbl.setStyle("-fx-font-size:12; -fx-text-fill:#1e1b4b; -fx-font-weight:700;");
-            } else {
-                lbl.setStyle("-fx-font-size:12; -fx-text-fill:#374151;");
-            }
+            lbl.setMaxWidth(220);
+            boolean isBold = line.contains("**");
+            lbl.setStyle(isBold
+                ? "-fx-font-size:12; -fx-text-fill:#1e1b4b; -fx-font-weight:700;"
+                : "-fx-font-size:12; -fx-text-fill:#374151; -fx-line-spacing:2;");
             bubble.getChildren().add(lbl);
         }
 
@@ -194,57 +197,90 @@ public class StudentAssistantController {
     private void addUserMessage(String text) {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_RIGHT);
+        row.setStyle("-fx-padding:2 0 2 0;");
 
         Label bubble = new Label(text);
         bubble.setWrapText(true);
-        bubble.setMaxWidth(260);
+        bubble.setMaxWidth(230);
         bubble.setStyle(
             "-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);" +
             "-fx-text-fill:white; -fx-font-size:12;" +
-            "-fx-background-radius:18 18 4 18;" +
-            "-fx-padding:12 16 12 16;" +
-            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.35),10,0,0,3);"
+            "-fx-background-radius:16 4 16 16;" +
+            "-fx-padding:10 14 10 14;" +
+            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.3),8,0,0,2);"
         );
 
         row.getChildren().add(bubble);
         messagesBox.getChildren().add(row);
     }
 
-    private void addSuggestions(String[] suggestions) {
-        HBox row = new HBox(8);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setStyle("-fx-padding:4 0 4 46;");
+    private VBox addTypingIndicator() {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.TOP_LEFT);
 
-        for (String s : suggestions) {
-            Button chip = new Button(s);
-            chip.setStyle(
+        StackPane avatar = new StackPane();
+        Circle bg = new Circle(16);
+        bg.setStyle("-fx-fill:linear-gradient(to bottom right,#7c3aed,#4f46e5);");
+        Label ai = new Label("AI");
+        ai.setStyle("-fx-font-size:8; -fx-font-weight:900; -fx-text-fill:white;");
+        avatar.getChildren().addAll(bg, ai);
+        avatar.setMinWidth(32); avatar.setMaxWidth(32);
+
+        Label dots = new Label("● ● ●");
+        dots.setStyle(
+            "-fx-background-color:white; -fx-text-fill:#c4b5fd;" +
+            "-fx-font-size:14; -fx-background-radius:4 16 16 16;" +
+            "-fx-padding:10 14 10 14;" +
+            "-fx-border-color:#ede9fe; -fx-border-radius:4 16 16 16; -fx-border-width:1;"
+        );
+
+        row.getChildren().addAll(avatar, dots);
+
+        VBox wrapper = new VBox(row);
+        messagesBox.getChildren().add(wrapper);
+        return wrapper;
+    }
+
+    /** Vertical quick action chips */
+    private void addQuickActions() {
+        VBox actionsBox = new VBox(6);
+        actionsBox.setStyle("-fx-padding:4 0 4 42;");
+
+        String[][] actions = {
+            {"📚 Voir les cours",        "liste les cours"},
+            {"🎉 Voir les événements",   "liste les événements"},
+            {"🏆 Voir les challenges",   "liste les challenges"},
+            {"👥 Voir les communautés",  "liste les communautés"},
+            {"🧭 Aller aux cours",       "aller aux cours"},
+        };
+
+        for (String[] action : actions) {
+            Button chip = new Button(action[0]);
+            String baseStyle =
                 "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
-                "-fx-font-size:11; -fx-font-weight:700;" +
-                "-fx-padding:6 12; -fx-background-radius:20;" +
+                "-fx-font-size:11; -fx-font-weight:600;" +
+                "-fx-padding:7 14; -fx-background-radius:20;" +
                 "-fx-cursor:hand; -fx-border-width:1;" +
-                "-fx-border-color:#ede9fe; -fx-border-radius:20;"
-            );
-            chip.setOnMouseEntered(e -> chip.setStyle(
+                "-fx-border-color:#ddd6fe; -fx-border-radius:20;" +
+                "-fx-alignment:CENTER_LEFT;";
+            String hoverStyle =
                 "-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white;" +
-                "-fx-font-size:11; -fx-font-weight:700;" +
-                "-fx-padding:6 12; -fx-background-radius:20;" +
-                "-fx-cursor:hand; -fx-border-width:0;"
-            ));
-            chip.setOnMouseExited(e -> chip.setStyle(
-                "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
-                "-fx-font-size:11; -fx-font-weight:700;" +
-                "-fx-padding:6 12; -fx-background-radius:20;" +
-                "-fx-cursor:hand; -fx-border-width:1;" +
-                "-fx-border-color:#ede9fe; -fx-border-radius:20;"
-            ));
+                "-fx-font-size:11; -fx-font-weight:600;" +
+                "-fx-padding:7 14; -fx-background-radius:20;" +
+                "-fx-cursor:hand; -fx-border-width:0;" +
+                "-fx-alignment:CENTER_LEFT;";
+            chip.setStyle(baseStyle);
+            chip.setMaxWidth(Double.MAX_VALUE);
+            chip.setOnMouseEntered(e -> chip.setStyle(hoverStyle));
+            chip.setOnMouseExited(e -> chip.setStyle(baseStyle));
             chip.setOnAction(e -> {
-                inputField.setText(s.replaceAll("[📚🎉👥🏆👫]\\s*", ""));
+                inputField.setText(action[1]);
                 onSend();
             });
-            row.getChildren().add(chip);
+            actionsBox.getChildren().add(chip);
         }
 
-        messagesBox.getChildren().add(row);
+        messagesBox.getChildren().add(actionsBox);
     }
 
     private void scrollToBottom() {
