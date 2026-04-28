@@ -6,6 +6,7 @@ import javafx.animation.FadeTransition;
 import javafx.util.Duration;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -14,6 +15,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.layout.Priority;
+import javafx.stage.Stage;
 import tn.esprit.entities.Communaute;
 import tn.esprit.services.ServiceCommunaute;
 import tn.esprit.session.SessionManager;
@@ -230,54 +232,158 @@ public class FrontCommunauteController {
     public void onCreer() {
         if (SessionManager.getCurrentUser() == null) return;
 
-        javafx.scene.control.Dialog<Communaute> dialog = new javafx.scene.control.Dialog<>();
-        dialog.setTitle("Nouvelle Communauté");
-        dialog.getDialogPane().getButtonTypes().addAll(
-            javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+        Stage dialog = new Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initStyle(javafx.stage.StageStyle.UNDECORATED);
+        dialog.setResizable(false);
 
-        VBox content = new VBox(10);
-        content.setPadding(new javafx.geometry.Insets(20));
-        TextField fNom = new TextField(); fNom.setPromptText("Nom * (3–80 caractères)");
+        // ── Root ──────────────────────────────────────────────────────────────
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color:#ffffff; -fx-background-radius:20;"
+            + "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.25),40,0,0,12);");
+        root.setPrefWidth(460);
+
+        // ── Header ────────────────────────────────────────────────────────────
+        VBox header = new VBox(4);
+        header.setStyle("-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);"
+            + "-fx-background-radius:20 20 0 0; -fx-padding:24 28 20 28;");
+
+        javafx.scene.layout.HBox titleRow = new javafx.scene.layout.HBox(10);
+        titleRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        Label iconLbl = new Label("👥");
+        iconLbl.setStyle("-fx-font-size:22;");
+        Label titleLbl = new Label("Nouvelle Communauté");
+        titleLbl.setStyle("-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;");
+        titleRow.getChildren().addAll(iconLbl, titleLbl);
+
+        Label subLbl = new Label("Créez un espace de partage pour votre communauté");
+        subLbl.setStyle("-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.75);");
+        header.getChildren().addAll(titleRow, subLbl);
+
+        // ── Body ──────────────────────────────────────────────────────────────
+        VBox body = new VBox(18);
+        body.setStyle("-fx-padding:28 28 8 28;");
+
+        // Champ Nom
+        VBox nomBox = new VBox(6);
+        Label nomLbl = new Label("Nom de la communauté *");
+        nomLbl.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#374151;");
+        TextField fNom = new TextField();
+        fNom.setPromptText("Ex: Python Avancé, IA & Machine Learning...");
+        fNom.setStyle("-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb; -fx-border-radius:10;"
+            + "-fx-background-radius:10; -fx-padding:11 14; -fx-font-size:13; -fx-text-fill:#111827;"
+            + "-fx-border-width:1.5;");
+        fNom.focusedProperty().addListener((o, ov, nv) -> fNom.setStyle(
+            "-fx-background-color:" + (nv ? "white" : "#f9fafb")
+            + "; -fx-border-color:" + (nv ? "#7c3aed" : "#e5e7eb")
+            + "; -fx-border-radius:10; -fx-background-radius:10;"
+            + "-fx-padding:11 14; -fx-font-size:13; -fx-text-fill:#111827; -fx-border-width:1.5;"));
+        nomBox.getChildren().addAll(nomLbl, fNom);
+
+        // Champ Description
+        VBox descBox = new VBox(6);
+        Label descLbl = new Label("Description *");
+        descLbl.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#374151;");
         javafx.scene.control.TextArea fDesc = new javafx.scene.control.TextArea();
-        fDesc.setPromptText("Description (max 500 caractères)"); fDesc.setPrefRowCount(3);
-        Label errLabel = new Label();
-        errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:11;");
-        content.getChildren().addAll(new Label("Nom :"), fNom, new Label("Description :"), fDesc, errLabel);
-        dialog.getDialogPane().setContent(content);
+        fDesc.setPromptText("Décrivez l'objectif et le contenu de votre communauté (min 15 caractères)...");
+        fDesc.setPrefRowCount(4);
+        fDesc.setWrapText(true);
+        fDesc.setStyle("-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb; -fx-border-radius:10;"
+            + "-fx-background-radius:10; -fx-padding:11 14; -fx-font-size:13; -fx-text-fill:#111827;"
+            + "-fx-border-width:1.5;");
+        fDesc.focusedProperty().addListener((o, ov, nv) -> fDesc.setStyle(
+            "-fx-background-color:" + (nv ? "white" : "#f9fafb")
+            + "; -fx-border-color:" + (nv ? "#7c3aed" : "#e5e7eb")
+            + "; -fx-border-radius:10; -fx-background-radius:10;"
+            + "-fx-padding:11 14; -fx-font-size:13; -fx-text-fill:#111827; -fx-border-width:1.5;"));
 
-        // Désactiver OK tant que le nom est invalide
-        javafx.scene.control.Button okBtn = (javafx.scene.control.Button)
-            dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
-        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+        // Compteur caractères
+        Label charCount = new Label("0 / 500");
+        charCount.setStyle("-fx-font-size:11; -fx-text-fill:#9ca3af;");
+        fDesc.textProperty().addListener((o, ov, nv) -> {
+            int len = nv.length();
+            charCount.setText(len + " / 500");
+            charCount.setStyle("-fx-font-size:11; -fx-text-fill:" + (len > 500 ? "#e94560" : "#9ca3af") + ";");
+        });
+        javafx.scene.layout.HBox descFooter = new javafx.scene.layout.HBox();
+        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+        descFooter.getChildren().addAll(spacer, charCount);
+        descBox.getChildren().addAll(descLbl, fDesc, descFooter);
+
+        // Message d'erreur
+        Label errLabel = new Label();
+        errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:12; -fx-font-weight:600;"
+            + "-fx-background-color:#fff1f2; -fx-background-radius:8; -fx-padding:8 12;");
+        errLabel.setVisible(false); errLabel.setManaged(false);
+        errLabel.setWrapText(true);
+
+        body.getChildren().addAll(nomBox, descBox, errLabel);
+
+        // ── Footer / Boutons ──────────────────────────────────────────────────
+        javafx.scene.layout.HBox footer = new javafx.scene.layout.HBox(12);
+        footer.setStyle("-fx-padding:16 28 24 28;");
+        footer.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        Button btnAnnuler = new Button("Annuler");
+        btnAnnuler.setStyle("-fx-background-color:#f3f4f6; -fx-text-fill:#6b7280; -fx-font-size:13;"
+            + "-fx-font-weight:700; -fx-padding:11 24; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+        btnAnnuler.setOnMouseEntered(e -> btnAnnuler.setStyle("-fx-background-color:#e5e7eb; -fx-text-fill:#374151;"
+            + "-fx-font-size:13; -fx-font-weight:700; -fx-padding:11 24; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;"));
+        btnAnnuler.setOnMouseExited(e -> btnAnnuler.setStyle("-fx-background-color:#f3f4f6; -fx-text-fill:#6b7280;"
+            + "-fx-font-size:13; -fx-font-weight:700; -fx-padding:11 24; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;"));
+        btnAnnuler.setOnAction(e -> dialog.close());
+
+        Button btnCreer = new Button("✨  Créer la communauté");
+        btnCreer.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5);"
+            + "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;"
+            + "-fx-padding:11 24; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;"
+            + "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),12,0,0,4);");
+        btnCreer.setOnMouseEntered(e -> btnCreer.setStyle("-fx-background-color:linear-gradient(to right,#6d28d9,#4338ca);"
+            + "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;"
+            + "-fx-padding:11 24; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;"
+            + "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.55),16,0,0,6);"));
+        btnCreer.setOnMouseExited(e -> btnCreer.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5);"
+            + "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;"
+            + "-fx-padding:11 24; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;"
+            + "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),12,0,0,4);"));
+
+        btnCreer.setOnAction(e -> {
             String nom  = fNom.getText().trim();
             String desc = fDesc.getText().trim();
             if (nom.length() < 3 || nom.length() > 80) {
-                errLabel.setText("Le nom doit contenir entre 3 et 80 caractères.");
-                e.consume();
+                errLabel.setText("⚠  Le nom doit contenir entre 3 et 80 caractères.");
+                errLabel.setVisible(true); errLabel.setManaged(true);
             } else if (desc.length() < 15) {
-                errLabel.setText("La description doit contenir au moins 15 caractères.");
-                e.consume();
+                errLabel.setText("⚠  La description doit contenir au moins 15 caractères.");
+                errLabel.setVisible(true); errLabel.setManaged(true);
             } else if (desc.length() > 500) {
-                errLabel.setText("La description ne peut pas dépasser 500 caractères.");
-                e.consume();
+                errLabel.setText("⚠  La description ne peut pas dépasser 500 caractères.");
+                errLabel.setVisible(true); errLabel.setManaged(true);
             } else {
-                errLabel.setText("");
+                Communaute c = new Communaute(nom, desc, SessionManager.getCurrentUser().getId());
+                service.ajouter(c);
+                allCommunautes = service.getList();
+                afficher(searchField.getText());
+                dialog.close();
             }
         });
 
-        dialog.setResultConverter(btn -> {
-            if (btn == javafx.scene.control.ButtonType.OK) {
-                return new Communaute(fNom.getText().trim(), fDesc.getText().trim(),
-                                      SessionManager.getCurrentUser().getId());
-            }
-            return null;
+        footer.getChildren().addAll(btnAnnuler, btnCreer);
+        root.getChildren().addAll(header, body, footer);
+
+        // ── Drag to move ──────────────────────────────────────────────────────
+        final double[] drag = {0, 0};
+        header.setOnMousePressed(e -> { drag[0] = e.getSceneX(); drag[1] = e.getSceneY(); });
+        header.setOnMouseDragged(e -> {
+            dialog.setX(e.getScreenX() - drag[0]);
+            dialog.setY(e.getScreenY() - drag[1]);
         });
 
-        dialog.showAndWait().ifPresent(c -> {
-            service.ajouter(c);
-            allCommunautes = service.getList();
-            afficher(searchField.getText());
-        });
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialog.setScene(scene);
+        dialog.show();
     }
 
     private void setCenter(Parent view) {
