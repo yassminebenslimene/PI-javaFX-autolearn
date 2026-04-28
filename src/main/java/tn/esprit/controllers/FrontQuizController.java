@@ -821,7 +821,7 @@ public class FrontQuizController {
     @FXML
     private void onCommencer() {
         // ✅ VÉRIFICATION : L'étudiant peut-il passer ce quiz ?
-        int etudiantId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+        int etudiantId = tn.esprit.session.JwtManager.getCurrentUser().getId();
         java.util.Map<String, Object> check = serviceQuiz.canStudentTakeQuiz(etudiantId, quiz);
         boolean canTake = (boolean) check.get("canTake");
         
@@ -1534,7 +1534,7 @@ public class FrontQuizController {
         }
 
         // ✅ FIX BUG 1 : Enregistrer la tentative terminée avec détails complets
-        int etudiantId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+        int etudiantId = tn.esprit.session.JwtManager.getCurrentUser().getId();
         serviceQuiz.enregistrerTentative(etudiantId, quiz.getId(), pointsObtenus, totalPoints, pct, dureeSecondes, detailsReponses);
         
         // ✅ FIX BUG 3 : Récupérer les vraies statistiques
@@ -1621,7 +1621,7 @@ public class FrontQuizController {
             try {
                 tn.esprit.services.CourseProgressService progressService =
                     new tn.esprit.services.CourseProgressService();
-                int userId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+                int userId = tn.esprit.session.JwtManager.getCurrentUser().getId();
                 int coursId = chapitre.getCoursId();
                 System.out.println("DEBUG progression: userId=" + userId
                     + " chapitreId=" + chapitre.getId()
@@ -1662,7 +1662,7 @@ public class FrontQuizController {
         // ── NOTIFICATIONS EMAIL ──────────────────────────────────────────────
         // Envoi asynchrone (ne bloque pas l'UI) uniquement si l'étudiant a échoué
         try {
-            tn.esprit.entities.User user = tn.esprit.session.SessionManager.getCurrentUser();
+            tn.esprit.entities.User user = tn.esprit.session.JwtManager.getCurrentUser();
             if (user != null && user.getEmail() != null && pct < seuil) {
                 String email  = user.getEmail();
                 String prenom = user.getPrenom();
@@ -1731,7 +1731,7 @@ public class FrontQuizController {
                     if (geoInfo != null) {
                         String prenom = "";
                         try {
-                            tn.esprit.entities.User user = tn.esprit.session.SessionManager.getCurrentUser();
+                            tn.esprit.entities.User user = tn.esprit.session.JwtManager.getCurrentUser();
                             if (user != null) prenom = user.getPrenom();
                         } catch (Exception ignored) {}
                         labelGeoMessage.setText(geoInfo.getBienvenueMessage(prenom));

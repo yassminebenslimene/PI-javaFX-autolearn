@@ -8,7 +8,7 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import tn.esprit.services.StudentAssistantExecutor;
 import tn.esprit.services.StudentAssistantService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +52,8 @@ public class StudentAssistantController {
         if (welcomeShown) return;
         welcomeShown = true;
 
-        String name = SessionManager.getCurrentUser() != null
-            ? SessionManager.getCurrentUser().getPrenom() : "étudiant";
+        String name = JwtManager.getCurrentUser() != null
+            ? JwtManager.getCurrentUser().getPrenom() : "étudiant";
 
         addBotMessage(
             "Bonjour **" + name + "** ! 👋\n\n" +

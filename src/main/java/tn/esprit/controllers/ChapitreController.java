@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.ServiceChapitre;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -215,7 +215,7 @@ public class ChapitreController {
 
     @FXML
     private void onNewChapitre() {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -224,7 +224,7 @@ public class ChapitreController {
 
     @FXML
     private void onGenerateWithAI() {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -419,7 +419,7 @@ public class ChapitreController {
     }
 
     private void onEditChapitre(Chapitre chapitre) {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -427,7 +427,7 @@ public class ChapitreController {
     }
 
     private void onDeleteChapitre(Chapitre chapitre) {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }

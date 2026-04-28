@@ -2,7 +2,7 @@ package tn.esprit.services;
 
 import com.google.gson.*;
 import tn.esprit.entities.*;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.net.URI;
 import java.net.http.*;
@@ -215,7 +215,7 @@ public class StudentAssistantService {
 
     private static String buildStudentContext() {
         try {
-            User user = SessionManager.getCurrentUser();
+            User user = JwtManager.getCurrentUser();
             if (user == null) return "";
 
             StringBuilder ctx = new StringBuilder("\n\n=== CONTEXTE ÉTUDIANT ===\n");

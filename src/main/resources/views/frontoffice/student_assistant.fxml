@@ -4,18 +4,22 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.geometry.Insets?>
 
-<!-- Floating AI Assistant - fixed bottom-right, tall narrow panel like Messenger -->
+<!-- Floating AI Assistant - pinned bottom-right, never blocks other UI -->
 <StackPane xmlns:fx="http://javafx.com/fxml"
            fx:controller="tn.esprit.controllers.StudentAssistantController"
            alignment="BOTTOM_RIGHT"
            pickOnBounds="false"
+           mouseTransparent="false"
            style="-fx-background-color:transparent;">
 
-    <!-- Fixed bottom-right container -->
-    <HBox alignment="BOTTOM_RIGHT" pickOnBounds="false"
-          style="-fx-padding:0 20 20 0;">
+    <!-- Outer container: sits in bottom-right, sized to content only -->
+    <VBox alignment="BOTTOM_RIGHT"
+          pickOnBounds="false"
+          mouseTransparent="false"
+          spacing="0"
+          style="-fx-padding:0 20 20 0; -fx-background-color:transparent;">
 
-        <!-- ══════════ CHAT PANEL - tall narrow like Messenger ══════════ -->
+        <!-- ══════════ CHAT PANEL ══════════ -->
         <VBox fx:id="chatPanel" spacing="0"
               prefWidth="320" prefHeight="560"
               minWidth="320" maxWidth="320"
@@ -26,20 +30,16 @@
                      -fx-border-color:#ddd6fe; -fx-border-radius:16; -fx-border-width:1.5;
                      -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.28),30,0,0,10);">
 
-            <!-- ── Header ── -->
+            <!-- Header -->
             <HBox alignment="CENTER_LEFT" spacing="10"
                   style="-fx-background-color:linear-gradient(to right,#6d28d9,#7c3aed);
                          -fx-background-radius:16 16 0 0;
                          -fx-padding:12 14 12 14;
                          -fx-min-height:56; -fx-max-height:56;">
-
-                <!-- Avatar -->
                 <StackPane minWidth="36" minHeight="36" maxWidth="36" maxHeight="36">
                     <Circle radius="18" style="-fx-fill:rgba(255,255,255,0.2);"/>
-                    <Label text="✦"
-                           style="-fx-font-size:13; -fx-font-weight:900; -fx-text-fill:white;"/>
+                    <Label text="✦" style="-fx-font-size:13; -fx-font-weight:900; -fx-text-fill:white;"/>
                 </StackPane>
-
                 <VBox spacing="1" HBox.hgrow="ALWAYS">
                     <Label text="Assistant AutoLearn"
                            style="-fx-font-size:12; -fx-font-weight:800; -fx-text-fill:white;"/>
@@ -49,24 +49,19 @@
                                style="-fx-font-size:10; -fx-text-fill:rgba(255,255,255,0.75);"/>
                     </HBox>
                 </VBox>
-
-                <!-- Clear -->
                 <Button text="↺" onAction="#onClear"
-                        style="-fx-background-color:rgba(255,255,255,0.15);
-                               -fx-text-fill:white; -fx-font-size:13;
-                               -fx-min-width:28; -fx-min-height:28;
+                        style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                               -fx-font-size:13; -fx-min-width:28; -fx-min-height:28;
                                -fx-max-width:28; -fx-max-height:28;
                                -fx-background-radius:50%; -fx-cursor:hand; -fx-border-width:0;"/>
-                <!-- Close -->
                 <Button text="✕" onAction="#onToggle"
-                        style="-fx-background-color:rgba(255,255,255,0.15);
-                               -fx-text-fill:white; -fx-font-size:10;
-                               -fx-min-width:28; -fx-min-height:28;
+                        style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                               -fx-font-size:10; -fx-min-width:28; -fx-min-height:28;
                                -fx-max-width:28; -fx-max-height:28;
                                -fx-background-radius:50%; -fx-cursor:hand; -fx-border-width:0;"/>
             </HBox>
 
-            <!-- ── Messages (takes all remaining height) ── -->
+            <!-- Messages -->
             <ScrollPane fx:id="scrollPane" fitToWidth="true" VBox.vgrow="ALWAYS"
                         hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
                         style="-fx-background-color:#faf8ff; -fx-background:#faf8ff; -fx-border-width:0;">
@@ -74,7 +69,7 @@
                       style="-fx-padding:12 10 12 10; -fx-background-color:#faf8ff;"/>
             </ScrollPane>
 
-            <!-- ── Input bar (fixed at bottom) ── -->
+            <!-- Input bar -->
             <HBox alignment="CENTER" spacing="8"
                   style="-fx-background-color:white;
                          -fx-background-radius:0 0 16 16;
@@ -89,37 +84,34 @@
                                   -fx-background-radius:20;
                                   -fx-border-color:#ddd6fe; -fx-border-radius:20; -fx-border-width:1;
                                   -fx-padding:8 12; -fx-font-size:12;
-                                  -fx-text-fill:#1e1b4b;
-                                  -fx-prompt-text-fill:#a78bfa;"/>
+                                  -fx-text-fill:#1e1b4b; -fx-prompt-text-fill:#a78bfa;"/>
                 <Button fx:id="btnSend" text="▶" onAction="#onSend"
                         style="-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);
                                -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:900;
                                -fx-min-width:36; -fx-min-height:36;
                                -fx-max-width:36; -fx-max-height:36;
-                               -fx-background-radius:50%;
-                               -fx-cursor:hand; -fx-border-width:0;
+                               -fx-background-radius:50%; -fx-cursor:hand; -fx-border-width:0;
                                -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),6,0,0,2);"/>
             </HBox>
         </VBox>
 
-        <!-- ══════════ FLOATING BUTTON (bottom-right, below panel) ══════════ -->
-        <VBox alignment="BOTTOM_RIGHT" spacing="0" pickOnBounds="false"
-              style="-fx-padding:8 0 0 8;">
-            <StackPane alignment="CENTER">
-                <!-- Pulse ring -->
+        <!-- ══════════ FLOATING BUTTON ══════════ -->
+        <HBox alignment="CENTER_RIGHT" pickOnBounds="false"
+              style="-fx-padding:8 0 0 0;">
+            <StackPane alignment="CENTER" pickOnBounds="false"
+                       minWidth="70" maxWidth="70"
+                       minHeight="70" maxHeight="70">
                 <Circle radius="32" style="-fx-fill:rgba(124,58,237,0.12);" mouseTransparent="true"/>
-                <!-- Button -->
                 <Button fx:id="btnToggle" text="💬" onAction="#onToggle"
                         style="-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);
                                -fx-text-fill:white; -fx-font-size:20;
                                -fx-min-width:54; -fx-min-height:54;
                                -fx-max-width:54; -fx-max-height:54;
-                               -fx-background-radius:50%;
-                               -fx-cursor:hand; -fx-border-width:0;
+                               -fx-background-radius:50%; -fx-cursor:hand; -fx-border-width:0;
                                -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.6),16,0,0,5);"
                         alignment="CENTER"/>
             </StackPane>
-        </VBox>
+        </HBox>
 
-    </HBox>
+    </VBox>
 </StackPane>

@@ -11,7 +11,7 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;import javafx.util.Duration;
 import tn.esprit.entities.User;
 import tn.esprit.services.MessagerieService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
@@ -89,7 +89,7 @@ public class MessagerieController {
 
     @FXML
     public void initialize() {
-        currentUser = SessionManager.getCurrentUser();
+        currentUser = JwtManager.getCurrentUser();
         if (currentUser == null) return;
 
         chargerContacts();

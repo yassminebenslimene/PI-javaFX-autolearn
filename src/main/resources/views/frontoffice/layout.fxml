@@ -69,10 +69,10 @@
         </HBox>
     </top>
     <center>
-        <StackPane>
+        <StackPane pickOnBounds="false">
         <ScrollPane fx:id="mainScrollPane" fitToWidth="true" fitToHeight="false"
-                    vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" 
-                    pannable="false" focusTraversable="false"
+                    vbarPolicy="AS_NEEDED" hbarPolicy="NEVER"
+                    pannable="false" focusTraversable="true"
                     style="-fx-background-color:white; -fx-background:transparent; -fx-border-width:0;">
             <VBox fx:id="homeContent" spacing="0" style="-fx-background-color:white;">
 
@@ -250,7 +250,8 @@
                     <!-- ScrollPane horizontal sans scrollbar — clip naturel -->
                     <ScrollPane fx:id="newsScrollPane" fitToHeight="true"
                                 hbarPolicy="NEVER" vbarPolicy="NEVER"
-                                prefHeight="220" maxHeight="220" focusTraversable="false"
+                                prefHeight="220" maxHeight="220"
+                                focusTraversable="false" mouseTransparent="false"
                                 style="-fx-background-color:transparent; -fx-background:transparent;
                                        -fx-border-width:0; -fx-padding:0;">
                         <HBox fx:id="newsCardsContainer" spacing="16" alignment="CENTER_LEFT"

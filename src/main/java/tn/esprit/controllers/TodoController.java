@@ -10,7 +10,7 @@ import tn.esprit.entities.Cours;
 import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.*;
 
@@ -55,14 +55,14 @@ public class TodoController {
 
     @FXML
     public void initialize() {
-        if (SessionManager.getCurrentUser() == null) return;
+        if (JwtManager.getCurrentUser() == null) return;
         Thread t = new Thread(this::loadData);
         t.setDaemon(true);
         t.start();
     }
 
     private void loadData() {
-        int userId = SessionManager.getCurrentUser().getId();
+        int userId = JwtManager.getCurrentUser().getId();
         List<Cours> allCours = serviceCours.consulter();
 
         List<VBox> todoCards       = new ArrayList<>();

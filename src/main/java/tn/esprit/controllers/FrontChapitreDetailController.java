@@ -23,7 +23,7 @@ import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.GroqTranslationService;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.TextToSpeechService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 import tn.esprit.tools.ConfigLoader;
 
 import java.io.File;

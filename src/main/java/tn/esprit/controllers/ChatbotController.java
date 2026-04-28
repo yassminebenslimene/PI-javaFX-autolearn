@@ -9,7 +9,7 @@ import javafx.scene.shape.Circle;
 import tn.esprit.MainApp;
 import tn.esprit.services.ChatbotActionExecutor;
 import tn.esprit.services.ChatbotService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +30,8 @@ public class ChatbotController {
 
     @FXML
     public void initialize() {
-        String name = SessionManager.getCurrentUser() != null
-            ? SessionManager.getCurrentUser().getPrenom() : "";
+        String name = JwtManager.getCurrentUser() != null
+            ? JwtManager.getCurrentUser().getPrenom() : "";
 
         addBotMessage(
             "Bonjour **" + name + "** ! Je suis votre assistant AutoLearn.\n\n" +

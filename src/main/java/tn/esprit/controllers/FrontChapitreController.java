@@ -25,7 +25,7 @@ import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.ServiceChapitre;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -69,8 +69,8 @@ public class FrontChapitreController {
             + "  |  Niveau: " + cours.getNiveau()
             + "  |  Duree: " + cours.getDuree() + "h");
 
-        if (SessionManager.getCurrentUser() != null) {
-            int userId = SessionManager.getCurrentUser().getId();
+        if (JwtManager.getCurrentUser() != null) {
+            int userId = JwtManager.getCurrentUser().getId();
             completedIds = new HashSet<>(progressService.getCompletedChapitreIds(userId, cours.getId()));
             startedIds = new HashSet<>(progressService.getStartedChapitreIds(userId, cours.getId()));
         } else {

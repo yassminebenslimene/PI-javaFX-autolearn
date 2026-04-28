@@ -20,7 +20,7 @@ import tn.esprit.services.ResourceRecommendationService;
 import tn.esprit.services.TrendAnalyzerService;
 import tn.esprit.services.GroqTopicService;
 import tn.esprit.services.CommentSentimentService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -91,7 +91,7 @@ public class FrontCommunauteDetailController {
         if (labelAvatar != null) labelAvatar.setText(initCom);
 
         // Avatar post (initiale utilisateur connecté)
-        User currentUser = SessionManager.getCurrentUser();
+        User currentUser = JwtManager.getCurrentUser();
         if (labelAvatarPost != null && currentUser != null) {
             String initUser = currentUser.getPrenom().substring(0,1).toUpperCase()
                             + currentUser.getNom().substring(0,1).toUpperCase();
@@ -281,8 +281,8 @@ public class FrontCommunauteDetailController {
             return;
         }
 
-        int userId = SessionManager.getCurrentUser() != null
-                ? SessionManager.getCurrentUser().getId() : 0;
+        int userId = JwtManager.getCurrentUser() != null
+                ? JwtManager.getCurrentUser().getId() : 0;
         Post p = new Post(contenu, titre, communaute.getId(), userId);
         p.setCreatedAt(LocalDateTime.now());
 
@@ -381,8 +381,8 @@ public class FrontCommunauteDetailController {
             topRow.getChildren().add(badge);
         }
 
-        int currentUserId = SessionManager.getCurrentUser() != null
-                ? SessionManager.getCurrentUser().getId() : -1;
+        int currentUserId = JwtManager.getCurrentUser() != null
+                ? JwtManager.getCurrentUser().getId() : -1;
         if (p.getUserId() == currentUserId) {
             MenuButton menuBtn = new MenuButton("⋮");
             menuBtn.setStyle(
@@ -575,8 +575,8 @@ public class FrontCommunauteDetailController {
         addComment.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         String userInit = "?";
-        if (SessionManager.getCurrentUser() != null) {
-            User u = SessionManager.getCurrentUser();
+        if (JwtManager.getCurrentUser() != null) {
+            User u = JwtManager.getCurrentUser();
             userInit = u.getPrenom().substring(0,1).toUpperCase() + u.getNom().substring(0,1).toUpperCase();
         }
         Label miniAvatar = new Label(userInit);
@@ -612,7 +612,7 @@ public class FrontCommunauteDetailController {
                                   "-fx-border-width:1.5; -fx-border-color:#e9e4ff; " +
                                   "-fx-border-radius:30; -fx-padding:12 20 12 20; -fx-font-size:12; " +
                                   "-fx-text-fill:#1e1b4b;");
-            int uid = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
+            int uid = JwtManager.getCurrentUser() != null ? JwtManager.getCurrentUser().getId() : 0;
             Commentaire newC = new Commentaire(txt, p.getId(), uid);
             serviceCommentaire.ajouter(newC);
             commentField.clear();
@@ -810,8 +810,8 @@ public class FrontCommunauteDetailController {
         row.setAlignment(javafx.geometry.Pos.TOP_LEFT);
         row.setPadding(new Insets(4, 0, 4, 0));
 
-        int currentUserId = SessionManager.getCurrentUser() != null
-                ? SessionManager.getCurrentUser().getId() : -1;
+        int currentUserId = JwtManager.getCurrentUser() != null
+                ? JwtManager.getCurrentUser().getId() : -1;
         
         // Always show menu button, but only enable actions for owner
         MenuButton menuBtn = new MenuButton("⋮");

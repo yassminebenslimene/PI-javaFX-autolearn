@@ -2,7 +2,7 @@ package tn.esprit.services;
 
 import com.google.gson.JsonObject;
 import tn.esprit.entities.*;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.List;
 
@@ -146,7 +146,7 @@ public class StudentAssistantExecutor {
     // ── Student actions ───────────────────────────────────────────────────────
 
     private ActionResult joinEvenement(JsonObject params) {
-        User user = SessionManager.getCurrentUser();
+        User user = JwtManager.getCurrentUser();
         if (user == null) return new ActionResult(false, "Vous devez être connecté pour vous inscrire. 🔒", null, null);
 
         if (!params.has("evenement_id"))
@@ -184,7 +184,7 @@ public class StudentAssistantExecutor {
     }
 
     private ActionResult createEquipe(JsonObject params) {
-        User user = SessionManager.getCurrentUser();
+        User user = JwtManager.getCurrentUser();
         if (user == null) return new ActionResult(false, "Vous devez être connecté pour créer une équipe. 🔒", null, null);
 
         if (!params.has("nom"))
@@ -216,7 +216,7 @@ public class StudentAssistantExecutor {
     }
 
     private ActionResult joinCommunaute(JsonObject params) {
-        User user = SessionManager.getCurrentUser();
+        User user = JwtManager.getCurrentUser();
         if (user == null) return new ActionResult(false, "Vous devez être connecté pour rejoindre une communauté. 🔒", null, null);
 
         if (!params.has("communaute_id"))
@@ -240,7 +240,7 @@ public class StudentAssistantExecutor {
     }
 
     private ActionResult createCommunaute(JsonObject params) {
-        User user = SessionManager.getCurrentUser();
+        User user = JwtManager.getCurrentUser();
         if (user == null) return new ActionResult(false, "Vous devez être connecté pour créer une communauté. 🔒", null, null);
 
         if (!params.has("nom"))

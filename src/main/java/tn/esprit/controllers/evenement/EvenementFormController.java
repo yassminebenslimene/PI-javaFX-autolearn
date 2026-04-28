@@ -9,7 +9,7 @@ import javafx.scene.layout.StackPane;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.EvenementService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -227,7 +227,7 @@ public class EvenementFormController implements Initializable {
         if (evenementToEdit == null) {
             Evenement e = new Evenement(titre, lieu, description, comboType.getValue(), dateDebut, dateFin, nbMax);
             service.ajouter(e);
-            var admin = SessionManager.getCurrentUser();
+            var admin = JwtManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_evenement",
                 java.util.Map.of("titre", titre, "lieu", lieu));
         } else {
@@ -248,7 +248,7 @@ public class EvenementFormController implements Initializable {
             };
             evenementToEdit.setWorkflowStatus(wf);
             service.modifier(evenementToEdit);
-            var admin = SessionManager.getCurrentUser();
+            var admin = JwtManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_evenement",
                 java.util.Map.of("titre", titre));
         }
