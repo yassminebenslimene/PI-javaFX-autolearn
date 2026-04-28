@@ -112,10 +112,26 @@ public class ServiceCommentaire {
         } catch (SQLException e) { System.err.println("[ServiceCommentaire] supprimerByPost: " + e.getMessage()); }
     }
 
+    /** Incrémente likes d'un commentaire de +1 et retourne le nouveau total */
+    public int likeCommentaire(int commentaireId) {
+        try {
+            PreparedStatement ps = conn().prepareStatement(
+                "UPDATE commentaire SET likes = COALESCE(likes, 0) + 1 WHERE id=?");
+            ps.setInt(1, commentaireId);
+            ps.executeUpdate();
+            PreparedStatement ps2 = conn().prepareStatement(
+                "SELECT likes FROM commentaire WHERE id=?");
+            ps2.setInt(1, commentaireId);
+            ResultSet rs = ps2.executeQuery();
+            if (rs.next()) return rs.getInt("likes");
+        } catch (SQLException e) { System.err.println("[ServiceCommentaire] likeCommentaire: " + e.getMessage()); }
+        return 0;
+    }
+
     private Commentaire fromRs(ResultSet rs) throws SQLException {
         Timestamp ts = null;
         try { ts = rs.getTimestamp(DATE_COL); } catch (SQLException ignored) {}
-        return new Commentaire(
+        Commentaire c = new Commentaire(
             rs.getInt("id"),
             rs.getString("contenu"),
             ts != null ? ts.toLocalDateTime() : null,
@@ -124,5 +140,7 @@ public class ServiceCommentaire {
             rs.getInt("post_id"),
             rs.getInt("user_id")
         );
+        try { c.setLikes(rs.getInt("likes")); } catch (SQLException ignored) {}
+        return c;
     }
 }

@@ -31,6 +31,10 @@ public class FrontofficeController {
 
     private static FrontofficeController instance;
 
+    // Pending navigation from external pages (e.g., community detail)
+    private static String pendingSection = null;
+    public static void setPendingSection(String section) { pendingSection = section; }
+
     // Navbar labels
     @FXML private Label welcomeLabel;
     @FXML private Label labelNiveauStat;

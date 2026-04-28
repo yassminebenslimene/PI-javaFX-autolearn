@@ -2,13 +2,22 @@ package tn.esprit.controllers;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.animation.FadeTransition;
+import javafx.util.Duration;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
+import javafx.scene.layout.Priority;
 import tn.esprit.entities.Communaute;
 import tn.esprit.services.ServiceCommunaute;
 import tn.esprit.session.SessionManager;
+import tn.esprit.controllers.FrontCoursController;
 
 import java.util.List;
 
@@ -17,21 +26,25 @@ public class FrontCommunauteController {
     @FXML private FlowPane cardsPane;
     @FXML private Label emptyLabel;
     @FXML private TextField searchField;
-    @FXML private NavbarController navbarController;
 
     private final ServiceCommunaute service = new ServiceCommunaute();
     private List<Communaute> allCommunautes;
     private Runnable onRetour;
+    private java.util.function.Consumer<Communaute> onOuvrirDetail;
 
     public void setOnRetour(Runnable r) { this.onRetour = r; }
+    public void setOnOuvrirDetail(java.util.function.Consumer<Communaute> cb) { this.onOuvrirDetail = cb; }
+
+    /** Pre-fills the search field with a course name so relevant communities show up */
+    public void preselectCours(String coursNom) {
+        if (searchField != null && coursNom != null) {
+            searchField.setText(coursNom);
+            afficher(coursNom);
+        }
+    }
 
     @FXML
     public void initialize() {
-        // Set active navbar button
-        if (navbarController != null) {
-            navbarController.setActive("Communaute");
-        }
-        
         allCommunautes = service.getList();
         searchField.textProperty().addListener((obs, o, n) -> afficher(n));
         afficher("");
@@ -53,21 +66,23 @@ public class FrontCommunauteController {
     private VBox buildCard(Communaute c) {
         int currentUserId = SessionManager.getCurrentUser() != null
                 ? SessionManager.getCurrentUser().getId() : -1;
+        List<Integer> memberIds = c.getMemberIds() != null ? c.getMemberIds() : java.util.Collections.emptyList();
         boolean hasAccess = c.getOwnerId() == currentUserId
-                || c.getMemberIds().contains(currentUserId);
+                || memberIds.contains(currentUserId);
 
-        VBox card = new VBox(10);
+        VBox card = new VBox(16);
         card.setPrefWidth(300);
-        card.setStyle("-fx-background-color:white; -fx-background-radius:14; " +
-                      "-fx-border-color:#eeeeee; -fx-border-radius:14; " +
-                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3); -fx-padding:22;");
+        card.setUserData(c);
+        card.setStyle("-fx-background-color:white; -fx-background-radius:24; " +
+                      "-fx-border-color:#ede9fe; -fx-border-radius:24; -fx-border-width:1.5; " +
+                      "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.1),22,0,0,7); -fx-padding:28;");
 
-        // Icône + badge cadenas si accès restreint
-        HBox iconRow = new HBox(8);
+        // ── Card header: icon + 3-dot menu (owner only) ──────────────────
+        HBox iconRow = new HBox(10);
         iconRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label icon = new Label("👥");
-        icon.setStyle("-fx-font-size:28; -fx-background-color:rgba(122,106,216,0.1); " +
-                      "-fx-background-radius:12; -fx-padding:10 12 10 12;");
+        icon.setStyle("-fx-font-size:22; -fx-background-color:#f5f3ff; " +
+                      "-fx-background-radius:14; -fx-padding:13;");
         iconRow.getChildren().add(icon);
         if (!hasAccess) {
             Label lock = new Label("🔒");
@@ -75,50 +90,82 @@ public class FrontCommunauteController {
             iconRow.getChildren().add(lock);
         }
 
+        // 3-dot menu for owner
+        boolean isOwner = c.getOwnerId() == currentUserId;
+        if (isOwner) {
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            javafx.scene.control.Button btnDots = new javafx.scene.control.Button("⋯");
+            btnDots.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                             "-fx-font-size:16; -fx-font-weight:900;" +
+                             "-fx-padding:4 12; -fx-background-radius:20;" +
+                             "-fx-cursor:hand; -fx-border-width:0;");
+            btnDots.setOnMouseEntered(e -> btnDots.setStyle(
+                    "-fx-background-color:#ede9fe; -fx-text-fill:#6d28d9;" +
+                    "-fx-font-size:16; -fx-font-weight:900;" +
+                    "-fx-padding:4 12; -fx-background-radius:20;" +
+                    "-fx-cursor:hand; -fx-border-width:0;"));
+            btnDots.setOnMouseExited(e -> btnDots.setStyle(
+                    "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                    "-fx-font-size:16; -fx-font-weight:900;" +
+                    "-fx-padding:4 12; -fx-background-radius:20;" +
+                    "-fx-cursor:hand; -fx-border-width:0;"));
+
+            ContextMenu menu = new ContextMenu();
+            menu.setStyle("-fx-background-color:white; -fx-background-radius:14;" +
+                          "-fx-border-color:#ede9fe; -fx-border-radius:14; -fx-border-width:1.5;" +
+                          "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.15),16,0,0,4);" +
+                          "-fx-padding:6 0 6 0;");
+
+            MenuItem itemEdit = new MenuItem("  ✏  Modifier");
+            itemEdit.setStyle("-fx-font-size:13; -fx-padding:10 20 10 20;");
+            itemEdit.setOnAction(e -> onModifier(c));
+
+            MenuItem itemDel = new MenuItem("  🗑  Supprimer");
+            itemDel.setStyle("-fx-font-size:13; -fx-padding:10 20 10 20; -fx-text-fill:#e94560;");
+            itemDel.setOnAction(e -> onSupprimer(c));
+
+            menu.getItems().addAll(itemEdit, new SeparatorMenuItem(), itemDel);
+            btnDots.setOnAction(e -> menu.show(btnDots, javafx.geometry.Side.BOTTOM, 0, 4));
+
+            iconRow.getChildren().addAll(spacer, btnDots);
+        }
+
         Label nom = new Label(c.getNom());
-        nom.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#1e1e1e;");
+        nom.setStyle("-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#1e1b4b;");
 
         Label desc = new Label(c.getDescription() != null ? c.getDescription() : "");
         desc.setWrapText(true);
-        desc.setStyle("-fx-font-size:12; -fx-text-fill:#666;");
+        desc.setStyle("-fx-font-size:12; -fx-text-fill:#6b7280; -fx-line-spacing:4;");
 
         javafx.scene.control.Button btn;
         if (hasAccess) {
-            btn = new javafx.scene.control.Button("Voir la communauté →");
-            btn.setStyle("-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c); " +
-                         "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700; " +
-                         "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
-            btn.setOnAction(e -> ouvrirDetail(c));
+            btn = new javafx.scene.control.Button("Rejoindre →");
+            btn.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); " +
+                         "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:900; " +
+                         "-fx-padding:13 30; -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:0; " +
+                         "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),14,0,0,5);");
+            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color:linear-gradient(to right,#6d28d9,#4338ca); " +
+                                                    "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:900; " +
+                                                    "-fx-padding:13 30; -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:0; " +
+                                                    "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.55),18,0,0,7);"));
+            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); " +
+                                                   "-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:900; " +
+                                                   "-fx-padding:13 30; -fx-background-radius:30; -fx-cursor:hand; -fx-border-width:0; " +
+                                                   "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),14,0,0,5);"));
+            btn.setOnAction(e -> {
+                if (onOuvrirDetail != null) onOuvrirDetail.accept(c);
+                else ouvrirDetail(c);
+            });
         } else {
             btn = new javafx.scene.control.Button("🔒  Accès restreint");
-            btn.setStyle("-fx-background-color:#f5f5f5; -fx-text-fill:#aaa; -fx-font-size:12; " +
-                         "-fx-padding:9 20 9 20; -fx-background-radius:10; -fx-border-width:0;");
+            btn.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#c4b5fd; -fx-font-size:12; " +
+                         "-fx-padding:11 24; -fx-background-radius:30; -fx-border-width:0;");
             btn.setDisable(true);
         }
 
         card.getChildren().addAll(iconRow, nom, desc, btn);
-
-        // Boutons modifier / supprimer visibles uniquement pour le créateur
-        boolean isOwner = c.getOwnerId() == currentUserId;
-        if (isOwner) {
-            HBox ownerActions = new HBox(8);
-            ownerActions.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-            javafx.scene.control.Button btnEdit = new javafx.scene.control.Button("✏ Modifier");
-            btnEdit.setStyle("-fx-background-color:#f0eeff; -fx-text-fill:#7a6ad8; -fx-font-size:11; " +
-                             "-fx-font-weight:700; -fx-padding:6 14 6 14; -fx-background-radius:8; " +
-                             "-fx-cursor:hand; -fx-border-width:0;");
-            btnEdit.setOnAction(e -> onModifier(c));
-
-            javafx.scene.control.Button btnDel = new javafx.scene.control.Button("🗑 Supprimer");
-            btnDel.setStyle("-fx-background-color:#fff0f0; -fx-text-fill:#e94560; -fx-font-size:11; " +
-                            "-fx-font-weight:700; -fx-padding:6 14 6 14; -fx-background-radius:8; " +
-                            "-fx-cursor:hand; -fx-border-width:0;");
-            btnDel.setOnAction(e -> onSupprimer(c));
-
-            ownerActions.getChildren().addAll(btnEdit, btnDel);
-            card.getChildren().add(ownerActions);
-        }
 
         return card;
     }
@@ -127,17 +174,56 @@ public class FrontCommunauteController {
         try {
             Communaute fresh = service.getById(c.getId());
             if (fresh == null) fresh = c;
-            FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/frontoffice/communaute/detail.fxml"));
+            var resource = getClass().getResource("/views/frontoffice/communaute/detail.fxml");
+            if (resource == null) {
+                showUiError("Impossible d'ouvrir la communauté", "Le fichier de vue detail.fxml est introuvable.");
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(resource);
             javafx.scene.Parent view = loader.load();
             FrontCommunauteDetailController ctrl = loader.getController();
             ctrl.setCommunaute(fresh, () -> {
                 try {
-                    tn.esprit.MainApp.showCommunauteFront();
+                    // Go back to layout with community list
+                    FrontofficeController.setPendingSection("communaute");
+                    tn.esprit.MainApp.showFrontoffice();
                 } catch (Exception ex) { ex.printStackTrace(); }
             });
-            tn.esprit.MainApp.getPrimaryStage().getScene().setRoot(view);
-        } catch (Exception e) { e.printStackTrace(); }
+
+            // ── Resource navigation callbacks ──────────────────────────────
+            ctrl.setOnNavigateToCours(coursId -> {
+                try {
+                    FrontofficeController.setPendingSection("cours");
+                    tn.esprit.MainApp.showFrontoffice();
+                } catch (Exception ex) { ex.printStackTrace(); }
+            });
+
+            ctrl.setOnNavigateToQuiz(quizId -> {
+                try {
+                    FrontofficeController.setPendingSection("cours");
+                    tn.esprit.MainApp.showFrontoffice();
+                } catch (Exception ex) { ex.printStackTrace(); }
+            });
+            
+            // Load detail inside layout's center (extract center from BorderPane)
+            if (view instanceof BorderPane bp && bp.getCenter() != null) {
+                setCenter((Parent) bp.getCenter());
+            } else {
+                setCenter(view);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            String details = cause.getMessage() != null ? ("\n\nDétail: " + cause.getMessage()) : "";
+            showUiError("Impossible d'ouvrir la communauté", "Une erreur est survenue pendant le chargement de la page détail." + details);
+        }
+    }
+
+    private void showUiError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle(title);
+        alert.showAndWait();
     }
 
     @FXML
@@ -205,51 +291,117 @@ public class FrontCommunauteController {
     }
 
     private void onModifier(Communaute c) {
-        javafx.scene.control.Dialog<Communaute> dialog = new javafx.scene.control.Dialog<>();
-        dialog.setTitle("Modifier la communauté");
-        dialog.getDialogPane().getButtonTypes().addAll(
-            javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+        // Find the card in the cardsPane
+        VBox card = cardsPane.getChildren().stream()
+            .filter(n -> n instanceof VBox && n.getUserData() == c)
+            .map(n -> (VBox) n)
+            .findFirst().orElse(null);
+        if (card == null) return;
 
-        VBox content = new VBox(10);
-        content.setPadding(new javafx.geometry.Insets(20));
+        // Avoid double edit panels
+        card.getChildren().removeIf(n -> "edit-panel".equals(n.getId()));
+
+        // ── Inline edit panel ─────────────────────────────────────────────
+        VBox editPanel = new VBox(14);
+        editPanel.setId("edit-panel");
+        editPanel.setStyle(
+            "-fx-background-color:#faf8ff; -fx-background-radius:16;" +
+            "-fx-border-color:#ddd6fe; -fx-border-radius:16; -fx-border-width:1.5;" +
+            "-fx-padding:18;");
+
+        Label editTitle = new Label("✏  Modifier la communauté");
+        editTitle.setStyle("-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:#4f46e5;");
+
+        // Nom field
+        Label lblNom = new Label("Nom");
+        lblNom.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7c3aed;");
         TextField fNom = new TextField(c.getNom());
+        fNom.setStyle(
+            "-fx-background-color:white; -fx-background-radius:10;" +
+            "-fx-border-color:#ddd6fe; -fx-border-radius:10; -fx-border-width:1.5;" +
+            "-fx-padding:10 14; -fx-font-size:13; -fx-text-fill:#1e1b4b;");
+
+        // Description field
+        Label lblDesc = new Label("Description");
+        lblDesc.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#7c3aed;");
         javafx.scene.control.TextArea fDesc = new javafx.scene.control.TextArea(c.getDescription());
         fDesc.setPrefRowCount(3);
+        fDesc.setWrapText(true);
+        fDesc.setStyle(
+            "-fx-background-color:white; -fx-background-radius:10;" +
+            "-fx-border-color:#ddd6fe; -fx-border-radius:10; -fx-border-width:1.5;" +
+            "-fx-padding:10 14; -fx-font-size:12; -fx-text-fill:#1e1b4b;");
+
+        // Error label
         Label errLabel = new Label();
         errLabel.setStyle("-fx-text-fill:#e94560; -fx-font-size:11;");
-        content.getChildren().addAll(new Label("Nom :"), fNom, new Label("Description :"), fDesc, errLabel);
-        dialog.getDialogPane().setContent(content);
+        errLabel.setWrapText(true);
 
-        javafx.scene.control.Button okBtn = (javafx.scene.control.Button)
-            dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
-        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+        // Buttons row
+        javafx.scene.control.Button btnSave = new javafx.scene.control.Button("✔  Enregistrer");
+        btnSave.setStyle(
+            "-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5);" +
+            "-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:800;" +
+            "-fx-padding:9 22; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+        btnSave.setOnMouseEntered(e -> btnSave.setOpacity(0.88));
+        btnSave.setOnMouseExited(e -> btnSave.setOpacity(1.0));
+
+        javafx.scene.control.Button btnCancel = new javafx.scene.control.Button("Annuler");
+        btnCancel.setStyle(
+            "-fx-background-color:transparent; -fx-text-fill:#9ca3af;" +
+            "-fx-font-size:12; -fx-font-weight:600;" +
+            "-fx-padding:9 18; -fx-background-radius:20; -fx-cursor:hand;" +
+            "-fx-border-width:1; -fx-border-color:#e5e7eb; -fx-border-radius:20;");
+        btnCancel.setOnMouseEntered(e -> btnCancel.setStyle(
+            "-fx-background-color:#f9fafb; -fx-text-fill:#6b7280;" +
+            "-fx-font-size:12; -fx-font-weight:600;" +
+            "-fx-padding:9 18; -fx-background-radius:20; -fx-cursor:hand;" +
+            "-fx-border-width:1; -fx-border-color:#d1d5db; -fx-border-radius:20;"));
+        btnCancel.setOnMouseExited(e -> btnCancel.setStyle(
+            "-fx-background-color:transparent; -fx-text-fill:#9ca3af;" +
+            "-fx-font-size:12; -fx-font-weight:600;" +
+            "-fx-padding:9 18; -fx-background-radius:20; -fx-cursor:hand;" +
+            "-fx-border-width:1; -fx-border-color:#e5e7eb; -fx-border-radius:20;"));
+
+        HBox btnRow = new HBox(10, btnSave, btnCancel);
+        btnRow.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        editPanel.getChildren().addAll(editTitle, lblNom, fNom, lblDesc, fDesc, errLabel, btnRow);
+
+        // Animate in
+        editPanel.setOpacity(0);
+        card.getChildren().add(editPanel);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), editPanel);
+        ft.setFromValue(0); ft.setToValue(1); ft.play();
+
+        // ── Actions ───────────────────────────────────────────────────────
+        btnCancel.setOnAction(e -> {
+            javafx.animation.FadeTransition out = new javafx.animation.FadeTransition(javafx.util.Duration.millis(150), editPanel);
+            out.setFromValue(1); out.setToValue(0);
+            out.setOnFinished(ev -> card.getChildren().remove(editPanel));
+            out.play();
+        });
+
+        btnSave.setOnAction(e -> {
             String nom  = fNom.getText().trim();
             String desc = fDesc.getText().trim();
             if (nom.length() < 3 || nom.length() > 80) {
                 errLabel.setText("Le nom doit contenir entre 3 et 80 caractères.");
-                e.consume();
-            } else if (desc.length() < 15) {
+                fNom.setStyle("-fx-background-color:#fff1f2; -fx-background-radius:10;" +
+                    "-fx-border-color:#fca5a5; -fx-border-radius:10; -fx-border-width:1.5;" +
+                    "-fx-padding:10 14; -fx-font-size:13;");
+                return;
+            }
+            if (desc.length() < 15) {
                 errLabel.setText("La description doit contenir au moins 15 caractères.");
-                e.consume();
-            } else if (desc.length() > 500) {
-                errLabel.setText("La description ne peut pas dépasser 500 caractères.");
-                e.consume();
-            } else {
-                errLabel.setText("");
+                fDesc.setStyle("-fx-background-color:#fff1f2; -fx-background-radius:10;" +
+                    "-fx-border-color:#fca5a5; -fx-border-radius:10; -fx-border-width:1.5;" +
+                    "-fx-padding:10 14; -fx-font-size:12;");
+                return;
             }
-        });
-
-        dialog.setResultConverter(btn -> {
-            if (btn == javafx.scene.control.ButtonType.OK) {
-                c.setNom(fNom.getText().trim());
-                c.setDescription(fDesc.getText().trim());
-                return c;
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(updated -> {
-            service.modifier(updated);
+            c.setNom(nom);
+            c.setDescription(desc);
+            service.modifier(c);
             allCommunautes = service.getList();
             afficher(searchField.getText());
         });

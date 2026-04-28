@@ -38,6 +38,55 @@ public class ServicePost {
         return list;
     }
 
+    /**
+     * Hot Ranking Algorithm — Reddit-style:
+     *
+     *   score = (likes * 2 + nb_comments * 1.5 + 1) / POW(age_hours + 2, 1.8)
+     *
+     * - likes    = COALESCE(ai_reaction, 0)  — nombre de réactions IA
+     * - comments = COUNT(commentaire)
+     * - age      = TIMESTAMPDIFF(HOUR, created_at, NOW())
+     * - +2 dans le dénominateur : évite division par zéro
+     * - POW(x, 1.8) : décroissance progressive de l'âge
+     */
+    public List<Post> getHotByCommunaute(int communauteId) {
+        List<Post> list = new ArrayList<>();
+        String req =
+            "SELECT p.*, " +
+            "  COUNT(c.id)                                          AS nb_comments, " +
+            "  COALESCE(CAST(p.ai_reaction AS UNSIGNED), 0)        AS nb_likes, " +
+            "  TIMESTAMPDIFF(HOUR, p.created_at, NOW())            AS age_hours, " +
+            "  (COALESCE(CAST(p.ai_reaction AS UNSIGNED), 0) * 2   " +
+            "   + COUNT(c.id) * 1.5 + 1)                           " +
+            "  / POW(TIMESTAMPDIFF(HOUR, p.created_at, NOW()) + 2, 1.8) AS hot_score " +
+            "FROM post p " +
+            "LEFT JOIN commentaire c ON c.post_id = p.id " +
+            "WHERE p.communaute_id = ? " +
+            "GROUP BY p.id " +
+            "ORDER BY hot_score DESC";
+        try {
+            PreparedStatement ps = conn().prepareStatement(req);
+            ps.setInt(1, communauteId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Post post = fromRs(rs);
+                double score    = rs.getDouble("hot_score");
+                int    comments = rs.getInt("nb_comments");
+                int    likes    = rs.getInt("nb_likes");
+                int    age      = rs.getInt("age_hours");
+                System.out.printf("[ServicePost] HOT post#%d score=%.4f likes=%d comments=%d age=%dh%n",
+                        post.getId(), score, likes, comments, age);
+                list.add(post);
+            }
+            System.out.println("[ServicePost] getHotByCommunaute(" + communauteId + ") -> " + list.size() + " posts");
+        } catch (SQLException e) {
+            System.err.println("[ServicePost] getHotByCommunaute: " + e.getMessage());
+            // fallback to date order
+            return getByCommunaute(communauteId);
+        }
+        return list;
+    }
+
     public Post getById(int id) {
         String req = "SELECT * FROM post WHERE id=?";
         try {
@@ -52,8 +101,12 @@ public class ServicePost {
     // ── Écriture ─────────────────────────────────────────────────────────────
 
     public void ajouter(Post p) {
+        // Auto-extract tags from titre + contenu before saving
+        if (p.getTags() == null || p.getTags().isBlank()) {
+            p.setTags(extractTags(p.getTitre(), p.getContenu()));
+        }
         String req = "INSERT INTO post (contenu, titre, ai_reaction, ai_reaction_data, summary, " +
-                     "image_file, video_file, created_at, communaute_id, user_id) VALUES (?,?,?,?,?,?,?,?,?,?)";
+                     "image_file, video_file, created_at, communaute_id, user_id, tags) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
         try {
             PreparedStatement ps = conn().prepareStatement(req, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, p.getContenu());
@@ -68,18 +121,19 @@ public class ServicePost {
                 : Timestamp.valueOf(java.time.LocalDateTime.now()));
             ps.setInt(9, p.getCommunauteId());
             ps.setInt(10, p.getUserId());
+            ps.setString(11, p.getTags());
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) {
                 p.setId(keys.getInt(1));
-                System.out.println("[ServicePost] ajouter OK id=" + p.getId() + " communauteId=" + p.getCommunauteId());
+                System.out.println("[ServicePost] ajouter OK id=" + p.getId() + " tags=" + p.getTags());
             }
         } catch (SQLException e) { System.err.println("[ServicePost] ajouter: " + e.getMessage()); }
     }
 
     public void modifier(Post p) {
         String req = "UPDATE post SET contenu=?, titre=?, ai_reaction=?, ai_reaction_data=?, " +
-                     "summary=?, image_file=?, video_file=?, communaute_id=?, user_id=? WHERE id=?";
+                     "summary=?, image_file=?, video_file=?, communaute_id=?, user_id=?, tags=? WHERE id=?";
         try {
             PreparedStatement ps = conn().prepareStatement(req);
             ps.setString(1, p.getContenu());
@@ -91,7 +145,8 @@ public class ServicePost {
             ps.setString(7, p.getVideoFile());
             ps.setInt(8, p.getCommunauteId());
             ps.setInt(9, p.getUserId());
-            ps.setInt(10, p.getId());
+            ps.setString(10, p.getTags());
+            ps.setInt(11, p.getId());
             ps.executeUpdate();
         } catch (SQLException e) { System.err.println("[ServicePost] modifier: " + e.getMessage()); }
     }
@@ -105,10 +160,74 @@ public class ServicePost {
         } catch (SQLException e) { System.err.println("[ServicePost] supprimer: " + e.getMessage()); }
     }
 
+    // ── Similarity & Tags ─────────────────────────────────────────────────────
+
+    /**
+     * Jaccard Similarity: |A ∩ B| / |A ∪ B|
+     * Returns 0.0 → 1.0
+     */
+    public double jaccardSimilarity(Post a, Post b) {
+        java.util.Set<String> tagsA = a.getTagSet();
+        java.util.Set<String> tagsB = b.getTagSet();
+        if (tagsA.isEmpty() && tagsB.isEmpty()) return 0.0;
+
+        java.util.Set<String> intersection = new java.util.HashSet<>(tagsA);
+        intersection.retainAll(tagsB);
+
+        java.util.Set<String> union = new java.util.HashSet<>(tagsA);
+        union.addAll(tagsB);
+
+        double score = (double) intersection.size() / union.size();
+        System.out.printf("[Jaccard] post#%d ↔ post#%d  ∩=%d ∪=%d  score=%.3f%n",
+                a.getId(), b.getId(), intersection.size(), union.size(), score);
+        return score;
+    }
+
+    /**
+     * Returns top-N similar posts to the given post (from same communauté),
+     * sorted by Jaccard score DESC, minimum threshold 0.1
+     */
+    public List<Post> getSimilarPosts(Post source, int communauteId, int topN) {
+        List<Post> all = getByCommunaute(communauteId);
+        return all.stream()
+            .filter(p -> p.getId() != source.getId())
+            .map(p -> new Object[]{ p, jaccardSimilarity(source, p) })
+            .filter(pair -> (double) pair[1] >= 0.1)
+            .sorted((x, y) -> Double.compare((double) y[1], (double) x[1]))
+            .limit(topN)
+            .map(pair -> (Post) pair[0])
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Auto-extracts tags from titre + contenu.
+     * Keeps words ≥ 4 chars, removes stop-words, lowercases, deduplicates.
+     * Returns comma-separated string: "java,spring,backend"
+     */
+    public static String extractTags(String titre, String contenu) {
+        java.util.Set<String> stopWords = java.util.Set.of(
+            "pour", "dans", "avec", "cette", "votre", "notre", "vous", "nous",
+            "les", "des", "une", "est", "que", "qui", "par", "sur", "mais",
+            "tout", "plus", "bien", "aussi", "comme", "when", "what", "this",
+            "that", "with", "from", "have", "will", "been", "they", "their"
+        );
+        String text = ((titre != null ? titre : "") + " " + (contenu != null ? contenu : ""))
+                .toLowerCase()
+                .replaceAll("[^a-zàâäéèêëîïôùûüç0-9\\s]", " ");
+
+        java.util.LinkedHashSet<String> tags = new java.util.LinkedHashSet<>();
+        for (String word : text.split("\\s+")) {
+            if (word.length() >= 4 && !stopWords.contains(word) && tags.size() < 10) {
+                tags.add(word);
+            }
+        }
+        return String.join(",", tags);
+    }
+
     // ── Helper privé ─────────────────────────────────────────────────────────
 
     private Post fromRs(ResultSet rs) throws SQLException {
-        return new Post(
+        Post p = new Post(
             rs.getInt("id"),
             rs.getString("contenu"),
             rs.getString("titre"),
@@ -121,5 +240,7 @@ public class ServicePost {
             rs.getInt("communaute_id"),
             rs.getInt("user_id")
         );
+        try { p.setTags(rs.getString("tags")); } catch (SQLException ignored) {}
+        return p;
     }
 }

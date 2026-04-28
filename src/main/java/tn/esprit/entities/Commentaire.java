@@ -8,8 +8,9 @@ public class Commentaire {
     private LocalDateTime createdAt;
     private String sentiment;
     private double sentimentScore;
-    private int postId;   // FK vers post.id (orphanRemoval depuis Post)
+    private int postId;
     private int userId;
+    private int likes;
 
     public Commentaire() {}
 
@@ -51,6 +52,9 @@ public class Commentaire {
 
     public int getUserId() { return userId; }
     public void setUserId(int userId) { this.userId = userId; }
+
+    public int getLikes() { return likes; }
+    public void setLikes(int likes) { this.likes = likes; }
 
     @Override
     public String toString() {

@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="0" style="-fx-background-color:#0f1a14;"
+<VBox spacing="0" style="-fx-background-color:linear-gradient(to bottom,#0b1714,#101f1b);"
       xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="tn.esprit.controllers.CommentaireAdminController">
     <padding><Insets bottom="20" left="28" right="28" top="20"/></padding>
@@ -11,16 +11,16 @@
     <!-- STATS -->
     <HBox alignment="CENTER_LEFT" spacing="14">
         <VBox prefHeight="80" prefWidth="190" spacing="6"
-              style="-fx-background-color:rgba(255,255,255,0.06); -fx-background-radius:14;
-                     -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:14;
-                     -fx-padding:14 16 14 16; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),10,0,0,3);">
+              style="-fx-background-color:linear-gradient(to bottom right,rgba(244,114,182,0.16),rgba(236,72,153,0.06)); -fx-background-radius:14;
+                     -fx-border-color:rgba(244,114,182,0.34); -fx-border-radius:14;
+                     -fx-padding:14 16 14 16; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.35),12,0,0,4);">
             <HBox alignment="CENTER_LEFT">
                 <VBox spacing="2" HBox.hgrow="ALWAYS">
                     <Label style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.55); -fx-font-weight:600;" text="Total Commentaires"/>
                     <Label fx:id="labelTotal" style="-fx-font-size:26; -fx-font-weight:700; -fx-text-fill:#f472b6;" text="0"/>
-                    <Label style="-fx-font-size:10; -fx-text-fill:rgba(244,114,182,0.7);" text="commentaires publies"/>
+                    <Label style="-fx-font-size:10; -fx-text-fill:rgba(244,114,182,0.9);" text="commentaires publies"/>
                 </VBox>
-                <Label style="-fx-font-size:22; -fx-background-color:rgba(244,114,182,0.12); -fx-background-radius:10; -fx-padding:7 9 7 9;" text="💬"/>
+                <Label style="-fx-font-size:22; -fx-background-color:rgba(244,114,182,0.2); -fx-background-radius:10; -fx-padding:7 9 7 9;" text="💬"/>
             </HBox>
         </VBox>
     </HBox>
@@ -29,9 +29,9 @@
 
     <!-- TABLE CARD -->
     <VBox spacing="0"
-          style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:20;
-                 -fx-border-color:rgba(255,255,255,0.1); -fx-border-radius:20;
-                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.25),16,0,0,6);"
+          style="-fx-background-color:linear-gradient(to bottom,rgba(255,255,255,0.06),rgba(255,255,255,0.04)); -fx-background-radius:20;
+                 -fx-border-color:rgba(255,255,255,0.14); -fx-border-radius:20;
+                 -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.34),18,0,0,7);"
           VBox.vgrow="ALWAYS">
 
         <HBox alignment="CENTER_LEFT" spacing="16"
