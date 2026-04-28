@@ -44,11 +44,25 @@ public class TrendAnalyzerService {
      * for a given communauté and returns trending keywords.
      */
     public List<TrendWord> getTrends(int communauteId) {
-        // word → [total_weighted_score, count]
-        Map<String, double[]> wordStats = new LinkedHashMap<>();
+        return computeTrends(communauteId, true);
+    }
 
-        fetchPostTexts(communauteId, wordStats);
-        fetchCommentTexts(communauteId, wordStats);
+    /**
+     * Fallback: analyzes ALL posts+comments (no time window) with lower threshold.
+     * Used when there are no recent posts in the last 24h.
+     */
+    public List<TrendWord> getTrendsAllTime(int communauteId) {
+        return computeTrends(communauteId, false);
+    }
+
+    private List<TrendWord> computeTrends(int communauteId, boolean timeWindow) {
+        // word → [count, weighted_sum]
+        Map<String, double[]> wordStats = new LinkedHashMap<>();
+        int    minFreq   = timeWindow ? MIN_FREQ : 1;   // all-time: allow single occurrences
+        double threshold = timeWindow ? THRESHOLD : 0.1; // all-time: lower threshold
+
+        fetchPostTexts(communauteId, wordStats, timeWindow);
+        fetchCommentTexts(communauteId, wordStats, timeWindow);
 
         // Compute final trend score
         List<TrendWord> trends = new ArrayList<>();
@@ -56,10 +70,10 @@ public class TrendAnalyzerService {
             double[] stats  = entry.getValue();
             double   count  = stats[0];
             double   wSum   = stats[1];
-            if (count < MIN_FREQ) continue;
+            if (count < minFreq) continue;
             double avgWeight = wSum / count;
             double score     = count * avgWeight * Math.log(1 + count);
-            if (score >= THRESHOLD) {
+            if (score >= threshold) {
                 trends.add(new TrendWord(entry.getKey(), (int) count, score));
             }
         }
@@ -67,7 +81,7 @@ public class TrendAnalyzerService {
         trends.sort(Comparator.comparingDouble(TrendWord::score).reversed());
         List<TrendWord> result = trends.stream().limit(TOP_N).collect(Collectors.toList());
 
-        System.out.println("[Trends] communaute#" + communauteId + " → " +
+        System.out.println("[Trends] communaute#" + communauteId + (timeWindow ? " (24h)" : " (all-time)") + " → " +
             result.stream().map(t -> t.word() + "(" + String.format("%.2f", t.score()) + ")")
                   .collect(Collectors.joining(", ")));
         return result;
@@ -75,12 +89,12 @@ public class TrendAnalyzerService {
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    private void fetchPostTexts(int communauteId, Map<String, double[]> stats) {
+    private void fetchPostTexts(int communauteId, Map<String, double[]> stats, boolean timeWindow) {
         String sql = "SELECT CONCAT(COALESCE(titre,''), ' ', COALESCE(contenu,''), ' ', COALESCE(tags,'')) AS text, " +
                      "TIMESTAMPDIFF(HOUR, created_at, NOW()) AS age_h " +
                      "FROM post " +
-                     "WHERE communaute_id = ? " +
-                     "  AND created_at >= NOW() - INTERVAL " + WINDOW_HOURS + " HOUR";
+                     "WHERE communaute_id = ?" +
+                     (timeWindow ? " AND created_at >= NOW() - INTERVAL " + WINDOW_HOURS + " HOUR" : "");
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
             ps.setInt(1, communauteId);
             ResultSet rs = ps.executeQuery();
@@ -91,14 +105,14 @@ public class TrendAnalyzerService {
         } catch (SQLException e) { System.err.println("[Trends] posts: " + e.getMessage()); }
     }
 
-    private void fetchCommentTexts(int communauteId, Map<String, double[]> stats) {
+    private void fetchCommentTexts(int communauteId, Map<String, double[]> stats, boolean timeWindow) {
         String dateCol = detectDateCol();
         String sql = "SELECT c.contenu AS text, " +
                      "TIMESTAMPDIFF(HOUR, c." + dateCol + ", NOW()) AS age_h " +
                      "FROM commentaire c " +
                      "JOIN post p ON p.id = c.post_id " +
-                     "WHERE p.communaute_id = ? " +
-                     "  AND c." + dateCol + " >= NOW() - INTERVAL " + WINDOW_HOURS + " HOUR";
+                     "WHERE p.communaute_id = ?" +
+                     (timeWindow ? " AND c." + dateCol + " >= NOW() - INTERVAL " + WINDOW_HOURS + " HOUR" : "");
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
             ps.setInt(1, communauteId);
             ResultSet rs = ps.executeQuery();

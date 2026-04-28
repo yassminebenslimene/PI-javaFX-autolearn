@@ -1018,55 +1018,67 @@ public class FrontCommunauteDetailController {
     /** Analyzes last-24h posts+comments and shows trending keywords in sidebar */
     private void loadTrends() {
         if (trendingBox == null || trendingList == null) return;
-        try {
-            if (trendAnalyzerService == null) trendAnalyzerService = new TrendAnalyzerService();
-            List<TrendAnalyzerService.TrendWord> trends = trendAnalyzerService.getTrends(communaute.getId());
-        if (trends.isEmpty()) return;
+        // Run on background thread to avoid blocking UI
+        new Thread(() -> {
+            try {
+                if (trendAnalyzerService == null) trendAnalyzerService = new TrendAnalyzerService();
+                List<TrendAnalyzerService.TrendWord> trends = trendAnalyzerService.getTrends(communaute.getId());
 
-        trendingList.getChildren().clear();
-        for (TrendAnalyzerService.TrendWord tw : trends) {
-            // Tag chip
-            Label chip = new Label("#" + tw.word());
-            chip.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
-                          "-fx-font-size:12; -fx-font-weight:800;" +
-                          "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;");
-            chip.setOnMouseEntered(e -> chip.setStyle(
-                    "-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white;" +
-                    "-fx-font-size:12; -fx-font-weight:800;" +
-                    "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;"));
-            chip.setOnMouseExited(e -> chip.setStyle(
-                    "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
-                    "-fx-font-size:12; -fx-font-weight:800;" +
-                    "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;"));
+                // If no trends in 24h, try with all-time data
+                if (trends.isEmpty()) {
+                    trends = trendAnalyzerService.getTrendsAllTime(communaute.getId());
+                }
 
-            // Count badge
-            Label countBadge = new Label(tw.count() + "×");
-            countBadge.setStyle("-fx-background-color:#fef3c7; -fx-text-fill:#d97706;" +
-                                "-fx-font-size:10; -fx-font-weight:800;" +
-                                "-fx-padding:3 8; -fx-background-radius:20;");
+                final List<TrendAnalyzerService.TrendWord> finalTrends = trends;
+                javafx.application.Platform.runLater(() -> {
+                    if (finalTrends.isEmpty()) return;
 
-            // Score bar
-            double pct = Math.min(tw.score() / 10.0, 1.0);
-            HBox barBg = new HBox();
-            barBg.setStyle("-fx-background-color:#f0eeff; -fx-background-radius:4; -fx-pref-height:3;");
-            HBox barFill = new HBox();
-            barFill.setPrefWidth(pct * 220);
-            barFill.setStyle("-fx-background-color:linear-gradient(to right,#f59e0b,#ef4444);" +
-                             "-fx-background-radius:4; -fx-pref-height:3;");
-            barBg.getChildren().add(barFill);
+                    trendingList.getChildren().clear();
+                    for (TrendAnalyzerService.TrendWord tw : finalTrends) {
+                        // Tag chip
+                        Label chip = new Label("#" + tw.word());
+                        chip.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                                      "-fx-font-size:12; -fx-font-weight:800;" +
+                                      "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;");
+                        chip.setOnMouseEntered(e -> chip.setStyle(
+                                "-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white;" +
+                                "-fx-font-size:12; -fx-font-weight:800;" +
+                                "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;"));
+                        chip.setOnMouseExited(e -> chip.setStyle(
+                                "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
+                                "-fx-font-size:12; -fx-font-weight:800;" +
+                                "-fx-padding:6 14; -fx-background-radius:20; -fx-cursor:hand;"));
 
-            HBox row = new HBox(8, chip, countBadge);
-            row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        // Count badge
+                        Label countBadge = new Label(tw.count() + "×");
+                        countBadge.setStyle("-fx-background-color:#fef3c7; -fx-text-fill:#d97706;" +
+                                            "-fx-font-size:10; -fx-font-weight:800;" +
+                                            "-fx-padding:3 8; -fx-background-radius:20;");
 
-            VBox item = new VBox(6, row, barBg);
-            trendingList.getChildren().add(item);
-        }
+                        // Score bar
+                        double pct = Math.min(tw.score() / 10.0, 1.0);
+                        HBox barBg = new HBox();
+                        barBg.setStyle("-fx-background-color:#f0eeff; -fx-background-radius:4; -fx-pref-height:3;");
+                        HBox barFill = new HBox();
+                        barFill.setPrefWidth(pct * 220);
+                        barFill.setStyle("-fx-background-color:linear-gradient(to right,#f59e0b,#ef4444);" +
+                                         "-fx-background-radius:4; -fx-pref-height:3;");
+                        barBg.getChildren().add(barFill);
 
-        trendingBox.setVisible(true);
-        trendingBox.setManaged(true);
-        } catch (Exception e) {
-            System.err.println("[Trends] loadTrends error: " + e.getMessage());
-        }
+                        HBox row = new HBox(8, chip, countBadge);
+                        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+                        VBox item = new VBox(6, row, barBg);
+                        trendingList.getChildren().add(item);
+                    }
+
+                    trendingBox.setVisible(true);
+                    trendingBox.setManaged(true);
+                });
+            } catch (Exception e) {
+                System.err.println("[Trends] loadTrends error: " + e.getMessage());
+            }
+        }, "trends-loader").start();
     }
 
     /** Shows recommended courses & quizzes in the sidebar based on post keywords */
