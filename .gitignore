@@ -2,7 +2,6 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-.kotlin
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
@@ -37,3 +36,13 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Symfony subproject (has its own git) ###
+symfony/
+
+### IntelliJ Run Configurations (local paths, not shared) ###
+.idea/runConfigurations/
+
+### Local secrets (never commit these) ###
+.hf_token
+*.env.local

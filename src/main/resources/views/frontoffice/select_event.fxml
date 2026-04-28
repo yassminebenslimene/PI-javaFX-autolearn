@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.evenement.front.SelectEventController"
+            prefWidth="1200" prefHeight="760"
+            style="-fx-background-color:#f0f0f8;">
+
+        <top>
+        <fx:include source="../components/navbar_front.fxml" fx:id="navbar"/>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                    style="-fx-background-color:#f0f0f8; -fx-background:transparent; -fx-border-width:0;">
+            <VBox spacing="0">
+                <!-- Header -->
+                <VBox alignment="CENTER" spacing="8" prefHeight="140"
+                      style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c); -fx-padding:30 80 30 80;">
+                    <Button text="&#8592; Retour a mes equipes" onAction="#onBack"
+                            style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                                   -fx-font-size:12; -fx-padding:6 16 6 16; -fx-background-radius:20;
+                                   -fx-cursor:hand; -fx-border-width:0;"/>
+                    <Label text="Choisir un evenement"
+                           style="-fx-font-size:28; -fx-font-weight:800; -fx-text-fill:white;"/>
+                    <Label text="Selectionnez l'evenement pour lequel vous voulez creer une equipe"
+                           style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.75);"/>
+                </VBox>
+
+                <!-- Events list -->
+                <VBox fx:id="eventsContainer" spacing="12"
+                      style="-fx-padding:32 200 32 200; -fx-background-color:#f0f0f8;"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER" prefHeight="56" style="-fx-background-color:#1e1e1e;">
+            <Label text="&#169; 2026 AutoLearn - Tous droits reserves"
+                   style="-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:12;"/>
+        </HBox>
+    </bottom>
+</BorderPane>
+

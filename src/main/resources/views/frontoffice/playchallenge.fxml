@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.PlayChallengeController"
+            maxWidth="Infinity" maxHeight="Infinity"
+            style="-fx-background-color:#f5f5f5;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="0"
+              style="-fx-background-color:rgba(122,106,216,0.96);
+                     -fx-min-height:64; -fx-max-height:64;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
+            <padding><Insets left="36" right="36"/></padding>
+            <Label text="🎓" style="-fx-font-size:22;"/>
+            <Label text="  AutoLearn"
+                   style="-fx-font-size:18; -fx-font-weight:800; -fx-text-fill:white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="timerLabel" text="00:00"
+                   style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
+                          -fx-font-size:16; -fx-font-weight:700; -fx-padding:6 16 6 16;
+                          -fx-background-radius:20;"/>
+            <Button text="✖ Quitter" onAction="#onQuit"
+                    style="-fx-background-color:#e74c3c; -fx-text-fill:white;
+                           -fx-font-size:12; -fx-font-weight:600; -fx-cursor:hand;
+                           -fx-border-width:0; -fx-padding:8 20 8 20; -fx-background-radius:20;
+                           -fx-margin-left:15;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color:#f5f5f5; -fx-background:transparent; -fx-border-width:0;">
+            <VBox alignment="TOP_CENTER" spacing="20"
+                  style="-fx-background-color:#f5f5f5; -fx-padding:40 0 60 0;">
+
+                <!-- Barre de progression -->
+                <VBox spacing="8" prefWidth="600" maxWidth="600">
+                    <HBox spacing="10" alignment="CENTER">
+                        <Label text="Progression"
+                               style="-fx-font-size:14; -fx-font-weight:600; -fx-text-fill:#777;"/>
+                        <Label fx:id="progressLabel" text="1/5"
+                               style="-fx-font-size:14; -fx-font-weight:700; -fx-text-fill:#7a6ad8;"/>
+                    </HBox>
+                    <ProgressBar fx:id="progressBar" prefWidth="600" progress="0.2"
+                                 style="-fx-accent:#7a6ad8; -fx-background-color:#eeeeee; -fx-background-radius:10;"/>
+                </VBox>
+
+                <!-- Carte de l'exercice -->
+                <VBox spacing="16" prefWidth="600" maxWidth="600"
+                      style="-fx-background-color:white; -fx-background-radius:23;
+                             -fx-border-color:#eeeeee; -fx-border-radius:23;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),44,0,0,0);
+                             -fx-padding:32 32 32 32;">
+
+                    <Label fx:id="questionLabel" text=""
+                           style="-fx-font-size:18; -fx-font-weight:600; -fx-text-fill:#1e1e1e; -fx-wrap-text:true;"/>
+
+                    <TextField fx:id="answerField" promptText="Votre réponse..."
+                               style="-fx-background-color:#f9f9f9; -fx-border-color:#dddddd;
+                                      -fx-border-radius:12; -fx-background-radius:12;
+                                      -fx-padding:15 18 15 18; -fx-font-size:14;"/>
+
+                    <Label fx:id="pointsLabel" text="Points: 0"
+                           style="-fx-font-size:13; -fx-text-fill:#999;"/>
+
+                    <Separator style="-fx-background-color:#eeeeee;"/>
+
+                    <!-- Boutons de navigation -->
+                    <HBox spacing="15" alignment="CENTER">
+                        <Button fx:id="prevButton" text="← Précédent" onAction="#onPrev"
+                                style="-fx-background-color:white; -fx-text-fill:#777;
+                                       -fx-border-color:#dddddd; -fx-border-radius:30;
+                                       -fx-padding:12 25 12 25; -fx-font-size:14; -fx-font-weight:600;
+                                       -fx-cursor:hand;"/>
+                        <Button fx:id="nextButton" text="Suivant →" onAction="#onNext"
+                                style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                                       -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:700;
+                                       -fx-padding:12 35 12 35; -fx-background-radius:30;
+                                       -fx-cursor:hand; -fx-border-width:0;"/>
+                        <Button fx:id="finishButton" text="🏁 Terminer" onAction="#onFinish"
+                                style="-fx-background-color:#28a745; -fx-text-fill:white;
+                                       -fx-font-size:14; -fx-font-weight:700;
+                                       -fx-padding:12 35 12 35; -fx-background-radius:30;
+                                       -fx-cursor:hand; -fx-border-width:0;"
+                                visible="false" managed="false"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.evenement.front.MesParticipationsController"
+            prefWidth="1200" prefHeight="760"
+            style="-fx-background-color:#f0f0f8;">
+
+    <!-- NAVBAR fixe -->
+        <top>
+        <fx:include source="../components/navbar_front.fxml" fx:id="navbar"/>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                    style="-fx-background-color:#f0f0f8; -fx-background:transparent; -fx-border-width:0;">
+            <VBox spacing="0">
+                <!-- Header -->
+                <VBox alignment="CENTER" spacing="8" prefHeight="120"
+                      style="-fx-background-color:linear-gradient(to bottom right,#7a6ad8,#4e3b9c); -fx-padding:30 80 30 80;">
+                    <Button text="&#8592; Retour aux evenements" onAction="#onEvenements"
+                            style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                                   -fx-font-size:12; -fx-padding:6 16 6 16; -fx-background-radius:20;
+                                   -fx-cursor:hand; -fx-border-width:0;"/>
+                    <Label text="Mes Participations"
+                           style="-fx-font-size:30; -fx-font-weight:800; -fx-text-fill:white;"/>
+                    <Label text="Suivez vos participations aux evenements"
+                           style="-fx-font-size:13; -fx-text-fill:rgba(255,255,255,0.75);"/>
+                </VBox>
+
+                <!-- Success banner (hidden by default) -->
+                <VBox fx:id="successBannerContainer" style="-fx-padding:16 80 0 80; -fx-background-color:#f0f0f8;">
+                    <Label fx:id="labelSuccessBanner" text="" wrapText="true"
+                           style="-fx-background-color:#d1fae5; -fx-text-fill:#065f46; -fx-font-size:13;
+                                  -fx-font-weight:600; -fx-background-radius:8; -fx-padding:12 16 12 16;
+                                  -fx-border-color:#6ee7b7; -fx-border-radius:8; -fx-border-width:1;"/>
+                </VBox>
+
+                <!-- Participations list -->
+                <VBox fx:id="participationsContainer" spacing="16"
+                      style="-fx-padding:24 80 32 80; -fx-background-color:#f0f0f8;"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER" prefHeight="56" style="-fx-background-color:#1e1e1e;">
+            <Label text="© 2026 AutoLearn — Tous droits réservés"
+                   style="-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:12;"/>
+        </HBox>
+    </bottom>
+</BorderPane>
+
