@@ -46,6 +46,10 @@ public class StudentAssistantController {
         inputField.setOnKeyPressed(e -> {
             if (e.getCode() == javafx.scene.input.KeyCode.ENTER) onSend();
         });
+
+        // Auto-scroll: whenever the messages VBox height changes (new message added),
+        // scroll to the bottom after the layout pass completes.
+        messagesBox.heightProperty().addListener((obs, oldH, newH) -> scrollToBottom());
     }
 
     private void showWelcome() {
@@ -111,21 +115,18 @@ public class StudentAssistantController {
 
         StudentAssistantService.sendMessage(text, history).thenAccept(response -> {
             Platform.runLater(() -> {
-                // Remove typing indicator
                 messagesBox.getChildren().remove(typingIndicator);
                 labelStatus.setText("● En ligne");
 
-                // Always show message in chat
                 addBotMessage(response.message());
                 history.add(new StudentAssistantService.ChatMessage("assistant", response.message()));
 
-                // Execute action (LIST shows in chat, NAVIGATE goes to page)
                 if (!"CHAT".equals(response.intent())) {
                     executeAction(response.intent(), response.params());
                 }
 
                 btnSend.setDisable(false);
-                scrollToBottom();
+                // scrollToBottom() is called automatically via heightProperty listener
             });
         });
     }
@@ -143,13 +144,12 @@ public class StudentAssistantController {
     private void executeAction(String intent, com.google.gson.JsonObject params) {
         StudentAssistantExecutor.ActionResult result = executor.execute(intent, params);
 
-        // Show result message in chat if different from AI message
         if (result.message() != null && !result.message().isEmpty()) {
             addBotMessage(result.message());
             history.add(new StudentAssistantService.ChatMessage("assistant", result.message()));
+            // Height listener will auto-scroll
         }
 
-        // Navigate ONLY for NAVIGATE_* intents (not LIST_*)
         if (result.navigateTo() != null && onNavigate != null && intent.startsWith("NAVIGATE_")) {
             Platform.runLater(() -> onNavigate.accept(result.navigateTo()));
         }
@@ -295,6 +295,7 @@ public class StudentAssistantController {
     }
 
     private void scrollToBottom() {
-        Platform.runLater(() -> scrollPane.setVvalue(1.0));
+        // Two nested runLater: first waits for layout, second waits for ScrollPane update
+        Platform.runLater(() -> Platform.runLater(() -> scrollPane.setVvalue(1.0)));
     }
 }
