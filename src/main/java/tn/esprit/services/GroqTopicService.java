@@ -27,9 +27,16 @@ public class GroqTopicService {
     public static final boolean API_KEY_PLACEHOLDER;
 
     static {
-        // 1. Try environment variable
-        String key = System.getenv("GROQ_API_KEY");
-        // 2. Try config file (not committed to git)
+        // 1. Try ConfigLoader (config.properties - our standard config)
+        String key = null;
+        try {
+            key = tn.esprit.tools.ConfigLoader.getGroqApiKey();
+        } catch (Exception ignored) {}
+        // 2. Try environment variable
+        if (key == null || key.isBlank()) {
+            key = System.getenv("GROQ_API_KEY");
+        }
+        // 3. Try groq.properties file (legacy)
         if (key == null || key.isBlank()) {
             try {
                 java.util.Properties props = new java.util.Properties();
@@ -42,6 +49,7 @@ public class GroqTopicService {
         }
         API_KEY = (key != null && !key.isBlank()) ? key : "gsk_placeholder";
         API_KEY_PLACEHOLDER = API_KEY.equals("gsk_placeholder");
+        System.out.println("[GroqTopicService] API key loaded: " + (API_KEY_PLACEHOLDER ? "PLACEHOLDER (AI disabled)" : "OK (" + API_KEY.substring(0, 8) + "...)"));
     }
     private static final String ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
     private static final String MODEL    = "llama-3.3-70b-versatile";
