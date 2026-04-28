@@ -73,6 +73,17 @@ public class StudentAssistantController {
         chatPanel.setVisible(isOpen);
         chatPanel.setManaged(isOpen);
         btnToggle.setText(isOpen ? "✕" : "💬");
+        btnToggle.setStyle(
+            (isOpen
+                ? "-fx-background-color:rgba(109,40,217,0.15); -fx-text-fill:#7c3aed;"
+                : "-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5); -fx-text-fill:white;") +
+            "-fx-font-size:" + (isOpen ? "14" : "20") + ";" +
+            "-fx-min-width:54; -fx-min-height:54;" +
+            "-fx-max-width:54; -fx-max-height:54;" +
+            "-fx-background-radius:50%;" +
+            "-fx-cursor:hand; -fx-border-width:0;" +
+            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.5),14,0,0,4);"
+        );
         if (isOpen) {
             showWelcome();
             Platform.runLater(() -> {
