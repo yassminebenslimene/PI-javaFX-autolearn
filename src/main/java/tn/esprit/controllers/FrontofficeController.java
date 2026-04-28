@@ -175,26 +175,40 @@ public class FrontofficeController {
             else if (labelCurrentUser != null && labelCurrentUser.getScene() != null)
                 homeCenter = ((BorderPane) labelCurrentUser.getScene().getRoot()).getCenter();
 
-            // ── Fix scroll: forward scroll events from child nodes to mainScrollPane ──
-            // The newsScrollPane and other interactive children swallow scroll events,
-            // preventing the main page from scrolling when the mouse is over them.
-            if (mainScrollPane != null) {
-                // Request focus immediately so scroll works on first load (including auto-login)
-                mainScrollPane.requestFocus();
-                // Re-request focus on click anywhere in the scroll area
-                mainScrollPane.setOnMouseClicked(e -> mainScrollPane.requestFocus());
+            // ── Scroll fix: install ONE handler on the center StackPane ──────────
+            // Delegates all scroll events to the first child (the active page ScrollPane).
+            // This is simpler and more reliable than scene-level filters.
+            javafx.application.Platform.runLater(() -> {
+                javafx.scene.layout.StackPane stack = getCenterStack();
+                if (stack == null) return;
 
-                // Forward scroll events from newsScrollPane up to mainScrollPane
-                if (newsScrollPane != null) {
+                stack.setOnScroll(e -> {
+                    if (stack.getChildren().isEmpty()) return;
+                    javafx.scene.Node first = stack.getChildren().get(0);
+                    if (first instanceof ScrollPane sp) {
+                        double delta = e.getDeltaY();
+                        double range = sp.getContent() != null
+                            ? sp.getContent().getBoundsInLocal().getHeight() - sp.getViewportBounds().getHeight()
+                            : 0;
+                        if (range <= 0) return;
+                        double newVal = sp.getVvalue() - (delta / range) * 3.0;
+                        sp.setVvalue(Math.max(0, Math.min(1, newVal)));
+                        e.consume();
+                    }
+                });
+
+                // Also forward newsScrollPane vertical scroll to mainScrollPane
+                if (newsScrollPane != null && mainScrollPane != null) {
                     newsScrollPane.addEventFilter(javafx.scene.input.ScrollEvent.SCROLL, e -> {
-                        // Only forward vertical scroll; let horizontal pass through
                         if (Math.abs(e.getDeltaY()) > Math.abs(e.getDeltaX())) {
                             mainScrollPane.fireEvent(e.copyFor(mainScrollPane, mainScrollPane));
                             e.consume();
                         }
                     });
                 }
-            }
+
+                if (mainScrollPane != null) mainScrollPane.requestFocus();
+            });
 
             try {
                 int nbCours = serviceCours.consulter().size();
@@ -1239,7 +1253,6 @@ public class FrontofficeController {
 
     /**
      * Returns the StackPane that wraps the center content + AI assistant overlay.
-     * This StackPane must never be replaced — only its first child (the page content) changes.
      */
     private javafx.scene.layout.StackPane getCenterStack() {
         if (labelCurrentUser == null) return null;
@@ -1253,7 +1266,6 @@ public class FrontofficeController {
     private void setCenter(Parent view) {
         javafx.scene.layout.StackPane stack = getCenterStack();
         if (stack == null) {
-            // Fallback: no stack found, set directly
             if (labelCurrentUser == null) return;
             var scene = labelCurrentUser.getScene();
             if (scene == null) return;
@@ -1262,13 +1274,16 @@ public class FrontofficeController {
         }
         // Replace only the first child (page content), keep the AI assistant overlay
         Parent toSet;
-        if (view instanceof ScrollPane) {
-            ((ScrollPane) view).setFitToWidth(true);
-            toSet = view;
+        if (view instanceof ScrollPane sp) {
+            sp.setFitToWidth(true);
+            sp.setFocusTraversable(true);
+            toSet = sp;
         } else {
             ScrollPane sp = new ScrollPane(view);
             sp.setFitToWidth(true);
+            sp.setFocusTraversable(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
             toSet = sp;
         }
@@ -1277,6 +1292,9 @@ public class FrontofficeController {
         } else {
             stack.getChildren().set(0, toSet);
         }
+        // Request focus so mouse wheel and arrow keys work immediately
+        final Parent finalToSet = toSet;
+        javafx.application.Platform.runLater(finalToSet::requestFocus);
     }
 
     private void setCenterDirect(Parent view) {
@@ -1299,5 +1317,6 @@ public class FrontofficeController {
         } else {
             stack.getChildren().set(0, view);
         }
+        javafx.application.Platform.runLater(view::requestFocus);
     }
 }
