@@ -22,6 +22,8 @@ import java.util.List;
  */
 public class StudentAssistantController {
 
+    @FXML private StackPane  rootPane;
+    @FXML private VBox       assistantContainer;
     @FXML private VBox       chatPanel;
     @FXML private ScrollPane scrollPane;
     @FXML private VBox       messagesBox;
@@ -96,7 +98,6 @@ public class StudentAssistantController {
             });
         }
     }
-
     // ── Send ──────────────────────────────────────────────────────────────────
 
     @FXML
