@@ -187,8 +187,22 @@ public class BackofficeController {
     public void loadView(String path) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
-            contentArea.getChildren().clear();
-            contentArea.getChildren().add(loader.load());
+            javafx.scene.Parent content = loader.load();
+            
+            // Wrap content in ScrollPane if it's not already a ScrollPane
+            if (content instanceof javafx.scene.control.ScrollPane) {
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(content);
+            } else {
+                javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(content);
+                scrollPane.setFitToWidth(true);
+                // Don't set fitToHeight - let content determine its own height for proper scrolling
+                scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+                scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                scrollPane.setStyle("-fx-background-color:#0a0f0d; -fx-background:#0a0f0d; -fx-border-width:0;");
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(scrollPane);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Impossible de charger : " + path + " — " + e.getMessage());

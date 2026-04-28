@@ -78,6 +78,12 @@ public class StudentAssistantController {
         isOpen = !isOpen;
         chatPanel.setVisible(isOpen);
         chatPanel.setManaged(isOpen);
+        
+        // Make the container mouse-transparent when closed so it doesn't block clicks
+        if (assistantContainer != null) {
+            assistantContainer.setMouseTransparent(false);
+        }
+        
         btnToggle.setText(isOpen ? "✕" : "💬");
         btnToggle.setStyle(
             (isOpen

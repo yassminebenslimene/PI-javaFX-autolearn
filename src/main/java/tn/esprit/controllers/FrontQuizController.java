@@ -2164,12 +2164,21 @@ public class FrontQuizController {
             }
         }
 
+        // First try to find the StackPane center (frontoffice layout)
+        javafx.scene.layout.StackPane centerStack = null;
         BorderPane root = null;
+        
         if (scene != null && scene.getRoot() instanceof BorderPane bp) {
             root = bp;
+            if (bp.getCenter() instanceof javafx.scene.layout.StackPane sp) {
+                centerStack = sp;
+            }
         } else if (scene != null) {
             // Le root n'est pas directement un BorderPane — chercher en profondeur
             root = findBorderPane(scene.getRoot());
+            if (root != null && root.getCenter() instanceof javafx.scene.layout.StackPane sp) {
+                centerStack = sp;
+            }
         } else {
             // Fallback : remonter l'arbre depuis sceneRef ou les labels
             javafx.scene.Node ref = sceneRef != null ? sceneRef
@@ -2180,7 +2189,12 @@ public class FrontQuizController {
             if (ref != null) {
                 javafx.scene.Parent current = ref instanceof javafx.scene.Parent p ? p : ref.getParent();
                 while (current != null) {
-                    if (current instanceof BorderPane bp2) root = bp2;
+                    if (current instanceof BorderPane bp2) {
+                        root = bp2;
+                        if (bp2.getCenter() instanceof javafx.scene.layout.StackPane sp) {
+                            centerStack = sp;
+                        }
+                    }
                     current = current.getParent();
                 }
             }
@@ -2198,7 +2212,18 @@ public class FrontQuizController {
             region.setMaxHeight(Double.MAX_VALUE);
             region.setMaxWidth(Double.MAX_VALUE);
         }
-        root.setCenter(view);
+        
+        // If we found a StackPane center (frontoffice layout), replace the first child
+        if (centerStack != null) {
+            if (centerStack.getChildren().isEmpty()) {
+                centerStack.getChildren().add(0, view);
+            } else {
+                centerStack.getChildren().set(0, view);
+            }
+        } else {
+            // Fallback to direct BorderPane.setCenter
+            root.setCenter(view);
+        }
     }
 
     // Cherche récursivement le BorderPane le plus haut dans l'arbre

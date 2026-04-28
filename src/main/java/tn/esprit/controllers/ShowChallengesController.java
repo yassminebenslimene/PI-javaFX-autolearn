@@ -337,7 +337,7 @@ public class ShowChallengesController {
     @FXML
     public void onCours() {
         try {
-            MainApp.showFrontoffice();
+            MainApp.showCoursPage();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -374,6 +374,8 @@ public class ShowChallengesController {
     public void onMessagerie() {
         try {
             MainApp.showFrontoffice();
+            javafx.application.Platform.runLater(() ->
+                tn.esprit.controllers.FrontofficeController.navigateToSection("messagerie"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -391,7 +393,7 @@ public class ShowChallengesController {
     @FXML
     public void onMesParticipations() {
         try {
-            MainApp.showFrontoffice();
+            MainApp.showMesParticipations(null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -400,7 +402,7 @@ public class ShowChallengesController {
     @FXML
     public void onMesEquipes() {
         try {
-            MainApp.showFrontoffice();
+            MainApp.showMesEquipes(null);
         } catch (Exception e) {
             e.printStackTrace();
         }

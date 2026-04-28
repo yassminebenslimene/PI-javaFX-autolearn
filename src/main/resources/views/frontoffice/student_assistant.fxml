@@ -16,7 +16,7 @@
            fx:controller="tn.esprit.controllers.StudentAssistantController"
            alignment="BOTTOM_RIGHT"
            pickOnBounds="false"
-           mouseTransparent="false"
+           mouseTransparent="true"
            style="-fx-background-color:transparent;">
 
     <!-- This VBox is the ONLY thing that can receive mouse events.
@@ -24,7 +24,8 @@
          to the bottom-right. Everything outside it is transparent. -->
     <VBox fx:id="assistantContainer"
           alignment="BOTTOM_RIGHT"
-          pickOnBounds="false"
+          pickOnBounds="true"
+          mouseTransparent="false"
           spacing="0"
           StackPane.alignment="BOTTOM_RIGHT"
           style="-fx-padding:0 20 20 0; -fx-background-color:transparent;">

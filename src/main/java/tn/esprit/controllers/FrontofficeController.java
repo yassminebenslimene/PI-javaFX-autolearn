@@ -774,6 +774,20 @@ public class FrontofficeController {
         }
     }
 
+    public static void navigateToSection(String section) {
+        if (instance != null) {
+            switch (section) {
+                case "cours"       -> instance.onCours();
+                case "challenges"  -> instance.onChallenges();
+                case "evenements"  -> instance.onEvenements();
+                case "communaute"  -> instance.onCommunaute();
+                case "classement"  -> instance.onLeaderboard();
+                case "messagerie"  -> instance.onMessagerie();
+                default            -> instance.onHome();
+            }
+        }
+    }
+
     private void naviguerVersCours() {
         if (!requireLogin()) return;
         // Track student action
