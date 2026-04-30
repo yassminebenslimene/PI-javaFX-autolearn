@@ -152,10 +152,22 @@ public class ChallengeService {
         c.setNiveau(rs.getString("niveau"));
         c.setDuree(rs.getInt("duree"));
         try { c.setCreatedBy(rs.getInt(colCreatedBy)); } catch (java.sql.SQLException ignored) {}
-        // Charger les exercices liés (table challenge_exercice peut ne pas exister)
-        try { c.setExerciceIds(getChallengeExercices(c.getId())); }
-        catch (Exception ignored) { c.setExerciceIds(new ArrayList<>()); }
-        c.setQuizIds(new ArrayList<>());
+
+        // Charger les exercices liés
+        try {
+            c.setExerciceIds(getChallengeExercices(c.getId()));
+        } catch (Exception ignored) {
+            c.setExerciceIds(new ArrayList<>());
+        }
+
+        // CHARGER LES QUIZ LIÉS (au lieu de new ArrayList<>())
+        try {
+            c.setQuizIds(getChallengeQuizzes(c.getId()));
+            System.out.println("Challenge " + c.getId() + " a " + c.getQuizIds().size() + " quiz associés");
+        } catch (Exception ignored) {
+            c.setQuizIds(new ArrayList<>());
+        }
+
         return c;
     }
 

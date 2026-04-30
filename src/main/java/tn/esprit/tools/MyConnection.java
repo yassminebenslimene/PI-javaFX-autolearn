@@ -91,6 +91,12 @@ public class MyConnection {
                 "PRIMARY KEY (challenge_id, exercice_id)" +
                 ")";
 
+        String createChallengeQuizTable = "CREATE TABLE IF NOT EXISTS challenge_quiz (" +
+                "challenge_id INT NOT NULL," +
+                "quiz_id INT NOT NULL," +
+                "PRIMARY KEY (challenge_id, quiz_id)" +
+                ")";
+
         String createUserChallengeTable = "CREATE TABLE IF NOT EXISTS user_challenge (" +
                 "id INT PRIMARY KEY AUTO_INCREMENT," +
                 "user_id INT NOT NULL," +
@@ -118,6 +124,7 @@ public class MyConnection {
             statement.executeUpdate(createExerciceTable);
             statement.executeUpdate(createChallengeTable);
             statement.executeUpdate(createChallengeExerciceTable);
+            statement.executeUpdate(createChallengeQuizTable);
             statement.executeUpdate(createUserChallengeTable);
             statement.executeUpdate(createVoteTable);
         }

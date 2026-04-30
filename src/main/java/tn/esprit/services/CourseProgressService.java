@@ -12,6 +12,23 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * SERVICE : PROGRESSION DES COURS
+ * ═══════════════════════════════════════════════════════════════
+ * Gère la progression de l'étudiant dans les chapitres et cours.
+ *
+ * FONCTIONNALITÉS :
+ *   - Marquer un chapitre comme complété (après quiz réussi ≥ 50%)
+ *   - Calculer le % de progression par cours
+ *   - Récupérer les IDs des chapitres complétés
+ *   - Gamification : points, streak, badges
+ *   - Recommandations : prochain chapitre à faire
+ *
+ * TABLE BDD : chapter_progress
+ *   user_id, chapitre_id, cours_id, quiz_score, is_completed, completed_at
+ * ═══════════════════════════════════════════════════════════════
+ */
 public class CourseProgressService {
 
     private final Connection connection;
@@ -21,6 +38,8 @@ public class CourseProgressService {
         createTableIfNotExists();
     }
 
+    // Crée la table chapter_progress si elle n'existe pas encore
+    // et ajoute les colonnes manquantes si la table existait déjà
     private void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS chapter_progress ("
             + "id INT AUTO_INCREMENT PRIMARY KEY,"
@@ -66,9 +85,11 @@ public class CourseProgressService {
     }
 
     public void markChapterCompleted(int userId, int chapitreId, int coursId, int quizScore) {
-        // Marquer comme complété SEULEMENT si le score est >= 50%
+        // Un chapitre est considéré complété si le score au quiz est >= 50%
         boolean isCompleted = quizScore >= 50;
         
+        // INSERT ou UPDATE si la ligne existe déjà (ON DUPLICATE KEY)
+        // On garde toujours le meilleur score (GREATEST)
         String sql = "INSERT INTO chapter_progress "
             + "(user_id, chapitre_id, cours_id, quiz_score, is_completed, completed_at) "
             + "VALUES (?, ?, ?, ?, ?, ?) "
@@ -204,7 +225,10 @@ public class CourseProgressService {
     }
 
     // ── Recommandations ───────────────────────────────────────────────────────
-    /** Prochain chapitre non complété d'un cours (ordre croissant). */
+    /**
+     * Retourne le prochain chapitre non complété d'un cours (ordre croissant).
+     * Utilisé dans TodoController pour les recommandations personnalisées.
+     */
     public tn.esprit.entities.Chapitre getNextChapitre(int userId, int coursId) {
         String sql = "SELECT c.* FROM chapitre c "
             + "WHERE c.cours_id = ? "
@@ -240,7 +264,10 @@ public class CourseProgressService {
 
     // ── GAMIFICATION ──────────────────────────────────────────────────────────
 
-    /** Points totaux : 10 pts par chapitre complété + 50 pts par cours terminé */
+    /**
+     * Calcule les points totaux de l'étudiant.
+     * Règle : 10 pts par chapitre complété + 50 pts bonus par cours terminé à 100%
+     */
     public int getTotalPoints(int userId, java.util.List<tn.esprit.entities.Cours> allCours) {
         int points = getTotalCompletedChapitres(userId) * 10;
         for (tn.esprit.entities.Cours cours : allCours) {

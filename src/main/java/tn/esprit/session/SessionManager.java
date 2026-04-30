@@ -2,18 +2,16 @@ package tn.esprit.session;
 
 import tn.esprit.entities.User;
 
-
+/**
+ * SessionManager — délègue tout à JwtManager.
+ * Garde la compatibilité avec le code GestionCours/Gestionquiz
+ * tout en utilisant JwtManager comme source unique de vérité.
+ */
 public class SessionManager {
 
-    private static User currentUser;
-
-    public static void login(User user) {
-        currentUser = user;
-        // Sync with JwtManager so Face ID and JWT features work correctly
-        if (user != null) JwtManager.setCurrentUser(user);
-    }
-    public static void logout()         { currentUser = null; JwtManager.setCurrentUser(null); }
-    public static User getCurrentUser() { return currentUser; }
-    public static boolean isAdmin()     { return currentUser != null && "ADMIN".equals(currentUser.getRole()); }
-    public static boolean isLoggedIn()  { return currentUser != null; }
+    public static void login(User user)     { JwtManager.login(user); }
+    public static void logout()             { JwtManager.logout(); }
+    public static User getCurrentUser()     { return JwtManager.getCurrentUser(); }
+    public static boolean isAdmin()         { return JwtManager.isAdmin(); }
+    public static boolean isLoggedIn()      { return JwtManager.isLoggedIn(); }
 }

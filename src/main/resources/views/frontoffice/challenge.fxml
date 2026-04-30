@@ -50,21 +50,8 @@
                                      -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),44,0,0,0);
                                      -fx-padding:32 32 32 32;">
 
+                            <!-- Niveau et Durée -->
                             <VBox spacing="12">
-                                <HBox spacing="20">
-                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                        <Label text="📅 Date de début"
-                                               style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#777;"/>
-                                        <Label fx:id="dateDebutLabel" text=""
-                                               style="-fx-font-size:16; -fx-font-weight:500; -fx-text-fill:#1e1e1e;"/>
-                                    </VBox>
-                                    <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                        <Label text="📅 Date de fin"
-                                               style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:#777;"/>
-                                        <Label fx:id="dateFinLabel" text=""
-                                               style="-fx-font-size:16; -fx-font-weight:500; -fx-text-fill:#1e1e1e;"/>
-                                    </VBox>
-                                </HBox>
                                 <HBox spacing="20">
                                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                                         <Label text="⭐ Niveau"
@@ -83,7 +70,7 @@
 
                             <Separator style="-fx-background-color:#eeeeee;"/>
 
-                            <!-- Zone de résultat -->
+                            <!-- Zone de résultat (visible uniquement si challenge complété) -->
                             <VBox fx:id="resultContainer" spacing="12" visible="false" managed="false">
                                 <Label text="📊 Votre résultat"
                                        style="-fx-font-size:16; -fx-font-weight:700; -fx-text-fill:#1e1e1e;"/>
@@ -93,13 +80,23 @@
                                        style="-fx-font-size:13; -fx-text-fill:#999;"/>
                             </VBox>
 
-                            <!-- Bouton Start -->
+                            <!-- Bouton Start (visible si challenge non complété et non expiré) -->
                             <Button fx:id="startButton" text="🚀 Commencer le challenge"
                                     style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
                                            -fx-text-fill:white; -fx-font-size:16; -fx-font-weight:700;
                                            -fx-padding:14 36 14 36; -fx-background-radius:30;
                                            -fx-cursor:hand; -fx-border-width:0;
-                                           -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.4),12,0,0,4);"/>
+                                           -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.4),12,0,0,4);"
+                                    visible="true" managed="true"/>
+
+                            <!-- Bouton Retour (visible si challenge déjà complété) -->
+                            <Button fx:id="backButton" text="🏠 Retour aux challenges"
+                                    style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
+                                           -fx-text-fill:white; -fx-font-size:16; -fx-font-weight:700;
+                                           -fx-padding:14 36 14 36; -fx-background-radius:30;
+                                           -fx-cursor:hand; -fx-border-width:0;
+                                           -fx-effect:dropshadow(gaussian,rgba(122,106,216,0.4),12,0,0,4);"
+                                    visible="false" managed="false" onAction="#onBack"/>
                         </VBox>
 
                     </VBox>

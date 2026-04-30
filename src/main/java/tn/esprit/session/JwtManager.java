@@ -30,9 +30,6 @@ public class JwtManager {
     // In-memory cache of current user (decoded from JWT)
     private static User currentUser = null;
     private static String currentToken = null;
-
-    /** Called by SessionManager to keep both in sync */
-    public static void setCurrentUser(User user) { currentUser = user; }
     
     // ── Login ─────────────────────────────────────────────────────────────────
     
@@ -80,10 +77,10 @@ public class JwtManager {
         if (user == null) {
             return null;
         }
-
+        
         // Generate JWT token
         String jwtToken = tn.esprit.services.JwtService.generateToken(user);
-
+        
         // Store token
         return login(jwtToken);
     }
@@ -100,13 +97,13 @@ public class JwtManager {
         if (currentUser != null) {
             return currentUser;
         }
-
+        
         // Try to restore from persisted JWT token
         String token = PREFS.get(PREF_KEY_JWT, null);
         if (token != null) {
             currentUser = decodeToken(token);
             currentToken = token;
-
+            
             if (currentUser != null) {
                 System.out.println("[JwtManager] Session restored from JWT: " + currentUser.getEmail());
             } else {
@@ -114,7 +111,7 @@ public class JwtManager {
                 PREFS.remove(PREF_KEY_JWT);
             }
         }
-
+        
         return currentUser;
     }
     

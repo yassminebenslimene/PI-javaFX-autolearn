@@ -30,6 +30,47 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
 
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * CONTROLLER : PAGE DE LECTURE D'UN CHAPITRE
+ * ═══════════════════════════════════════════════════════════════
+ * Affiche le contenu d'un chapitre et gère toutes les fonctionnalités
+ * avancées liées à la lecture.
+ *
+ * FONCTIONNALITÉS :
+ *
+ * 1. AFFICHAGE DU CONTENU
+ *    - Rendu HTML du contenu du chapitre via WebView
+ *    - Navigation entre chapitres (Suivant / Précédent)
+ *    - Affichage des ressources (vidéo, PDF, lien)
+ *
+ * 2. EXPORT PDF (iText 5)
+ *    - Bouton "Exporter PDF" → FileChooser pour choisir l'emplacement
+ *    - Design moderne : bannière violette, en-tête AutoLearn, section ressources
+ *    - Méthode renderModernHtmlToPdf() : convertit le HTML en éléments iText
+ *    - Gère : titres H1/H2/H3, paragraphes, blocs de code, listes, tableaux
+ *
+ * 3. TRADUCTION IA (Groq API)
+ *    - MenuButton avec langues : Français, Anglais, Arabe, Espagnol...
+ *    - Appel à GroqTranslationService → API Groq (LLaMA 3.3 70B)
+ *    - Le contenu traduit remplace l'affichage (sans modifier la BDD)
+ *    - currentDisplayedContent : garde le contenu actuel (original ou traduit)
+ *
+ * 4. LECTURE AUDIO TTS (Text-to-Speech)
+ *    - Bouton "Écouter" → TextToSpeechService
+ *    - Convertit le texte du chapitre en audio
+ *
+ * 5. PROGRESSION
+ *    - Après quiz réussi → CourseProgressService.markChapterCompleted()
+ *    - Callback onRetourCallback : retour à la liste des chapitres
+ *
+ * DÉPENDANCES :
+ *   - GroqTranslationService : traduction via API Groq
+ *   - TextToSpeechService : lecture audio
+ *   - CourseProgressService : sauvegarde progression
+ *   - iText (pom.xml) : génération PDF
+ * ═══════════════════════════════════════════════════════════════
+ */
 public class FrontChapitreDetailController {
 
     @FXML private Label labelBadge;

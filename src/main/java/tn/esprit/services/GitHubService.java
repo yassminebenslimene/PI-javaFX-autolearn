@@ -12,6 +12,26 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * SERVICE : API GITHUB
+ * ═══════════════════════════════════════════════════════════════
+ * Fait les appels HTTP à l'API REST GitHub v3.
+ *
+ * ENDPOINTS UTILISÉS :
+ *   - GET /search/repositories : chercher des repositories
+ *   - GET /repos/{owner}/{repo}/contents/{path} : lire un fichier
+ *   - GET /search/code : chercher du code source
+ *
+ * AUTHENTIFICATION :
+ *   - Sans token : 60 requêtes/heure (rate limit)
+ *   - Avec token Bearer : 5000 requêtes/heure
+ *
+ * CLASSES INTERNES :
+ *   - GitHubRepository : représente un repository (nom, stars, langage...)
+ *   - CodeExample : représente un fichier de code trouvé
+ * ═══════════════════════════════════════════════════════════════
+ */
 public class GitHubService {
     private static final String GITHUB_API_URL = "https://api.github.com";
     private String apiToken;
@@ -154,6 +174,11 @@ public class GitHubService {
         return examples;
     }
 
+    /**
+     * Fait une requête HTTP GET à l'API GitHub.
+     * Ajoute automatiquement le token d'authentification si disponible.
+     * Retourne la réponse JSON parsée en JsonObject.
+     */
     private JsonObject makeRequest(String urlString) throws Exception {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -192,7 +217,9 @@ public class GitHubService {
         return gson.fromJson(response.toString(), JsonObject.class);
     }
 
-    // Classes internes pour représenter les données
+    // ── Classes internes (modèles de données) ────────────────────────────────
+
+    /** Représente un repository GitHub avec ses métadonnées */
     public static class GitHubRepository {
         private String name;
         private String fullName;
@@ -218,6 +245,7 @@ public class GitHubService {
         public String getLanguage() { return language; }
     }
 
+    /** Représente un fichier de code trouvé dans un repository GitHub */
     public static class CodeExample {
         private String fileName;
         private String path;

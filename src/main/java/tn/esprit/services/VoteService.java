@@ -61,4 +61,17 @@ public class VoteService {
             }
         }
     }
+    public double getAverageRatingForChallenge(int challengeId) {
+        String query = "SELECT AVG(valeur) FROM vote WHERE challenge_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, challengeId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
 }
