@@ -20,9 +20,7 @@ import java.util.Map;
  */
 public class WeatherService {
 
-    private static final String API_KEY = System.getenv("OPENWEATHER_API_KEY") != null 
-        ? System.getenv("OPENWEATHER_API_KEY") 
-        : "bd5e378503939ddaee76f12ad7a97608";
+    private static final String API_KEY = "bd5e378503939ddaee76f12ad7a97608";
     private static final String CURRENT_URL =
             "https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric&lang=en";
     private static final String FORECAST_URL =

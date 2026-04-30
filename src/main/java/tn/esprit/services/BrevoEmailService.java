@@ -17,7 +17,7 @@ import java.util.Base64;
 public class BrevoEmailService {
 
     private static final String BREVO_API_KEY =
-            "System.getProperty("BREVO_API_KEY", "YOUR_BREVO_KEY")";
+            "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";
     private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
     private static final String FROM_EMAIL    = "autolearn66@gmail.com";
     private static final String FROM_NAME     = "AutoLearn";
@@ -34,7 +34,7 @@ public class BrevoEmailService {
      * @return true si envoi réussi
      */
     public boolean sendEmail(String toEmail, String toName, String subject,
-                              String htmlContent, byte[] pdfBytes, String pdfFileName) {
+                             String htmlContent, byte[] pdfBytes, String pdfFileName) {
         try {
             JsonObject body = new JsonObject();
 
