@@ -39,50 +39,22 @@ public class EventPlanningService {
     private String buildPlanningPrompt(String eventTitle, String eventType,
                                        LocalDateTime startTime, LocalDateTime endTime,
                                        int nbParticipants) {
-        return "Génère un planning détaillé et professionnel pour cet événement:\n\n" +
+        return "Génère un planning pour cet événement. IMPORTANT: maximum 6 activités et 3 animateurs.\n\n" +
                "Titre: " + eventTitle + "\n" +
                "Type: " + eventType + "\n" +
                "Début: " + startTime.format(DateTimeFormatter.ofPattern("HH:mm")) + "\n" +
-               "Fin: " + endTime.format(DateTimeFormatter.ofPattern("HH:mm")) + "\n" +
-               "Participants: " + nbParticipants + "\n\n" +
-               "IMPORTANT: Utilise UNIQUEMENT des prénoms et noms tunisiens arabes pour les animateurs " +
-               "(ex: Mohamed Ben Ali, Sarra Trabelsi, Youssef Chaabane, Ines Belhaj, Karim Mansouri, " +
-               "Nour Hamdi, Anis Bouazizi, Rania Khelifi, Tarek Jebali, Fatma Zouari).\n" +
-               "Les rôles doivent être des postes réels et spécialisés selon le type d'événement:\n" +
-               "- Pour Hackathon: Expert en développement logiciel, Coach en innovation, Jury technique, Expert en cybersécurité, Mentor startup\n" +
-               "- Pour Conference: Conférencier expert, Modérateur de panel, Expert en recherche, Responsable académique\n" +
-               "- Pour Workshop: Formateur expert, Coach pratique, Expert technique, Facilitateur\n\n" +
-               "Réponds UNIQUEMENT en JSON valide (sans markdown, sans texte avant ou après) avec cette structure exacte:\n" +
-               "{\n" +
-               "  \"planning\": [\n" +
-               "    {\n" +
-               "      \"heure_debut\": \"HH:mm\",\n" +
-               "      \"heure_fin\": \"HH:mm\",\n" +
-               "      \"activite\": \"Nom de l'activité\",\n" +
-               "      \"description\": \"Description courte\",\n" +
-               "      \"lieu\": \"Salle/Espace\",\n" +
-               "      \"animateurs\": [\"Prénom Nom\"],\n" +
-               "      \"type\": \"accueil\",\n" +
-               "      \"capacite\": 50\n" +
-               "    }\n" +
-               "  ],\n" +
-               "  \"animateurs\": [\n" +
-               "    {\n" +
-               "      \"nom\": \"Prénom Nom tunisien\",\n" +
-               "      \"role\": \"Poste réel spécialisé\",\n" +
-               "      \"specialite\": \"Domaine d'expertise lié au sujet\",\n" +
-               "      \"statut\": \"Confirmé\"\n" +
-               "    }\n" +
-               "  ],\n" +
-               "  \"notes\": \"Notes importantes\"\n" +
-               "}\n\n" +
-               "Assure-toi que:\n" +
-               "- Le planning couvre toute la durée de l'événement\n" +
-               "- Les pauses sont bien placées (café 10h30, déjeuner 12h30)\n" +
-               "- Les activités sont adaptées au type d'événement\n" +
-               "- Les animateurs ont des noms tunisiens arabes authentiques\n" +
-               "- Les rôles sont des postes professionnels réels et spécialisés\n" +
-               "- Le JSON est valide et complet";
+               "Fin: " + endTime.format(DateTimeFormatter.ofPattern("HH:mm")) + "\n\n" +
+               "Noms tunisiens pour animateurs: Mohamed Ben Ali, Sarra Trabelsi, Youssef Chaabane.\n\n" +
+               "Réponds UNIQUEMENT avec ce JSON valide, sans texte avant ou après:\n" +
+               "{\"planning\":[{\"heure_debut\":\"HH:mm\",\"heure_fin\":\"HH:mm\",\"activite\":\"nom\",\"lieu\":\"salle\",\"animateurs\":[\"Nom\"],\"type\":\"accueil\"}]," +
+               "\"animateurs\":[{\"nom\":\"Nom\",\"role\":\"Role\",\"specialite\":\"Domaine\",\"statut\":\"Confirme\"}]," +
+               "\"notes\":\"note\"}\n\n" +
+               "Règles strictes:\n" +
+               "- EXACTEMENT 6 activités maximum\n" +
+               "- EXACTEMENT 3 animateurs maximum\n" +
+               "- Pas de champ 'description' ni 'capacite'\n" +
+               "- JSON compact, pas d'espaces inutiles\n" +
+               "- Le JSON DOIT être complet et fermé avec }";
     }
 
     private String parsePlanningResponse(String response) {

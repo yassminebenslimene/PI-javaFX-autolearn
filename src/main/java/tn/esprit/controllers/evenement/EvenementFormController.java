@@ -351,8 +351,34 @@ public class EvenementFormController implements Initializable {
         planningCardsContainer.getChildren().clear();
 
         try {
-            com.google.gson.JsonObject obj = new com.google.gson.Gson()
-                .fromJson(planningJson, com.google.gson.JsonObject.class);
+            // Clean JSON before parsing
+            String cleanJson = planningJson.trim();
+            // Remove BOM if present
+            if (cleanJson.startsWith("\uFEFF")) cleanJson = cleanJson.substring(1);
+            // Remove markdown code blocks
+            cleanJson = cleanJson.replaceAll("```json\\s*", "").replaceAll("```\\s*", "").trim();
+            // Extract JSON object
+            int jsonStart = cleanJson.indexOf('{');
+            if (jsonStart > 0) cleanJson = cleanJson.substring(jsonStart);
+            // Find last complete closing brace
+            int lastClose = cleanJson.lastIndexOf('}');
+            if (lastClose > 0) cleanJson = cleanJson.substring(0, lastClose + 1);
+
+            com.google.gson.JsonObject obj;
+            try {
+                obj = com.google.gson.JsonParser.parseString(cleanJson).getAsJsonObject();
+            } catch (Exception parseEx) {
+                // JSON is truncated — show what we have as raw text fallback
+                System.err.println("[renderPlanning] JSON truncated, showing raw: " + parseEx.getMessage());
+                javafx.scene.control.Label fallback = new javafx.scene.control.Label(
+                    "Planning généré (format brut):\n" + planningJson);
+                fallback.setStyle("-fx-text-fill:#2d3748; -fx-font-size:11; -fx-padding:12;");
+                fallback.setWrapText(true);
+                planningCardsContainer.getChildren().add(fallback);
+                planningCardsContainer.setVisible(true);
+                planningCardsContainer.setManaged(true);
+                return;
+            }
 
             // ── Header card ──────────────────────────────────────────────────
             javafx.scene.layout.VBox headerCard = new javafx.scene.layout.VBox(4);

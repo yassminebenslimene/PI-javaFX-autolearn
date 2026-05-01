@@ -61,7 +61,7 @@ public class PlanningPdfService {
         doc.add(platform);
 
         // Main title
-        Paragraph header = new Paragraph("PLANNING D'ÉVÉNEMENT", 
+        Paragraph header = new Paragraph("PLANNING D'EVENEMENT", 
             FontFactory.getFont(FontFactory.HELVETICA, 22, Font.BOLD, VIOLET_PRIMARY));
         header.setAlignment(Element.ALIGN_CENTER);
         header.setSpacingAfter(4);
@@ -79,7 +79,7 @@ public class PlanningPdfService {
             java.util.Locale.FRENCH));
         String timeStr = start.format(DateTimeFormatter.ofPattern("HH:mm")) + " - " +
                         end.format(DateTimeFormatter.ofPattern("HH:mm"));
-        Paragraph datetime = new Paragraph("📅 " + dateStr + " | ⏰ " + timeStr, 
+        Paragraph datetime = new Paragraph(dateStr + " | " + timeStr, 
             FontFactory.getFont(FontFactory.HELVETICA, 11, Font.NORMAL, TEXT_BODY));
         datetime.setAlignment(Element.ALIGN_CENTER);
         datetime.setSpacingAfter(14);
@@ -93,7 +93,7 @@ public class PlanningPdfService {
     }
 
     private void addPlanningTable(Document doc, String planningJson) throws DocumentException {
-        doc.add(new Paragraph("📋 Planning Détaillé", 
+        doc.add(new Paragraph("Planning Détaillé", 
             FontFactory.getFont(FontFactory.HELVETICA, 14, Font.BOLD, VIOLET_PRIMARY)));
         doc.add(new Paragraph(" "));
 
@@ -131,7 +131,7 @@ public class PlanningPdfService {
     }
 
     private void addTableCell(PdfPTable table, String text, BaseColor bgColor) {
-        PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "—", 
+        PdfPCell cell = new PdfPCell(new Phrase(clean(text), 
             FontFactory.getFont(FontFactory.HELVETICA, 9, Font.NORMAL, TEXT_BODY)));
         cell.setBackgroundColor(bgColor);
         cell.setPadding(8);
@@ -139,9 +139,33 @@ public class PlanningPdfService {
         table.addCell(cell);
     }
 
+    /** Remove emoji and non-latin1 characters that iText 5 cannot render */
+    private String clean(String s) {
+        if (s == null || s.isBlank()) return "-";
+        // iText 5 Helvetica only supports ISO-8859-1 (latin-1) characters
+        // Strip anything outside that range
+        StringBuilder sb = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            if (c < 256) {
+                sb.append(c);
+            } else {
+                // Replace common unicode chars with ASCII equivalents
+                switch (c) {
+                    case '\u2014': case '\u2013': sb.append('-'); break;
+                    case '\u2018': case '\u2019': sb.append('\''); break;
+                    case '\u201C': case '\u201D': sb.append('"'); break;
+                    case '\u2026': sb.append("..."); break;
+                    default: // skip emoji and other non-latin chars
+                }
+            }
+        }
+        String result = sb.toString().trim();
+        return result.isEmpty() ? "-" : result;
+    }
+
     private void addAnimatorsSection(Document doc, String planningJson) throws DocumentException {
         doc.add(new Paragraph("\n"));
-        doc.add(new Paragraph("👥 Équipe d'Animation", 
+        doc.add(new Paragraph("Équipe d'Animation", 
             FontFactory.getFont(FontFactory.HELVETICA, 14, Font.BOLD, VIOLET_PRIMARY)));
         doc.add(new Paragraph(" "));
 
@@ -194,30 +218,32 @@ public class PlanningPdfService {
     private java.util.List<Map<String, String>> parsePlanningActivities(String json) {
         java.util.List<Map<String, String>> activities = new ArrayList<>();
         try {
-            com.google.gson.JsonObject obj = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+            if (json == null || json.isBlank()) return activities;
+            String cleanJson = cleanJson(json);
+            com.google.gson.JsonObject obj = com.google.gson.JsonParser.parseString(cleanJson).getAsJsonObject();
             if (!obj.has("planning")) return activities;
-            for (com.google.gson.JsonElement el : obj.getAsJsonArray("planning")) {
+            com.google.gson.JsonArray planningArr = obj.getAsJsonArray("planning");
+            for (com.google.gson.JsonElement el : planningArr) {
                 com.google.gson.JsonObject slot = el.getAsJsonObject();
                 Map<String, String> activity = new HashMap<>();
                 activity.put("heure_debut", getString(slot, "heure_debut"));
                 activity.put("heure_fin",   getString(slot, "heure_fin"));
                 activity.put("activite",    getString(slot, "activite"));
                 activity.put("lieu",        getString(slot, "lieu"));
-                // animateurs field inside a slot is an array of strings
                 if (slot.has("animateurs") && slot.get("animateurs").isJsonArray()) {
                     StringBuilder sb = new StringBuilder();
                     for (com.google.gson.JsonElement a : slot.getAsJsonArray("animateurs")) {
                         if (sb.length() > 0) sb.append(", ");
                         sb.append(a.getAsString());
                     }
-                    activity.put("animateurs", sb.length() > 0 ? sb.toString() : "—");
+                    activity.put("animateurs", sb.length() > 0 ? sb.toString() : "-");
                 } else {
-                    activity.put("animateurs", "—");
+                    activity.put("animateurs", "-");
                 }
                 activities.add(activity);
             }
         } catch (Exception e) {
-            System.err.println("Erreur parsing planning activities: " + e.getMessage());
+            System.err.println("[PlanningPdf] Erreur parsing activities: " + e.getMessage());
         }
         return activities;
     }
@@ -225,7 +251,9 @@ public class PlanningPdfService {
     private java.util.List<Map<String, String>> parseAnimators(String json) {
         java.util.List<Map<String, String>> animators = new ArrayList<>();
         try {
-            com.google.gson.JsonObject obj = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+            if (json == null || json.isBlank()) return animators;
+            String cleanJson = cleanJson(json);
+            com.google.gson.JsonObject obj = com.google.gson.JsonParser.parseString(cleanJson).getAsJsonObject();
             if (!obj.has("animateurs")) return animators;
             for (com.google.gson.JsonElement el : obj.getAsJsonArray("animateurs")) {
                 com.google.gson.JsonObject anim = el.getAsJsonObject();
@@ -237,9 +265,107 @@ public class PlanningPdfService {
                 animators.add(animator);
             }
         } catch (Exception e) {
-            System.err.println("Erreur parsing animators: " + e.getMessage());
+            System.err.println("[PlanningPdf] Erreur parsing animators: " + e.getMessage());
         }
         return animators;
+    }
+
+    /**
+     * Cleans and repairs potentially truncated JSON from Groq API.
+     * Handles: BOM, markdown code blocks, truncated JSON.
+     */
+    private String cleanJson(String raw) {
+        if (raw == null) return "{}";
+        String s = raw.trim();
+        // Remove BOM
+        if (s.startsWith("\uFEFF")) s = s.substring(1);
+        // Remove markdown code blocks
+        s = s.replaceAll("```json\\s*", "").replaceAll("```\\s*", "").trim();
+        // Extract JSON object boundaries
+        int start = s.indexOf('{');
+        if (start < 0) return "{}";
+        s = s.substring(start);
+        // If JSON is truncated, try to repair it
+        // Count open braces/brackets to detect truncation
+        int braces = 0, brackets = 0;
+        boolean inString = false;
+        boolean escaped = false;
+        int lastCompletePos = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (escaped) { escaped = false; continue; }
+            if (c == '\\' && inString) { escaped = true; continue; }
+            if (c == '"') { inString = !inString; continue; }
+            if (inString) continue;
+            if (c == '{') braces++;
+            else if (c == '}') { braces--; if (braces == 0 && brackets == 0) lastCompletePos = i; }
+            else if (c == '[') brackets++;
+            else if (c == ']') brackets--;
+        }
+        // If JSON is complete, return as-is up to last closing brace
+        if (braces == 0 && lastCompletePos > 0) {
+            return s.substring(0, lastCompletePos + 1);
+        }
+        // JSON is truncated — extract only the complete "planning" array entries
+        return extractPartialPlanning(s);
+    }
+
+    /**
+     * When JSON is truncated, extract only the complete planning entries.
+     */
+    private String extractPartialPlanning(String truncatedJson) {
+        try {
+            // Find the "planning" array start
+            int planningStart = truncatedJson.indexOf("\"planning\"");
+            if (planningStart < 0) return "{}";
+            int arrayStart = truncatedJson.indexOf('[', planningStart);
+            if (arrayStart < 0) return "{}";
+            // Collect complete objects from the array
+            List<String> completeObjects = new ArrayList<>();
+            int i = arrayStart + 1;
+            while (i < truncatedJson.length()) {
+                // Skip whitespace
+                while (i < truncatedJson.length() && Character.isWhitespace(truncatedJson.charAt(i))) i++;
+                if (i >= truncatedJson.length()) break;
+                if (truncatedJson.charAt(i) == '{') {
+                    // Find the matching closing brace
+                    int depth = 0;
+                    boolean inStr = false;
+                    boolean esc = false;
+                    int objStart = i;
+                    int objEnd = -1;
+                    for (int j = i; j < truncatedJson.length(); j++) {
+                        char c = truncatedJson.charAt(j);
+                        if (esc) { esc = false; continue; }
+                        if (c == '\\' && inStr) { esc = true; continue; }
+                        if (c == '"') { inStr = !inStr; continue; }
+                        if (inStr) continue;
+                        if (c == '{') depth++;
+                        else if (c == '}') { depth--; if (depth == 0) { objEnd = j; break; } }
+                    }
+                    if (objEnd > objStart) {
+                        completeObjects.add(truncatedJson.substring(objStart, objEnd + 1));
+                        i = objEnd + 1;
+                    } else {
+                        break; // incomplete object, stop
+                    }
+                } else if (truncatedJson.charAt(i) == ',') {
+                    i++;
+                } else {
+                    break;
+                }
+            }
+            if (completeObjects.isEmpty()) return "{}";
+            StringBuilder result = new StringBuilder("{\"planning\":[");
+            for (int k = 0; k < completeObjects.size(); k++) {
+                if (k > 0) result.append(",");
+                result.append(completeObjects.get(k));
+            }
+            result.append("],\"animateurs\":[]}");
+            return result.toString();
+        } catch (Exception e) {
+            return "{}";
+        }
     }
 
     private String getString(com.google.gson.JsonObject obj, String key) {
