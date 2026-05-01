@@ -8,7 +8,7 @@ import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.Evenement;
 import tn.esprit.entities.Participation;
 import tn.esprit.services.ParticipationService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -247,7 +247,7 @@ public class FeedbackController {
             return;
         }
 
-        var user = SessionManager.getCurrentUser();
+        var user = JwtManager.getCurrentUser();
         String etudiantName = user != null ? user.getPrenom() + " " + user.getNom() : "";
         int etudiantId = user != null ? user.getId() : 0;
 

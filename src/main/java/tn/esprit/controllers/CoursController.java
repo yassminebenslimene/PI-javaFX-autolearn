@@ -9,13 +9,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -265,7 +266,7 @@ public class CoursController {
     /** Ouvre le formulaire de création (cours = null → mode création). */
     @FXML
     private void onNewCours() {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -274,7 +275,7 @@ public class CoursController {
 
     /** Ouvre le formulaire pré-rempli pour modifier un cours existant. */
     private void onEditCours(Cours cours) {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -283,7 +284,7 @@ public class CoursController {
 
     /** Demande confirmation puis supprime le cours ET ses chapitres (cascade). */
     private void onDeleteCours(Cours cours) {
-        if (!SessionManager.isAdmin()) {
+        if (!JwtManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les cours.");
             return;
         }
@@ -293,7 +294,7 @@ public class CoursController {
         confirm.setContentText("Voulez-vous supprimer le cours '" + cours.getTitre() + "' ?");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                var admin = SessionManager.getCurrentUser();
+                var admin = JwtManager.getCurrentUser();
                 if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_cours",
                     java.util.Map.of("titre", cours.getTitre(), "id", String.valueOf(cours.getId())));
                 serviceCours.supprimer(cours.getId());
@@ -383,7 +384,7 @@ public class CoursController {
         if (!editMode) {
             Cours cours = new Cours(titre, description, matiere, niveau, duree, LocalDateTime.now());
             serviceCours.ajouter(cours);
-            var admin = SessionManager.getCurrentUser();
+            var admin = JwtManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_cours",
                 java.util.Map.of("titre", titre, "matiere", matiere));
         } else {
@@ -393,7 +394,7 @@ public class CoursController {
             editingCours.setNiveau(niveau);
             editingCours.setDuree(duree);
             serviceCours.modifier(editingCours);
-            var admin = SessionManager.getCurrentUser();
+            var admin = JwtManager.getCurrentUser();
             if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_cours",
                 java.util.Map.of("titre", titre, "id", String.valueOf(editingCours.getId())));
         }
@@ -469,6 +470,267 @@ public class CoursController {
         }
 
         return valid;
+    }
+
+    // ── GÉNÉRATION IA ─────────────────────────────────────────────────────────
+    /**
+     * Ouvre un dialogue pour générer un cours avec IA (Groq).
+     * L'utilisateur saisit : sujet, niveau, nombre de chapitres.
+     */
+    @FXML
+    private void onGenerateWithAI() {
+        if (!JwtManager.isAdmin()) {
+            showAlert(Alert.AlertType.WARNING, "Accès refusé", "Seul l'admin peut générer des cours avec IA.");
+            return;
+        }
+
+        // Créer un dialogue personnalisé
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("🤖 Générer un cours avec IA");
+        dialog.setHeaderText("Génération automatique d'un cours complet avec chapitres");
+
+        // Boutons
+        ButtonType btnGenerate = new ButtonType("Générer", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(btnGenerate, ButtonType.CANCEL);
+
+        // Formulaire
+        VBox form = new VBox(12);
+        form.setPadding(new javafx.geometry.Insets(20));
+        form.setStyle("-fx-background-color:white;");
+
+        Label lblSujet = new Label("Sujet du cours :");
+        lblSujet.setStyle("-fx-font-weight:bold; -fx-font-size:12;");
+        TextField fieldSujet = new TextField();
+        fieldSujet.setPromptText("Ex: Introduction à Java, Bases de données SQL...");
+        fieldSujet.setStyle("-fx-font-size:13; -fx-padding:8;");
+
+        Label lblNiveau = new Label("Niveau :");
+        lblNiveau.setStyle("-fx-font-weight:bold; -fx-font-size:12;");
+        ComboBox<String> comboNiveau = new ComboBox<>(
+            javafx.collections.FXCollections.observableArrayList("DEBUTANT", "INTERMEDIAIRE", "AVANCE")
+        );
+        comboNiveau.setValue("INTERMEDIAIRE");
+        comboNiveau.setStyle("-fx-font-size:13;");
+
+        Label lblNbChapitres = new Label("Nombre de chapitres (1-8) :");
+        lblNbChapitres.setStyle("-fx-font-weight:bold; -fx-font-size:12;");
+        TextField fieldNbChapitres = new TextField("3");
+        fieldNbChapitres.setStyle("-fx-font-size:13; -fx-padding:8;");
+
+        Label lblInfo = new Label("ℹ️ L'IA générera automatiquement le cours avec ses chapitres et contenus.");
+        lblInfo.setStyle("-fx-text-fill:#666; -fx-font-size:11; -fx-padding:10 0 0 0;");
+        lblInfo.setWrapText(true);
+
+        form.getChildren().addAll(
+            lblSujet, fieldSujet,
+            lblNiveau, comboNiveau,
+            lblNbChapitres, fieldNbChapitres,
+            lblInfo
+        );
+
+        dialog.getDialogPane().setContent(form);
+        dialog.getDialogPane().setStyle("-fx-background-color:white;");
+
+        // Validation et génération
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == btnGenerate) {
+                String sujet = fieldSujet.getText().trim();
+                String niveau = comboNiveau.getValue();
+                int nbChapitres;
+
+                try {
+                    nbChapitres = Integer.parseInt(fieldNbChapitres.getText().trim());
+                    if (nbChapitres < 1 || nbChapitres > 8) throw new NumberFormatException();
+                } catch (NumberFormatException e) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Le nombre de chapitres doit être entre 1 et 8.");
+                    return;
+                }
+
+                if (sujet.isEmpty()) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Le sujet est obligatoire.");
+                    return;
+                }
+
+                // Afficher un dialogue de progression
+                Alert progress = new Alert(Alert.AlertType.INFORMATION);
+                progress.setTitle("Génération en cours");
+                progress.setHeaderText("🤖 L'IA génère votre cours...");
+                progress.setContentText("Veuillez patienter, cela peut prendre quelques secondes.");
+                progress.show();
+
+                // Appeler l'IA de manière asynchrone
+                genererCoursAvecIA(sujet, niveau, nbChapitres)
+                    .thenAccept(cours -> javafx.application.Platform.runLater(() -> {
+                        progress.close();
+                        if (cours != null) {
+                            showAlert(Alert.AlertType.INFORMATION, "Succès",
+                                "Le cours '" + cours.getTitre() + "' a été généré avec succès !");
+                            loadTable();
+                        } else {
+                            showAlert(Alert.AlertType.ERROR, "Erreur",
+                                "La génération a échoué. Vérifiez votre connexion et réessayez.");
+                        }
+                    }))
+                    .exceptionally(ex -> {
+                        javafx.application.Platform.runLater(() -> {
+                            progress.close();
+                            showAlert(Alert.AlertType.ERROR, "Erreur",
+                                "Erreur lors de la génération : " + ex.getMessage());
+                        });
+                        return null;
+                    });
+            }
+        });
+    }
+
+    /**
+     * Génère un cours complet avec chapitres via l'API Groq.
+     * Utilise le même modèle que la génération de challenges.
+     */
+    private java.util.concurrent.CompletableFuture<Cours> genererCoursAvecIA(
+            String sujet, String niveau, int nbChapitres) {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                // Appeler l'API Groq pour générer le cours
+                String prompt = """
+                    Crée un cours pédagogique complet sur le sujet: "%s"
+                    Niveau: %s
+                    Nombre de chapitres: %d
+                    
+                    INSTRUCTIONS:
+                    1. Le titre doit être accrocheur et professionnel (max 80 caractères)
+                    2. La matière doit être le domaine principal (ex: Informatique, Mathématiques)
+                    3. La description doit présenter les objectifs du cours (2-3 phrases)
+                    4. Chaque chapitre doit avoir un titre clair et un contenu pédagogique détaillé
+                    5. Le contenu de chaque chapitre doit être structuré et complet (minimum 200 mots)
+                    6. Estime la durée totale du cours en heures (entre 10 et 100h)
+                    
+                    RÉPONDS UNIQUEMENT en JSON avec ce format EXACT:
+                    {
+                      "titre": "Titre du cours",
+                      "matiere": "Matière principale",
+                      "description": "Description complète du cours",
+                      "niveau": "%s",
+                      "duree": 30,
+                      "chapitres": [
+                        {
+                          "titre": "Titre du chapitre",
+                          "contenu": "Contenu pédagogique détaillé du chapitre",
+                          "ordre": 1
+                        }
+                      ]
+                    }
+                    """.formatted(sujet, niveau, nbChapitres, niveau);
+
+                com.google.gson.JsonObject body = new com.google.gson.JsonObject();
+                body.addProperty("model", "meta-llama/llama-4-scout-17b-16e-instruct");
+                body.addProperty("temperature", 0.7);
+                body.addProperty("max_tokens", 4000);
+
+                com.google.gson.JsonObject responseFormat = new com.google.gson.JsonObject();
+                responseFormat.addProperty("type", "json_object");
+                body.add("response_format", responseFormat);
+
+                com.google.gson.JsonArray messages = new com.google.gson.JsonArray();
+                com.google.gson.JsonObject system = new com.google.gson.JsonObject();
+                system.addProperty("role", "system");
+                system.addProperty("content",
+                    "Tu es un expert pédagogique qui crée des cours de qualité professionnelle. " +
+                    "Tu réponds UNIQUEMENT en JSON valide, sans texte avant ou après.");
+                messages.add(system);
+
+                com.google.gson.JsonObject user = new com.google.gson.JsonObject();
+                user.addProperty("role", "user");
+                user.addProperty("content", prompt);
+                messages.add(user);
+                body.add("messages", messages);
+
+                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("https://api.groq.com/openai/v1/chat/completions"))
+                    .timeout(java.time.Duration.ofSeconds(60))
+                    .header("Authorization", "Bearer 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")
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+
+                java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                    .connectTimeout(java.time.Duration.ofSeconds(30))
+                    .build();
+
+                java.net.http.HttpResponse<String> response = client.send(request,
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    throw new RuntimeException("Groq API HTTP " + response.statusCode() + ": " + response.body());
+                }
+
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                com.google.gson.JsonObject responseJson = gson.fromJson(response.body(), com.google.gson.JsonObject.class);
+                String content = responseJson.getAsJsonArray("choices")
+                    .get(0).getAsJsonObject()
+                    .getAsJsonObject("message")
+                    .get("content").getAsString();
+
+                // Parser le JSON généré
+                com.google.gson.JsonObject data = gson.fromJson(content, com.google.gson.JsonObject.class);
+
+                String titre = data.has("titre") ? data.get("titre").getAsString().trim() : "Cours IA";
+                final String titreFinal = titre.length() > 100 ? titre.substring(0, 97) + "..." : titre;
+
+                String matiere = data.has("matiere") ? data.get("matiere").getAsString().trim() : "Général";
+                String description = data.has("description") ? data.get("description").getAsString().trim() : "Cours généré par IA";
+                String niveauFinal = data.has("niveau") ? data.get("niveau").getAsString().trim() : niveau;
+                int duree = data.has("duree") ? data.get("duree").getAsInt() : 30;
+
+                // Créer le cours en BDD
+                Cours cours = new Cours(titreFinal, description, matiere, niveauFinal, duree, java.time.LocalDateTime.now());
+                serviceCours.ajouter(cours);
+
+                // Récupérer le cours créé
+                Cours created = serviceCours.consulter().stream()
+                    .filter(c -> titreFinal.equals(c.getTitre()))
+                    .reduce((a, b) -> b)
+                    .orElse(null);
+
+                if (created == null) {
+                    throw new RuntimeException("Cours créé introuvable en BDD.");
+                }
+
+                // Créer les chapitres
+                if (data.has("chapitres") && data.get("chapitres").isJsonArray()) {
+                    com.google.gson.JsonArray chapitres = data.getAsJsonArray("chapitres");
+                    for (int i = 0; i < chapitres.size(); i++) {
+                        com.google.gson.JsonObject chap = chapitres.get(i).getAsJsonObject();
+                        String titreChapitre = chap.has("titre") ? chap.get("titre").getAsString().trim() : "Chapitre " + (i + 1);
+                        String contenu = chap.has("contenu") ? chap.get("contenu").getAsString().trim() : "";
+                        int ordre = chap.has("ordre") ? chap.get("ordre").getAsInt() : (i + 1);
+
+                        tn.esprit.entities.Chapitre chapitre = new tn.esprit.entities.Chapitre();
+                        chapitre.setTitre(titreChapitre);
+                        chapitre.setContenu(contenu);
+                        chapitre.setOrdre(ordre);
+                        chapitre.setCoursId(created.getId());
+                        serviceChapitre.ajouter(chapitre);
+                    }
+                }
+
+                // Logger l'activité
+                var admin = JwtManager.getCurrentUser();
+                if (admin != null) {
+                    ActivityApiClient.logAsync(admin.getId(), "admin.generated_cours_ai",
+                        Map.of("titre", titreFinal, "sujet", sujet, "niveau", niveauFinal));
+                }
+
+                System.out.println("[CoursAI] Cours généré: " + created.getTitre() + " avec " + nbChapitres + " chapitres");
+                return created;
+
+            } catch (Exception e) {
+                System.err.println("[CoursAI] Erreur génération: " + e.getMessage());
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        });
     }
 
     // ── UTILITAIRE ────────────────────────────────────────────────────────────

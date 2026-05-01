@@ -2,6 +2,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.collections.FXCollections?>
 
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="tn.esprit.controllers.ExerciceController"
@@ -18,18 +19,76 @@
                    style="-fx-font-size:14; -fx-text-fill:rgba(245,245,244,0.5);"/>
         </VBox>
 
-        <!-- Barre d'actions (Ajouter + Recherche) -->
+        <!-- Barre d'actions (Ajouter + Recherche + AI) -->
         <HBox spacing="16" alignment="CENTER_LEFT">
             <Button text="+ Add Exercise" onAction="#addExercice"
                     style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13;
                            -fx-font-weight:bold; -fx-padding:10 20 10 20; -fx-background-radius:8;
                            -fx-cursor:hand; -fx-border-width:0;"/>
+
+            <!-- Bouton AI pour générer des exercices -->
+            <Button fx:id="aiGenerateBtn" text="🤖 AI Generate Exercises" onAction="#generateAIExercises"
+                    style="-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white; -fx-font-size:13;
+                           -fx-font-weight:bold; -fx-padding:10 20 10 20; -fx-background-radius:8;
+                           -fx-cursor:hand; -fx-border-width:0;
+                           -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.4),8,0,0,2);"/>
+
             <Region HBox.hgrow="ALWAYS"/>
+
             <TextField fx:id="searchField" promptText="Search exercises..."
                        style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
                               -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
                               -fx-font-size:13; -fx-text-fill:white; -fx-pref-width:250;"/>
         </HBox>
+
+        <!-- Dialogue AI pour paramètres de génération -->
+        <VBox fx:id="aiPanel" spacing="16" visible="false" managed="false"
+              style="-fx-background-color:rgba(124,58,237,0.1); -fx-background-radius:12;
+                     -fx-border-color:#7c3aed; -fx-border-radius:12; -fx-border-width:1;
+                     -fx-padding:20;">
+
+            <Label text="🤖 Génération d'exercices par IA"
+                   style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#a78bfa;"/>
+
+            <GridPane hgap="16" vgap="12">
+                <Label text="Domaine / Sujet :" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                       style="-fx-text-fill:rgba(245,245,244,0.7); -fx-font-size:13;"/>
+                <TextField fx:id="aiTopicField" promptText="Ex: Java, SQL, Spring Boot, React..."
+                           GridPane.columnIndex="1" GridPane.rowIndex="0"
+                           style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
+                                  -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
+                                  -fx-font-size:13; -fx-text-fill:white;"/>
+
+                <Label text="Nombre d'exercices :" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                       style="-fx-text-fill:rgba(245,245,244,0.7); -fx-font-size:13;"/>
+                <ComboBox fx:id="aiCountCombo" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                          style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
+                                 -fx-border-radius:8; -fx-background-radius:8; -fx-padding:5 10 5 10;
+                                 -fx-font-size:13; -fx-text-fill:white;"/>
+
+                <Label text="Difficulté :" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                       style="-fx-text-fill:rgba(245,245,244,0.7); -fx-font-size:13;"/>
+                <ComboBox fx:id="aiDifficultyCombo" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                          style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
+                                 -fx-border-radius:8; -fx-background-radius:8; -fx-padding:5 10 5 10;
+                                 -fx-font-size:13; -fx-text-fill:white;"/>
+            </GridPane>
+
+            <ProgressIndicator fx:id="aiProgress" visible="false" managed="false"
+                               style="-fx-progress-color:#a78bfa;"/>
+            <Label fx:id="aiStatusLabel" text="" style="-fx-text-fill:#a78bfa; -fx-font-size:12;"/>
+
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button text="Annuler" onAction="#cancelAIGeneration"
+                        style="-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:rgba(245,245,244,0.7);
+                               -fx-font-size:12; -fx-font-weight:bold; -fx-padding:8 16 8 16;
+                               -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"/>
+                <Button text="Générer" onAction="#executeAIGeneration"
+                        style="-fx-background-color:#7c3aed; -fx-text-fill:white; -fx-font-size:12;
+                               -fx-font-weight:bold; -fx-padding:8 20 8 20; -fx-background-radius:8;
+                               -fx-cursor:hand; -fx-border-width:0;"/>
+            </HBox>
+        </VBox>
 
         <!-- Success message -->
         <Label fx:id="successLabel" text="" wrapText="true"

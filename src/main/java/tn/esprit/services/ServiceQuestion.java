@@ -11,12 +11,11 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 
 /**
- * Service Question — gère toutes les opérations SQL sur la table "question".
- * Implémente IService<Question> pour les 4 opérations CRUD de base.
+ * Service Question — gère les opérations sur les questions de quiz
  */
 public class ServiceQuestion {
 
-    // Connexion à la base de données (singleton partagé)
+    // Connexion BDD
     private final Connection connection = MyConnection.getInstance().getConnection();
 
     // ── CREATE : Insérer une nouvelle question en BDD ─────────────────────────
@@ -130,6 +129,23 @@ public class ServiceQuestion {
             }
         } catch (SQLException e) {
             System.err.println("Erreur findByQuizId : " + e.getMessage());
+        }
+        return questions;
+    }
+
+    /**
+     * Retourne les questions d'un quiz dans un ordre aléatoire.
+     * Chaque passage du quiz sera différent.
+     *
+     * @param quizId ID du quiz
+     * @param maxQuestions nombre max de questions à retourner (0 = toutes)
+     * @return liste mélangée de questions
+     */
+    public java.util.List<Question> findByQuizIdAleatoire(int quizId, int maxQuestions) {
+        java.util.List<Question> questions = findByQuizId(quizId);
+        java.util.Collections.shuffle(questions);
+        if (maxQuestions > 0 && maxQuestions < questions.size()) {
+            return questions.subList(0, maxQuestions);
         }
         return questions;
     }

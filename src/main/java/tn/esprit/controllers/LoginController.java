@@ -17,7 +17,6 @@ import tn.esprit.services.GoogleOAuthService;
 import tn.esprit.services.FacebookOAuthService;
 import tn.esprit.services.GitHubOAuthService;
 import tn.esprit.session.JwtManager;
-import tn.esprit.session.SessionManager;
 import tn.esprit.tools.PasswordUtil;
 
 import java.sql.Timestamp;
@@ -251,9 +250,6 @@ public class LoginController {
             return;
         }
         
-        // Also keep SessionManager for backward compatibility (optional)
-        SessionManager.login(found);
-        
         // 6. Remember Me
         addToHistory(email);
         if (checkRememberMe.isSelected()) {
@@ -409,7 +405,7 @@ public class LoginController {
                     addToHistory(email);
 
                     // Login
-                    SessionManager.login(found);
+                    JwtManager.login(found);
 
                     ActivityApiClient.logAsync(found.getId(), "user.login_oauth",
                         java.util.Map.of("provider", provider, "email", email));

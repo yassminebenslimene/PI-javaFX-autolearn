@@ -17,7 +17,7 @@ import tn.esprit.entities.Cours;
 import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -161,7 +161,7 @@ public class FrontCoursController {
         sep.setStyle("-fx-background-color:#f0f0f0;");
 
         // Barre de progression
-        int userId = SessionManager.getCurrentUser() != null ? SessionManager.getCurrentUser().getId() : 0;
+        int userId = JwtManager.getCurrentUser() != null ? JwtManager.getCurrentUser().getId() : 0;
         int progress = userId > 0 ? progressService.getCourseProgress(userId, cours.getId()) : 0;
 
         // Couleur selon progression : rouge < 50%, orange 50-79%, vert >= 80%
@@ -250,6 +250,22 @@ public class FrontCoursController {
     @FXML private void onFilterDebutant() { setActiveFilter(btnDebutant); filterByNiveau("DEBUTANT"); }
     @FXML private void onFilterInter()    { setActiveFilter(btnInter);    filterByNiveau("INTERMEDIAIRE"); }
     @FXML private void onFilterAvance()   { setActiveFilter(btnAvance);   filterByNiveau("AVANCE"); }
+
+    @FXML private void onGitHub() {
+        try {
+            tn.esprit.MainApp.showGitHubExamples();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML private void onMaListe() {
+        try {
+            tn.esprit.MainApp.showTodoList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private void filterByNiveau(String niveau) {
         afficher(allCours.stream().filter(c ->

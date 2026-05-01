@@ -4,7 +4,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import tn.esprit.MainApp;
 import tn.esprit.entities.Etudiant;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 /**
  * Shared navbar initialization + navigation helpers for all front controllers.
@@ -12,7 +12,7 @@ import tn.esprit.session.SessionManager;
 public class FrontNavHelper {
 
     public static void initNavbar(Label labelAvatarNav, Label labelCurrentUser, MenuButton menuUser) {
-        var u = SessionManager.getCurrentUser();
+        var u = JwtManager.getCurrentUser();
         if (u == null) return;
         String name = u.getPrenom() + " " + u.getNom();
         if (labelCurrentUser != null) labelCurrentUser.setText(name);
@@ -47,7 +47,7 @@ public class FrontNavHelper {
     }
 
     public static void goLogout() {
-        SessionManager.logout();
+        JwtManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
 

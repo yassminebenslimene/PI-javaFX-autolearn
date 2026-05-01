@@ -78,6 +78,16 @@
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;
                                    -fx-font-size:13; -fx-cursor:hand; -fx-border-width:0;"/>
 
+                    <Button fx:id="btnPosts" text="     📝   Posts" maxWidth="Infinity" onAction="#navigateToPosts"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.55);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:9 12 9 28; -fx-background-radius:10;
+                                   -fx-font-size:12; -fx-cursor:hand; -fx-border-width:0;"/>
+
+                    <Button fx:id="btnCommentaires" text="     💭   Commentaires" maxWidth="Infinity" onAction="#navigateToCommentaires"
+                            style="-fx-background-color:transparent; -fx-text-fill:rgba(245,245,244,0.55);
+                                   -fx-alignment:CENTER_LEFT; -fx-padding:9 12 9 28; -fx-background-radius:10;
+                                   -fx-font-size:12; -fx-cursor:hand; -fx-border-width:0;"/>
+
                     <Button fx:id="btnChatbot" text="  AI   Assistant IA" maxWidth="Infinity" onAction="#navigateToChatbot"
                             style="-fx-background-color:rgba(5,150,105,0.15); -fx-text-fill:#6ee7b7;
                                    -fx-alignment:CENTER_LEFT; -fx-padding:11 12 11 16; -fx-background-radius:10;

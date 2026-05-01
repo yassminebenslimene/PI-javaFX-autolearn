@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import tn.esprit.MainApp;
 import tn.esprit.services.ActivityApiClient;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 public class BackofficeController {
 
@@ -16,7 +16,8 @@ public class BackofficeController {
     @FXML private Label labelCurrentRole;
     @FXML private Label labelAvatarSidebar;
     @FXML private Label labelPageTitle;
-
+    @FXML private Button btnStudentsAtRisk;
+    @FXML private Button btnRetention;
     @FXML private Button btnDashboard;
     @FXML private Button btnUsers;
     @FXML private Button btnActivites;
@@ -26,6 +27,8 @@ public class BackofficeController {
     @FXML private Button btnExercices;
     @FXML private Button btnChallenges;
     @FXML private Button btnCommunaute;
+    @FXML private Button btnPosts;
+    @FXML private Button btnCommentaires;
     @FXML private Button btnProfile;
     @FXML private Button btnChatbot;
 
@@ -42,13 +45,13 @@ public class BackofficeController {
     @FXML
     public void initialize() {
         MainApp.setBackofficeController(this);
-        if (SessionManager.getCurrentUser() != null) {
-            String name = SessionManager.getCurrentUser().getPrenom() + " " + SessionManager.getCurrentUser().getNom();
+        if (JwtManager.getCurrentUser() != null) {
+            String name = JwtManager.getCurrentUser().getPrenom() + " " + JwtManager.getCurrentUser().getNom();
             if (labelCurrentUser != null) labelCurrentUser.setText(name);
-            if (labelCurrentRole != null) labelCurrentRole.setText(SessionManager.getCurrentUser().getRole());
+            if (labelCurrentRole != null) labelCurrentRole.setText(JwtManager.getCurrentUser().getRole());
             if (labelAvatarSidebar != null) {
-                String initials = SessionManager.getCurrentUser().getPrenom().substring(0,1).toUpperCase()
-                                + SessionManager.getCurrentUser().getNom().substring(0,1).toUpperCase();
+                String initials = JwtManager.getCurrentUser().getPrenom().substring(0,1).toUpperCase()
+                                + JwtManager.getCurrentUser().getNom().substring(0,1).toUpperCase();
                 labelAvatarSidebar.setText(initials);
             }
         }
@@ -57,14 +60,15 @@ public class BackofficeController {
 
     private void setActive(Button active) {
         for (Button b : new Button[]{btnDashboard, btnUsers, btnActivites, btnQuiz, btnCours, btnEvenements,
-                                      btnExercices, btnChallenges, btnCommunaute, btnProfile, btnChatbot}) {
+                                      btnExercices, btnChallenges, btnStudentsAtRisk, btnRetention,
+                                      btnCommunaute, btnPosts, btnCommentaires, btnProfile, btnChatbot}) {
             if (b != null) b.setStyle(b == active ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }
 
     /** Log admin navigation action */
     private void logNav(String section) {
-        var admin = SessionManager.getCurrentUser();
+        var admin = JwtManager.getCurrentUser();
         if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.view_" + section,
             java.util.Map.of("section", section));
     }
@@ -129,12 +133,37 @@ public class BackofficeController {
         logNav("challenges");
         loadView("/views/backoffice/challenge/challenges.fxml");
     }
-
+    @FXML
+    public void navigateToStudentsAtRisk() {
+        setActive(btnStudentsAtRisk);
+        labelPageTitle.setText("Étudiants à risque - Détection décrochage");
+        loadView("/views/backoffice/students_at_risk.fxml");
+    }
+    @FXML
+    public void navigateToRetention() {
+        setActive(btnRetention);
+        labelPageTitle.setText("Analyse de rétention - Cohorte Analysis");
+        loadView("/views/backoffice/retention_analysis.fxml");
+    }
     @FXML public void navigateToCommunaute() {
         setActive(btnCommunaute);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion de la Communauté");
         logNav("communaute");
         loadView("/views/backoffice/communaute/index.fxml");
+    }
+
+    @FXML public void navigateToPosts() {
+        setActive(btnPosts);
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Posts");
+        logNav("posts");
+        loadView("/views/backoffice/post/index.fxml");
+    }
+
+    @FXML public void navigateToCommentaires() {
+        setActive(btnCommentaires);
+        if (labelPageTitle != null) labelPageTitle.setText("Gestion des Commentaires");
+        logNav("commentaires");
+        loadView("/views/backoffice/commentaire/index.fxml");
     }
 
     @FXML public void navigateToChatbot() {
@@ -151,15 +180,29 @@ public class BackofficeController {
     }
 
     @FXML public void onLogout() {
-        SessionManager.logout();
+        JwtManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public void loadView(String path) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
-            contentArea.getChildren().clear();
-            contentArea.getChildren().add(loader.load());
+            javafx.scene.Parent content = loader.load();
+            
+            // Wrap content in ScrollPane if it's not already a ScrollPane
+            if (content instanceof javafx.scene.control.ScrollPane) {
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(content);
+            } else {
+                javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(content);
+                scrollPane.setFitToWidth(true);
+                // Don't set fitToHeight - let content determine its own height for proper scrolling
+                scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+                scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                scrollPane.setStyle("-fx-background-color:#0a0f0d; -fx-background:#0a0f0d; -fx-border-width:0;");
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(scrollPane);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Impossible de charger : " + path + " — " + e.getMessage());

@@ -258,6 +258,30 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Communauté");
     }
 
+    public static void showLeaderboard() throws Exception {
+        load("/views/frontoffice/leaderboard.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Classement");
+    }
+
+    public static void showCoursPage() throws Exception {
+        load("/views/frontoffice/cours/index.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Cours");
+    }
+
+    public static void showGitHubExamples() throws Exception {
+        load("/views/frontoffice/github_examples.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — GitHub Examples");
+    }
+
+    public static void showTodoList() throws Exception {
+        load("/views/frontoffice/todo.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Todo");
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static FXMLLoader getLoader(String fxml) throws Exception {

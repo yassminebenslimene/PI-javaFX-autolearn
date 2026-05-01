@@ -995,4 +995,20 @@ public class FrontofficeController {
         if (scene == null) return;
         ((BorderPane) scene.getRoot()).setCenter(view);
     }
+
+    // ── Static navigation helper (called from other controllers) ─────────────
+
+    private static String pendingSection = null;
+
+    /**
+     * Sets a section to navigate to when FrontofficeController next initializes.
+     * Called by other controllers before navigating to frontoffice.
+     */
+    public static void setPendingSection(String section) {
+        pendingSection = section;
+    }
+
+    public static void navigateToSection(String section) {
+        pendingSection = section;
+    }
 }

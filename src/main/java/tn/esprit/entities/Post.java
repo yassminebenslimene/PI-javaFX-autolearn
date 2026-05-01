@@ -16,6 +16,7 @@ public class Post {
     private LocalDateTime createdAt;
     private int communauteId; // FK vers communaute.id
     private int userId;
+    private String tags; // comma-separated: "java,spring,backend"
 
     // OneToMany : commentaires du post (orphanRemoval)
     private List<Commentaire> commentaires = new ArrayList<>();
@@ -81,6 +82,20 @@ public class Post {
 
     public List<Commentaire> getCommentaires() { return commentaires; }
     public void setCommentaires(List<Commentaire> commentaires) { this.commentaires = commentaires; }
+
+    public String getTags() { return tags; }
+    public void setTags(String tags) { this.tags = tags; }
+
+    /** Returns tags as a Set for Jaccard computation */
+    public java.util.Set<String> getTagSet() {
+        if (tags == null || tags.isBlank()) return java.util.Collections.emptySet();
+        java.util.Set<String> set = new java.util.HashSet<>();
+        for (String t : tags.split(",")) {
+            String trimmed = t.trim().toLowerCase();
+            if (!trimmed.isEmpty()) set.add(trimmed);
+        }
+        return set;
+    }
 
     @Override
     public String toString() {

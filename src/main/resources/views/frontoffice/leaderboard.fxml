@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.LeaderboardController"
+            prefWidth="1200" prefHeight="760"
+            style="-fx-background-color:#f8f9fa;">
+
+    <!-- ══ NAVBAR IDENTIQUE À layout.fxml ══ -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="0"
+              style="-fx-background-color:rgba(122,106,216,0.97); -fx-min-height:64; -fx-max-height:64;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,3);">
+            <padding><Insets left="36" right="36"/></padding>
+            <Label text="AutoLearn" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;"/>
+            <HBox spacing="0" alignment="CENTER" style="-fx-padding:0 0 0 32;">
+                <Button fx:id="btnHome" text="Accueil" onAction="#onHome"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button text="Cours" onAction="#onCours"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button text="Challenges" onAction="#onChallenges"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button text="🏆 Classement"
+                        style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;
+                               -fx-font-weight:700; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0; -fx-background-radius:8;"/>
+                <Button text="Evenements" onAction="#onEvenements"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button text="Communaute" onAction="#onCommunaute"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button text="Messages" onAction="#onMessagerie"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+            </HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox alignment="CENTER" spacing="12">
+                <Label fx:id="labelAvatarNav"
+                       style="-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white;
+                              -fx-font-weight:700; -fx-font-size:13; -fx-background-radius:50%; -fx-padding:7 10 7 10;"/>
+                <VBox alignment="CENTER_RIGHT" spacing="1">
+                    <Label fx:id="labelCurrentUser" text="" style="-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;"/>
+                    <Label fx:id="labelNiveauUser" text="" style="-fx-text-fill:rgba(255,255,255,0.65); -fx-font-size:10;"/>
+                </VBox>
+                <MenuButton fx:id="menuUser" text=""
+                            style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white; -fx-font-size:12;
+                                   -fx-padding:7 12 7 12; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;">
+                    <items>
+                        <MenuItem text="Mon Profil" onAction="#onProfile"/>
+                        <MenuItem text="Mes Participations" onAction="#onMesParticipations"/>
+                        <MenuItem text="Mes Equipes" onAction="#onMesEquipes"/>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="Deconnexion" onAction="#onLogout"/>
+                    </items>
+                </MenuButton>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                    style="-fx-background-color:#f8f9fa; -fx-background:transparent; -fx-border-width:0;">
+            <VBox spacing="20" style="-fx-padding:40 80 40 80; -fx-background-color:#f8f9fa;">
+
+                <!-- Header -->
+                <VBox spacing="4">
+                    <Label text="🏆 CLASSEMENT"
+                           style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#7a6ad8;
+                                  -fx-background-color:rgba(122,106,216,0.1); -fx-background-radius:20; -fx-padding:3 12 3 12;"/>
+                    <Label text="Leaderboard des Champions"
+                           style="-fx-font-size:28; -fx-font-weight:800; -fx-text-fill:#1e1e1e;"/>
+                    <Label text="Découvrez les meilleurs étudiants de la plateforme"
+                           style="-fx-font-size:14; -fx-text-fill:#888;"/>
+                </VBox>
+
+                <!-- Filtres et stats -->
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="Filtrer par niveau :"
+                           style="-fx-font-size:13; -fx-font-weight:600; -fx-text-fill:#555;"/>
+                    <ComboBox fx:id="niveauFilter" promptText="Tous les niveaux"
+                              style="-fx-background-color:white; -fx-border-color:#ddd; -fx-border-radius:8; -fx-background-radius:8; -fx-padding:8 15; -fx-font-size:13;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="statsLabel" text=""
+                           style="-fx-font-size:13; -fx-text-fill:#7a6ad8; -fx-font-weight:600;"/>
+                </HBox>
+
+                <!-- Liste des champions (style carte) -->
+                <VBox spacing="12" style="-fx-background-color:white; -fx-background-radius:16;
+                                         -fx-border-color:#eeeeee; -fx-border-radius:16;
+                                         -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),8,0,0,2);
+                                         -fx-padding:20;">
+
+                    <!-- En-tête de la liste -->
+                    <HBox spacing="10" alignment="CENTER"
+                          style="-fx-padding:10 0 15 0; -fx-border-color:transparent transparent #eeeeee transparent; -fx-border-width:0 0 1 0;">
+                        <Label text="RANG" prefWidth="70" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#999;"/>
+                        <Label text="ÉTUDIANT" prefWidth="250" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#999;"/>
+                        <Label text="NIVEAU" prefWidth="100" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#999;"/>
+                        <Label text="CHALLENGES" prefWidth="100" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#999;"/>
+                        <Label text="SCORE TOTAL" prefWidth="120" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#999;"/>
+                        <Label text="MOYENNE" prefWidth="80" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#999;"/>
+                        <Label text="MÉDAILLES" prefWidth="100" style="-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:#999;"/>
+                    </HBox>
+
+                    <!-- Liste déroulante des champions -->
+                    <ListView fx:id="leaderboardList" prefHeight="450"
+                              style="-fx-background-color:transparent; -fx-background-radius:12;
+                                     -fx-border-width:0; -fx-padding:0;">
+                        <placeholder>
+                            <Label text="Aucun étudiant trouvé"
+                                   style="-fx-text-fill:#999; -fx-font-size:14;"/>
+                        </placeholder>
+                    </ListView>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

@@ -2,14 +2,25 @@ package tn.esprit.session;
 
 import tn.esprit.entities.User;
 
-
+/**
+ * Compatibility wrapper around JwtManager.
+ * Delegates all calls to JwtManager so existing code continues to work unchanged.
+ */
 public class SessionManager {
 
-    private static User currentUser;
+    public static User getCurrentUser() {
+        return JwtManager.getCurrentUser();
+    }
 
-    public static void login(User user) { currentUser = user; }
-    public static void logout()         { currentUser = null; }
-    public static User getCurrentUser() { return currentUser; }
-    public static boolean isAdmin()     { return currentUser != null && "ADMIN".equals(currentUser.getRole()); }
-    public static boolean isLoggedIn()  { return currentUser != null; }
+    public static boolean isLoggedIn() {
+        return JwtManager.isLoggedIn();
+    }
+
+    public static void logout() {
+        JwtManager.logout();
+    }
+
+    public static void setCurrentUser(User user) {
+        JwtManager.login(user);
+    }
 }

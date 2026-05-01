@@ -256,4 +256,33 @@ public class EmailService {
                "</td></tr>" +
                "</table></td></tr></table></body></html>";
     }
+
+    // ── Quiz notification emails (added for FrontQuizController compatibility) ─
+
+    public static void sendRevisionReminder(String toEmail, String prenom,
+                                             String quizTitre, String chapitreTitre, double scorePct) {
+        String subject = "📚 Rappel de révision — " + quizTitre;
+        String content = "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Votre score au quiz <strong>" + quizTitre + "</strong> est de <strong>" +
+            String.format("%.0f%%", scorePct) + "</strong>.</p>" +
+            "<p>Nous vous recommandons de réviser le chapitre <strong>" + chapitreTitre +
+            "</strong> avant de retenter le quiz.</p>" +
+            "<p>Bonne révision !</p>";
+        String html = htmlTemplate("Rappel de révision", "Continuez vos efforts !", content, null, null);
+        sendAsync(toEmail, subject, html);
+    }
+
+    public static void sendQuizRetryReminder(String toEmail, String prenom,
+                                              String quizTitre, double scorePct,
+                                              double seuil, int nombreTentatives, int maxTentatives) {
+        String subject = "🔄 Retentez le quiz — " + quizTitre;
+        String content = "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Votre score au quiz <strong>" + quizTitre + "</strong> est de <strong>" +
+            String.format("%.0f%%", scorePct) + "</strong> (seuil requis : " +
+            String.format("%.0f%%", seuil) + ").</p>" +
+            "<p>Il vous reste <strong>" + (maxTentatives - nombreTentatives) +
+            " tentative(s)</strong>. Vous pouvez réessayer !</p>";
+        String html = htmlTemplate("Retentez le quiz", "Vous pouvez y arriver !", content, null, null);
+        sendAsync(toEmail, subject, html);
+    }
 }

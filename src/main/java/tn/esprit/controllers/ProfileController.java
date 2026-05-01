@@ -12,7 +12,7 @@ import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ApiService;
 import tn.esprit.services.BlockchainService;
 import tn.esprit.services.UserService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 import tn.esprit.tools.PasswordUtil;
 
 import java.util.LinkedHashMap;
@@ -74,12 +74,12 @@ public class ProfileController {
 
     @FXML
     public void initialize() {
-        User u = SessionManager.getCurrentUser();
+        User u = JwtManager.getCurrentUser();
         if (u == null) return;
 
         if (u.getId() > 0) {
             User fresh = service.trouver(u.getId());
-            if (fresh != null) { SessionManager.login(fresh); u = fresh; }
+            if (fresh != null) { JwtManager.login(fresh); u = fresh; }
         }
 
         // Create genesis block if first time (writes to file, not DB)
@@ -328,7 +328,7 @@ public class ProfileController {
         clearErrors();
         if (!validate()) return;
 
-        User u = SessionManager.getCurrentUser();
+        User u = JwtManager.getCurrentUser();
 
         // Detect what changed → for blockchain block
         Map<String, Object> changes = new LinkedHashMap<>();
@@ -371,7 +371,7 @@ public class ProfileController {
             e.setNiveau(comboNiveau.getValue());
 
         service.modifier(u);
-        SessionManager.login(u);
+        JwtManager.login(u);
 
         // Add blockchain block if something actually changed
         if (!changes.isEmpty()) {
@@ -397,7 +397,7 @@ public class ProfileController {
         try {
             tn.esprit.MainApp.showFaceIdRegister();
             // Refresh button after dialog closes
-            User u = SessionManager.getCurrentUser();
+            User u = JwtManager.getCurrentUser();
             if (u != null) updateFaceIdButton(u.getId());
         } catch (Exception e) {
             e.printStackTrace();
@@ -414,7 +414,7 @@ public class ProfileController {
 
     @FXML
     private void onBack() {        try {
-            User u = SessionManager.getCurrentUser();
+            User u = JwtManager.getCurrentUser();
             if (u == null) { MainApp.showLogin(); return; }
             if ("ADMIN".equals(u.getRole())) MainApp.showBackoffice();
             else MainApp.showFrontoffice();

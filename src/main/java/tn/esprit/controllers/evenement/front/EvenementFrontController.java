@@ -77,6 +77,11 @@ public class EvenementFrontController {
 
     @FXML
     public void initialize() {
+        // Set active navbar button
+        if (navbarController != null) {
+            navbarController.setActive("Evenements");
+        }
+        
         allEvents = evenementService.getAll();
         // Tri : événements les plus récents (date_debut la plus grande) en premier
         allEvents.sort((a, b) -> {
