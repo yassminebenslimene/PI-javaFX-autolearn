@@ -70,10 +70,17 @@
             <Label fx:id="errorRessources" minHeight="14" style="-fx-text-fill:#f87171; -fx-font-size:11;"/>
 
             <Label style="-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:rgba(245,245,244,0.7);" text="Fichier ressource"/>
-            <TextField fx:id="fieldRessourceFichier" promptText="Ex: cours.pdf, video.mp4"
-                       style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
-                              -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
-                              -fx-font-size:13; -fx-text-fill:white;"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <TextField fx:id="fieldRessourceFichier" promptText="Cliquez sur Parcourir ou entrez le chemin..."
+                           HBox.hgrow="ALWAYS"
+                           style="-fx-background-color:rgba(255,255,255,0.08); -fx-border-color:rgba(255,255,255,0.15);
+                                  -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10 14 10 14;
+                                  -fx-font-size:13; -fx-text-fill:white;"/>
+                <Button text="📂 Parcourir" onAction="#onParcourirFichier"
+                        style="-fx-background-color:rgba(122,106,216,0.3); -fx-text-fill:white;
+                               -fx-font-size:12; -fx-font-weight:700; -fx-padding:10 14 10 14;
+                               -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"/>
+            </HBox>
             <Label fx:id="errorFichier" minHeight="14" style="-fx-text-fill:#f87171; -fx-font-size:11;"/>
 
             <Region VBox.vgrow="ALWAYS"/>

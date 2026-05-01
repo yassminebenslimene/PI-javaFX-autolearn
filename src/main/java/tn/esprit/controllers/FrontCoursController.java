@@ -15,6 +15,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.CourseProgressService;
+import tn.esprit.services.LearningObjectiveService;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
 import tn.esprit.session.SessionManager;
@@ -36,10 +37,13 @@ public class FrontCoursController {
     @FXML private Label    labelEmpty;
     @FXML private TextField searchField;
     @FXML private Button   btnAll, btnDebutant, btnInter, btnAvance;
+    @FXML private HBox     banniereObjectif;
+    @FXML private Label    labelObjectifActif;
 
     private final ServiceCours          serviceCours    = new ServiceCours();
     private final ServiceChapitre       serviceChapitre = new ServiceChapitre();
     private final CourseProgressService progressService = new CourseProgressService();
+    private final LearningObjectiveService objectiveService = new LearningObjectiveService();
 
     private Consumer<Cours> onVoirChapitres;
     private List<Cours>     allCours;
@@ -280,5 +284,145 @@ public class FrontCoursController {
         if (btnDebutant != null) btnDebutant.setStyle(btnDebutant == active ? activeStyle : inactiveBase + "-fx-text-fill:#059669; -fx-border-color:#059669;");
         if (btnInter    != null) btnInter.setStyle(btnInter    == active ? activeStyle : inactiveBase + "-fx-text-fill:#f59e0b; -fx-border-color:#f59e0b;");
         if (btnAvance   != null) btnAvance.setStyle(btnAvance   == active ? activeStyle : inactiveBase + "-fx-text-fill:#e94560; -fx-border-color:#e94560;");
+    }
+
+    // ── Objectif d'apprentissage ───────────────────────────────────────────────
+
+    @FXML
+    private void onDefinirObjectif() {
+        // Créer la popup
+        javafx.stage.Stage popup = new javafx.stage.Stage();
+        popup.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        popup.setTitle("🎯 Définir mon objectif d'apprentissage");
+        popup.setResizable(false);
+
+        // ── Header ──
+        VBox header = new VBox(4);
+        header.setStyle("-fx-background-color:linear-gradient(to right,#f59e0b,#d97706); -fx-padding:20 24 20 24;");
+        Label hTitle = new Label("🎯 Mon Objectif d'Apprentissage");
+        hTitle.setStyle("-fx-font-size:17; -fx-font-weight:800; -fx-text-fill:white;");
+        Label hSub = new Label("Choisissez un objectif pour voir les cours recommandés");
+        hSub.setStyle("-fx-font-size:12; -fx-text-fill:rgba(255,255,255,0.85);");
+        header.getChildren().addAll(hTitle, hSub);
+
+        // ── Corps ──
+        VBox body = new VBox(16);
+        body.setStyle("-fx-padding:24; -fx-background-color:white;");
+
+        // Objectifs prédéfinis
+        Label lblPredefined = new Label("Objectifs prédéfinis :");
+        lblPredefined.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#374151;");
+
+        javafx.scene.layout.FlowPane predefinedPane = new javafx.scene.layout.FlowPane(8, 8);
+        javafx.scene.control.ToggleGroup toggleGroup = new javafx.scene.control.ToggleGroup();
+        javafx.scene.control.TextField objectifField = new javafx.scene.control.TextField();
+
+        for (String obj : LearningObjectiveService.PREDEFINED_OBJECTIVES.keySet()) {
+            javafx.scene.control.ToggleButton btn = new javafx.scene.control.ToggleButton(obj);
+            btn.setToggleGroup(toggleGroup);
+            btn.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#4e3b9c; -fx-font-size:12; -fx-font-weight:600;" +
+                         "-fx-padding:7 14 7 14; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+            btn.selectedProperty().addListener((obs, old, selected) -> {
+                if (selected) {
+                    btn.setStyle("-fx-background-color:#7a6ad8; -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;" +
+                                 "-fx-padding:7 14 7 14; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+                    objectifField.setText(obj); // remplir le champ texte
+                } else {
+                    btn.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#4e3b9c; -fx-font-size:12; -fx-font-weight:600;" +
+                                 "-fx-padding:7 14 7 14; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+                }
+            });
+            predefinedPane.getChildren().add(btn);
+        }
+
+        // Objectif libre
+        Label lblLibre = new Label("Ou écrivez votre propre objectif :");
+        lblLibre.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#374151;");
+        objectifField.setPromptText("Ex: Data Science, Cybersecurity, Mobile...");
+        objectifField.setStyle("-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb; -fx-border-radius:10;" +
+                               "-fx-background-radius:10; -fx-padding:12 16; -fx-font-size:13;");
+
+        // Niveau
+        Label lblNiveau = new Label("Niveau :");
+        lblNiveau.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#374151;");
+        javafx.scene.control.ComboBox<String> niveauCombo = new javafx.scene.control.ComboBox<>();
+        niveauCombo.getItems().addAll("Tous", "Débutant", "Intermédiaire", "Avancé");
+        niveauCombo.setValue("Tous");
+        niveauCombo.setStyle("-fx-background-color:#f9fafb; -fx-border-color:#e5e7eb; -fx-border-radius:10;" +
+                             "-fx-background-radius:10; -fx-padding:8 12; -fx-font-size:13;");
+        niveauCombo.setMaxWidth(Double.MAX_VALUE);
+
+        // Bouton valider
+        Button btnValider = new Button("✨ Appliquer le filtrage");
+        btnValider.setMaxWidth(Double.MAX_VALUE);
+        btnValider.setStyle("-fx-background-color:#f59e0b; -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:700;" +
+                            "-fx-padding:13 0; -fx-background-radius:10; -fx-cursor:hand; -fx-border-width:0;");
+
+        btnValider.setOnAction(e -> {
+            String objectif = objectifField.getText().trim();
+            String niveau   = niveauCombo.getValue();
+            if (objectif.isEmpty()) {
+                objectifField.setStyle("-fx-background-color:#fef2f2; -fx-border-color:#dc2626; -fx-border-radius:10;" +
+                                       "-fx-background-radius:10; -fx-padding:12 16; -fx-font-size:13;");
+                return;
+            }
+            // Appliquer le filtrage
+            appliquerObjectif(objectif, niveau);
+            popup.close();
+        });
+
+        body.getChildren().addAll(lblPredefined, predefinedPane, lblLibre, objectifField, lblNiveau, niveauCombo, btnValider);
+
+        VBox root = new VBox(0, header, body);
+        popup.setScene(new javafx.scene.Scene(root, 520, 480));
+        popup.show();
+    }
+
+    /**
+     * Applique le filtrage des cours selon l'objectif et le niveau.
+     * Affiche la bannière "objectif actif" et les cours filtrés.
+     */
+    private void appliquerObjectif(String objectif, String niveau) {
+        List<Cours> filtered = objectiveService.filterCoursByObjective(allCours, objectif, niveau);
+
+        // Afficher la bannière avec l'objectif actif
+        if (banniereObjectif != null) {
+            banniereObjectif.setVisible(true);
+            banniereObjectif.setManaged(true);
+        }
+        if (labelObjectifActif != null) {
+            String niveauText = (niveau != null && !niveau.equals("Tous")) ? " • Niveau : " + niveau : "";
+            labelObjectifActif.setText("Objectif : " + objectif + niveauText +
+                                       " — " + filtered.size() + " cours trouvé(s)");
+        }
+
+        if (filtered.isEmpty()) {
+            // Aucun cours trouvé → message avec suggestions
+            cardsContainer.getChildren().clear();
+            VBox emptyBox = new VBox(12);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPadding(new Insets(40));
+            Label icon = new Label("🔍");
+            icon.setStyle("-fx-font-size:48;");
+            Label msg = new Label("Aucun cours trouvé pour cet objectif.");
+            msg.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#6b7280;");
+            Label suggestion = new Label("Essayez : Web Developer, Java, Python, Data Science...");
+            suggestion.setStyle("-fx-font-size:12; -fx-text-fill:#9ca3af;");
+            emptyBox.getChildren().addAll(icon, msg, suggestion);
+            cardsContainer.getChildren().add(emptyBox);
+            if (labelEmpty != null) { labelEmpty.setVisible(false); labelEmpty.setManaged(false); }
+        } else {
+            afficher(filtered);
+        }
+    }
+
+    @FXML
+    private void onVoirTousLesCours() {
+        // Masquer la bannière et afficher tous les cours
+        if (banniereObjectif != null) {
+            banniereObjectif.setVisible(false);
+            banniereObjectif.setManaged(false);
+        }
+        afficher(allCours);
     }
 }

@@ -22,6 +22,10 @@
                                style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:14;"/>
                     </VBox>
                     <HBox spacing="12" alignment="CENTER_RIGHT">
+                        <Button text="🎯 Mon Objectif" onAction="#onDefinirObjectif"
+                                style="-fx-background-color:#f59e0b; -fx-text-fill:white;
+                                       -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 20 10 20;
+                                       -fx-background-radius:25; -fx-cursor:hand; -fx-border-width:0;"/>
                         <Button text="💻 GitHub" onAction="#onGitHub"
                                 style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white;
                                        -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 20 10 20;
@@ -51,6 +55,20 @@
                     </VBox>
                 </HBox>
             </VBox>
+
+            <!-- OBJECTIF ACTIF (visible seulement quand un objectif est défini) -->
+            <HBox fx:id="banniereObjectif" alignment="CENTER_LEFT" spacing="12" visible="false" managed="false"
+                  style="-fx-background-color:#fffbeb; -fx-padding:12 60 12 60;
+                         -fx-border-color:#fde68a transparent transparent transparent; -fx-border-width:1 0 0 0;">
+                <Label text="🎯" style="-fx-font-size:16;"/>
+                <Label fx:id="labelObjectifActif" text=""
+                       style="-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#92400e;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="✕ Voir tous les cours" onAction="#onVoirTousLesCours"
+                        style="-fx-background-color:#f59e0b; -fx-text-fill:white; -fx-font-size:12;
+                               -fx-font-weight:700; -fx-padding:6 16 6 16; -fx-background-radius:20;
+                               -fx-cursor:hand; -fx-border-width:0;"/>
+            </HBox>
 
             <!-- SEARCH BAR -->
             <HBox alignment="CENTER" style="-fx-padding:24 60 8 60; -fx-background-color:#f4f6fb;">

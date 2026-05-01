@@ -29,11 +29,18 @@ public class ServiceChapitre implements IService<Chapitre> {
         try (PreparedStatement statement = connection.prepareStatement(req)) {
             statement.setString(1, chapitre.getTitre());
             statement.setString(2, chapitre.getContenu());
-            statement.setInt(3, chapitre.getOrdre());       // position du chapitre dans le cours
-            statement.setString(4, chapitre.getRessources()); // lien URL optionnel
-            statement.setInt(5, chapitre.getCoursId());     // FK vers la table cours
-            statement.setString(6, chapitre.getRessourceType()); // VIDEO, PDF, LIEN, AUTRE
-            statement.setString(7, chapitre.getRessourceFichier()); // nom du fichier optionnel
+            statement.setInt(3, chapitre.getOrdre());
+            statement.setString(4, chapitre.getRessources());
+            statement.setInt(5, chapitre.getCoursId());
+            // ressource_type et ressource_fichier peuvent être null
+            if (chapitre.getRessourceType() != null && !chapitre.getRessourceType().isBlank())
+                statement.setString(6, chapitre.getRessourceType());
+            else
+                statement.setNull(6, java.sql.Types.VARCHAR);
+            if (chapitre.getRessourceFichier() != null && !chapitre.getRessourceFichier().isBlank())
+                statement.setString(7, chapitre.getRessourceFichier());
+            else
+                statement.setNull(7, java.sql.Types.VARCHAR);
             statement.executeUpdate();
             System.out.println("Chapitre ajoute.");
         } catch (SQLException e) {
@@ -52,9 +59,16 @@ public class ServiceChapitre implements IService<Chapitre> {
             statement.setInt(3, chapitre.getOrdre());
             statement.setString(4, chapitre.getRessources());
             statement.setInt(5, chapitre.getCoursId());
-            statement.setString(6, chapitre.getRessourceType());
-            statement.setString(7, chapitre.getRessourceFichier());
-            statement.setInt(8, chapitre.getId()); // WHERE id = ?
+            // ressource_type et ressource_fichier peuvent être null
+            if (chapitre.getRessourceType() != null && !chapitre.getRessourceType().isBlank())
+                statement.setString(6, chapitre.getRessourceType());
+            else
+                statement.setNull(6, java.sql.Types.VARCHAR);
+            if (chapitre.getRessourceFichier() != null && !chapitre.getRessourceFichier().isBlank())
+                statement.setString(7, chapitre.getRessourceFichier());
+            else
+                statement.setNull(7, java.sql.Types.VARCHAR);
+            statement.setInt(8, chapitre.getId());
             statement.executeUpdate();
             System.out.println("Chapitre modifie.");
         } catch (SQLException e) {
