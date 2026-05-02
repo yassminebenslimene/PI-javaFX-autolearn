@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.*;
 import tn.esprit.services.QuizStatsService;
 
@@ -18,23 +19,61 @@ public class QuizStatsController {
     @FXML private Label labelTotalQuestions;
     @FXML private Label labelTotalPoints;
     @FXML private Label labelChapSansQuiz;
+    @FXML private javafx.scene.control.Button btnRetour;
 
     private final QuizStatsService statsService = new QuizStatsService();
 
     @FXML
     public void initialize() {
+        // Effet hover sur le bouton retour
+        if (btnRetour != null) {
+            String normalStyle =
+                "-fx-background-color:rgba(255,255,255,0.07);" +
+                "-fx-border-color:rgba(255,255,255,0.15); -fx-border-width:1;" +
+                "-fx-border-radius:10; -fx-background-radius:10;" +
+                "-fx-text-fill:rgba(230,237,243,0.85); -fx-font-size:12;" +
+                "-fx-font-weight:700; -fx-padding:8 16 8 16; -fx-cursor:hand;";
+            String hoverStyle =
+                "-fx-background-color:rgba(124,58,237,0.2);" +
+                "-fx-border-color:#7c3aed66; -fx-border-width:1;" +
+                "-fx-border-radius:10; -fx-background-radius:10;" +
+                "-fx-text-fill:#a78bfa; -fx-font-size:12;" +
+                "-fx-font-weight:700; -fx-padding:8 16 8 16; -fx-cursor:hand;";
+            btnRetour.setOnMouseEntered(e -> btnRetour.setStyle(hoverStyle));
+            btnRetour.setOnMouseExited(e  -> btnRetour.setStyle(normalStyle));
+        }
         chargerStats();
+    }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+
+    @FXML
+    private void retourQuiz() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                getClass().getResource("/views/backoffice/quiz/index.fxml"));
+            javafx.scene.Parent view = loader.load();
+            // Remonter jusqu'au StackPane contentArea du layout backoffice
+            javafx.scene.layout.StackPane contentArea =
+                (javafx.scene.layout.StackPane) kpiContainer.getScene().lookup("#contentArea");
+            if (contentArea != null) {
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(view);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // ── Chargement principal ──────────────────────────────────────────────────
 
     private void chargerStats() {
-        List<QuizStatsService.QuizStatRow>       details      = statsService.getDetailedStats();
-        List<QuizStatsService.CoursStatRow>      summary      = statsService.getCoursSummary();
-        List<String[]>                           chapSansQuiz = statsService.getChapitresSansQuizActif();
-        List<QuizStatsService.AuditRow>          audit        = statsService.getAuditIntelligent();
+        List<QuizStatsService.QuizStatRow>  details      = statsService.getDetailedStats();
+        List<QuizStatsService.CoursStatRow> summary      = statsService.getCoursSummary();
+        List<String[]>                      chapSansQuiz = statsService.getChapitresSansQuizActif();
+        List<QuizStatsService.AuditRow>     audit        = statsService.getAuditIntelligent();
 
-        // KPI globaux
+        // ── KPI globaux ──
         int totalQuiz      = details.size();
         int totalQuestions = details.stream().mapToInt(QuizStatsService.QuizStatRow::nbQuestions).sum();
         int totalPoints    = details.stream().mapToInt(QuizStatsService.QuizStatRow::totalPoints).sum();
@@ -44,45 +83,78 @@ public class QuizStatsController {
         if (labelTotalPoints    != null) labelTotalPoints.setText(String.valueOf(totalPoints));
         if (labelChapSansQuiz   != null) labelChapSansQuiz.setText(String.valueOf(chapSansQuiz.size()));
 
-        // Cards résumé par cours
+        // ── Cards résumé par cours ──
         if (kpiContainer != null) {
             kpiContainer.getChildren().clear();
             HBox cardsRow = new HBox(16);
-            cardsRow.setAlignment(Pos.CENTER_LEFT);
+            cardsRow.setAlignment(Pos.TOP_LEFT);
+            cardsRow.setStyle("-fx-padding:0;");
             for (QuizStatsService.CoursStatRow row : summary) {
                 cardsRow.getChildren().add(buildCoursCard(row));
             }
             kpiContainer.getChildren().add(cardsRow);
         }
 
-        // Tableau détaillé supprimé — l'audit intelligent couvre ces informations
-
-        // Alertes chapitres sans quiz
+        // ── Alertes chapitres sans quiz ──
         if (alertContainer != null) {
             alertContainer.getChildren().clear();
             if (chapSansQuiz.isEmpty()) {
+                HBox okBox = new HBox(10);
+                okBox.setAlignment(Pos.CENTER_LEFT);
+                okBox.setPadding(new Insets(10, 16, 10, 16));
+                okBox.setStyle("-fx-background-color:rgba(52,211,153,0.08);" +
+                    "-fx-background-radius:10; -fx-border-color:#34d39933;" +
+                    "-fx-border-radius:10; -fx-border-width:1;");
                 Label ok = new Label("✅  Tous les chapitres ont au moins un quiz actif.");
                 ok.setStyle("-fx-text-fill:#34d399; -fx-font-size:13; -fx-font-weight:700;");
-                alertContainer.getChildren().add(ok);
+                okBox.getChildren().add(ok);
+                alertContainer.getChildren().add(okBox);
             } else {
-                Label titre = new Label("⚠  Chapitres sans quiz actif (" + chapSansQuiz.size() + ")");
+                // Barre de progression couverture
+                int totalChap = chapSansQuiz.size();
+                HBox progressHeader = new HBox(12);
+                progressHeader.setAlignment(Pos.CENTER_LEFT);
+                Label titre = new Label("⚠  Chapitres sans quiz actif (" + totalChap + ")");
                 titre.setStyle("-fx-text-fill:#fbbf24; -fx-font-size:13; -fx-font-weight:800;");
-                alertContainer.getChildren().add(titre);
+                progressHeader.getChildren().add(titre);
+                alertContainer.getChildren().add(progressHeader);
+
                 for (String[] row : chapSansQuiz) {
-                    HBox line = new HBox(8);
+                    HBox line = new HBox(10);
                     line.setAlignment(Pos.CENTER_LEFT);
-                    Label dot = new Label("•");
-                    dot.setStyle("-fx-text-fill:#fbbf24; -fx-font-size:14;");
-                    Label txt = new Label(row[0] + "  →  Chapitre " + row[2] + " : " + row[1]
-                        + (row[3].equals("0") ? "" : "  (" + row[3] + " quiz inactif(s))"));
-                    txt.setStyle("-fx-text-fill:rgba(245,245,244,0.75); -fx-font-size:12;");
-                    line.getChildren().addAll(dot, txt);
+                    line.setPadding(new Insets(7, 14, 7, 14));
+                    line.setStyle("-fx-background-color:rgba(251,191,36,0.06);" +
+                        "-fx-background-radius:8; -fx-border-color:#fbbf2422;" +
+                        "-fx-border-radius:8; -fx-border-width:1;");
+
+                    Label dot = new Label("▸");
+                    dot.setStyle("-fx-text-fill:#fbbf24; -fx-font-size:13;");
+
+                    Label cours = new Label(row[0]);
+                    cours.setStyle("-fx-text-fill:#e6edf3; -fx-font-size:12; -fx-font-weight:700;");
+                    cours.setMinWidth(200);
+
+                    Label arrow = new Label("→");
+                    arrow.setStyle("-fx-text-fill:#484f58; -fx-font-size:12;");
+
+                    Label chap = new Label("Chapitre " + row[2] + " : " + row[1]);
+                    chap.setStyle("-fx-text-fill:rgba(230,237,243,0.75); -fx-font-size:12;");
+
+                    if (!row[3].equals("0")) {
+                        Label badge = new Label(row[3] + " quiz inactif(s)");
+                        badge.setStyle("-fx-background-color:rgba(251,191,36,0.15);" +
+                            "-fx-text-fill:#fbbf24; -fx-font-size:10; -fx-font-weight:700;" +
+                            "-fx-background-radius:999; -fx-padding:2 8 2 8;");
+                        line.getChildren().addAll(dot, cours, arrow, chap, badge);
+                    } else {
+                        line.getChildren().addAll(dot, cours, arrow, chap);
+                    }
                     alertContainer.getChildren().add(line);
                 }
             }
         }
 
-        // Audit intelligent
+        // ── Audit intelligent ──
         if (auditContainer != null) {
             auditContainer.getChildren().clear();
             auditContainer.getChildren().add(buildAuditTable(audit));
@@ -91,107 +163,284 @@ public class QuizStatsController {
 
     // ── Builders UI ───────────────────────────────────────────────────────────
 
+    /**
+     * Tableau d'audit avec barres de progression pour le taux de réussite.
+     */
     private VBox buildAuditTable(List<QuizStatsService.AuditRow> rows) {
         VBox table = new VBox(0);
-        table.setStyle("-fx-background-color:#0d1117; -fx-background-radius:14;" +
-            "-fx-border-color:#30363d; -fx-border-radius:14; -fx-border-width:1;");
+        table.setStyle(
+            "-fx-background-color:#0d1117;" +
+            "-fx-background-radius:16;" +
+            "-fx-border-color:#21262d;" +
+            "-fx-border-radius:16; -fx-border-width:1;" +
+            "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.4),20,0,0,6);");
 
-        // En-tête
+        // ── En-tête ──
         HBox header = new HBox(0);
-        header.setStyle("-fx-background-color:#161b22;" +
-            "-fx-border-color:transparent transparent #30363d transparent; -fx-border-width:0 0 1 0;");
-        for (String[] col : new String[][]{
-            {"Cours", "150"}, {"Chapitre", "140"}, {"Quiz", "160"}, {"État", "80"},
-            {"Questions", "90"}, {"Taux réussite", "110"}, {"Diagnostic", "120"}, {"Action recommandée", "220"}}) {
+        header.setStyle(
+            "-fx-background-color:#161b22;" +
+            "-fx-background-radius:16 16 0 0;" +
+            "-fx-border-color:transparent transparent #21262d transparent;" +
+            "-fx-border-width:0 0 1 0;" +
+            "-fx-padding:0;");
+
+        String[][] cols = {
+            {"Cours",            "155"}, {"Chapitre",         "145"},
+            {"Quiz",             "165"}, {"État",              "85"},
+            {"Questions",         "95"}, {"Taux réussite",    "160"},
+            {"Diagnostic",       "130"}, {"Action recommandée","230"}
+        };
+        for (String[] col : cols) {
             Label l = new Label(col[0]);
-            l.setStyle("-fx-text-fill:#8b949e; -fx-font-size:11; -fx-font-weight:700; -fx-padding:10 12 10 12;");
+            l.setStyle("-fx-text-fill:#8b949e; -fx-font-size:11; -fx-font-weight:700;" +
+                "-fx-padding:12 12 12 14;");
             l.setPrefWidth(Double.parseDouble(col[1]));
             header.getChildren().add(l);
         }
         table.getChildren().add(header);
 
+        // ── Lignes ──
         for (int i = 0; i < rows.size(); i++) {
             QuizStatsService.AuditRow r = rows.get(i);
 
+            // Couleurs selon diagnostic
             String[] diagStyle = switch (r.diagnostic()) {
-                case "QUIZ_VIDE", "SANS_OPTIONS" -> new String[]{"#dc2626", "🔴", "rgba(220,38,38,0.08)"};
-                case "TROP_FACILE"               -> new String[]{"#f59e0b", "🟡", "rgba(245,158,11,0.08)"};
-                case "TROP_DIFFICILE"            -> new String[]{"#ef4444", "🔴", "rgba(239,68,68,0.08)"};
-                default                          -> new String[]{"#34d399", "🟢", "rgba(52,211,153,0.05)"};
+                case "QUIZ_VIDE"      -> new String[]{"#ef4444", "🔴", "rgba(239,68,68,0.07)"};
+                case "SANS_OPTIONS"   -> new String[]{"#dc2626", "🔴", "rgba(220,38,38,0.07)"};
+                case "TROP_FACILE"    -> new String[]{"#f59e0b", "🟡", "rgba(245,158,11,0.07)"};
+                case "TROP_DIFFICILE" -> new String[]{"#ef4444", "🔴", "rgba(239,68,68,0.07)"};
+                default               -> new String[]{"#34d399", "🟢", "rgba(52,211,153,0.04)"};
             };
-
-            HBox row = new HBox(0);
-            row.setAlignment(Pos.CENTER_LEFT);
-            if (i % 2 == 0) row.setStyle("-fx-background-color:" + diagStyle[2] + ";");
 
             String etatColor = switch (r.quizEtat() != null ? r.quizEtat() : "") {
                 case "actif"     -> "#34d399";
                 case "brouillon" -> "#fbbf24";
                 default          -> "#6b7280";
             };
-
-            Object[][] cells = {
-                {r.coursTitre(),    150.0, "#e6edf3"},
-                {r.chapitreTitre(), 140.0, "#e6edf3"},
-                {r.quizTitre(),     160.0, "#e6edf3"},
-                {r.quizEtat(),       80.0, etatColor},
-                {String.valueOf(r.nbQuestions()), 90.0, "#60a5fa"},
-                {String.format("%.0f%%", r.tauxReussite()), 110.0, diagStyle[0]},
-                {diagStyle[1] + " " + r.diagnostic(), 120.0, diagStyle[0]},
-                {r.action(),        220.0, "#8b949e"}
+            String etatBg = switch (r.quizEtat() != null ? r.quizEtat() : "") {
+                case "actif"     -> "rgba(52,211,153,0.12)";
+                case "brouillon" -> "rgba(251,191,36,0.12)";
+                default          -> "rgba(107,114,128,0.12)";
             };
 
-            for (Object[] cell : cells) {
-                Label l = new Label((String) cell[0]);
-                l.setStyle("-fx-text-fill:" + cell[2] + "; -fx-font-size:11; -fx-padding:10 12 10 12;");
-                l.setPrefWidth((Double) cell[1]);
-                l.setMinWidth((Double) cell[1]);
-                l.setMaxWidth((Double) cell[1]);
-                l.setWrapText(false);
-                row.getChildren().add(l);
-            }
+            HBox row = new HBox(0);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setMinHeight(46);
+
+            // Alternance + couleur diagnostic
+            String rowBg = (i % 2 == 0)
+                ? diagStyle[2]
+                : "rgba(255,255,255,0.01)";
+            row.setStyle("-fx-background-color:" + rowBg + ";");
+
+            // Cellule : Cours
+            row.getChildren().add(buildCell(r.coursTitre(), 155, "#c9d1d9", false));
+            // Cellule : Chapitre
+            row.getChildren().add(buildCell(r.chapitreTitre(), 145, "#c9d1d9", false));
+            // Cellule : Quiz
+            row.getChildren().add(buildCell(r.quizTitre(), 165, "#e6edf3", true));
+
+            // Cellule : État (badge coloré)
+            HBox etatCell = new HBox();
+            etatCell.setAlignment(Pos.CENTER_LEFT);
+            etatCell.setPadding(new Insets(0, 12, 0, 14));
+            etatCell.setPrefWidth(85);
+            etatCell.setMinWidth(85);
+            Label etatLbl = new Label(r.quizEtat() != null ? r.quizEtat() : "—");
+            etatLbl.setStyle(
+                "-fx-background-color:" + etatBg + ";" +
+                "-fx-text-fill:" + etatColor + ";" +
+                "-fx-font-size:10; -fx-font-weight:800;" +
+                "-fx-background-radius:999; -fx-padding:3 9 3 9;");
+            etatCell.getChildren().add(etatLbl);
+            row.getChildren().add(etatCell);
+
+            // Cellule : Questions (badge bleu)
+            HBox qCell = new HBox();
+            qCell.setAlignment(Pos.CENTER_LEFT);
+            qCell.setPadding(new Insets(0, 12, 0, 14));
+            qCell.setPrefWidth(95);
+            qCell.setMinWidth(95);
+            Label qLbl = new Label(String.valueOf(r.nbQuestions()));
+            qLbl.setStyle(
+                "-fx-background-color:rgba(96,165,250,0.12);" +
+                "-fx-text-fill:#60a5fa;" +
+                "-fx-font-size:12; -fx-font-weight:800;" +
+                "-fx-background-radius:999; -fx-padding:3 10 3 10;");
+            qCell.getChildren().add(qLbl);
+            row.getChildren().add(qCell);
+
+            // Cellule : Taux réussite avec ProgressBar
+            HBox tauxCell = new HBox(8);
+            tauxCell.setAlignment(Pos.CENTER_LEFT);
+            tauxCell.setPadding(new Insets(0, 8, 0, 14));
+            tauxCell.setPrefWidth(160);
+            tauxCell.setMinWidth(160);
+
+            double taux = r.tauxReussite();
+            ProgressBar pb = new ProgressBar(taux / 100.0);
+            pb.setPrefWidth(80);
+            pb.setPrefHeight(8);
+            String pbColor = taux >= 60 ? "#34d399" : taux >= 30 ? "#f59e0b" : "#ef4444";
+            pb.setStyle(
+                "-fx-accent:" + pbColor + ";" +
+                "-fx-background-color:rgba(255,255,255,0.08);" +
+                "-fx-background-radius:4; -fx-border-radius:4;");
+
+            Label tauxLbl = new Label(String.format("%.0f%%", taux));
+            tauxLbl.setStyle("-fx-text-fill:" + pbColor + "; -fx-font-size:11; -fx-font-weight:800;");
+            tauxCell.getChildren().addAll(pb, tauxLbl);
+            row.getChildren().add(tauxCell);
+
+            // Cellule : Diagnostic (badge)
+            HBox diagCell = new HBox();
+            diagCell.setAlignment(Pos.CENTER_LEFT);
+            diagCell.setPadding(new Insets(0, 12, 0, 14));
+            diagCell.setPrefWidth(130);
+            diagCell.setMinWidth(130);
+            Label diagLbl = new Label(diagStyle[1] + " " + r.diagnostic());
+            diagLbl.setStyle(
+                "-fx-background-color:rgba(255,255,255,0.05);" +
+                "-fx-text-fill:" + diagStyle[0] + ";" +
+                "-fx-font-size:10; -fx-font-weight:700;" +
+                "-fx-background-radius:6; -fx-padding:3 8 3 8;");
+            diagLbl.setWrapText(false);
+            diagCell.getChildren().add(diagLbl);
+            row.getChildren().add(diagCell);
+
+            // Cellule : Action recommandée
+            row.getChildren().add(buildCell(r.action(), 230, "#8b949e", false));
+
             table.getChildren().add(row);
         }
 
         if (rows.isEmpty()) {
             Label empty = new Label("Aucun quiz à auditer.");
-            empty.setStyle("-fx-text-fill:#484f58; -fx-font-size:13; -fx-padding:20;");
+            empty.setStyle("-fx-text-fill:#484f58; -fx-font-size:13; -fx-padding:24;");
             table.getChildren().add(empty);
         }
+
+        // Pied de tableau : légende
+        HBox legend = new HBox(20);
+        legend.setAlignment(Pos.CENTER_LEFT);
+        legend.setPadding(new Insets(12, 20, 12, 20));
+        legend.setStyle(
+            "-fx-background-color:#161b22;" +
+            "-fx-background-radius:0 0 16 16;" +
+            "-fx-border-color:#21262d transparent transparent transparent;" +
+            "-fx-border-width:1 0 0 0;");
+        for (String[] leg : new String[][]{
+            {"🔴", "QUIZ_VIDE / TROP_DIFFICILE", "#ef4444"},
+            {"🟡", "TROP_FACILE",                "#f59e0b"},
+            {"🟢", "NORMAL",                     "#34d399"}}) {
+            HBox item = new HBox(5);
+            item.setAlignment(Pos.CENTER_LEFT);
+            Label icon = new Label(leg[0]);
+            icon.setStyle("-fx-font-size:11;");
+            Label txt = new Label(leg[1]);
+            txt.setStyle("-fx-text-fill:" + leg[2] + "; -fx-font-size:10; -fx-font-weight:700;");
+            item.getChildren().addAll(icon, txt);
+            legend.getChildren().add(item);
+        }
+        table.getChildren().add(legend);
+
         return table;
     }
 
+    /**
+     * Card cours améliorée avec barre de progression quiz actifs/total.
+     */
     private VBox buildCoursCard(QuizStatsService.CoursStatRow row) {
-        VBox card = new VBox(8);
-        card.setPadding(new Insets(18, 22, 18, 22));
-        card.setMinWidth(200);
+        VBox card = new VBox(10);
+        card.setPadding(new Insets(20, 24, 20, 24));
+        card.setMinWidth(220);
+        card.setMaxWidth(280);
+
+        // Couleur accent selon niveau
+        String accentColor = switch (row.coursNiveau() != null ? row.coursNiveau().toLowerCase() : "") {
+            case "avancé", "avance"     -> "#ef4444";
+            case "intermédiaire", "intermediaire" -> "#f59e0b";
+            default                     -> "#7c3aed";
+        };
+        String accentBg = switch (row.coursNiveau() != null ? row.coursNiveau().toLowerCase() : "") {
+            case "avancé", "avance"     -> "rgba(239,68,68,0.08)";
+            case "intermédiaire", "intermediaire" -> "rgba(245,158,11,0.08)";
+            default                     -> "rgba(124,58,237,0.08)";
+        };
+
         card.setStyle(
             "-fx-background-color:#161b22;" +
-            "-fx-background-radius:14;" +
-            "-fx-border-color:#30363d; -fx-border-radius:14; -fx-border-width:1;" +
-            "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),12,0,0,4);");
+            "-fx-background-radius:16;" +
+            "-fx-border-color:" + accentColor + "33;" +
+            "-fx-border-radius:16; -fx-border-width:1;" +
+            "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.35),16,0,0,5);");
 
+        // Titre
         Label titre = new Label(row.coursTitre());
         titre.setStyle("-fx-text-fill:#e6edf3; -fx-font-size:13; -fx-font-weight:800;");
         titre.setWrapText(true);
-        titre.setMaxWidth(180);
+        titre.setMaxWidth(230);
 
+        // Badge niveau
         Label niveau = new Label(row.coursNiveau() != null ? row.coursNiveau() : "—");
-        niveau.setStyle("-fx-background-color:rgba(124,58,237,0.2); -fx-text-fill:#a78bfa;" +
-            "-fx-background-radius:999; -fx-padding:2 10 2 10; -fx-font-size:11; -fx-font-weight:700;");
+        niveau.setStyle(
+            "-fx-background-color:" + accentBg + ";" +
+            "-fx-text-fill:" + accentColor + ";" +
+            "-fx-background-radius:999; -fx-padding:3 12 3 12;" +
+            "-fx-font-size:11; -fx-font-weight:700;");
 
-        HBox stats = new HBox(12);
+        // Séparateur
+        Region sep = new Region();
+        sep.setPrefHeight(1);
+        sep.setStyle("-fx-background-color:#21262d;");
+
+        // Stats mini
+        HBox stats = new HBox(16);
         stats.setAlignment(Pos.CENTER_LEFT);
         stats.getChildren().addAll(
-            buildMiniStat(String.valueOf(row.nbQuizActifs()),    "actifs",    "#34d399"),
-            buildMiniStat(String.valueOf(row.nbQuizTotal()),     "total",     "#8b949e"),
+            buildMiniStat(String.valueOf(row.nbQuizActifs()),     "actifs",    "#34d399"),
+            buildMiniStat(String.valueOf(row.nbQuizTotal()),      "total",     "#8b949e"),
             buildMiniStat(String.valueOf(row.nbQuestionsTotal()), "questions", "#60a5fa")
         );
 
-        Label pts = new Label("🏆 " + row.totalPointsMax() + " pts max");
-        pts.setStyle("-fx-text-fill:#fbbf24; -fx-font-size:11; -fx-font-weight:700;");
+        // Barre de progression quiz actifs / total
+        VBox progressSection = new VBox(5);
+        int total  = row.nbQuizTotal();
+        int actifs = row.nbQuizActifs();
+        double ratio = total > 0 ? (double) actifs / total : 0.0;
 
-        card.getChildren().addAll(titre, niveau, stats, pts);
+        HBox progressHeader = new HBox();
+        progressHeader.setAlignment(Pos.CENTER_LEFT);
+        Label progressLbl = new Label("Couverture active");
+        progressLbl.setStyle("-fx-text-fill:#6e7681; -fx-font-size:10;");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label ratioLbl = new Label(String.format("%.0f%%", ratio * 100));
+        ratioLbl.setStyle("-fx-text-fill:#34d399; -fx-font-size:10; -fx-font-weight:800;");
+        progressHeader.getChildren().addAll(progressLbl, spacer, ratioLbl);
+
+        ProgressBar pb = new ProgressBar(ratio);
+        pb.setPrefWidth(Double.MAX_VALUE);
+        pb.setPrefHeight(6);
+        String pbColor = ratio >= 0.7 ? "#34d399" : ratio >= 0.4 ? "#f59e0b" : "#ef4444";
+        pb.setStyle(
+            "-fx-accent:" + pbColor + ";" +
+            "-fx-background-color:rgba(255,255,255,0.07);" +
+            "-fx-background-radius:3; -fx-border-radius:3;");
+        HBox.setHgrow(pb, Priority.ALWAYS);
+
+        progressSection.getChildren().addAll(progressHeader, pb);
+
+        // Points max
+        HBox ptsBox = new HBox(6);
+        ptsBox.setAlignment(Pos.CENTER_LEFT);
+        Label ptsIcon = new Label("🏆");
+        ptsIcon.setStyle("-fx-font-size:12;");
+        Label pts = new Label(row.totalPointsMax() + " pts max");
+        pts.setStyle("-fx-text-fill:#fbbf24; -fx-font-size:12; -fx-font-weight:700;");
+        ptsBox.getChildren().addAll(ptsIcon, pts);
+
+        card.getChildren().addAll(titre, niveau, sep, stats, progressSection, ptsBox);
         return card;
     }
 
@@ -199,85 +448,33 @@ public class QuizStatsController {
         VBox box = new VBox(2);
         box.setAlignment(Pos.CENTER);
         Label v = new Label(value);
-        v.setStyle("-fx-text-fill:" + color + "; -fx-font-size:18; -fx-font-weight:900;");
+        v.setStyle("-fx-text-fill:" + color + "; -fx-font-size:20; -fx-font-weight:900;");
         Label l = new Label(label);
         l.setStyle("-fx-text-fill:#484f58; -fx-font-size:10; -fx-font-weight:700;");
         box.getChildren().addAll(v, l);
         return box;
     }
 
-    private VBox buildTable(List<QuizStatsService.QuizStatRow> rows) {
-        VBox table = new VBox(0);
-        table.setStyle("-fx-background-color:#161b22; -fx-background-radius:14;" +
-            "-fx-border-color:#30363d; -fx-border-radius:14; -fx-border-width:1;");
-
-        table.getChildren().add(buildTableRow(
-            "Cours", "Chapitre", "Quiz", "État",
-            "Questions", "Points", "Options", "Taux réussite", true));
-
-        for (int i = 0; i < rows.size(); i++) {
-            QuizStatsService.QuizStatRow r = rows.get(i);
-            String etatColor = switch (r.quizEtat() != null ? r.quizEtat() : "") {
-                case "actif"     -> "#34d399";
-                case "brouillon" -> "#fbbf24";
-                case "archive"   -> "#6b7280";
-                default          -> "#f87171";
-            };
-            HBox row = buildTableRow(
-                r.coursTitre(),
-                "Ch." + r.chapitreOrdre() + " " + r.chapitreTitre(),
-                r.quizTitre(),
-                r.quizEtat() != null ? r.quizEtat() : "—",
-                String.valueOf(r.nbQuestions()),
-                String.valueOf(r.totalPoints()),
-                String.valueOf(r.nbOptions()),
-                r.tauxReussiteOptions() + "%",
-                false);
-            if (i % 2 == 0) row.setStyle("-fx-background-color:rgba(255,255,255,0.02);");
-            if (row.getChildren().size() > 3) {
-                Label etatLbl = (Label) row.getChildren().get(3);
-                etatLbl.setStyle("-fx-text-fill:" + etatColor + "; -fx-font-size:11;" +
-                    "-fx-font-weight:700; -fx-background-color:" + etatColor + "22;" +
-                    "-fx-background-radius:999; -fx-padding:2 8 2 8;");
-            }
-            table.getChildren().add(row);
-        }
-
-        if (rows.isEmpty()) {
-            Label empty = new Label("Aucune donnée disponible.");
-            empty.setStyle("-fx-text-fill:#484f58; -fx-font-size:13; -fx-padding:20;");
-            table.getChildren().add(empty);
-        }
-        return table;
+    /**
+     * Cellule générique pour le tableau d'audit.
+     */
+    private HBox buildCell(String text, double width, String color, boolean bold) {
+        HBox cell = new HBox();
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setPadding(new Insets(0, 8, 0, 14));
+        cell.setPrefWidth(width);
+        cell.setMinWidth(width);
+        cell.setMaxWidth(width);
+        Label l = new Label(text != null ? text : "—");
+        l.setStyle("-fx-text-fill:" + color + "; -fx-font-size:11;" +
+            (bold ? " -fx-font-weight:700;" : ""));
+        l.setWrapText(false);
+        l.setMaxWidth(width - 22);
+        cell.getChildren().add(l);
+        return cell;
     }
 
-    private HBox buildTableRow(String col1, String col2, String col3, String col4,
-                                String col5, String col6, String col7, String col8,
-                                boolean isHeader) {
-        HBox row = new HBox(0);
-        row.setAlignment(Pos.CENTER_LEFT);
-        String baseStyle = isHeader
-            ? "-fx-text-fill:#8b949e; -fx-font-size:11; -fx-font-weight:700; -fx-padding:10 12 10 12;"
-            : "-fx-text-fill:#e6edf3; -fx-font-size:12; -fx-padding:10 12 10 12;";
-
-        double[] widths = {160, 140, 160, 80, 80, 70, 70, 90};
-        String[] cols   = {col1, col2, col3, col4, col5, col6, col7, col8};
-
-        for (int i = 0; i < cols.length; i++) {
-            Label lbl = new Label(cols[i]);
-            lbl.setStyle(baseStyle);
-            lbl.setPrefWidth(widths[i]);
-            lbl.setMinWidth(widths[i]);
-            lbl.setMaxWidth(widths[i]);
-            lbl.setWrapText(false);
-            row.getChildren().add(lbl);
-        }
-        if (isHeader) {
-            row.setStyle("-fx-background-color:#0d1117;" +
-                "-fx-border-color:transparent transparent #30363d transparent; -fx-border-width:0 0 1 0;");
-        }
-        return row;
-    }
+    // ── Méthodes conservées (compatibilité) ───────────────────────────────────
 
     private HBox buildRecoCard(QuizStatsService.RecommandationRow r) {
         HBox card = new HBox(12);

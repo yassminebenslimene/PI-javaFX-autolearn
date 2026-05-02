@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Rectangle?>
 
 <ScrollPane fitToWidth="true" hbarPolicy="NEVER"
             style="-fx-background-color:#0d1117; -fx-background:transparent; -fx-border-width:0;"
@@ -13,70 +17,163 @@
     <content>
         <VBox spacing="0" style="-fx-background-color:#0d1117;">
 
-            <!-- ── HEADER avec KPI ── -->
-            <HBox alignment="CENTER_LEFT" spacing="16"
-                  style="-fx-background-color:#161b22;
-                         -fx-padding:22 32 22 32;
-                         -fx-border-color:transparent transparent #30363d transparent;
-                         -fx-border-width:0 0 1 0;">
-                <VBox spacing="4">
-                    <Label text="📊  Tableau de bord analytique"
-                           style="-fx-text-fill:#e6edf3; -fx-font-size:20; -fx-font-weight:900;"/>
-                    <Label text="Audit intelligent · Statistiques avancées · Requêtes SQL complexes"
-                           style="-fx-text-fill:#8b949e; -fx-font-size:12;"/>
-                </VBox>
-                <Region HBox.hgrow="ALWAYS"/>
-                <HBox spacing="24" alignment="CENTER">
-                    <VBox alignment="CENTER" spacing="2">
-                        <Label fx:id="labelTotalQuiz" text="—"
-                               style="-fx-text-fill:#7c3aed; -fx-font-size:26; -fx-font-weight:900;"/>
-                        <Label text="QUIZ" style="-fx-text-fill:#484f58; -fx-font-size:10; -fx-font-weight:700;"/>
-                    </VBox>
-                    <VBox alignment="CENTER" spacing="2">
-                        <Label fx:id="labelTotalQuestions" text="—"
-                               style="-fx-text-fill:#2563eb; -fx-font-size:26; -fx-font-weight:900;"/>
-                        <Label text="QUESTIONS" style="-fx-text-fill:#484f58; -fx-font-size:10; -fx-font-weight:700;"/>
-                    </VBox>
-                    <VBox alignment="CENTER" spacing="2">
-                        <Label fx:id="labelTotalPoints" text="—"
-                               style="-fx-text-fill:#d97706; -fx-font-size:26; -fx-font-weight:900;"/>
-                        <Label text="POINTS MAX" style="-fx-text-fill:#484f58; -fx-font-size:10; -fx-font-weight:700;"/>
-                    </VBox>
-                    <VBox alignment="CENTER" spacing="2">
-                        <Label fx:id="labelChapSansQuiz" text="—"
-                               style="-fx-text-fill:#dc2626; -fx-font-size:26; -fx-font-weight:900;"/>
-                        <Label text="SANS QUIZ" style="-fx-text-fill:#484f58; -fx-font-size:10; -fx-font-weight:700;"/>
+            <!-- ══════════════════════════════════════════════════════════════
+                 HEADER GRADIENT + KPI CARDS
+            ══════════════════════════════════════════════════════════════ -->
+            <VBox style="-fx-background-color:linear-gradient(to bottom, #161b22, #0d1117);
+                         -fx-border-color:transparent transparent #21262d transparent;
+                         -fx-border-width:0 0 1 0;
+                         -fx-padding:28 36 24 36;">
+
+                <!-- Titre + sous-titre -->
+                <HBox alignment="CENTER_LEFT" spacing="12">
+
+                    <!-- Bouton Retour -->
+                    <Button fx:id="btnRetour" text="← Retour"
+                            onAction="#retourQuiz"
+                            style="-fx-background-color:rgba(255,255,255,0.07);
+                                   -fx-border-color:rgba(255,255,255,0.15); -fx-border-width:1;
+                                   -fx-border-radius:10; -fx-background-radius:10;
+                                   -fx-text-fill:rgba(230,237,243,0.85); -fx-font-size:12;
+                                   -fx-font-weight:700; -fx-padding:8 16 8 16; -fx-cursor:hand;"/>
+
+                    <Label text="📊"
+                           style="-fx-font-size:28;"/>
+                    <VBox spacing="3">
+                        <Label text="Tableau de bord analytique"
+                               style="-fx-text-fill:#e6edf3; -fx-font-size:22; -fx-font-weight:900;"/>
+                        <Label text="Audit intelligent  ·  Statistiques avancées  ·  Requêtes SQL complexes"
+                               style="-fx-text-fill:#6e7681; -fx-font-size:12;"/>
                     </VBox>
                 </HBox>
-            </HBox>
 
-            <!-- ── CONTENU ── -->
-            <VBox spacing="24" style="-fx-padding:28 32 32 32; -fx-background-color:#0d1117;">
+                <Region minHeight="20"/>
 
-                <!-- Résumé par cours -->
-                <VBox spacing="12">
-                    <Label text="📚  Résumé par cours"
-                           style="-fx-text-fill:#e6edf3; -fx-font-size:15; -fx-font-weight:800;"/>
+                <!-- KPI Cards row -->
+                <HBox spacing="16" alignment="CENTER_LEFT">
+
+                    <!-- KPI : Total Quiz -->
+                    <VBox fx:id="kpiCardQuiz" spacing="6" alignment="CENTER"
+                          style="-fx-background-color:#161b22;
+                                 -fx-background-radius:16;
+                                 -fx-border-color:#7c3aed44;
+                                 -fx-border-radius:16; -fx-border-width:1;
+                                 -fx-padding:18 28 18 28;
+                                 -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.25),18,0,0,4);">
+                        <Label text="🎯" style="-fx-font-size:22;"/>
+                        <Label fx:id="labelTotalQuiz" text="—"
+                               style="-fx-text-fill:#a78bfa; -fx-font-size:32; -fx-font-weight:900;"/>
+                        <Label text="QUIZ"
+                               style="-fx-text-fill:#6e7681; -fx-font-size:10; -fx-font-weight:800;
+                                      -fx-letter-spacing:1;"/>
+                    </VBox>
+
+                    <!-- KPI : Total Questions -->
+                    <VBox fx:id="kpiCardQuestions" spacing="6" alignment="CENTER"
+                          style="-fx-background-color:#161b22;
+                                 -fx-background-radius:16;
+                                 -fx-border-color:#2563eb44;
+                                 -fx-border-radius:16; -fx-border-width:1;
+                                 -fx-padding:18 28 18 28;
+                                 -fx-effect:dropshadow(gaussian,rgba(37,99,235,0.25),18,0,0,4);">
+                        <Label text="❓" style="-fx-font-size:22;"/>
+                        <Label fx:id="labelTotalQuestions" text="—"
+                               style="-fx-text-fill:#60a5fa; -fx-font-size:32; -fx-font-weight:900;"/>
+                        <Label text="QUESTIONS"
+                               style="-fx-text-fill:#6e7681; -fx-font-size:10; -fx-font-weight:800;"/>
+                    </VBox>
+
+                    <!-- KPI : Points Max -->
+                    <VBox fx:id="kpiCardPoints" spacing="6" alignment="CENTER"
+                          style="-fx-background-color:#161b22;
+                                 -fx-background-radius:16;
+                                 -fx-border-color:#d9770644;
+                                 -fx-border-radius:16; -fx-border-width:1;
+                                 -fx-padding:18 28 18 28;
+                                 -fx-effect:dropshadow(gaussian,rgba(217,119,6,0.25),18,0,0,4);">
+                        <Label text="🏆" style="-fx-font-size:22;"/>
+                        <Label fx:id="labelTotalPoints" text="—"
+                               style="-fx-text-fill:#fbbf24; -fx-font-size:32; -fx-font-weight:900;"/>
+                        <Label text="POINTS MAX"
+                               style="-fx-text-fill:#6e7681; -fx-font-size:10; -fx-font-weight:800;"/>
+                    </VBox>
+
+                    <!-- KPI : Sans Quiz -->
+                    <VBox fx:id="kpiCardSansQuiz" spacing="6" alignment="CENTER"
+                          style="-fx-background-color:#161b22;
+                                 -fx-background-radius:16;
+                                 -fx-border-color:#dc262644;
+                                 -fx-border-radius:16; -fx-border-width:1;
+                                 -fx-padding:18 28 18 28;
+                                 -fx-effect:dropshadow(gaussian,rgba(220,38,38,0.25),18,0,0,4);">
+                        <Label text="⚠️" style="-fx-font-size:22;"/>
+                        <Label fx:id="labelChapSansQuiz" text="—"
+                               style="-fx-text-fill:#f87171; -fx-font-size:32; -fx-font-weight:900;"/>
+                        <Label text="SANS QUIZ"
+                               style="-fx-text-fill:#6e7681; -fx-font-size:10; -fx-font-weight:800;"/>
+                    </VBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <!-- Badge SQL -->
+                    <VBox alignment="CENTER" spacing="6"
+                          style="-fx-background-color:rgba(37,99,235,0.08);
+                                 -fx-background-radius:14;
+                                 -fx-border-color:#2563eb33;
+                                 -fx-border-radius:14; -fx-border-width:1;
+                                 -fx-padding:14 20 14 20;">
+                        <Label text="⚡ SQL Avancé"
+                               style="-fx-text-fill:#60a5fa; -fx-font-size:12; -fx-font-weight:800;"/>
+                        <Label text="5 jointures · AVG · CASE WHEN"
+                               style="-fx-text-fill:#484f58; -fx-font-size:10;"/>
+                        <Label text="GROUP BY · HAVING · FIELD()"
+                               style="-fx-text-fill:#484f58; -fx-font-size:10;"/>
+                    </VBox>
+
+                </HBox>
+            </VBox>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 CONTENU PRINCIPAL
+            ══════════════════════════════════════════════════════════════ -->
+            <VBox spacing="28" style="-fx-padding:28 36 36 36; -fx-background-color:#0d1117;">
+
+                <!-- ── Section : Résumé par cours ── -->
+                <VBox spacing="14">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="📚"  style="-fx-font-size:16;"/>
+                        <Label text="Résumé par cours"
+                               style="-fx-text-fill:#e6edf3; -fx-font-size:16; -fx-font-weight:800;"/>
+                        <Label text="Statistiques agrégées par cours"
+                               style="-fx-text-fill:#484f58; -fx-font-size:11; -fx-font-style:italic;"/>
+                    </HBox>
                     <VBox fx:id="kpiContainer" spacing="0"/>
                 </VBox>
 
-                <!-- Couverture des chapitres -->
-                <VBox spacing="10"
-                      style="-fx-background-color:#161b22; -fx-background-radius:14;
-                             -fx-border-color:#30363d; -fx-border-radius:14; -fx-border-width:1;
-                             -fx-padding:18 22 18 22;">
-                    <Label text="🔍  Couverture des chapitres"
-                           style="-fx-text-fill:#e6edf3; -fx-font-size:14; -fx-font-weight:800;"/>
-                    <Label text="Chapitres sans aucun quiz actif — LEFT JOIN + HAVING"
-                           style="-fx-text-fill:#484f58; -fx-font-size:11; -fx-font-style:italic;"/>
-                    <VBox fx:id="alertContainer" spacing="6" style="-fx-padding:8 0 0 0;"/>
+                <!-- ── Section : Couverture des chapitres ── -->
+                <VBox spacing="12"
+                      style="-fx-background-color:#161b22;
+                             -fx-background-radius:16;
+                             -fx-border-color:#21262d;
+                             -fx-border-radius:16; -fx-border-width:1;
+                             -fx-padding:20 24 20 24;
+                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),16,0,0,4);">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="🔍" style="-fx-font-size:16;"/>
+                        <Label text="Couverture des chapitres"
+                               style="-fx-text-fill:#e6edf3; -fx-font-size:15; -fx-font-weight:800;"/>
+                        <Label text="Chapitres sans quiz actif — LEFT JOIN + HAVING"
+                               style="-fx-text-fill:#484f58; -fx-font-size:11; -fx-font-style:italic;"/>
+                    </HBox>
+                    <VBox fx:id="alertContainer" spacing="6" style="-fx-padding:4 0 0 0;"/>
                 </VBox>
 
-                <!-- Audit intelligent des quiz -->
-                <VBox spacing="12">
-                    <HBox alignment="CENTER_LEFT" spacing="12">
-                        <Label text="🔬  Audit intelligent des quiz"
-                               style="-fx-text-fill:#e6edf3; -fx-font-size:15; -fx-font-weight:800;"/>
+                <!-- ── Section : Audit intelligent ── -->
+                <VBox spacing="14">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="🔬" style="-fx-font-size:16;"/>
+                        <Label text="Audit intelligent des quiz"
+                               style="-fx-text-fill:#e6edf3; -fx-font-size:16; -fx-font-weight:800;"/>
                         <Label text="AVG · CASE WHEN · FIELD() · 5 jointures · diagnostic automatique"
                                style="-fx-text-fill:#484f58; -fx-font-size:11; -fx-font-style:italic;"/>
                     </HBox>
