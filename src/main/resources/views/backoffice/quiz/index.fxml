@@ -63,6 +63,14 @@
                                    -fx-border-width:0;
                                    -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.4),10,0,0,3);"/>
 
+                    <!-- Bouton "📊 Statistiques" → ouvre le tableau de bord analytique -->
+                    <Button text="📊 Statistiques" onAction="#ouvrirStats"
+                            style="-fx-background-color:linear-gradient(to bottom right,#0ea5e9,#0284c7);
+                                   -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:13px;
+                                   -fx-padding:9px 18px; -fx-background-radius:8px; -fx-cursor:hand;
+                                   -fx-border-width:0;
+                                   -fx-effect:dropshadow(gaussian,rgba(14,165,233,0.4),10,0,0,3);"/>
+
                     <!-- Barre de recherche : filtre les quiz par titre ou description -->
                     <HBox alignment="CENTER" spacing="8"
                           style="-fx-background-color:rgba(255,255,255,0.07);
