@@ -92,12 +92,6 @@ public class ChallengeDetailController {
                 backButton.setVisible(true);
                 backButton.setManaged(true);
             }
-        } else if (challenge.getDateFin().isBefore(LocalDate.now())) {
-            // Challenge expiré
-            if (startButton != null) {
-                startButton.setText("🔒 Challenge expiré");
-                startButton.setDisable(true);
-            }
         } else {
             // Challenge non commencé
             if (startButton != null) {

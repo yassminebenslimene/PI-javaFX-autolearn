@@ -59,35 +59,31 @@
             <artifactId>jakarta.mail</artifactId>
             <version>2.0.1</version>
         </dependency>
+        <!-- HTTP client for Weather API -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.3.1</version>
+        </dependency>
         <!-- JSON library for OAuth -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20231013</version>
         </dependency>
-        <!-- Webcam Capture for Face ID -->
+
+        <!-- OpenCV for Face ID (webcam + face detection) -->
+        <dependency>
+            <groupId>org.openpnp</groupId>
+            <artifactId>opencv</artifactId>
+            <version>4.7.0-0</version>
+        </dependency>
+
+        <!-- Webcam-capture: reliable camera access on Windows (no MSMF issues) -->
         <dependency>
             <groupId>com.github.sarxos</groupId>
             <artifactId>webcam-capture</artifactId>
             <version>0.3.12</version>
-        </dependency>
-        <!-- JWT -->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-gson</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
@@ -102,7 +98,11 @@
                     <mainClass>tn.esprit.MainApp</mainClass>
                     <options>
                         <option>--add-modules</option>
-                        <option>javafx.controls,javafx.fxml,javafx.graphics</option>
+                        <option>javafx.controls,javafx.fxml,javafx.graphics,javafx.web,javafx.media</option>
+                        <option>-Xmx512m</option>
+                        <option>-Xms128m</option>
+                        <option>-XX:+UseG1GC</option>
+                        <option>-XX:MaxGCPauseMillis=200</option>
                     </options>
                 </configuration>
                 <executions>

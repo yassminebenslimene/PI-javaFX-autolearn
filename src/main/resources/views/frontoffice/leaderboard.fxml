@@ -11,28 +11,30 @@
     <!-- ══ NAVBAR IDENTIQUE À layout.fxml ══ -->
     <top>
         <HBox alignment="CENTER_LEFT" spacing="0"
-              style="-fx-background-color:rgba(122,106,216,0.96); -fx-min-height:64; -fx-max-height:64;
-                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
+              style="-fx-background-color:rgba(122,106,216,0.97); -fx-min-height:64; -fx-max-height:64;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,3);">
             <padding><Insets left="36" right="36"/></padding>
-            <HBox spacing="8" alignment="CENTER_LEFT">
-                <Label text="AutoLearn" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;"/>
-            </HBox>
+            <Label text="AutoLearn" style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;"/>
             <HBox spacing="0" alignment="CENTER" style="-fx-padding:0 0 0 32;">
                 <Button fx:id="btnHome" text="Accueil" onAction="#onHome"
-                        style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;
-                               -fx-font-weight:700; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0; -fx-background-radius:8;"/>
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
                 <Button text="Cours" onAction="#onCours"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
                 <Button text="Challenges" onAction="#onChallenges"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
-                <Button text="🏆 Classement" style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;
+                <Button text="🏆 Classement"
+                        style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;
                                -fx-font-weight:700; -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0; -fx-background-radius:8;"/>
                 <Button text="Evenements" onAction="#onEvenements"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
                 <Button text="Communaute" onAction="#onCommunaute"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button text="Messages" onAction="#onMessagerie"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
             </HBox>

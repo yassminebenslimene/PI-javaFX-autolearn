@@ -9,6 +9,9 @@
             style="-fx-background-color:#0a0f0d;">
 
     <center>
+        <ScrollPane fitToWidth="true" fitToHeight="false"
+                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                    style="-fx-background-color:#0a0f0d; -fx-background:transparent; -fx-border-width:0;">
         <VBox spacing="20" style="-fx-padding:30; -fx-background-color:#0a0f0d;">
 
             <!-- Header -->
@@ -87,5 +90,6 @@
             </VBox>
 
         </VBox>
+        </ScrollPane>
     </center>
 </BorderPane>

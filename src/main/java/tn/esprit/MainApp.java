@@ -204,6 +204,18 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Challenges");
     }
 
+    public static void showLeaderboard() throws Exception {
+        load("/views/frontoffice/leaderboard.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Leaderboard");
+    }
+
+    public static void showCalendrierEvenements() throws Exception {
+        load("/views/frontoffice/calendrier_evenements.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Calendrier des Événements");
+    }
+
     public static void showCommunauteFront() throws Exception {
         load("/views/frontoffice/communaute/index.fxml");
         primaryStage.setMaximized(true);

@@ -13,6 +13,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.entities.Challenge;
 import tn.esprit.entities.Exercice;
+import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.ExerciceService;
 import tn.esprit.session.JwtManager;
@@ -369,16 +370,19 @@ public class ChallengeController {
             dialog.showAndWait().ifPresent(response -> {
                 if (response == saveButton) {
                     Challenge updatedChallenge = formController.getChallenge();
-                    // Utiliser JwtManager ou SessionManager selon ce qui est disponible
-                    tn.esprit.entities.User currentUser = JwtManager.getCurrentUser();
-                    if (currentUser == null) currentUser = tn.esprit.session.SessionManager.getCurrentUser();
-                    updatedChallenge.setCreatedBy(currentUser != null ? currentUser.getId() : 0);
+                    updatedChallenge.setCreatedBy(JwtManager.getCurrentUser().getId());
 
                     if (isEdit) {
                         challengeService.update(updatedChallenge);
+                        var admin = JwtManager.getCurrentUser();
+                        if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.updated_challenge",
+                            java.util.Map.of("titre", updatedChallenge.getTitre() != null ? updatedChallenge.getTitre() : ""));
                         showSuccessMessage("Challenge modifié avec succès !");
                     } else {
                         challengeService.add(updatedChallenge);
+                        var admin = JwtManager.getCurrentUser();
+                        if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_challenge",
+                            java.util.Map.of("titre", updatedChallenge.getTitre() != null ? updatedChallenge.getTitre() : ""));
                         showSuccessMessage("Challenge ajouté avec succès !");
                     }
                     loadChallenges();
@@ -398,6 +402,184 @@ public class ChallengeController {
     }
 
     @FXML
+    public void generateChallengeWithAI() {
+        // Dialog to select existing exercises and quizzes
+        javafx.scene.control.Dialog<javafx.scene.control.ButtonType> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("🤖 Générer un Challenge");
+        dialog.setHeaderText("Créer un challenge en utilisant les exercices et quiz existants");
+
+        javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(16);
+        content.setStyle("-fx-padding:24; -fx-background-color:#0a0f0d;");
+
+        // Challenge info
+        javafx.scene.control.TextField titreField = new javafx.scene.control.TextField();
+        titreField.setPromptText("Titre du challenge");
+        titreField.setStyle("-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:white; -fx-border-color:rgba(255,255,255,0.2); -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10;");
+
+        javafx.scene.control.TextArea descriptionArea = new javafx.scene.control.TextArea();
+        descriptionArea.setPromptText("Description du challenge");
+        descriptionArea.setPrefRowCount(3);
+        descriptionArea.setStyle("-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:white; -fx-border-color:rgba(255,255,255,0.2); -fx-border-radius:8; -fx-background-radius:8; -fx-padding:10;");
+
+        javafx.scene.control.ComboBox<String> niveauCombo = new javafx.scene.control.ComboBox<>();
+        niveauCombo.getItems().addAll("Débutant", "Intermédiaire", "Avancé");
+        niveauCombo.setValue("Intermédiaire");
+        niveauCombo.setStyle("-fx-background-color:rgba(255,255,255,0.08); -fx-text-fill:white; -fx-border-color:rgba(255,255,255,0.2); -fx-border-radius:8; -fx-background-radius:8; -fx-padding:8;");
+
+        javafx.scene.control.Spinner<Integer> dureeSpinner = new javafx.scene.control.Spinner<>(10, 180, 60, 10);
+        dureeSpinner.setStyle("-fx-background-color:rgba(255,255,255,0.08);");
+
+        // Load existing exercises and quizzes
+        List<Exercice> allExercices = exerciceService.getAll();
+        ServiceQuiz quizService = new ServiceQuiz();
+        List<tn.esprit.entities.Quiz> allQuizzes = quizService.afficher();
+
+        // Exercices selection
+        javafx.scene.control.Label exercicesLabel = styledLabel("Sélectionner les exercices (" + allExercices.size() + " disponibles) :");
+        javafx.scene.layout.FlowPane exercicesPane = new javafx.scene.layout.FlowPane(8, 8);
+        exercicesPane.setStyle("-fx-background-color:rgba(255,255,255,0.05); -fx-padding:12; -fx-background-radius:8;");
+        exercicesPane.setMaxHeight(150);
+        
+        javafx.scene.control.ScrollPane exercicesScroll = new javafx.scene.control.ScrollPane(exercicesPane);
+        exercicesScroll.setFitToWidth(true);
+        exercicesScroll.setStyle("-fx-background:transparent; -fx-background-color:transparent;");
+        exercicesScroll.setPrefHeight(150);
+
+        List<javafx.scene.control.CheckBox> exerciceCheckBoxes = new java.util.ArrayList<>();
+        for (Exercice ex : allExercices) {
+            javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox(
+                "Ex #" + ex.getId() + ": " + (ex.getQuestion().length() > 40 ? 
+                    ex.getQuestion().substring(0, 37) + "..." : ex.getQuestion())
+            );
+            cb.setStyle("-fx-text-fill:white; -fx-font-size:12;");
+            cb.setUserData(ex);
+            exerciceCheckBoxes.add(cb);
+            exercicesPane.getChildren().add(cb);
+        }
+
+        // Quizzes selection
+        javafx.scene.control.Label quizzesLabel = styledLabel("Sélectionner les quiz (" + allQuizzes.size() + " disponibles) :");
+        javafx.scene.layout.FlowPane quizzesPane = new javafx.scene.layout.FlowPane(8, 8);
+        quizzesPane.setStyle("-fx-background-color:rgba(255,255,255,0.05); -fx-padding:12; -fx-background-radius:8;");
+        quizzesPane.setMaxHeight(150);
+        
+        javafx.scene.control.ScrollPane quizzesScroll = new javafx.scene.control.ScrollPane(quizzesPane);
+        quizzesScroll.setFitToWidth(true);
+        quizzesScroll.setStyle("-fx-background:transparent; -fx-background-color:transparent;");
+        quizzesScroll.setPrefHeight(150);
+
+        List<javafx.scene.control.CheckBox> quizCheckBoxes = new java.util.ArrayList<>();
+        for (tn.esprit.entities.Quiz quiz : allQuizzes) {
+            javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox(
+                "Quiz #" + quiz.getId() + ": " + (quiz.getTitre().length() > 40 ? 
+                    quiz.getTitre().substring(0, 37) + "..." : quiz.getTitre())
+            );
+            cb.setStyle("-fx-text-fill:white; -fx-font-size:12;");
+            cb.setUserData(quiz);
+            quizCheckBoxes.add(cb);
+            quizzesPane.getChildren().add(cb);
+        }
+
+        content.getChildren().addAll(
+            styledLabel("Titre du challenge :"),
+            titreField,
+            styledLabel("Description :"),
+            descriptionArea,
+            styledLabel("Niveau :"),
+            niveauCombo,
+            styledLabel("Durée (minutes) :"),
+            dureeSpinner,
+            new javafx.scene.control.Separator(),
+            exercicesLabel,
+            exercicesScroll,
+            quizzesLabel,
+            quizzesScroll
+        );
+
+        javafx.scene.control.ScrollPane mainScroll = new javafx.scene.control.ScrollPane(content);
+        mainScroll.setFitToWidth(true);
+        mainScroll.setStyle("-fx-background:transparent; -fx-background-color:#0a0f0d;");
+        mainScroll.setPrefHeight(600);
+
+        dialog.getDialogPane().setContent(mainScroll);
+        dialog.getDialogPane().setStyle("-fx-background-color:#0a0f0d;");
+        dialog.getDialogPane().setPrefWidth(700);
+        dialog.getDialogPane().getButtonTypes().addAll(
+            new javafx.scene.control.ButtonType("✅ Créer Challenge", javafx.scene.control.ButtonBar.ButtonData.OK_DONE),
+            new javafx.scene.control.ButtonType("Annuler", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE)
+        );
+
+        dialog.showAndWait().ifPresent(response -> {
+            if (response.getButtonData() == javafx.scene.control.ButtonBar.ButtonData.OK_DONE) {
+                String titre = titreField.getText().trim();
+                String description = descriptionArea.getText().trim();
+                
+                if (titre.isEmpty()) {
+                    showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Attention", "Veuillez entrer un titre.");
+                    return;
+                }
+
+                // Collect selected exercises
+                List<Integer> selectedExerciceIds = new java.util.ArrayList<>();
+                for (javafx.scene.control.CheckBox cb : exerciceCheckBoxes) {
+                    if (cb.isSelected()) {
+                        Exercice ex = (Exercice) cb.getUserData();
+                        selectedExerciceIds.add(ex.getId());
+                    }
+                }
+
+                // Collect selected quizzes
+                List<Integer> selectedQuizIds = new java.util.ArrayList<>();
+                for (javafx.scene.control.CheckBox cb : quizCheckBoxes) {
+                    if (cb.isSelected()) {
+                        tn.esprit.entities.Quiz quiz = (tn.esprit.entities.Quiz) cb.getUserData();
+                        selectedQuizIds.add(quiz.getId());
+                    }
+                }
+
+                if (selectedExerciceIds.isEmpty() && selectedQuizIds.isEmpty()) {
+                    showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Attention", 
+                        "Veuillez sélectionner au moins un exercice ou un quiz.");
+                    return;
+                }
+
+                // Create the challenge
+                Challenge newChallenge = new Challenge();
+                newChallenge.setTitre(titre);
+                newChallenge.setDescription(description.isEmpty() ? "Challenge créé avec exercices et quiz existants" : description);
+                newChallenge.setNiveau(niveauCombo.getValue());
+                newChallenge.setDuree(dureeSpinner.getValue());
+                newChallenge.setCreatedBy(JwtManager.getCurrentUser().getId());
+                newChallenge.setExerciceIds(selectedExerciceIds);
+                newChallenge.setQuizIds(selectedQuizIds);
+
+                try {
+                    challengeService.add(newChallenge);
+                    var admin = JwtManager.getCurrentUser();
+                    if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.created_challenge",
+                        java.util.Map.of("titre", newChallenge.getTitre()));
+                    
+                    loadChallenges();
+                    loadCreators();
+                    showSuccessMessage("✅ Challenge \"" + titre + "\" créé avec " + 
+                        selectedExerciceIds.size() + " exercice(s) et " + 
+                        selectedQuizIds.size() + " quiz !");
+                } catch (Exception e) {
+                    showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Erreur", 
+                        "Impossible de créer le challenge : " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private javafx.scene.control.Label styledLabel(String text) {
+        javafx.scene.control.Label l = new javafx.scene.control.Label(text);
+        l.setStyle("-fx-text-fill:rgba(245,245,244,0.7); -fx-font-size:12; -fx-font-weight:600;");
+        return l;
+    }
+
+    @FXML
     public void deleteChallenge() {
         if (selectedChallenge == null) {
             showAlert(Alert.AlertType.WARNING, "Attention", "Veuillez sélectionner un challenge à supprimer.");
@@ -411,6 +593,9 @@ public class ChallengeController {
 
         if (confirmation.showAndWait().get() == ButtonType.OK) {
             try {
+                var admin = JwtManager.getCurrentUser();
+                if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_challenge",
+                    java.util.Map.of("titre", selectedChallenge.getTitre() != null ? selectedChallenge.getTitre() : ""));
                 challengeService.delete(selectedChallenge.getId());
                 loadChallenges();
                 selectedChallenge = null;

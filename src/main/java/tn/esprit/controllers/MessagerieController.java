@@ -11,7 +11,7 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;import javafx.util.Duration;
 import tn.esprit.entities.User;
 import tn.esprit.services.MessagerieService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
@@ -89,7 +89,7 @@ public class MessagerieController {
 
     @FXML
     public void initialize() {
-        currentUser = SessionManager.getCurrentUser();
+        currentUser = JwtManager.getCurrentUser();
         if (currentUser == null) return;
 
         chargerContacts();
@@ -211,21 +211,12 @@ public class MessagerieController {
     }
 
     private void filtrerContacts(String query) {
-        // Filtrer les contacts
         listContacts.getChildren().clear();
-        List<Map<String, Object>> sourceContacts = (query == null || query.isBlank())
+        List<Map<String, Object>> source = (query == null || query.isBlank())
             ? tousContacts
             : tousContacts.stream().filter(c -> fullName(c).toLowerCase().contains(query.toLowerCase())).toList();
-        for (Map<String, Object> c : sourceContacts)
+        for (Map<String, Object> c : source)
             listContacts.getChildren().add(buildContactRow(c));
-        
-        // Filtrer les étudiants
-        listEtudiants.getChildren().clear();
-        List<Map<String, Object>> sourceEtudiants = (query == null || query.isBlank())
-            ? tousEtudiants
-            : tousEtudiants.stream().filter(e -> fullName(e).toLowerCase().contains(query.toLowerCase())).toList();
-        for (Map<String, Object> e : sourceEtudiants)
-            listEtudiants.getChildren().add(buildEtudiantRow(e));
     }
 
     // ── Constructeurs de lignes ───────────────────────────────────────────────
@@ -752,42 +743,14 @@ public class MessagerieController {
     }
 
     private void rechercherDansMessages(String query) {
-        if (query == null || query.isBlank()) { 
-            afficherTousMessages(); 
-            return; 
-        }
+        if (query == null || query.isBlank()) { afficherTousMessages(); return; }
         containerMessages.getChildren().clear();
         ajouterSeparateurDate("Résultats pour \"" + query + "\"");
         String q = query.toLowerCase();
-        int count = 0;
         for (Map<String, Object> msg : messagesAffiches) {
             String texte = (String) msg.getOrDefault("texte", "");
-            if (texte.toLowerCase().contains(q)) {
-                ajouterBulle(msg);
-                count++;
-            }
+            if (texte.toLowerCase().contains(q)) ajouterBulle(msg);
         }
-        
-        // Si aucun résultat trouvé
-        if (count == 0) {
-            VBox emptyBox = new VBox(12);
-            emptyBox.setAlignment(javafx.geometry.Pos.CENTER);
-            emptyBox.setPadding(new javafx.geometry.Insets(40));
-            
-            Label emptyIcon = new Label("🔍");
-            emptyIcon.setStyle("-fx-font-size:48;");
-            
-            Label emptyText = new Label("Aucun message trouvé");
-            emptyText.setStyle("-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:#6B7280;");
-            
-            Label emptyHint = new Label("Essayez avec d'autres mots-clés");
-            emptyHint.setStyle("-fx-font-size:12; -fx-text-fill:#9CA3AF;");
-            
-            emptyBox.getChildren().addAll(emptyIcon, emptyText, emptyHint);
-            containerMessages.getChildren().add(emptyBox);
-        }
-        
-        scrollerEnBas();
     }
 
     private void afficherTousMessages() {

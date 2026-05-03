@@ -9,7 +9,7 @@ import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.EquipeService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class CreateTeamController {
 
     @FXML
     public void initialize() {
-                var user = SessionManager.getCurrentUser();
+                var user = JwtManager.getCurrentUser();
         if (user != null) currentUserId = user.getId();
     }
 

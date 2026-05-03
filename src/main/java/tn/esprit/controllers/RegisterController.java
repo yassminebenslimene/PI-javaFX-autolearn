@@ -108,9 +108,6 @@ public class RegisterController {
 
         service.ajouter(newUser);
 
-        // Login the new user in session
-        tn.esprit.session.SessionManager.login(newUser);
-
         // Check if password was in a data breach (async, non-blocking)
         final String plainPwd = fieldPassword.getText().trim();
         ApiService.checkPasswordBreachedAsync(plainPwd).thenAccept(count -> {

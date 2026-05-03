@@ -339,6 +339,9 @@ public class FrontQuizController {
     /** Service pour récupérer les options d'une question. */
     private final ServiceOption serviceOption = new ServiceOption();
 
+    /** ID de l'etudiant qui a ouvert cette tentative de quiz. */
+    private int activeStudentId = 0;
+
     // ══════════════════════════════════════════════════════════════════════════
     // API PUBLIQUE — méthodes appelées depuis l'extérieur du contrôleur
     // ══════════════════════════════════════════════════════════════════════════
@@ -363,6 +366,7 @@ public class FrontQuizController {
     public void setChapitre(Chapitre chapitre, Runnable onRetour) {
         this.chapitre = chapitre;
         this.onRetourCallback = onRetour;
+        this.activeStudentId = getConnectedStudentId();
         List<Quiz> quizDuChapitre = serviceQuiz.findByChapitreId(chapitre.getId());
         // Filtrer uniquement les quiz actifs
         List<Quiz> quizActifs = quizDuChapitre.stream()
@@ -700,6 +704,18 @@ public class FrontQuizController {
                     final Quiz quizChoisi = q;
                     btnCommencer.setOnAction(e -> {
                         try {
+                            int etudiantId = getConnectedStudentId();
+                            if (etudiantId <= 0) {
+                                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                                    javafx.scene.control.Alert.AlertType.ERROR
+                                );
+                                alert.setTitle("Session introuvable");
+                                alert.setHeaderText("Vous devez etre connecte");
+                                alert.setContentText("Veuillez vous reconnecter avant de passer ce quiz.");
+                                alert.showAndWait();
+                                return;
+                            }
+                            this.activeStudentId = etudiantId;
                             this.quiz = quizChoisi;
                             this.questions = serviceQuestion.findByQuizIdAleatoire(quizChoisi.getId(), 0);
                             this.totalPoints = questions.stream().mapToInt(Question::getPoint).sum();
@@ -821,7 +837,18 @@ public class FrontQuizController {
     @FXML
     private void onCommencer() {
         // ✅ VÉRIFICATION : L'étudiant peut-il passer ce quiz ?
-        int etudiantId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+        int etudiantId = getConnectedStudentId();
+        if (etudiantId <= 0) {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.ERROR
+            );
+            alert.setTitle("Session introuvable");
+            alert.setHeaderText("Vous devez etre connecte");
+            alert.setContentText("Veuillez vous reconnecter avant de passer ce quiz.");
+            alert.showAndWait();
+            return;
+        }
+        activeStudentId = etudiantId;
         java.util.Map<String, Object> check = serviceQuiz.canStudentTakeQuiz(etudiantId, quiz);
         boolean canTake = (boolean) check.get("canTake");
         
@@ -956,6 +983,7 @@ public class FrontQuizController {
             ctrl.questions = this.questions;
             ctrl.totalPoints = this.totalPoints;
             ctrl.indexQuestion = this.indexQuestion;
+            ctrl.activeStudentId = this.activeStudentId;
             ctrl.reponsesChoisies.putAll(this.reponsesChoisies);
             ctrl.optionsParQuestion.putAll(this.optionsParQuestion);
             ctrl.onRetourCallback = this.onRetourCallback;
@@ -1453,6 +1481,7 @@ public class FrontQuizController {
             ctrl.questions = this.questions;
             ctrl.totalPoints = this.totalPoints;
             ctrl.secondesRestantes = this.secondesRestantes;
+            ctrl.activeStudentId = this.activeStudentId;
             ctrl.reponsesChoisies.putAll(this.reponsesChoisies);
             ctrl.optionsParQuestion.putAll(this.optionsParQuestion);
             ctrl.onRetourCallback = this.onRetourCallback;
@@ -1534,7 +1563,11 @@ public class FrontQuizController {
         }
 
         // ✅ FIX BUG 1 : Enregistrer la tentative terminée avec détails complets
-        int etudiantId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+        int etudiantId = activeStudentId > 0 ? activeStudentId : getConnectedStudentId();
+        if (etudiantId <= 0) {
+            System.err.println("[Quiz] Tentative ignoree: aucun etudiant connecte.");
+            return;
+        }
         serviceQuiz.enregistrerTentative(etudiantId, quiz.getId(), pointsObtenus, totalPoints, pct, dureeSecondes, detailsReponses);
         
         // ✅ FIX BUG 3 : Récupérer les vraies statistiques
@@ -1621,13 +1654,14 @@ public class FrontQuizController {
             try {
                 tn.esprit.services.CourseProgressService progressService =
                     new tn.esprit.services.CourseProgressService();
-                int userId = tn.esprit.session.SessionManager.getCurrentUser().getId();
+                int userId = etudiantId;
                 int coursId = chapitre.getCoursId();
                 System.out.println("DEBUG progression: userId=" + userId
                     + " chapitreId=" + chapitre.getId()
                     + " coursId=" + coursId
-                    + " score=" + (int)pct + "%");
-                progressService.markChapterCompleted(userId, chapitre.getId(), coursId, (int) pct);
+                    + " score=" + (int)pct + "%"
+                    + " seuil=" + seuil + "%");
+                progressService.markChapterCompleted(userId, chapitre.getId(), coursId, (int) pct, seuil);
                 System.out.println("✅ Chapitre " + chapitre.getId() + " marqué complété — score: " + (int)pct + "%");
             } catch (Exception ex) {
                 System.err.println("Erreur progression: " + ex.getMessage());
@@ -1662,7 +1696,7 @@ public class FrontQuizController {
         // ── NOTIFICATIONS EMAIL ──────────────────────────────────────────────
         // Envoi asynchrone (ne bloque pas l'UI) uniquement si l'étudiant a échoué
         try {
-            tn.esprit.entities.User user = tn.esprit.session.SessionManager.getCurrentUser();
+            tn.esprit.entities.User user = tn.esprit.session.JwtManager.getCurrentUser();
             if (user != null && user.getEmail() != null && pct < seuil) {
                 String email  = user.getEmail();
                 String prenom = user.getPrenom();
@@ -1703,6 +1737,11 @@ public class FrontQuizController {
         afficherCorrectionIA(pct);
     }
 
+    private int getConnectedStudentId() {
+        tn.esprit.entities.User user = tn.esprit.session.JwtManager.getCurrentUser();
+        return user != null ? user.getId() : 0;
+    }
+
     // ══════════════════════════════════════════════════════════════════════════
     // CORRECTION IA + GÉOLOCALISATION
     // Lance en parallèle :
@@ -1731,7 +1770,7 @@ public class FrontQuizController {
                     if (geoInfo != null) {
                         String prenom = "";
                         try {
-                            tn.esprit.entities.User user = tn.esprit.session.SessionManager.getCurrentUser();
+                            tn.esprit.entities.User user = tn.esprit.session.JwtManager.getCurrentUser();
                             if (user != null) prenom = user.getPrenom();
                         } catch (Exception ignored) {}
                         labelGeoMessage.setText(geoInfo.getBienvenueMessage(prenom));
@@ -2164,12 +2203,21 @@ public class FrontQuizController {
             }
         }
 
+        // First try to find the StackPane center (frontoffice layout)
+        javafx.scene.layout.StackPane centerStack = null;
         BorderPane root = null;
+        
         if (scene != null && scene.getRoot() instanceof BorderPane bp) {
             root = bp;
+            if (bp.getCenter() instanceof javafx.scene.layout.StackPane sp) {
+                centerStack = sp;
+            }
         } else if (scene != null) {
             // Le root n'est pas directement un BorderPane — chercher en profondeur
             root = findBorderPane(scene.getRoot());
+            if (root != null && root.getCenter() instanceof javafx.scene.layout.StackPane sp) {
+                centerStack = sp;
+            }
         } else {
             // Fallback : remonter l'arbre depuis sceneRef ou les labels
             javafx.scene.Node ref = sceneRef != null ? sceneRef
@@ -2180,7 +2228,12 @@ public class FrontQuizController {
             if (ref != null) {
                 javafx.scene.Parent current = ref instanceof javafx.scene.Parent p ? p : ref.getParent();
                 while (current != null) {
-                    if (current instanceof BorderPane bp2) root = bp2;
+                    if (current instanceof BorderPane bp2) {
+                        root = bp2;
+                        if (bp2.getCenter() instanceof javafx.scene.layout.StackPane sp) {
+                            centerStack = sp;
+                        }
+                    }
                     current = current.getParent();
                 }
             }
@@ -2198,7 +2251,18 @@ public class FrontQuizController {
             region.setMaxHeight(Double.MAX_VALUE);
             region.setMaxWidth(Double.MAX_VALUE);
         }
-        root.setCenter(view);
+        
+        // If we found a StackPane center (frontoffice layout), replace the first child
+        if (centerStack != null) {
+            if (centerStack.getChildren().isEmpty()) {
+                centerStack.getChildren().add(0, view);
+            } else {
+                centerStack.getChildren().set(0, view);
+            }
+        } else {
+            // Fallback to direct BorderPane.setCenter
+            root.setCenter(view);
+        }
     }
 
     // Cherche récursivement le BorderPane le plus haut dans l'arbre

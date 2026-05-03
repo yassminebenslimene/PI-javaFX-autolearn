@@ -1,113 +1,119 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.shape.Circle?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="tn.esprit.controllers.ShowChallengesController"
             maxWidth="Infinity" maxHeight="Infinity"
-            style="-fx-background-color:#f5f5f5;">
+            style="-fx-background-color:#f0f0f8;">
 
     <!-- ══ NAVBAR ══ -->
     <top>
         <HBox alignment="CENTER_LEFT" spacing="0"
-              style="-fx-background-color:rgba(122,106,216,0.96);
-                     -fx-min-height:68; -fx-max-height:68;
-                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.18),10,0,0,3);">
-            <padding><Insets left="36" right="36"/></padding>
+              style="-fx-background-color:linear-gradient(from 0% 0% to 100% 0%, #9e9ff5, #a8a3f7);
+                     -fx-min-height:56; -fx-max-height:56;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,2);">
+            <padding><Insets left="32" right="32"/></padding>
 
             <!-- Logo -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="🎓" style="-fx-font-size:24;"/>
-                <Label text="AutoLearn"
-                       style="-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;
-                              -fx-font-family:'Poppins',sans-serif;"/>
-            </HBox>
+            <Label text="AutoLearn"
+                   style="-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:white;"/>
 
             <!-- Nav links -->
-            <HBox spacing="0" alignment="CENTER" style="-fx-padding:0 0 0 36;">
-                <Button fx:id="btnHome" text="Accueil" onAction="#onHome"
+            <HBox spacing="4" alignment="CENTER" style="-fx-padding:0 0 0 40;">
+                <Button text="Accueil" onAction="#onHome"
                         style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
-                               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
-                <Button text="Challenges"
-                        style="-fx-background-color:rgba(255,255,255,0.2); -fx-text-fill:white; -fx-font-size:13;
-                               -fx-font-weight:600; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;
-                               -fx-background-radius:20;"/>
-                <Button text="Événements" onAction="#onEvenements"
-                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
-                <Button text="Communauté"
-                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:13;
+                <Button text="Cours" onAction="#onCours"
+                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Challenges"
+                        style="-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white; -fx-font-size:13;
+                               -fx-font-weight:700; -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0; -fx-background-radius:6;"/>
+                <Button text="🏆 Classement" onAction="#onLeaderboard"
+                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Evenements" onAction="#onEvenements"
+                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Communaute" onAction="#onCommunaute"
+                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
+                <Button text="Messages" onAction="#onMessagerie"
+                        style="-fx-background-color:transparent; -fx-text-fill:white; -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:8 16 8 16; -fx-border-width:0;"/>
             </HBox>
 
             <Region HBox.hgrow="ALWAYS"/>
 
             <!-- User info + profile + logout -->
-            <HBox alignment="CENTER" spacing="14">
+            <HBox alignment="CENTER" spacing="12">
                 <!-- Avatar circle -->
                 <Label fx:id="labelAvatarNav"
-                       style="-fx-background-color:rgba(255,255,255,0.25); -fx-text-fill:white;
-                              -fx-font-weight:700; -fx-font-size:14; -fx-background-radius:50%;
-                              -fx-padding:8 11 8 11;"/>
-                <VBox alignment="CENTER_RIGHT" spacing="1">
+                       style="-fx-background-color:rgba(255,255,255,0.3); -fx-text-fill:white;
+                              -fx-font-weight:700; -fx-font-size:13; -fx-background-radius:50%;
+                              -fx-padding:7 10 7 10;"/>
+                <VBox alignment="CENTER_RIGHT" spacing="0">
                     <Label fx:id="labelCurrentUser" text=""
-                           style="-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;"/>
+                           style="-fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;"/>
                     <Label fx:id="labelNiveauUser" text=""
-                           style="-fx-text-fill:rgba(255,255,255,0.65); -fx-font-size:11;"/>
+                           style="-fx-text-fill:rgba(255,255,255,0.75); -fx-font-size:10;"/>
                 </VBox>
-                <Separator orientation="VERTICAL"
-                           style="-fx-background-color:rgba(255,255,255,0.3); -fx-pref-height:28;"/>
-                <Button text="👤  Mon Profil" onAction="#onProfile"
-                        style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
-                               -fx-font-size:12; -fx-font-weight:600; -fx-padding:7 14 7 14;
-                               -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"/>
-                <Button text="Déconnexion" onAction="#onLogout"
-                        style="-fx-background-color:#e94560; -fx-text-fill:white; -fx-font-size:12;
-                               -fx-font-weight:700; -fx-padding:7 16 7 16; -fx-background-radius:20;
-                               -fx-cursor:hand; -fx-border-width:0;
-                               -fx-effect:dropshadow(gaussian,rgba(233,69,96,0.4),8,0,0,2);"/>
+                <MenuButton fx:id="menuUser" text="▼"
+                            style="-fx-background-color:rgba(255,255,255,0.18);
+                                   -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:600;
+                                   -fx-padding:7 14 7 14; -fx-background-radius:22;
+                                   -fx-cursor:hand; -fx-border-width:1;
+                                   -fx-border-color:rgba(255,255,255,0.3);
+                                   -fx-border-radius:22;">
+                    <items>
+                        <MenuItem text="Mon Profil" onAction="#onProfile"
+                                  style="-fx-font-size:13; -fx-padding:8 16 8 16;"/>
+                        <MenuItem text="Mes Participations" onAction="#onMesParticipations"
+                                  style="-fx-font-size:13; -fx-padding:8 16 8 16;"/>
+                        <MenuItem text="Mes Equipes" onAction="#onMesEquipes"
+                                  style="-fx-font-size:13; -fx-padding:8 16 8 16;"/>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="Deconnexion" onAction="#onLogout"
+                                  style="-fx-font-size:13; -fx-padding:8 16 8 16; -fx-text-fill:#e74c3c;"/>
+                    </items>
+                </MenuButton>
             </HBox>
         </HBox>
     </top>
 
     <center>
         <ScrollPane fitToWidth="true"
-                    style="-fx-background-color:#f5f5f5; -fx-background:transparent; -fx-border-width:0;">
-            <VBox alignment="TOP_CENTER" spacing="0"
-                  style="-fx-background-color:#f5f5f5;">
+                    style="-fx-background-color:#f8f9fa;">
+
+    <VBox alignment="TOP_CENTER" spacing="0"
+          style="-fx-background-color:#f8f9fa;">
 
                 <!-- Hero banner -->
-                <VBox alignment="CENTER" spacing="8" prefHeight="160"
-                      style="-fx-background-color:linear-gradient(to bottom right,rgba(158,159,245,0.9),rgba(122,106,216,0.85));
-                             -fx-padding:40 80 40 80;">
-                    <Label text="DÉFIS"
-                           style="-fx-font-size:12; -fx-font-weight:600; -fx-text-fill:rgba(255,255,255,0.8);
-                                  -fx-letter-spacing:1;"/>
+                <VBox alignment="CENTER" spacing="16" prefHeight="220"
+                      style="-fx-background-color:linear-gradient(to bottom right,#9e9ff5,#a8a3f7);
+                             -fx-padding:50 80 50 80;">
+                    <Label text="🎯 DÉFIS"
+                           style="-fx-font-size:13; -fx-font-weight:800; -fx-text-fill:white;
+                                  -fx-letter-spacing:3; -fx-background-color:rgba(255,255,255,0.2);
+                                  -fx-padding:8 20 8 20; -fx-background-radius:25;"/>
                     <Label text="Challenges disponibles"
-                           style="-fx-font-size:34; -fx-font-weight:800; -fx-text-fill:white;"/>
+                           style="-fx-font-size:42; -fx-font-weight:900; -fx-text-fill:white;
+                                  -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),10,0,0,3);"/>
+                    <Label text="Testez vos compétences avec des challenges corrigés par IA"
+                           style="-fx-font-size:16; -fx-text-fill:rgba(255,255,255,0.95); -fx-font-weight:500;"/>
                 </VBox>
 
                 <!-- Main content -->
-                <VBox alignment="TOP_CENTER" spacing="24"
-                      style="-fx-padding:40 0 60 0; -fx-background-color:#f5f5f5;">
-                    <VBox spacing="24" prefWidth="800" maxWidth="800">
+                <VBox alignment="TOP_CENTER" spacing="40"
+                      style="-fx-padding:60 80 80 80; -fx-background-color:#f8f9fa;">
 
-                        <!-- Message d'erreur/succès -->
-                        <Label fx:id="messageLabel" text="" wrapText="true"
-                               style="-fx-background-color:#d4edda;
-                                      -fx-border-color:#28a745; -fx-border-width:0 0 0 4;
-                                      -fx-border-radius:5; -fx-background-radius:5;
-                                      -fx-text-fill:#155724; -fx-font-size:13;
-                                      -fx-padding:14 20 14 20; -fx-font-weight:bold;"
-                               visible="false" managed="false"/>
+                    <!-- Grille des challenges -->
+                    <FlowPane fx:id="challengesContainer" hgap="28" vgap="28"
+                              alignment="CENTER"
+                              style="-fx-padding:0;"/>
 
-                        <!-- Grille des challenges -->
-                        <FlowPane fx:id="challengesContainer" hgap="20" vgap="20"
-                                  style="-fx-padding:0;"/>
-
-                    </VBox>
                 </VBox>
             </VBox>
         </ScrollPane>

@@ -21,7 +21,7 @@ public class ConfigLoader {
     public static String getGitHubToken() {
         String token = properties.getProperty("github.api.token", "");
         // Si le token n'est pas configuré, retourner null
-        if (token.isEmpty() || token.equals("METS_TON_TOKEN_ICI")) {
+        if (token.isEmpty() || token.equals("METS_TON_TOKEN_ICI") || token.equals("METS_TON_TOKEN_GITHUB_ICI")) {
             return null;
         }
         return token;
@@ -29,7 +29,8 @@ public class ConfigLoader {
 
     public static String getGroqApiKey() {
         String key = properties.getProperty("groq.api.key", "");
-        if (key.isEmpty() || key.equals("METS_TA_CLE_GROQ_ICI")) {
+        if (key.isEmpty() || key.equals("METS_TA_CLE_GROQ_ICI") || 
+            key.equals("VOTRE_NOUVELLE_CLE_GROQ_ICI") || key.equals("YOUR_GROQ_API_KEY_HERE")) {
             return null;
         }
         return key;
