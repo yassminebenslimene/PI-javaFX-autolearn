@@ -21,19 +21,12 @@ import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.EvenementService;
 import tn.esprit.services.ServiceCours;
-import tn.esprit.services.TechNewsService;
 import tn.esprit.services.UserService;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.util.List;
 
 public class FrontofficeController {
-
-    private static FrontofficeController instance;
-
-    // Pending navigation from external pages (e.g., community detail)
-    private static String pendingSection = null;
-    public static void setPendingSection(String section) { pendingSection = section; }
 
     // Navbar labels
     @FXML private Label welcomeLabel;
@@ -48,20 +41,12 @@ public class FrontofficeController {
     @FXML private Button btnHome;
     @FXML private Button btnNavCours;
     @FXML private Button btnNavChallenges;
-    @FXML private Button btnNavClassement;
     @FXML private Button btnNavEvenements;
     @FXML private Button btnNavCommunaute;
-    @FXML private Button btnNavMessagerie;
-
-    // Student AI Assistant (injected via fx:include)
-    @FXML private StudentAssistantController studentAssistantController;
 
     // Sections
     @FXML private VBox sectionCours;
     @FXML private VBox sectionFeatures;
-    @FXML private VBox sectionActualites;
-    @FXML private ScrollPane newsScrollPane;
-    @FXML private HBox newsCardsContainer;
     @FXML private HBox featureCardsContainer;
     @FXML private StackPane sectionEvenementsHome;
     @FXML private HBox evenementsHomeContainer;
@@ -76,7 +61,7 @@ public class FrontofficeController {
         "-fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
 
     private void setActiveNav(Button active) {
-        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavClassement, btnNavEvenements, btnNavCommunaute, btnNavMessagerie}) {
+        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavEvenements, btnNavCommunaute}) {
             if (b != null) b.setStyle(b == active ? NAV_ACTIVE : NAV_INACTIVE);
         }
     }
@@ -102,7 +87,6 @@ public class FrontofficeController {
     private List<VBox> challengeCardsList = new java.util.ArrayList<>();
     private int currentChallengeIdx = 0;
     private Timeline challengeCarouselTimeline;
-    private Timeline newsScrollTimeline;
     @FXML private ScrollPane mainScrollPane;
 
     private javafx.scene.Node homeCenter;
@@ -116,24 +100,7 @@ public class FrontofficeController {
 
     @FXML
     public void initialize() {
-        instance = this;
-
-        // Wire student AI assistant navigation callback
-        if (studentAssistantController != null) {
-            studentAssistantController.setOnNavigate(section -> {
-                switch (section) {
-                    case "cours"               -> onCours();
-                    case "evenements"          -> onEvenements();
-                    case "challenges"          -> onChallenges();
-                    case "communaute"          -> onCommunaute();
-                    case "classement"          -> onLeaderboard();
-                    case "profil"              -> onProfile();
-                    case "mes_participations"  -> onMesParticipations();
-                    case "mes_equipes"         -> onMesEquipes();
-                }
-            });
-        }
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u == null) return;
 
         String name = u.getPrenom() + " " + u.getNom();
@@ -141,24 +108,9 @@ public class FrontofficeController {
         if (labelCurrentUser != null) labelCurrentUser.setText(name);
         if (labelAvatarNav   != null) labelAvatarNav.setText(initials);
         if (menuUser         != null) menuUser.setText(initials + " \u25be");
-        // Message par défaut — sera remplacé par la géolocalisation
-        if (welcomeLabel != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Pret a apprendre aujourd'hui !");
+        if (welcomeLabel     != null) welcomeLabel.setText("Bienvenue, " + u.getPrenom() + " ! Pret a apprendre aujourd'hui !");
         if (u instanceof Etudiant e && e.getNiveau() != null)
             if (labelNiveauUser != null) labelNiveauUser.setText("Niveau : " + e.getNiveau());
-
-        // ── Géolocalisation asynchrone ────────────────────────────────────────
-        // Appel API ipapi.co en arrière-plan — met à jour le message de bienvenue
-        // sans bloquer le chargement de la page
-        tn.esprit.services.GeoLocationService.getLocationAsync().thenAccept(geo -> {
-            javafx.application.Platform.runLater(() -> {
-                if (welcomeLabel != null) {
-                    if (geo != null) {
-                        welcomeLabel.setText(geo.getBienvenueMessage(u.getPrenom()));
-                    }
-                    // Si geo == null (pas de connexion), le message par défaut reste affiché
-                }
-            });
-        });
 
         // Emojis dans les slides
         if (slide1Icon != null) slide1Icon.setText("\uD83D\uDCDA");
@@ -174,41 +126,6 @@ public class FrontofficeController {
             if (mainScrollPane != null) homeCenter = mainScrollPane;
             else if (labelCurrentUser != null && labelCurrentUser.getScene() != null)
                 homeCenter = ((BorderPane) labelCurrentUser.getScene().getRoot()).getCenter();
-
-            // ── Scroll fix: install ONE handler on the center StackPane ──────────
-            // Delegates all scroll events to the first child (the active page ScrollPane).
-            // This is simpler and more reliable than scene-level filters.
-            javafx.application.Platform.runLater(() -> {
-                javafx.scene.layout.StackPane stack = getCenterStack();
-                if (stack == null) return;
-
-                stack.setOnScroll(e -> {
-                    if (stack.getChildren().isEmpty()) return;
-                    javafx.scene.Node first = stack.getChildren().get(0);
-                    if (first instanceof ScrollPane sp) {
-                        double delta = e.getDeltaY();
-                        double range = sp.getContent() != null
-                            ? sp.getContent().getBoundsInLocal().getHeight() - sp.getViewportBounds().getHeight()
-                            : 0;
-                        if (range <= 0) return;
-                        double newVal = sp.getVvalue() - (delta / range) * 3.0;
-                        sp.setVvalue(Math.max(0, Math.min(1, newVal)));
-                        e.consume();
-                    }
-                });
-
-                // Also forward newsScrollPane vertical scroll to mainScrollPane
-                if (newsScrollPane != null && mainScrollPane != null) {
-                    newsScrollPane.addEventFilter(javafx.scene.input.ScrollEvent.SCROLL, e -> {
-                        if (Math.abs(e.getDeltaY()) > Math.abs(e.getDeltaX())) {
-                            mainScrollPane.fireEvent(e.copyFor(mainScrollPane, mainScrollPane));
-                            e.consume();
-                        }
-                    });
-                }
-
-                if (mainScrollPane != null) mainScrollPane.requestFocus();
-            });
 
             try {
                 int nbCours = serviceCours.consulter().size();
@@ -235,18 +152,14 @@ public class FrontofficeController {
                 // Construire les feature cards
                 if (featureCardsContainer != null) buildFeatureCards();
 
-                // Charger les actualités tech (asynchrone)
-                if (newsCardsContainer != null) loadNewsCards();
-
                 // Démarrer le slider automatique
                 startSlider();
 
                 // Animations d'entree sur les sections
                 animateSlideIn(sectionFeatures,       0);
                 animateSlideIn(sectionCours,        150);
-                animateSlideIn(sectionActualites,   300);
-                animateSlideIn(sectionChallenges,   450);
-                animateSlideIn(sectionEvenementsHome, 600);
+                animateSlideIn(sectionChallenges,   300);
+                animateSlideIn(sectionEvenementsHome, 450);
 
             } catch (Exception e) { e.printStackTrace(); }
         });
@@ -273,113 +186,6 @@ public class FrontofficeController {
             empty.setStyle("-fx-text-fill:#aaa; -fx-font-size:13;");
             coursCardsContainer.getChildren().add(empty);
         }
-    }
-
-    // ── Actualités Tech ───────────────────────────────────────────────────────
-
-    // ── Actualités Tech — Bande défilante horizontale ────────────────────────
-
-    private void loadNewsCards() {
-        newsCardsContainer.getChildren().clear();
-        Label loading = new Label("⏳ Chargement des actualités...");
-        loading.setStyle("-fx-text-fill:#aaa; -fx-font-size:13; -fx-padding:0 0 0 80;");
-        newsCardsContainer.getChildren().add(loading);
-
-        TechNewsService.getTopTechNewsAsync().thenAccept(articles -> {
-            javafx.application.Platform.runLater(() -> {
-                newsCardsContainer.getChildren().clear();
-                if (articles == null || articles.isEmpty()) return;
-
-                int max = Math.min(articles.size(), 6);
-
-                // 3 copies des cartes pour un défilement infini sans saut
-                for (int pass = 0; pass < 3; pass++) {
-                    for (int i = 0; i < max; i++) {
-                        newsCardsContainer.getChildren().add(buildNewsCard(articles.get(i), i));
-                    }
-                }
-
-                // ScrollPane gère le clip naturellement — on lance juste l'animation
-                javafx.application.Platform.runLater(() -> startNewsScroll(max));
-            });
-        });
-    }
-
-    private void startNewsScroll(int nbArticles) {
-        if (newsScrollTimeline != null) newsScrollTimeline.stop();
-
-        final double CARD_W  = 316.0;              // 300px carte + 16px spacing
-        final double SPEED   = 0.6;                // pixels par frame
-        final double totalW  = CARD_W * nbArticles; // largeur d'une copie
-
-        newsCardsContainer.setTranslateX(0);
-
-        // Pause animation on hover so user can read, resume on exit
-        if (newsScrollPane != null) {
-            newsScrollPane.setOnMouseEntered(e -> { if (newsScrollTimeline != null) newsScrollTimeline.pause(); });
-            newsScrollPane.setOnMouseExited(e  -> { if (newsScrollTimeline != null) newsScrollTimeline.play(); });
-        }
-
-        newsScrollTimeline = new Timeline(
-            new KeyFrame(Duration.millis(16), e -> {
-                double x = newsCardsContainer.getTranslateX() - SPEED;
-                if (x <= -totalW) x += totalW;    // retour fluide à 0
-                newsCardsContainer.setTranslateX(x);
-            })
-        );
-        newsScrollTimeline.setCycleCount(Timeline.INDEFINITE);
-        newsScrollTimeline.play();
-    }
-
-    private VBox buildNewsCard(TechNewsService.NewsArticle article, int index) {
-        String[] accents  = {"#0ea5e9", "#7a6ad8", "#10b981", "#f59e0b", "#ec4899", "#6366f1"};
-        String[] lightBgs = {"#e0f2fe", "#ede9ff", "#dcfce7", "#fef3c7", "#fce7f3", "#e0e7ff"};
-        String accent  = accents[index % accents.length];
-        String lightBg = lightBgs[index % lightBgs.length];
-
-        HBox topBar = new HBox();
-        topBar.setPrefHeight(5);
-        topBar.setStyle("-fx-background-color:" + accent + "; -fx-background-radius:12 12 0 0;");
-
-        Label sourceLbl = new Label("📰 " + (article.source().isBlank() ? "Tech" : article.source()));
-        sourceLbl.setStyle("-fx-font-size:10; -fx-font-weight:700; -fx-text-fill:" + accent + ";" +
-                           "-fx-background-color:" + lightBg + ";" +
-                           "-fx-background-radius:6; -fx-padding:2 8 2 8;");
-        Label dateLbl = new Label(article.getFormattedDate());
-        dateLbl.setStyle("-fx-font-size:10; -fx-text-fill:#bbb;");
-        HBox meta = new HBox(8, sourceLbl, dateLbl);
-        meta.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-        Label titleLbl = new Label(article.getShortTitle());
-        titleLbl.setStyle("-fx-font-size:12; -fx-font-weight:800; -fx-text-fill:#1a1a2e; -fx-line-spacing:2;");
-        titleLbl.setWrapText(true);
-        titleLbl.setMaxWidth(270);
-
-        Label descLbl = new Label(article.getShortDescription());
-        descLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666; -fx-line-spacing:2;");
-        descLbl.setWrapText(true);
-        descLbl.setMaxWidth(270);
-
-        Button readBtn = new Button("Lire →");
-        readBtn.setStyle("-fx-background-color:" + accent + "; -fx-text-fill:white;" +
-                         "-fx-font-size:11; -fx-font-weight:700; -fx-cursor:hand;" +
-                         "-fx-border-width:0; -fx-background-radius:6; -fx-padding:5 14 5 14;");
-        readBtn.setOnAction(e -> MainApp.openUrl(article.url()));
-
-        VBox content = new VBox(8, meta, titleLbl, descLbl, readBtn);
-        content.setPadding(new Insets(12));
-
-        VBox card = new VBox(0, topBar, content);
-        card.setPrefWidth(300);
-        card.setMaxWidth(300);
-        card.setMinWidth(300);
-        card.setPrefHeight(200);
-        card.setMaxHeight(200);
-        card.setStyle("-fx-background-color:white; -fx-background-radius:12;" +
-                      "-fx-border-color:#eeeeee; -fx-border-radius:12;" +
-                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),10,0,0,3);");
-        card.setOnMouseClicked(e -> MainApp.openUrl(article.url()));
-        return card;
     }
 
     /** Image card with colored gradient overlay — rich visual style */
@@ -702,6 +508,11 @@ public class FrontofficeController {
             dur.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
             meta.getChildren().add(dur);
         }
+        if (c.getDateFin() != null) {
+            Label fin = new Label("\uD83D\uDCC5 " + c.getDateFin().toString());
+            fin.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
+            meta.getChildren().add(fin);
+        }
 
         Button btn = new Button("Relever le challenge →");
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -739,7 +550,7 @@ public class FrontofficeController {
 
     /** Returns true if user is logged in, otherwise redirects to login and returns false */
     private boolean requireLogin() {
-        if (JwtManager.isLoggedIn()) return true;
+        if (SessionManager.isLoggedIn()) return true;
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
@@ -747,51 +558,22 @@ public class FrontofficeController {
     // ── Navigation — seul le center change, la navbar reste fixe ──────────────
     @FXML public void onHome() {
         setActiveNav(btnHome);
-        if (homeCenter == null && mainScrollPane == null) return;
-        javafx.scene.layout.StackPane stack = getCenterStack();
-        if (stack != null) {
-            Parent home = (homeCenter instanceof Parent) ? (Parent) homeCenter : mainScrollPane;
-            if (stack.getChildren().isEmpty()) stack.getChildren().add(0, home);
-            else stack.getChildren().set(0, home);
-        } else {
-            // Fallback
-            if (labelCurrentUser == null) return;
-            var scene = labelCurrentUser.getScene();
-            if (scene == null) return;
-            BorderPane root = (BorderPane) scene.getRoot();
-            if (homeCenter != null) root.setCenter(homeCenter);
-            else if (mainScrollPane != null) root.setCenter(mainScrollPane);
-        }
+        if (labelCurrentUser == null) return;
+        var scene = labelCurrentUser.getScene();
+        if (scene == null) return;
+        BorderPane root = (BorderPane) scene.getRoot();
+        if (homeCenter != null) root.setCenter(homeCenter);
+        else if (mainScrollPane != null) root.setCenter(mainScrollPane);
     }
 
     @FXML public void onCours() { setActiveNav(btnNavCours); naviguerVersCours(); }
 
     @FXML public void onViewCourses() { naviguerVersCours(); }
 
-    public static void navigateToCoursPage() {
-        if (instance != null) {
-            instance.onCours();
-        }
-    }
-
-    public static void navigateToSection(String section) {
-        if (instance != null) {
-            switch (section) {
-                case "cours"       -> instance.onCours();
-                case "challenges"  -> instance.onChallenges();
-                case "evenements"  -> instance.onEvenements();
-                case "communaute"  -> instance.onCommunaute();
-                case "classement"  -> instance.onLeaderboard();
-                case "messagerie"  -> instance.onMessagerie();
-                default            -> instance.onHome();
-            }
-        }
-    }
-
     private void naviguerVersCours() {
         if (!requireLogin()) return;
         // Track student action
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_cours",
             java.util.Map.of("email", u.getEmail()));
         try {
@@ -810,15 +592,8 @@ public class FrontofficeController {
                             FrontChapitreDetailController detailCtrl = detailLoader.getController();
                             detailCtrl.setChapitre(c, chapitre, () -> setCenter(chapView));
                             detailCtrl.setOnQuizCallback(() -> {
-                                try {
-                                    FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
-                                    Parent quizView = quizLoader.load();
-                                    FrontQuizController quizCtrl = quizLoader.getController();
-                                    quizCtrl.setSceneRef(labelCurrentUser);
-                                    quizCtrl.setChapitre(chapitre, () -> setCenter(detailView));
-                                    setCenterDirect(quizView);
-                                    javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
-                                } catch (Exception ex) { ex.printStackTrace(); }
+                                if (chapCtrl.getOnPasserQuiz() != null)
+                                    chapCtrl.getOnPasserQuiz().accept(chapitre);
                             });
                             setCenter(detailView);
                         } catch (Exception ex) { ex.printStackTrace(); }
@@ -828,13 +603,11 @@ public class FrontofficeController {
                             FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
                             Parent quizView = quizLoader.load();
                             FrontQuizController quizCtrl = quizLoader.getController();
-                            quizCtrl.setSceneRef(labelCurrentUser);
                             quizCtrl.setChapitre(chapitre, () -> setCenter(chapView));
                             setCenterDirect(quizView);
                             javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
                         } catch (Exception ex) { ex.printStackTrace(); }
                     });
-                    chapCtrl.setOnRetourCours(() -> setCenter(view));
                     chapCtrl.setCours(cours);
                     setCenter(chapView);
                 } catch (Exception ex) { ex.printStackTrace(); }
@@ -847,16 +620,20 @@ public class FrontofficeController {
     @FXML public void onEvenements() {
         if (!requireLogin()) return;
         setActiveNav(btnNavEvenements);
-        var u = JwtManager.getCurrentUser();
+        // Track student action
+        var u = SessionManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_evenements",
             java.util.Map.of("email", u.getEmail()));
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/evenements.fxml"));
             Parent root = loader.load();
-            javafx.scene.Node cn = (root instanceof BorderPane bp) ? bp.getCenter() : null;
-            if (cn instanceof Parent p) setCenter(p); else setCenter(root);
+            if (root instanceof BorderPane bp && bp.getCenter() != null)
+                setCenter((Parent) bp.getCenter());
+            else
+                setCenter(root);
         } catch (Exception e) {
             e.printStackTrace();
+            // Fallback via MainApp
             try { MainApp.showEvenementsFront(); } catch (Exception ex) { ex.printStackTrace(); }
         }
     }
@@ -864,14 +641,16 @@ public class FrontofficeController {
     @FXML public void onCommunaute() {
         if (!requireLogin()) return;
         setActiveNav(btnNavCommunaute);
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_communaute",
             java.util.Map.of("email", u.getEmail()));
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/communaute/index.fxml"));
             Parent root = loader.load();
-            javafx.scene.Node cn = (root instanceof BorderPane bp) ? bp.getCenter() : null;
-            if (cn instanceof Parent p) setCenter(p); else setCenter(root);
+            if (root instanceof BorderPane bp && bp.getCenter() != null)
+                setCenter((Parent) bp.getCenter());
+            else
+                setCenter(root);
         } catch (Exception e) {
             e.printStackTrace();
             try { MainApp.showCommunauteFront(); } catch (Exception ex) { ex.printStackTrace(); }
@@ -881,37 +660,25 @@ public class FrontofficeController {
     @FXML public void onChallenges() {
         if (!requireLogin()) return;
         setActiveNav(btnNavChallenges);
-        var u = JwtManager.getCurrentUser();
+        var u = SessionManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_challenges",
             java.util.Map.of("email", u.getEmail()));
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/showchallenges.fxml"));
             Parent root = loader.load();
-            javafx.scene.Node cn = (root instanceof BorderPane bp) ? bp.getCenter() : null;
-            if (cn instanceof Parent p) setCenter(p); else setCenter(root);
+            if (root instanceof BorderPane bp && bp.getCenter() != null)
+                setCenter((Parent) bp.getCenter());
+            else
+                setCenter(root);
         } catch (Exception e) {
             e.printStackTrace();
             try { MainApp.showChallengesFront(); } catch (Exception ex) { ex.printStackTrace(); }
         }
     }
 
-    @FXML public void onLeaderboard() {
-        if (!requireLogin()) return;
-        setActiveNav(btnNavClassement);
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/leaderboard.fxml"));
-            Parent root = loader.load();
-            javafx.scene.Node cn = (root instanceof BorderPane bp) ? bp.getCenter() : null;
-            if (cn instanceof Parent p) setCenter(p); else setCenter(root);
-        } catch (Exception e) {
-            e.printStackTrace();
-            try { MainApp.showLeaderboard(); } catch (Exception ex) { ex.printStackTrace(); }
-        }
-    }
-
     @FXML public void onProfile() {
         try {
-            var u = JwtManager.getCurrentUser();
+            var u = SessionManager.getCurrentUser();
             if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_profile",
                 java.util.Map.of("email", u.getEmail()));
             MainApp.showProfile();
@@ -930,29 +697,8 @@ public class FrontofficeController {
     }
 
     @FXML public void onLogout() {
-        JwtManager.logout();
+        SessionManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    @FXML public void onMessagerie() {
-        if (!requireLogin()) return;
-        setActiveNav(btnNavMessagerie);
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/views/frontoffice/messagerie/chat.fxml"));
-            Parent view = loader.load();
-            if (view instanceof javafx.scene.layout.Region region) {
-                region.prefHeightProperty().unbind();
-                region.prefWidthProperty().unbind();
-                region.setMaxHeight(Double.MAX_VALUE);
-                region.setMaxWidth(Double.MAX_VALUE);
-                region.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
-                region.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
-            }
-            setCenterDirect(view);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -1225,112 +971,44 @@ public class FrontofficeController {
         }
     }
 
-    /**
-     * Extracts the actual page content from the AI-assistant wrapper.
-     *
-     * When we injected the AI assistant, we wrapped every standalone FXML in:
-     *   StackPane (transparent, pickOnBounds=false, NO controller)  ← wrapper
-     *     ├── BorderPane / VBox / AnchorPane / ScrollPane  ← real page
-     *     └── fx:include student_assistant.fxml
-     *
-     * Detection: the wrapper StackPane has exactly 2 children and is transparent.
-     * The real page StackPanes (e.g. quiz/intro.fxml) have fx:controller and
-     * are NOT transparent wrappers.
-     *
-     * After unwrapping, if the real page is a BorderPane we return its center
-     * so the embedded navbar is not shown inside the layout's center region.
-     */
-    private Parent extractPageContent(Parent root) {
-        // Step 1: detect and unwrap the AI-assistant StackPane wrapper
-        // Wrapper has exactly 2 children: [real page, assistant include]
-        Parent page = root;
-        if (root instanceof javafx.scene.layout.StackPane sp && sp.getChildren().size() == 2) {
-            javafx.scene.Node first = sp.getChildren().get(0);
-            if (first instanceof Parent p) {
-                page = p;
-            }
-        }
-        // Step 2: if the real page is a BorderPane, return its center content
-        // (avoids showing the page's own embedded navbar inside the layout)
-        if (page instanceof BorderPane bp) {
-            javafx.scene.Node center = bp.getCenter();
-            if (center instanceof Parent p) return p;
-        }
-        // Step 3: return as-is (ScrollPane, AnchorPane, StackPane with controller, etc.)
-        return page;
-    }
-
-    /** @deprecated use extractPageContent instead */
-    private Parent unwrapRoot(Parent root) {
-        return extractPageContent(root);
-    }
-
-    /**
-     * Returns the StackPane that wraps the center content + AI assistant overlay.
-     */
-    private javafx.scene.layout.StackPane getCenterStack() {
-        if (labelCurrentUser == null) return null;
-        var scene = labelCurrentUser.getScene();
-        if (scene == null) return null;
-        BorderPane root = (BorderPane) scene.getRoot();
-        if (root.getCenter() instanceof javafx.scene.layout.StackPane sp) return sp;
-        return null;
-    }
-
     private void setCenter(Parent view) {
-        javafx.scene.layout.StackPane stack = getCenterStack();
-        if (stack == null) {
-            if (labelCurrentUser == null) return;
-            var scene = labelCurrentUser.getScene();
-            if (scene == null) return;
-            ((BorderPane) scene.getRoot()).setCenter(view);
-            return;
-        }
-        // Replace only the first child (page content), keep the AI assistant overlay
-        Parent toSet;
-        if (view instanceof ScrollPane sp) {
-            sp.setFitToWidth(true);
-            sp.setFocusTraversable(true);
-            toSet = sp;
+        if (labelCurrentUser == null) return;
+        var scene = labelCurrentUser.getScene();
+        if (scene == null) return;
+        BorderPane root = (BorderPane) scene.getRoot();
+        // Si la vue est déjà un ScrollPane, la mettre directement
+        if (view instanceof ScrollPane) {
+            ((ScrollPane) view).setFitToWidth(true);
+            root.setCenter(view);
         } else {
             ScrollPane sp = new ScrollPane(view);
             sp.setFitToWidth(true);
-            sp.setFocusTraversable(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-            sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
-            toSet = sp;
+            root.setCenter(sp);
         }
-        if (stack.getChildren().isEmpty()) {
-            stack.getChildren().add(0, toSet);
-        } else {
-            stack.getChildren().set(0, toSet);
-        }
-        // Request focus so mouse wheel and arrow keys work immediately
-        final Parent finalToSet = toSet;
-        javafx.application.Platform.runLater(finalToSet::requestFocus);
     }
 
     private void setCenterDirect(Parent view) {
-        javafx.scene.layout.StackPane stack = getCenterStack();
-        if (stack == null) {
-            if (labelCurrentUser == null) return;
-            var scene = labelCurrentUser.getScene();
-            if (scene == null) return;
-            ((BorderPane) scene.getRoot()).setCenter(view);
-            return;
-        }
-        if (view instanceof javafx.scene.layout.Region region) {
-            region.prefHeightProperty().unbind();
-            region.prefWidthProperty().unbind();
-            region.setMaxHeight(Double.MAX_VALUE);
-            region.setMaxWidth(Double.MAX_VALUE);
-        }
-        if (stack.getChildren().isEmpty()) {
-            stack.getChildren().add(0, view);
-        } else {
-            stack.getChildren().set(0, view);
-        }
-        javafx.application.Platform.runLater(view::requestFocus);
+        if (labelCurrentUser == null) return;
+        var scene = labelCurrentUser.getScene();
+        if (scene == null) return;
+        ((BorderPane) scene.getRoot()).setCenter(view);
+    }
+
+    // ── Static navigation helper (called from other controllers) ─────────────
+
+    private static String pendingSection = null;
+
+    /**
+     * Sets a section to navigate to when FrontofficeController next initializes.
+     * Called by other controllers before navigating to frontoffice.
+     */
+    public static void setPendingSection(String section) {
+        pendingSection = section;
+    }
+
+    public static void navigateToSection(String section) {
+        pendingSection = section;
     }
 }

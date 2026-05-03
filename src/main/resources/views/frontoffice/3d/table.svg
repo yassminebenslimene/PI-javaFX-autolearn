@@ -1,0 +1,36 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'>
+  <!-- Table top surface -->
+  <polygon points='30,60 270,60 240,30 60,30' fill='#2B6CB0' stroke='#1A4A80' stroke-width='2'/>
+  <!-- Table front face -->
+  <polygon points='30,60 270,60 270,80 30,80' fill='#1A4A80' stroke='#0D2D50' stroke-width='2'/>
+  <!-- Table right face -->
+  <polygon points='270,60 240,30 240,50 270,80' fill='#153E6E' stroke='#0D2D50' stroke-width='2'/>
+  <!-- Legs -->
+  <rect x='45' y='80' width='12' height='80' fill='#2B6CB0' stroke='#1A4A80' stroke-width='1'/>
+  <rect x='243' y='80' width='12' height='80' fill='#1A4A80' stroke='#0D2D50' stroke-width='1'/>
+  <rect x='45' y='80' width='12' height='80' fill='#2B6CB0'/>
+  <rect x='243' y='80' width='12' height='80' fill='#1A4A80'/>
+  <!-- Back legs (smaller, perspective) -->
+  <rect x='65' y='50' width='8' height='60' fill='#153E6E'/>
+  <rect x='227' y='50' width='8' height='60' fill='#153E6E'/>
+  <!-- Chairs left front -->
+  <rect x='5' y='100' width='35' height='5' fill='#6B3A1F' stroke='#3D1F08' stroke-width='1'/>
+  <rect x='8' y='105' width='8' height='40' fill='#6B3A1F'/>
+  <rect x='24' y='105' width='8' height='40' fill='#6B3A1F'/>
+  <rect x='5' y='75' width='35' height='25' fill='#3D1F08' stroke='#2A1005' stroke-width='1'/>
+  <!-- Chair right front -->
+  <rect x='260' y='100' width='35' height='5' fill='#6B3A1F' stroke='#3D1F08' stroke-width='1'/>
+  <rect x='263' y='105' width='8' height='40' fill='#6B3A1F'/>
+  <rect x='279' y='105' width='8' height='40' fill='#6B3A1F'/>
+  <rect x='260' y='75' width='35' height='25' fill='#3D1F08' stroke='#2A1005' stroke-width='1'/>
+  <!-- Chair back left -->
+  <rect x='70' y='20' width='28' height='4' fill='#6B3A1F'/>
+  <rect x='72' y='24' width='6' height='30' fill='#6B3A1F'/>
+  <rect x='86' y='24' width='6' height='30' fill='#6B3A1F'/>
+  <rect x='70' y='5' width='28' height='18' fill='#3D1F08'/>
+  <!-- Chair back right -->
+  <rect x='202' y='20' width='28' height='4' fill='#6B3A1F'/>
+  <rect x='204' y='24' width='6' height='30' fill='#6B3A1F'/>
+  <rect x='218' y='24' width='6' height='30' fill='#6B3A1F'/>
+  <rect x='202' y='5' width='28' height='18' fill='#3D1F08'/>
+</svg>
