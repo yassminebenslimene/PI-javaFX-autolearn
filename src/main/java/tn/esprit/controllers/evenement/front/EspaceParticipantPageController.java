@@ -150,6 +150,15 @@ public class EspaceParticipantPageController {
         );
         grid.add(reservationContainer, 1, 2);
 
+        // Conteneur 7 : Brainstorming IA 💡
+        VBox brainstormingContainer = buildContainer(
+            "💡", "Brainstorming IA",
+            "Génère des idées innovantes",
+            "#7c3aed", "#4f46e5", "#ede9fe",
+            () -> BrainstormingController.show(containerBox.getScene().getWindow())
+        );
+        grid.add(brainstormingContainer, 0, 3);
+
         contentBox.getChildren().add(grid);
         containerBox.getChildren().add(contentBox);
 

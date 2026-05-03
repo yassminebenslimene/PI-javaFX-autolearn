@@ -158,7 +158,19 @@ public class EspaceParticipantController {
         animateCard(card4, 300);
         animateCard(card5, 400);
 
-        body.getChildren().addAll(card1, card2, card3, card4, card5);
+        // Card 6 — Brainstorming IA (violet foncé)
+        VBox card6 = buildBigCard(
+            "💡",
+            "Brainstorming IA",
+            "Hackathon & Innovation",
+            "Générez des idées créatives avec l'IA !",
+            "#7c3aed", "#ede9fe", "#f5f3ff",
+            new String[]{"💡","🚀","🤖","🌱"},
+            () -> BrainstormingController.show(dialog.getOwner())
+        );
+        animateCard(card6, 500);
+
+        body.getChildren().addAll(card1, card2, card3, card4, card5, card6);
 
         // Footer
         HBox footer = new HBox();
