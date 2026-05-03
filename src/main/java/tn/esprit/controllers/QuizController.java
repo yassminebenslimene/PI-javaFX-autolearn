@@ -17,7 +17,7 @@ import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ServiceOption;
 import tn.esprit.services.ServiceQuestion;
 import tn.esprit.services.ServiceQuiz;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.List;
 
@@ -1164,7 +1164,7 @@ public class QuizController {
             if (r == ButtonType.YES) {
                 boolean ok = serviceQuiz.supprimer(quiz);
                 if (ok) {
-                    var admin = SessionManager.getCurrentUser();
+                    var admin = JwtManager.getCurrentUser();
                     if (admin != null) ActivityApiClient.logAsync(admin.getId(), "admin.deleted_quiz",
                         java.util.Map.of("titre", quiz.getTitre() != null ? quiz.getTitre() : ""));
                 }

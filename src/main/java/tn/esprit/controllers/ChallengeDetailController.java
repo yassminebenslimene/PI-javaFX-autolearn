@@ -10,7 +10,7 @@ import tn.esprit.entities.Challenge;
 import tn.esprit.entities.UserChallenge;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.UserChallengeService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -19,14 +19,13 @@ import java.time.format.DateTimeFormatter;
 public class ChallengeDetailController {
 
     @FXML private Label challengeTitle;
-    @FXML private Label dateDebutLabel;
-    @FXML private Label dateFinLabel;
     @FXML private Label niveauLabel;
     @FXML private Label dureeLabel;
     @FXML private VBox resultContainer;
     @FXML private Label scoreLabel;
     @FXML private Label completedAtLabel;
     @FXML private Button startButton;
+    @FXML private Button backButton;
 
     private Challenge challenge;
     private ChallengeService challengeService;
@@ -55,12 +54,6 @@ public class ChallengeDetailController {
     private void displayChallengeInfo() {
         challengeTitle.setText(challenge.getTitre());
 
-        if (dateDebutLabel != null) {
-            dateDebutLabel.setText(challenge.getDateDebut().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        }
-        if (dateFinLabel != null) {
-            dateFinLabel.setText(challenge.getDateFin().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        }
         if (niveauLabel != null) {
             niveauLabel.setText(challenge.getNiveau());
         }
@@ -70,12 +63,13 @@ public class ChallengeDetailController {
     }
 
     private void checkIfCompleted() {
-        if (SessionManager.getCurrentUser() == null) return;
+        if (JwtManager.getCurrentUser() == null) return;
 
         UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
-                SessionManager.getCurrentUser().getId(), challenge.getId());
+                JwtManager.getCurrentUser().getId(), challenge.getId());
 
         if (userChallenge != null && userChallenge.isCompleted()) {
+            // Challenge déjà complété → afficher le résultat directement dans cette vue
             if (resultContainer != null) {
                 resultContainer.setVisible(true);
                 resultContainer.setManaged(true);
@@ -86,19 +80,29 @@ public class ChallengeDetailController {
             if (completedAtLabel != null && userChallenge.getCompletedAt() != null) {
                 completedAtLabel.setText("Terminé le " + userChallenge.getCompletedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             }
+
+            // Modifier le bouton start pour afficher "Voir mon résultat" et ouvrir resultchallenge
             if (startButton != null) {
                 startButton.setText("📊 Voir mon résultat");
-                startButton.setOnAction(e -> openResult());
+                startButton.setOnAction(e -> openResult());  // ← AJOUTER CETTE LIGNE
+                startButton.setVisible(true);
+                startButton.setManaged(true);
             }
-        } else if (challenge.getDateFin().isBefore(LocalDate.now())) {
-            if (startButton != null) {
-                startButton.setText("🔒 Challenge expiré");
-                startButton.setDisable(true);
+            if (backButton != null) {
+                backButton.setVisible(true);
+                backButton.setManaged(true);
             }
         } else {
+            // Challenge non commencé
             if (startButton != null) {
                 startButton.setText("🚀 Commencer le challenge");
                 startButton.setOnAction(e -> startChallenge());
+                startButton.setVisible(true);
+                startButton.setManaged(true);
+            }
+            if (backButton != null) {
+                backButton.setVisible(false);
+                backButton.setManaged(false);
             }
         }
     }
@@ -119,25 +123,19 @@ public class ChallengeDetailController {
 
     private void openResult() {
         try {
-            // Charger le FXML - NE PAS créer manuellement le contrôleur
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/resultchallenge.fxml"));
             javafx.scene.Parent root = loader.load();
 
-            // Récupérer le contrôleur créé automatiquement par FXMLLoader
             ResultChallengeController controller = loader.getController();
-
-            // Passer les données au contrôleur
             controller.setChallenge(challenge);
 
-            // Récupérer et passer le score
             UserChallenge userChallenge = userChallengeService.findByUserAndChallenge(
-                    SessionManager.getCurrentUser().getId(), challenge.getId());
+                    JwtManager.getCurrentUser().getId(), challenge.getId());
 
             if (userChallenge != null) {
                 controller.setScore(userChallenge.getScore(), userChallenge.getTotalPoints());
             }
 
-            // Changer la vue
             MainApp.getPrimaryStage().getScene().setRoot(root);
 
         } catch (IOException e) {

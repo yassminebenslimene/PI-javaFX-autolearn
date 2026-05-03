@@ -8,7 +8,7 @@ import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.EquipeService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.List;
 
@@ -81,7 +81,7 @@ public class JoinEventController {
     }
 
     private void joinTeam(Equipe eq) {
-        var user = SessionManager.getCurrentUser();
+        var user = JwtManager.getCurrentUser();
         if (!(user instanceof Etudiant etudiant)) return;
 
         // Vérifier que l'étudiant ne participe pas déjà à cet événement

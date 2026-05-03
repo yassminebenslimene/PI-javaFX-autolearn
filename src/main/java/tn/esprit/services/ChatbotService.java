@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Chatbot Service - Ollama local AI + smart fallback parser.
+ * Chatbot Service - Groq API (fast, intelligent, cloud-based).
  */
 public class ChatbotService {
 
-    private static final String OLLAMA_URL   = "http://localhost:11434/api/chat";
-    private static final String OLLAMA_MODEL = "gemma3:4b"; // Google Gemma 3 - smart and fast
+    private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+    private static final String GROQ_MODEL   = "llama-3.3-70b-versatile"; // Fast and smart
     private static final Gson   GSON         = new Gson();
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
@@ -61,6 +61,13 @@ public class ChatbotService {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
+                // Get Groq API key from config
+                String apiKey = tn.esprit.tools.ConfigLoader.getGroqApiKey();
+                if (apiKey == null || apiKey.isEmpty()) {
+                    System.err.println("[Chatbot] Groq API key not configured - using smart fallback");
+                    return smartFallback(userMessage, conversationHistory);
+                }
+
                 JsonArray messages = new JsonArray();
 
                 JsonObject systemMsg = new JsonObject();
@@ -83,34 +90,31 @@ public class ChatbotService {
                 messages.add(userMsg);
 
                 JsonObject body = new JsonObject();
-                body.addProperty("model", OLLAMA_MODEL);
+                body.addProperty("model", GROQ_MODEL);
                 body.add("messages", messages);
-                body.addProperty("stream", false);
-
-                JsonObject options = new JsonObject();
-                options.addProperty("temperature", 0.1);
-                options.addProperty("num_predict", 600);
-                body.add("options", options);
+                body.addProperty("temperature", 0.1);
+                body.addProperty("max_tokens", 1200);
 
                 HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(OLLAMA_URL))
+                    .uri(URI.create(GROQ_API_URL))
                     .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(120))
+                    .header("Authorization", "Bearer " + apiKey)
+                    .timeout(Duration.ofSeconds(30))
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
                 HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
-                System.out.println("[Chatbot] Ollama HTTP " + resp.statusCode());
+                System.out.println("[Chatbot] Groq API HTTP " + resp.statusCode());
 
                 if (resp.statusCode() == 200) {
-                    return parseOllamaResponse(resp.body());
+                    return parseGroqResponse(resp.body());
                 } else {
-                    System.err.println("[Chatbot] Error " + resp.statusCode());
+                    System.err.println("[Chatbot] Groq API Error " + resp.statusCode() + ": " + resp.body());
                     return smartFallback(userMessage, conversationHistory);
                 }
 
-            } catch (java.net.ConnectException e) {
-                System.err.println("[Chatbot] Ollama not running - using smart fallback");
+            } catch (java.net.http.HttpTimeoutException e) {
+                System.err.println("[Chatbot] Request timed out - using smart fallback");
                 return smartFallback(userMessage, conversationHistory);
             } catch (Exception e) {
                 System.err.println("[Chatbot] Error: " + e.getMessage());
@@ -119,32 +123,49 @@ public class ChatbotService {
         });
     }
 
-    // ── Ollama response parsing ───────────────────────────────────────────────
+    // ── Groq response parsing ─────────────────────────────────────────────────
 
-    private static ChatResponse parseOllamaResponse(String responseBody) {
+    private static ChatResponse parseGroqResponse(String responseBody) {
         try {
             JsonObject json = GSON.fromJson(responseBody, JsonObject.class);
-            String content = json
-                .getAsJsonObject("message")
-                .get("content").getAsString()
-                .trim();
+            JsonArray choices = json.getAsJsonArray("choices");
+            if (choices == null || choices.size() == 0) {
+                return new ChatResponse("CHAT", new JsonObject(), "Désolé, je n'ai pas pu générer de réponse.", false);
+            }
+
+            JsonObject firstChoice = choices.get(0).getAsJsonObject();
+            JsonObject message = firstChoice.getAsJsonObject("message");
+            String content = message.get("content").getAsString().trim();
 
             System.out.println("[Chatbot] Raw: " + content);
 
+            // Try to extract JSON from the response
             String jsonStr = extractJson(content);
             if (jsonStr == null) {
+                // No JSON found - this is a conversational response
+                System.out.println("[Chatbot] Conversational response (no JSON)");
                 return new ChatResponse("CHAT", new JsonObject(), content, true);
             }
 
-            JsonObject parsed = GSON.fromJson(jsonStr, JsonObject.class);
-            String intent     = parsed.has("intent")  ? parsed.get("intent").getAsString()  : "CHAT";
-            JsonObject params = parsed.has("params")  ? parsed.getAsJsonObject("params")    : new JsonObject();
-            String message    = parsed.has("message") ? parsed.get("message").getAsString() : content;
+            // Parse the extracted JSON
+            try {
+                JsonObject parsed = GSON.fromJson(jsonStr, JsonObject.class);
+                String intent     = parsed.has("intent")  ? parsed.get("intent").getAsString()  : "CHAT";
+                JsonObject params = parsed.has("params")  ? parsed.getAsJsonObject("params")    : new JsonObject();
+                String msg        = parsed.has("message") ? parsed.get("message").getAsString() : content;
 
-            return new ChatResponse(intent, params, message, true);
+                System.out.println("[Chatbot] Parsed intent: " + intent);
+                return new ChatResponse(intent, params, msg, true);
+            } catch (Exception e) {
+                // JSON parsing failed - treat as conversational
+                System.err.println("[Chatbot] JSON parse error: " + e.getMessage());
+                System.out.println("[Chatbot] Falling back to conversational response");
+                return new ChatResponse("CHAT", new JsonObject(), content, true);
+            }
 
         } catch (Exception e) {
             System.err.println("[Chatbot] Parse error: " + e.getMessage());
+            e.printStackTrace();
             return new ChatResponse("CHAT", new JsonObject(), "Je n'ai pas compris. Pouvez-vous reformuler ?", false);
         }
     }
@@ -154,7 +175,17 @@ public class ChatbotService {
         int end   = text.lastIndexOf('}');
         if (start >= 0 && end > start) {
             String candidate = text.substring(start, end + 1);
-            if (candidate.contains("\"intent\"")) return candidate;
+            // Validate that it's a complete JSON object
+            if (candidate.contains("\"intent\"")) {
+                try {
+                    // Try to parse it to ensure it's valid JSON
+                    GSON.fromJson(candidate, JsonObject.class);
+                    return candidate;
+                } catch (Exception e) {
+                    System.err.println("[Chatbot] Invalid JSON extracted: " + e.getMessage());
+                    return null;
+                }
+            }
         }
         return null;
     }

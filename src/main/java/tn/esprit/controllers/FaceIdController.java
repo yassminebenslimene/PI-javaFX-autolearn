@@ -15,7 +15,7 @@ import tn.esprit.entities.User;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.FaceIdService;
 import tn.esprit.services.UserService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -118,7 +118,7 @@ public class FaceIdController {
                 stopPreview();
                 if (result.success()) {
                     showResult("Bienvenue " + finalUser.getPrenom() + " !", true);
-                    SessionManager.login(finalUser);
+                    JwtManager.login(finalUser);
                     ActivityApiClient.logAsync(finalUser.getId(), "user.login",
                         java.util.Map.of("method", "face_id", "email", finalUser.getEmail()));
                     new Timeline(new KeyFrame(Duration.millis(1500), ev -> {
@@ -180,7 +180,7 @@ public class FaceIdController {
         progressBar.setProgress(0);
         setStatus("Enregistrement en cours...");
 
-        User user = SessionManager.getCurrentUser();
+        User user = JwtManager.getCurrentUser();
         if (user == null) { showResult("Session perdue.", false); return; }
 
         CompletableFuture.runAsync(() -> {

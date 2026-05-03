@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.ExerciceDetailController"
+            style="-fx-background-color:#0a0f0d;">
+
+    <center>
+        <VBox spacing="20" style="-fx-padding:30; -fx-background-color:#0a0f0d;">
+
+            <Label text="Détails de l'exercice"
+                   style="-fx-font-size:22; -fx-font-weight:bold; -fx-text-fill:white;"/>
+
+            <VBox spacing="15"
+                  style="-fx-background-color:rgba(255,255,255,0.05); -fx-background-radius:15;
+                         -fx-padding:25;">
+
+                <HBox spacing="15">
+                    <Label text="Question :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="100"/>
+                    <Label fx:id="lblQuestion" wrapText="true"
+                           style="-fx-text-fill:white; -fx-font-size:14;"/>
+                </HBox>
+
+                <HBox spacing="15">
+                    <Label text="Réponse :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="100"/>
+                    <Label fx:id="lblReponse" wrapText="true"
+                           style="-fx-text-fill:white; -fx-font-size:14;"/>
+                </HBox>
+
+                <HBox spacing="15">
+                    <Label text="Points :" style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#7a6ad8;"
+                           prefWidth="100"/>
+                    <Label fx:id="lblPoints" style="-fx-text-fill:white; -fx-font-size:14;"/>
+                </HBox>
+
+            </VBox>
+
+            <Button text="Fermer" onAction="#closeWindow"
+                    style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:13;
+                           -fx-font-weight:bold; -fx-padding:10 20 10 20; -fx-background-radius:8;
+                           -fx-cursor:hand; -fx-border-width:0;"
+                    maxWidth="Infinity"/>
+
+        </VBox>
+    </center>
+</BorderPane>

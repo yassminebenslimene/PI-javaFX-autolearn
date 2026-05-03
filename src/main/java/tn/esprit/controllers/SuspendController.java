@@ -8,7 +8,7 @@ import tn.esprit.entities.User;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.EmailService;
 import tn.esprit.services.UserService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.Date;
 
@@ -88,7 +88,7 @@ public class SuspendController {
             user.setIsSuspended(true);
             user.setSuspendedAt(new Date());
             user.setSuspensionReason(reason);
-            user.setSuspendedBy(SessionManager.getCurrentUser().getId());
+            user.setSuspendedBy(JwtManager.getCurrentUser().getId());
         } else {
             user.setIsSuspended(false);
             user.setSuspendedAt(null);
@@ -99,7 +99,7 @@ public class SuspendController {
         service.modifier(user);
 
         // ── Log under ADMIN's ID ──────────────────────────────────────────────
-        var admin = SessionManager.getCurrentUser();
+        var admin = JwtManager.getCurrentUser();
         int logId = (admin != null) ? admin.getId() : user.getId();
         if (user.isIsSuspended()) {
             ActivityApiClient.logAsync(logId, "admin.suspended_student",

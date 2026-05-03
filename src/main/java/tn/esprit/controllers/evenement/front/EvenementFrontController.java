@@ -67,6 +67,11 @@ public class EvenementFrontController {
 
     @FXML
     public void initialize() {
+        // Set active navbar button
+        if (navbarController != null) {
+            navbarController.setActive("Evenements");
+        }
+        
         allEvents = evenementService.getAll();
         buildFilterBar();
         renderGrid(allEvents);

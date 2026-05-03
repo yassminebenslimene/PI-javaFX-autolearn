@@ -24,6 +24,9 @@
                 <Button fx:id="btnNavChallenges" text="Challenges" onAction="#onChallenges"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
+                <Button fx:id="btnNavClassement" text="🏆 Classement" onAction="#onLeaderboard"
+                        style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
+                               -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
                 <Button fx:id="btnNavEvenements" text="Evenements" onAction="#onEvenements"
                         style="-fx-background-color:transparent; -fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13;
                                -fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;"/>
@@ -66,7 +69,10 @@
         </HBox>
     </top>
     <center>
-        <ScrollPane fx:id="mainScrollPane" fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+        <StackPane pickOnBounds="false">
+        <ScrollPane fx:id="mainScrollPane" fitToWidth="true" fitToHeight="false"
+                    vbarPolicy="AS_NEEDED" hbarPolicy="NEVER"
+                    pannable="false" focusTraversable="true"
                     style="-fx-background-color:white; -fx-background:transparent; -fx-border-width:0;">
             <VBox fx:id="homeContent" spacing="0" style="-fx-background-color:white;">
 
@@ -244,7 +250,8 @@
                     <!-- ScrollPane horizontal sans scrollbar — clip naturel -->
                     <ScrollPane fx:id="newsScrollPane" fitToHeight="true"
                                 hbarPolicy="NEVER" vbarPolicy="NEVER"
-                                prefHeight="220" maxHeight="220" focusTraversable="false"
+                                prefHeight="220" maxHeight="220"
+                                focusTraversable="false" mouseTransparent="false"
                                 style="-fx-background-color:transparent; -fx-background:transparent;
                                        -fx-border-width:0; -fx-padding:0;">
                         <HBox fx:id="newsCardsContainer" spacing="16" alignment="CENTER_LEFT"
@@ -386,13 +393,18 @@
                 </VBox>
 
                 <!-- FOOTER -->
-                <VBox alignment="CENTER" spacing="8" prefHeight="64"
-                      style="-fx-background-color:#1a1a2e; -fx-padding:20 80 20 80;">
+                <VBox alignment="CENTER" spacing="8" minHeight="64"
+                      style="-fx-background-color:#1a1a2e; -fx-padding:20 80 40 80;">
                     <Label text="&#169; 2026 AutoLearn - Tous droits reserves - Tunisie"
                            style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:12;"/>
                 </VBox>
             </VBox>
         </ScrollPane>
+
+        <!-- Floating Student AI Assistant -->
+        <fx:include source="student_assistant.fxml" fx:id="studentAssistant"/>
+
+        </StackPane>
     </center>
 </BorderPane>
 
