@@ -255,7 +255,17 @@ public class VendingMachineController {
         obtenirBtn.setOpacity(0);
         obtenirBtn.setOnAction(e -> { parentBody.getChildren().clear(); loadItemsAsync(parentBody); });
 
-        box.getChildren().addAll(emojiLbl, confetti, nomLbl, prixLbl, obtenirBtn);
+        VBox deliveryBox = new VBox(6); deliveryBox.setAlignment(javafx.geometry.Pos.CENTER);
+        deliveryBox.setPadding(new javafx.geometry.Insets(12,20,12,20));
+        deliveryBox.setStyle("-fx-background-color:linear-gradient(to right,#e8f5e9,#c8e6c9);-fx-background-radius:14;-fx-border-color:#43a04788;-fx-border-radius:14;-fx-border-width:1.5;");
+        Label deliveryIcon = new Label("\uD83D\uDEB6  Livraison en cours");
+        deliveryIcon.setStyle("-fx-font-size:13;-fx-font-weight:800;-fx-text-fill:#2e7d32;");
+        Label deliveryMsg = new Label("Un membre de l'equipe organisatrice se dirige vers votre emplacement. Votre article vous sera remis dans quelques instants.");
+        deliveryMsg.setStyle("-fx-font-size:11;-fx-text-fill:#388e3c;-fx-font-style:italic;");
+        deliveryMsg.setWrapText(true); deliveryMsg.setMaxWidth(400); deliveryMsg.setAlignment(javafx.geometry.Pos.CENTER);
+        deliveryBox.getChildren().addAll(deliveryIcon, deliveryMsg);
+        deliveryBox.setOpacity(0);
+        box.getChildren().addAll(emojiLbl, confetti, nomLbl, prixLbl, deliveryBox, obtenirBtn);
         parentBody.getChildren().clear();
         parentBody.getChildren().add(box);
 
@@ -284,10 +294,13 @@ public class VendingMachineController {
         FadeTransition fp = new FadeTransition(Duration.millis(300), prixLbl);
         fp.setFromValue(0); fp.setToValue(1); fp.setDelay(Duration.millis(600));
 
-        FadeTransition fb = new FadeTransition(Duration.millis(300), obtenirBtn);
-        fb.setFromValue(0); fb.setToValue(1); fb.setDelay(Duration.millis(900));
+        FadeTransition fd = new FadeTransition(Duration.millis(400), deliveryBox);
+        fd.setFromValue(0); fd.setToValue(1); fd.setDelay(Duration.millis(750));
 
-        new ParallelTransition(new ParallelTransition(fe, se), fc, fn, fp, fb).play();
+        FadeTransition fb = new FadeTransition(Duration.millis(300), obtenirBtn);
+        fb.setFromValue(0); fb.setToValue(1); fb.setDelay(Duration.millis(1050));
+
+        new ParallelTransition(new ParallelTransition(fe, se), fc, fn, fp, fd, fb).play();
     }
 
     private static List<ItemVending> getFallbackItems() {

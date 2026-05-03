@@ -184,20 +184,21 @@ public class CoinCafeController {
         card.setPadding(new Insets(14,8,14,8)); card.setMaxWidth(Double.MAX_VALUE);
         card.setStyle("-fx-background-color:"+bg+";-fx-background-radius:16;-fx-border-color:"+accent+"88;-fx-border-radius:16;-fx-border-width:2;-fx-effect:dropshadow(gaussian,"+accent+"55,10,0,0,3);-fx-cursor:hand;");
         Label el = new Label(emoji);
-        el.setStyle("-fx-font-size:36;-fx-background-color:white;-fx-background-radius:50%;-fx-padding:10 12 10 12;-fx-min-width:60;-fx-min-height:60;-fx-alignment:CENTER;");
+        el.setStyle("-fx-font-size:52;-fx-alignment:CENTER;");
+        el.setMinWidth(64); el.setMinHeight(64); el.setAlignment(javafx.geometry.Pos.CENTER);
         Label nl = new Label(nom);
         nl.setStyle("-fx-font-size:12;-fx-font-weight:800;-fx-text-fill:#1e1e1e;");
         nl.setWrapText(true); nl.setMaxWidth(100); nl.setAlignment(Pos.CENTER);
         Label dl = new Label(desc);
-        dl.setStyle("-fx-font-size:10;-fx-text-fill:#6b7280;");
+        dl.setStyle("-fx-font-size:10;-fx-text-fill:rgba(255,255,255,0.65);");
         dl.setWrapText(true); dl.setMaxWidth(100); dl.setAlignment(Pos.CENTER);
         card.getChildren().addAll(el, nl, dl);
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-background-color:"+accent+"22;-fx-background-radius:16;-fx-border-color:"+accent+";-fx-border-radius:16;-fx-border-width:2.5;-fx-effect:dropshadow(gaussian,"+accent+"88,18,0,0,6);-fx-cursor:hand;");
+            card.setStyle("-fx-background-color:"+accent+"55;-fx-background-radius:16;-fx-border-color:"+accent+";-fx-border-radius:16;-fx-border-width:2.5;-fx-effect:dropshadow(gaussian,"+accent+"88,18,0,0,6);-fx-cursor:hand;");
             ScaleTransition st = new ScaleTransition(Duration.millis(120), card); st.setToX(1.06); st.setToY(1.06); st.play();
         });
         card.setOnMouseExited(e -> {
-            card.setStyle("-fx-background-color:"+bg+";-fx-background-radius:16;-fx-border-color:"+accent+"88;-fx-border-radius:16;-fx-border-width:2;-fx-effect:dropshadow(gaussian,"+accent+"55,10,0,0,3);-fx-cursor:hand;");
+            card.setStyle("-fx-background-color:#2C1A0E;-fx-background-radius:16;-fx-border-color:"+accent+";-fx-border-radius:16;-fx-border-width:2;-fx-effect:dropshadow(gaussian,"+accent+"55,10,0,0,3);-fx-cursor:hand;");
             ScaleTransition st = new ScaleTransition(Duration.millis(120), card); st.setToX(1); st.setToY(1); st.play();
         });
         card.setOnMouseClicked(e -> {
@@ -258,7 +259,17 @@ public class CoinCafeController {
         rb.setStyle("-fx-background-color:linear-gradient(to right,#c0392b,#f39c12);-fx-text-fill:white;-fx-font-size:13;-fx-font-weight:700;-fx-padding:12 28 12 28;-fx-background-radius:25;-fx-cursor:hand;-fx-border-width:0;");
         rb.setOpacity(0);
         rb.setOnAction(e -> { parentBody.getChildren().clear(); parentBody.getChildren().addAll(buildMachineSection(), buildCafeGrid(dialog, parentBody)); });
-        box.getChildren().addAll(be, ba, nl, conf, nutBox, qBox, rb);
+        VBox deliveryBox = new VBox(6); deliveryBox.setAlignment(javafx.geometry.Pos.CENTER);
+        deliveryBox.setPadding(new Insets(12,20,12,20));
+        deliveryBox.setStyle("-fx-background-color:linear-gradient(to right,#1a4a1a,#0d2d0d);-fx-background-radius:14;-fx-border-color:#27ae6088;-fx-border-radius:14;-fx-border-width:1.5;");
+        Label deliveryIcon = new Label("\uD83D\uDEB6  Livraison en cours");
+        deliveryIcon.setStyle("-fx-font-size:13;-fx-font-weight:800;-fx-text-fill:#2ecc71;");
+        Label deliveryMsg = new Label("Un membre de l'equipe organisatrice se dirige vers votre table. Votre commande vous sera remise dans quelques instants.");
+        deliveryMsg.setStyle("-fx-font-size:11;-fx-text-fill:#a8d5a2;-fx-font-style:italic;");
+        deliveryMsg.setWrapText(true); deliveryMsg.setMaxWidth(400); deliveryMsg.setAlignment(javafx.geometry.Pos.CENTER);
+        deliveryBox.getChildren().addAll(deliveryIcon, deliveryMsg);
+        deliveryBox.setOpacity(0);
+        box.getChildren().addAll(be, ba, nl, conf, deliveryBox, nutBox, qBox, rb);
         parentBody.getChildren().add(box);
         FadeTransition fe = new FadeTransition(Duration.millis(400), be); fe.setFromValue(0); fe.setToValue(1);
         ScaleTransition se = new ScaleTransition(Duration.millis(500), be); se.setFromX(0.3); se.setFromY(0.3); se.setToX(1); se.setToY(1); se.setInterpolator(Interpolator.EASE_OUT);
@@ -266,10 +277,11 @@ public class CoinCafeController {
         FadeTransition fb = new FadeTransition(Duration.millis(350), ba); fb.setFromValue(0); fb.setToValue(1); fb.setDelay(Duration.millis(400));
         FadeTransition fn = new FadeTransition(Duration.millis(350), nl); fn.setFromValue(0); fn.setToValue(1); fn.setDelay(Duration.millis(600));
         FadeTransition fc = new FadeTransition(Duration.millis(350), conf); fc.setFromValue(0); fc.setToValue(1); fc.setDelay(Duration.millis(800));
-        FadeTransition fnu = new FadeTransition(Duration.millis(350), nutBox); fnu.setFromValue(0); fnu.setToValue(1); fnu.setDelay(Duration.millis(1000));
+        FadeTransition fd = new FadeTransition(Duration.millis(400), deliveryBox); fd.setFromValue(0); fd.setToValue(1); fd.setDelay(Duration.millis(950));
+        FadeTransition fnu = new FadeTransition(Duration.millis(350), nutBox); fnu.setFromValue(0); fnu.setToValue(1); fnu.setDelay(Duration.millis(1150));
         FadeTransition fq = new FadeTransition(Duration.millis(350), qBox); fq.setFromValue(0); fq.setToValue(1); fq.setDelay(Duration.millis(1200));
         FadeTransition fr = new FadeTransition(Duration.millis(350), rb); fr.setFromValue(0); fr.setToValue(1); fr.setDelay(Duration.millis(1400));
-        new ParallelTransition(new ParallelTransition(fe,se),fb,fn,fc,fnu,fq,fr).play();
+        new ParallelTransition(new ParallelTransition(fe,se),fb,fn,fc,fd,fnu,fq,fr).play();
         for (int i = 0; i < conf.getChildren().size(); i++) {
             javafx.scene.Node n = conf.getChildren().get(i);
             TranslateTransition tt = new TranslateTransition(Duration.millis(600+i*80), n);
