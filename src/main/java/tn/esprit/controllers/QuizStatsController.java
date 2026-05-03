@@ -261,9 +261,9 @@ public class QuizStatsController {
             "-fx-border-color:transparent transparent #21262d transparent;" +
             "-fx-border-width:0 0 1 0;");
         String[][] cols = {
-            {"Cours","155"},{"Chapitre","145"},{"Quiz","165"},
-            {"État","85"},{"Questions","95"},{"Taux réussite","165"},
-            {"Diagnostic","135"},{"Action recommandée","235"}
+            {"Cours","130"},{"Chapitre","120"},{"Quiz","145"},
+            {"État","75"},{"Questions","80"},{"Taux réussite","145"},
+            {"Diagnostic","120"},{"Action recommandée","185"}
         };
         for (String[] col : cols) {
             Label l = new Label(col[0]);
@@ -303,15 +303,15 @@ public class QuizStatsController {
             row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:rgba(124,58,237,0.08); -fx-cursor:hand;"));
             row.setOnMouseExited(e  -> row.setStyle("-fx-background-color:" + normalBg + ";"));
 
-            row.getChildren().add(buildCell(r.coursTitre(),    155, "#c9d1d9", false));
-            row.getChildren().add(buildCell(r.chapitreTitre(), 145, "#8b949e", false));
-            row.getChildren().add(buildCell(r.quizTitre(),     165, "#e6edf3", true));
+            row.getChildren().add(buildCell(r.coursTitre(),    130, "#c9d1d9", false));
+            row.getChildren().add(buildCell(r.chapitreTitre(), 120, "#8b949e", false));
+            row.getChildren().add(buildCell(r.quizTitre(),     145, "#e6edf3", true));
 
             // État badge
             HBox etatCell = new HBox();
             etatCell.setAlignment(Pos.CENTER_LEFT);
             etatCell.setPadding(new Insets(0, 8, 0, 14));
-            etatCell.setPrefWidth(85); etatCell.setMinWidth(85);
+            etatCell.setPrefWidth(75); etatCell.setMinWidth(75);
             Label etatLbl = new Label(r.quizEtat() != null ? r.quizEtat() : "—");
             etatLbl.setStyle("-fx-background-color:" + etatBg + "; -fx-text-fill:" + etatColor + ";" +
                 "-fx-font-size:10; -fx-font-weight:800; -fx-background-radius:999; -fx-padding:3 9 3 9;");
@@ -322,7 +322,7 @@ public class QuizStatsController {
             HBox qCell = new HBox();
             qCell.setAlignment(Pos.CENTER_LEFT);
             qCell.setPadding(new Insets(0, 8, 0, 14));
-            qCell.setPrefWidth(95); qCell.setMinWidth(95);
+            qCell.setPrefWidth(80); qCell.setMinWidth(80);
             Label qLbl = new Label(String.valueOf(r.nbQuestions()));
             qLbl.setStyle("-fx-background-color:rgba(96,165,250,0.12); -fx-text-fill:#60a5fa;" +
                 "-fx-font-size:12; -fx-font-weight:800; -fx-background-radius:999; -fx-padding:3 10 3 10;");
@@ -335,9 +335,9 @@ public class QuizStatsController {
             HBox tauxCell = new HBox(8);
             tauxCell.setAlignment(Pos.CENTER_LEFT);
             tauxCell.setPadding(new Insets(0, 8, 0, 14));
-            tauxCell.setPrefWidth(165); tauxCell.setMinWidth(165);
+            tauxCell.setPrefWidth(145); tauxCell.setMinWidth(145);
             ProgressBar pb = new ProgressBar(taux / 100.0);
-            pb.setPrefWidth(85); pb.setPrefHeight(8);
+            pb.setPrefWidth(70); pb.setPrefHeight(8);
             pb.setStyle("-fx-accent:" + pbColor + "; -fx-background-color:rgba(255,255,255,0.08); -fx-background-radius:4;");
             Tooltip.install(pb, new Tooltip(String.format("%.1f%% d'options correctes", taux)));
             Label tauxLbl = new Label(String.format("%.0f%%", taux));
@@ -349,7 +349,7 @@ public class QuizStatsController {
             HBox diagCell = new HBox();
             diagCell.setAlignment(Pos.CENTER_LEFT);
             diagCell.setPadding(new Insets(0, 8, 0, 14));
-            diagCell.setPrefWidth(135); diagCell.setMinWidth(135);
+            diagCell.setPrefWidth(120); diagCell.setMinWidth(120);
             Label diagLbl = new Label(ds[1] + " " + r.diagnostic());
             diagLbl.setStyle("-fx-background-color:rgba(255,255,255,0.05); -fx-text-fill:" + ds[0] + ";" +
                 "-fx-font-size:10; -fx-font-weight:700; -fx-background-radius:6; -fx-padding:3 8 3 8;");
@@ -357,7 +357,7 @@ public class QuizStatsController {
             diagCell.getChildren().add(diagLbl);
             row.getChildren().add(diagCell);
 
-            row.getChildren().add(buildCell(r.action(), 235, "#8b949e", false));
+            row.getChildren().add(buildCell(r.action(), 185, "#8b949e", false));
             table.getChildren().add(row);
         }
 
@@ -391,6 +391,12 @@ public class QuizStatsController {
         }
         table.getChildren().add(legend);
         wrapper.getChildren().add(table);
+
+        // Espace en bas pour éviter que la légende soit cachée par la barre des tâches
+        Region bottomSpacer = new Region();
+        bottomSpacer.setPrefHeight(32);
+        wrapper.getChildren().add(bottomSpacer);
+
         return wrapper;
     }
 

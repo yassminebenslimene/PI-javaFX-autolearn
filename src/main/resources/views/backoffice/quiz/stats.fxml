@@ -23,7 +23,7 @@
             <VBox style="-fx-background-color:linear-gradient(to bottom, #161b22, #0d1117);
                          -fx-border-color:transparent transparent #21262d transparent;
                          -fx-border-width:0 0 1 0;
-                         -fx-padding:28 36 24 36;">
+                         -fx-padding:22 20 18 20;">
 
                 <!-- Titre + sous-titre -->
                 <HBox alignment="CENTER_LEFT" spacing="12">
@@ -136,7 +136,7 @@
             <!-- ══════════════════════════════════════════════════════════════
                  CONTENU PRINCIPAL
             ══════════════════════════════════════════════════════════════ -->
-            <VBox spacing="28" style="-fx-padding:28 36 36 36; -fx-background-color:#0d1117;">
+            <VBox spacing="28" style="-fx-padding:28 20 60 20; -fx-background-color:#0d1117;">
 
                 <!-- ── Section : Résumé par cours ── -->
                 <VBox spacing="14">
