@@ -8,8 +8,7 @@ import tn.esprit.entities.Equipe;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.Evenement;
 import tn.esprit.services.EquipeService;
-import tn.esprit.services.ParticipationConfirmationService;
-import tn.esprit.session.SessionManager;
+import tn.esprit.session.JwtManager;
 
 import java.util.List;
 
@@ -82,7 +81,7 @@ public class JoinEventController {
     }
 
     private void joinTeam(Equipe eq) {
-        var user = SessionManager.getCurrentUser();
+        var user = JwtManager.getCurrentUser();
         if (!(user instanceof Etudiant etudiant)) return;
 
         // Vérifier que l'étudiant ne participe pas déjà à cet événement
@@ -92,20 +91,12 @@ public class JoinEventController {
         }
 
         equipeService.ajouterEtudiantEquipe(eq.getId(), etudiant.getId());
-
-        // Créer la participation et récupérer son ID
+        // Create participation
         tn.esprit.entities.Participation p = new tn.esprit.entities.Participation(eq.getId(), evenement.getId());
         p.setStatut("Accepté");
-        int participationId = new tn.esprit.services.ParticipationService().ajouterEtRetournerId(p);
-
-        // Envoyer les emails de confirmation à tous les membres (asynchrone)
-        if (participationId > 0) {
-            new ParticipationConfirmationService().sendConfirmationToTeam(eq, evenement, participationId);
-        }
-
+        new tn.esprit.services.ParticipationService().ajouter(p);
         FrontNavHelper.goMesParticipations("✓ Participation acceptée avec succès ! Votre équipe \""
-                + eq.getNom() + "\" est inscrite à l'événement \"" + evenement.getTitre()
-                + "\". Un email de confirmation avec votre badge a été envoyé.");
+                + eq.getNom() + "\" est inscrite à l'événement \"" + evenement.getTitre() + "\".");
     }
 
     @FXML private void onCreateTeam() {
@@ -113,23 +104,11 @@ public class JoinEventController {
             MainApp.showCreateTeam(evenement);
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    @FXML private void onVoirSalle() {
-        try {
-            // Récupérer l'équipe de l'étudiant connecté pour cet événement
-            var user = SessionManager.getCurrentUser();
-            Equipe eq = null;
-            if (user instanceof Etudiant etudiant) {
-                List<Equipe> equipes = equipeService.getEquipesByEtudiant(etudiant.getId());
-                eq = equipes.stream()
-                        .filter(e -> e.getEvenementId() == evenement.getId())
-                        .findFirst().orElse(null);
-            }
-            MainApp.showSalleReservation(evenement, eq);
-        } catch (Exception e) {
-            e.printStackTrace();
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.ERROR,
+                    "Erreur: " + e.getMessage() + (e.getCause() != null ? "\n" + e.getCause().getMessage() : ""));
+            alert.setTitle("Erreur navigation");
+            alert.showAndWait();
         }
     }
 

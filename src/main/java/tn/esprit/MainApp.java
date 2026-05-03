@@ -15,6 +15,22 @@ public class MainApp extends Application {
 
     private static Stage primaryStage;
     private static BackofficeController backofficeController;
+    private static javafx.application.HostServices hostServices;
+
+    /** Ouvre une URL dans le navigateur par défaut du système. */
+    public static void openUrl(String url) {
+        if (url == null || url.isBlank() || "#".equals(url)) return;
+        try {
+            if (hostServices != null) {
+                hostServices.showDocument(url);
+            } else {
+                // Fallback : java.awt.Desktop
+                java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+            }
+        } catch (Exception e) {
+            System.err.println("[MainApp] Impossible d'ouvrir l'URL : " + e.getMessage());
+        }
+    }
 
     public static void setBackofficeController(BackofficeController c) {
         backofficeController = c;
@@ -34,23 +50,100 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         primaryStage = stage;
+        hostServices = getHostServices();
+        // Vider les caches des services API au démarrage
+        tn.esprit.services.TechNewsService.clearCache();
+        tn.esprit.services.GeoLocationService.clearCache();
         primaryStage.setTitle("AutoLearn");
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
         primaryStage.setMaximized(true);
-        // Démarrer le serveur HTTP pour les QR codes de participation
-        tn.esprit.services.ParticipationWebServer.start();
+
+        // Auto-start Face ID Python server in background
+        startFaceIdServer();
+
         showLanding();
         primaryStage.show();
     }
 
-    @Override
-    public void stop() {
-        tn.esprit.services.ParticipationWebServer.stop();
+    /**
+     * DEPRECATED: Old Python Face ID server - now using Face++ API directly
+     * Starts the Python Face ID server automatically if not already running.
+     * Looks for faceid_server.py in the project directory.
+     */
+    private static Process faceIdProcess;
+
+    private static void startFaceIdServer() {
+        // DISABLED: Now using Face++ API directly in FaceIdService
+        // No need to start Python server anymore
+        System.out.println("[FaceID] Using Face++ API (Python server disabled)");
+        return;
+        
+        /* OLD CODE - COMMENTED OUT
+        // Check if already running
+        if (tn.esprit.services.FaceIdService.isServerRunning()) {
+            System.out.println("[FaceID] Server already running");
+            return;
+        }
+
+        Thread t = new Thread(() -> {
+            try {
+                // Find faceid_server.py — try project root first, then user home
+                java.nio.file.Path serverScript = null;
+                String[] searchPaths = {
+                    "faceid_server.py",
+                    System.getProperty("user.dir") + "/faceid_server.py",
+                    System.getProperty("user.home") + "/faceid_server.py"
+                };
+                for (String path : searchPaths) {
+                    if (java.nio.file.Files.exists(java.nio.file.Path.of(path))) {
+                        serverScript = java.nio.file.Path.of(path);
+                        break;
+                    }
+                }
+
+                if (serverScript == null) {
+                    System.err.println("[FaceID] faceid_server.py not found - Face ID disabled");
+                    return;
+                }
+
+                System.out.println("[FaceID] Starting server: " + serverScript);
+
+                ProcessBuilder pb = new ProcessBuilder("python", serverScript.toString());
+                pb.directory(serverScript.getParent().toFile());
+                pb.redirectErrorStream(true);
+                faceIdProcess = pb.start();
+
+                // Wait up to 5 seconds for server to start
+                for (int i = 0; i < 10; i++) {
+                    Thread.sleep(500);
+                    if (tn.esprit.services.FaceIdService.isServerRunning()) {
+                        System.out.println("[FaceID] Server started successfully");
+                        return;
+                    }
+                }
+                System.err.println("[FaceID] Server did not start in time");
+
+            } catch (Exception e) {
+                System.err.println("[FaceID] Could not start server: " + e.getMessage());
+            }
+        });
+        t.setDaemon(true);
+        t.setName("faceid-server-starter");
+        t.start();
+        */
     }
 
-    // ── Module User — navigation ──────────────────────────────────────────────
+    /** Stop the Face ID server when app closes */
+    @Override
+    public void stop() throws Exception {
+        if (faceIdProcess != null && faceIdProcess.isAlive()) {
+            faceIdProcess.destroy();
+            System.out.println("[FaceID] Server stopped");
+        }
+        super.stop();
+    }
 
     public static void showLanding() throws Exception {
         load("/views/landing.fxml");
@@ -94,7 +187,7 @@ public class MainApp extends Application {
     }
 
     /**
-     * Opens Face ID login dialog as a modal popup (module User).
+     * Opens Face ID login dialog as a modal popup.
      */
     public static void showFaceIdLogin(String prefillEmail) throws Exception {
         FXMLLoader loader = new FXMLLoader(
@@ -105,6 +198,7 @@ public class MainApp extends Application {
         if (prefillEmail != null && !prefillEmail.isEmpty()) {
             ctrl.prefillEmail(prefillEmail);
         }
+
         javafx.stage.Stage dialog = new javafx.stage.Stage();
         dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
         dialog.initOwner(primaryStage);
@@ -115,7 +209,7 @@ public class MainApp extends Application {
     }
 
     /**
-     * Opens Face ID register dialog as a modal popup (module User).
+     * Opens Face ID register dialog as a modal popup (from profile page).
      */
     public static void showFaceIdRegister() throws Exception {
         FXMLLoader loader = new FXMLLoader(
@@ -123,6 +217,7 @@ public class MainApp extends Application {
         javafx.scene.Parent root = loader.load();
         tn.esprit.controllers.FaceIdController ctrl = loader.getController();
         ctrl.setMode(tn.esprit.controllers.FaceIdController.Mode.REGISTER);
+
         javafx.stage.Stage dialog = new javafx.stage.Stage();
         dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
         dialog.initOwner(primaryStage);
@@ -132,8 +227,7 @@ public class MainApp extends Application {
         dialog.show();
     }
 
-    // ── Module Evenement — navigation ─────────────────────────────────────────
-
+    /** Stub — GestionEvenement module fills this in */
     public static void showEvenements() throws Exception {
         load("/views/frontoffice/evenements.fxml");
         primaryStage.setMaximized(true);
@@ -214,6 +308,46 @@ public class MainApp extends Application {
         primaryStage.setTitle("AutoLearn — Choisir un evenement");
     }
 
+    public static void showChallengesFront() throws Exception {
+        load("/views/frontoffice/showchallenges.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Challenges");
+    }
+
+    public static void showLeaderboard() throws Exception {
+        load("/views/frontoffice/leaderboard.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Classement");
+    }
+
+    public static void showCommunauteFront() throws Exception {
+        load("/views/frontoffice/communaute/index.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Communauté");
+    }
+
+    public static void showGitHubExamples() throws Exception {
+        load("/views/frontoffice/github_examples.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — GitHub Code Explorer");
+    }
+
+    public static void showTodoList() throws Exception {
+        load("/views/frontoffice/todo.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Ma Liste");
+    }
+
+    public static void showCoursPage() throws Exception {
+        load("/views/frontoffice/layout.fxml");
+        primaryStage.setMaximized(true);
+        primaryStage.setTitle("AutoLearn — Cours");
+        // Après le chargement du layout, naviguer vers la page cours
+        javafx.application.Platform.runLater(() -> {
+            tn.esprit.controllers.FrontofficeController.navigateToCoursPage();
+        });
+    }
+
     public static void showFeedback(Participation p, Evenement ev) throws Exception {
         FXMLLoader loader = getLoader("/views/frontoffice/feedback.fxml");
         setScene(loader);
@@ -227,62 +361,6 @@ public class MainApp extends Application {
         primaryStage.setMaximized(true);
         primaryStage.setTitle("AutoLearn — Calendrier des Événements");
     }
-
-    public static void showSalleReservation(Evenement ev, Equipe eq) throws Exception {
-        FXMLLoader loader = getLoader("/views/frontoffice/salle_reservation.fxml");
-        setScene(loader);
-        tn.esprit.controllers.evenement.front.SalleReservationController ctrl = loader.getController();
-        ctrl.setData(ev, eq);
-        primaryStage.setTitle("AutoLearn — Plan de la Salle");
-    }
-
-    public static void showEspaceParticipant(Evenement ev) throws Exception {
-        FXMLLoader loader = getLoader("/views/frontoffice/espace_participant.fxml");
-        setScene(loader);
-        tn.esprit.controllers.evenement.front.EspaceParticipantPageController ctrl = loader.getController();
-        ctrl.setData(ev);
-        primaryStage.setTitle("AutoLearn — Espace Participant");
-    }
-
-    // ── Autres modules ────────────────────────────────────────────────────────
-
-    public static void showChallengesFront() throws Exception {
-        load("/views/frontoffice/showchallenges.fxml");
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — Challenges");
-    }
-
-    public static void showCommunauteFront() throws Exception {
-        load("/views/frontoffice/communaute/index.fxml");
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — Communauté");
-    }
-
-    public static void showLeaderboard() throws Exception {
-        load("/views/frontoffice/leaderboard.fxml");
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — Classement");
-    }
-
-    public static void showCoursPage() throws Exception {
-        load("/views/frontoffice/cours/index.fxml");
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — Cours");
-    }
-
-    public static void showGitHubExamples() throws Exception {
-        load("/views/frontoffice/github_examples.fxml");
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — GitHub Examples");
-    }
-
-    public static void showTodoList() throws Exception {
-        load("/views/frontoffice/todo.fxml");
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle("AutoLearn — Todo");
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static FXMLLoader getLoader(String fxml) throws Exception {
         java.net.URL resource = MainApp.class.getResource(fxml);
@@ -299,9 +377,11 @@ public class MainApp extends Application {
     }
 
     private static void load(String fxml) throws Exception {
+        // Use screen size so the scene always fills the window
         javafx.geometry.Rectangle2D screen = Screen.getPrimary().getVisualBounds();
         java.net.URL resource = MainApp.class.getResource(fxml);
         if (resource == null) {
+            // fallback: try without leading slash
             resource = MainApp.class.getResource(fxml.startsWith("/") ? fxml.substring(1) : fxml);
         }
         if (resource == null) throw new Exception("FXML not found: " + fxml);

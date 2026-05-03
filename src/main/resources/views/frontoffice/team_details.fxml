@@ -57,11 +57,6 @@
                                 style="-fx-background-color:#059669; -fx-text-fill:white; -fx-font-size:12;
                                        -fx-font-weight:700; -fx-padding:10 20 10 20; -fx-background-radius:10;
                                        -fx-cursor:hand; -fx-border-width:0;"/>
-                        <Button text="Plan 3D de la Salle" onAction="#onVoirSalle"
-                                style="-fx-background-color:linear-gradient(to right,#7a6ad8,#4e3b9c);
-                                       -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:700;
-                                       -fx-padding:10 20 10 20; -fx-background-radius:10;
-                                       -fx-cursor:hand; -fx-border-width:0;"/>
                         <Button text="&#9999;  Modifier l'equipe" onAction="#onEditTeam"
                                 style="-fx-background-color:white; -fx-text-fill:#555; -fx-font-size:12;
                                        -fx-font-weight:600; -fx-padding:10 20 10 20; -fx-background-radius:10;

@@ -50,12 +50,4 @@ public class FrontNavHelper {
         JwtManager.logout();
         try { MainApp.showLogin(); } catch (Exception e) { e.printStackTrace(); }
     }
-
-    public static void goSalleReservation(tn.esprit.entities.Evenement ev) {
-        try { MainApp.showSalleReservation(ev, null); } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    public static void goEspaceParticipant(tn.esprit.entities.Evenement ev) {
-        try { MainApp.showEspaceParticipant(ev); } catch (Exception e) { e.printStackTrace(); }
-    }
 }

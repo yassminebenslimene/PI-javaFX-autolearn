@@ -20,8 +20,7 @@ import java.util.*;
 
 /**
  * Calendrier mensuel des événements — reproduit le comportement du CalendarBundle Symfony.
- * Couleurs par type : Workshop=beige, Conference=marron, Hackathon=nude, Annulé=gris, Passé=vert pâle
- * Palette: marron #8b6614, beige #f5e6c8, nude #a0826d
+ * Couleurs par type : Workshop=violet, Conference=rose, Hackathon=bleu, Annulé=gris, Passé=vert pâle
  */
 public class CalendrierEvenementsController {
 
@@ -110,7 +109,7 @@ public class CalendrierEvenementsController {
             Label dayNum = new Label(String.valueOf(date.getDayOfMonth()));
             dayNum.setStyle("-fx-font-size:12; -fx-font-weight:700; -fx-text-fill:white;");
             StackPane circle = new StackPane(dayNum);
-            circle.setStyle("-fx-background-color:#8b6614; -fx-background-radius:50%;");
+            circle.setStyle("-fx-background-color:#667eea; -fx-background-radius:50%;");
             circle.setMinSize(28, 28);
             circle.setMaxSize(28, 28);
             circle.setAlignment(Pos.CENTER);
@@ -174,13 +173,13 @@ public class CalendrierEvenementsController {
         if (ev.isIsCanceled() || "Annulé".equals(ev.getStatus())) return "#95a5a6";
         boolean isPast = ev.getDateFin() != null && LocalDateTime.now().isAfter(ev.getDateFin());
         if (isPast) return "#7fb77e";
-        if (ev.getType() == null) return "#8b6614";
+        if (ev.getType() == null) return "#7a6ad8";
         return switch (ev.getType()) {
-            case "Workshop"   -> "#f5e6c8";  // beige
-            case "Conference" -> "#a0826d";  // nude
-            case "Hackathon"  -> "#d4a96a";  // or/gold
-            case "Seminar"    -> "#6b8e23";  // vert
-            default           -> "#8b6614";  // marron
+            case "Workshop"   -> "#667eea";
+            case "Conference" -> "#f093fb";
+            case "Hackathon"  -> "#4facfe";
+            case "Seminar"    -> "#43e97b";
+            default           -> "#7a6ad8";
         };
     }
 
@@ -205,7 +204,7 @@ public class CalendrierEvenementsController {
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(22, 24, 22, 28));
-        header.setStyle("-fx-background-color:linear-gradient(to right,#8b6614,#5c3317);"
+        header.setStyle("-fx-background-color:linear-gradient(to right,#667eea,#764ba2);"
                 + "-fx-background-radius:20 20 0 0;");
         Label titre = new Label(ev.getTitre());
         titre.setStyle("-fx-font-size:20; -fx-font-weight:800; -fx-text-fill:white;");
@@ -316,7 +315,7 @@ public class CalendrierEvenementsController {
 
         VBox content = new VBox(3);
         Label lbl = new Label(label);
-        lbl.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#8b6614;"
+        lbl.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#667eea;"
                 + "-fx-letter-spacing:0.5;");
         Label val = new Label(value);
         val.setStyle("-fx-font-size:14; -fx-text-fill:#333;");
@@ -342,10 +341,10 @@ public class CalendrierEvenementsController {
         iconLbl.setStyle("-fx-font-size:22; -fx-min-width:34; -fx-alignment:CENTER;");
         VBox content = new VBox(4);
         Label lbl = new Label("STATUT");
-        lbl.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#8b6614;");
+        lbl.setStyle("-fx-font-size:11; -fx-font-weight:700; -fx-text-fill:#667eea;");
         Label badge = new Label(statut.toUpperCase());
         String badgeStyle = switch (statut) {
-            case "Plannifié" -> "-fx-background-color:rgba(139,102,20,0.15); -fx-text-fill:#8b6614;";
+            case "Plannifié" -> "-fx-background-color:rgba(102,126,234,0.15); -fx-text-fill:#667eea;";
             case "En cours"  -> "-fx-background-color:rgba(67,233,123,0.15); -fx-text-fill:#27ae60;";
             case "Passé"     -> "-fx-background-color:rgba(127,183,126,0.2); -fx-text-fill:#5a9e59;";
             case "Annulé"    -> "-fx-background-color:rgba(149,165,166,0.2); -fx-text-fill:#7f8c8d;";

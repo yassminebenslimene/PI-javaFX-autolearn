@@ -3,124 +3,62 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
 
-<ScrollPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="tn.esprit.controllers.evenement.EvenementIndexController"
-            fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
-            style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;">
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.controllers.evenement.EvenementIndexController"
+      spacing="0" style="-fx-background-color:transparent;">
 
-    <VBox spacing="0" style="-fx-background-color:transparent;">
-
-        <!-- Page title -->
-        <HBox alignment="CENTER_LEFT" style="-fx-padding:28 32 16 32;">
-            <Label text="Tableau de bord"
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding:28 32 20 32;">
+        <VBox spacing="4">
+            <Label text="Liste des Événements"
                    style="-fx-text-fill:white; -fx-font-size:22; -fx-font-weight:bold;"/>
-        </HBox>
-
-        <!-- ── Stats & AI Reports Section ─────────────────────────── -->
-        <VBox style="-fx-padding:0 32 20 32;">
-            <VBox style="-fx-background-color:rgba(102,126,234,0.08);
-                         -fx-background-radius:14;
-                         -fx-border-color:rgba(102,126,234,0.3);
-                         -fx-border-radius:14; -fx-border-width:1;
-                         -fx-padding:20;">
-
-                <!-- Section title -->
-                <HBox alignment="CENTER_LEFT" style="-fx-padding:0 0 16 0;">
-                    <Label text="🤖 Statistiques &amp; Rapports AI"
-                           style="-fx-text-fill:white; -fx-font-size:15; -fx-font-weight:bold;"/>
-                </HBox>
-
-                <!-- Filter -->
-                <VBox style="-fx-background-color:rgba(102,126,234,0.1);
-                             -fx-background-radius:10;
-                             -fx-border-color:rgba(102,126,234,0.4);
-                             -fx-border-radius:10; -fx-border-width:1;
-                             -fx-padding:14;">
-                    <Label text="🎯 Filtrer par type d'événement:"
-                           style="-fx-text-fill:#a78bfa; -fx-font-size:12; -fx-font-weight:bold; -fx-padding:0 0 8 0;"/>
-                    <ComboBox fx:id="filterCombo" onAction="#onFilterChanged" maxWidth="Infinity"
-                              style="-fx-font-size:13; -fx-padding:8; -fx-background-radius:8;
-                                     -fx-border-color:rgba(102,126,234,0.4); -fx-border-radius:8;"/>
-                    <Label text="💡 Sélectionnez un type pour filtrer les statistiques et les rapports AI."
-                           style="-fx-text-fill:rgba(255,255,255,0.5); -fx-font-size:11; -fx-padding:8 0 0 0; -fx-wrap-text:true;"/>
-                </VBox>
-
-                <!-- Stats cards -->
-                <HBox fx:id="statsContainer" spacing="16" style="-fx-padding:16 0 0 0;"/>
-
-                <!-- AI Report buttons — centered -->
-                <HBox spacing="12" alignment="CENTER" style="-fx-padding:20 0 0 0;">
-                    <Button fx:id="btnAnalyse" text="📈 Générer Rapport d'Analyse"
-                            onAction="#onGenerateAnalysis"
-                            style="-fx-background-color:linear-gradient(to right,#667eea,#764ba2);
-                                   -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:bold;
-                                   -fx-padding:12 24 12 24; -fx-background-radius:10;
-                                   -fx-cursor:hand; -fx-border-width:0;
-                                   -fx-effect:dropshadow(gaussian,rgba(102,126,234,0.5),8,0,0,2);"/>
-                    <Button fx:id="btnRecommandations" text="💡 Recommandations d'Événements"
-                            onAction="#onGenerateRecommendations"
-                            style="-fx-background-color:linear-gradient(to right,#f093fb,#f5576c);
-                                   -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:bold;
-                                   -fx-padding:12 24 12 24; -fx-background-radius:10;
-                                   -fx-cursor:hand; -fx-border-width:0;
-                                   -fx-effect:dropshadow(gaussian,rgba(240,147,251,0.5),8,0,0,2);"/>
-                    <Button fx:id="btnSuggestions" text="✨ Suggestions d'Amélioration"
-                            onAction="#onGenerateSuggestions"
-                            style="-fx-background-color:linear-gradient(to right,#00f2fe,#4facfe);
-                                   -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:bold;
-                                   -fx-padding:12 24 12 24; -fx-background-radius:10;
-                                   -fx-cursor:hand; -fx-border-width:0;
-                                   -fx-effect:dropshadow(gaussian,rgba(79,172,254,0.5),8,0,0,2);"/>
-                </HBox>
-            </VBox>
+            <Label text="Gérez tous les événements de la plateforme"
+                   style="-fx-text-fill:rgba(255,255,255,0.45); -fx-font-size:12;"/>
         </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="➕  Ajouter un événement" onAction="#onAjouter"
+                style="-fx-background-color:linear-gradient(to right,#059669,#34d399);
+                       -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold;
+                       -fx-padding:12 32 12 32; -fx-background-radius:10;
+                       -fx-cursor:hand; -fx-border-width:0;
+                       -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.4),10,0,0,3);"/>
+    </HBox>
 
-        <!-- ── Events List Section ────────────────────────────────── -->
-        <VBox style="-fx-padding:0 32 32 32;">
+    <!-- Table container -->
+    <VBox VBox.vgrow="ALWAYS" style="-fx-padding:0 32 28 32;">
+        <VBox style="-fx-background-color:rgba(255,255,255,0.04);
+                     -fx-background-radius:14;
+                     -fx-border-color:rgba(255,255,255,0.08);
+                     -fx-border-radius:14;
+                     -fx-border-width:1;">
 
-            <!-- List header row -->
-            <HBox alignment="CENTER_LEFT" style="-fx-padding:0 0 12 0;">
-                <Label text="Liste des Événements"
-                       style="-fx-text-fill:white; -fx-font-size:15; -fx-font-weight:bold;"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button text="➕  Ajouter un événement" onAction="#onAjouter"
-                        style="-fx-background-color:linear-gradient(to right,#059669,#34d399);
-                               -fx-text-fill:white; -fx-font-size:13; -fx-font-weight:bold;
-                               -fx-padding:11 28 11 28; -fx-background-radius:10;
-                               -fx-cursor:hand; -fx-border-width:0;
-                               -fx-effect:dropshadow(gaussian,rgba(5,150,105,0.4),10,0,0,3);"/>
+            <!-- Table header -->
+            <HBox style="-fx-padding:14 20 14 20;
+                         -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
+                         -fx-border-width:0 0 1 0;">
+                <Label text="TITRE" prefWidth="180"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="TYPE" prefWidth="100"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="DATE DÉBUT" prefWidth="120"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="DATE FIN" prefWidth="120"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="STATUT" prefWidth="100"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="PLACES MAX" prefWidth="80"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
+                <Label text="ACTIONS"
+                       style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
             </HBox>
 
-            <!-- Table -->
-            <VBox style="-fx-background-color:rgba(255,255,255,0.04);
-                         -fx-background-radius:14;
-                         -fx-border-color:rgba(255,255,255,0.08);
-                         -fx-border-radius:14; -fx-border-width:1;">
-
-                <!-- Column headers -->
-                <HBox style="-fx-padding:12 20 12 20;
-                             -fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent;
-                             -fx-border-width:0 0 1 0;">
-                    <Label text="TITRE" prefWidth="180"
-                           style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
-                    <Label text="TYPE" prefWidth="100"
-                           style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
-                    <Label text="DATE DÉBUT" prefWidth="120"
-                           style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
-                    <Label text="DATE FIN" prefWidth="120"
-                           style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
-                    <Label text="STATUT" prefWidth="100"
-                           style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
-                    <Label text="PLACES MAX" prefWidth="80"
-                           style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
-                    <Label text="ACTIONS"
-                           style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:10; -fx-font-weight:bold;"/>
-                </HBox>
-
-                <!-- Rows — no inner ScrollPane, outer ScrollPane handles scrolling -->
+            <!-- Rows -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                        style="-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;"
+                        hbarPolicy="NEVER">
                 <VBox fx:id="tableRows" spacing="0"/>
-            </VBox>
+            </ScrollPane>
         </VBox>
-
     </VBox>
-</ScrollPane>
+</VBox>
+

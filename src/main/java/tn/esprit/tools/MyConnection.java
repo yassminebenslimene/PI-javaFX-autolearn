@@ -111,11 +111,6 @@ public class MyConnection {
                 "createdvote_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
                 ")";
 
-        // Ajoute table_numero (NULL par défaut) à participation si elle n'existe pas encore
-        // NULL = compatible Symfony, utilisé uniquement en Java pour la salle 3D
-        String alterParticipation =
-                "ALTER TABLE participation ADD COLUMN IF NOT EXISTS table_numero INT NULL DEFAULT NULL";
-
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(createQuizTable);
             statement.executeUpdate(createQuestionTable);
@@ -125,8 +120,6 @@ public class MyConnection {
             statement.executeUpdate(createChallengeExerciceTable);
             statement.executeUpdate(createUserChallengeTable);
             statement.executeUpdate(createVoteTable);
-            try { statement.executeUpdate(alterParticipation); }
-            catch (SQLException ignored) {} // colonne déjà existante = pas d'erreur
         }
     }
 }

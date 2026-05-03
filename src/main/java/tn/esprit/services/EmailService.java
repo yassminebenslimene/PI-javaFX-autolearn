@@ -10,19 +10,15 @@ import java.util.concurrent.Executors;
 /**
  * Sends HTML emails from autolearn66@gmail.com using Gmail SMTP + App Password.
  * All sends are async (fire-and-forget) so the UI never blocks.
- *
- * Extended to support PDF attachments for the Evenement module (badge confirmation).
  */
 public class EmailService {
 
     // ── Gmail credentials ─────────────────────────────────────────────────────
-    private static final String FROM_EMAIL   = System.getenv("AUTOLEARN_EMAIL") != null 
-        ? System.getenv("AUTOLEARN_EMAIL") 
-        : "autolearn66@gmail.com";
-    private static final String FROM_NAME    = "AutoLearn";
-    private static final String APP_PASSWORD = System.getenv("AUTOLEARN_PASSWORD") != null 
-        ? System.getenv("AUTOLEARN_PASSWORD") 
-        : "nnna xrkp hrsv ynci";
+    private static final String FROM_EMAIL    = "autolearn66@gmail.com";
+    private static final String FROM_NAME     = "AutoLearn";
+    // Generate an App Password at https://myaccount.google.com/apppasswords
+    // (2-Step Verification must be enabled on the account)
+    private static final String APP_PASSWORD  = "nnna xrkp hrsv ynci";   // ← replace with real app password
 
     private static final ExecutorService POOL = Executors.newCachedThreadPool(r -> {
         Thread t = new Thread(r, "email-sender");
@@ -30,8 +26,9 @@ public class EmailService {
         return t;
     });
 
-    // ── Module User — emails ──────────────────────────────────────────────────
+    // ── Public API ────────────────────────────────────────────────────────────
 
+    /** 1. Confirmation email after self-registration */
     public static void sendRegistrationConfirmation(String toEmail, String prenom, String nom) {
         String subject = "Bienvenue sur AutoLearn !";
         String body = htmlTemplate(
@@ -46,6 +43,7 @@ public class EmailService {
         sendAsync(toEmail, subject, body);
     }
 
+    /** 2. Email sent to a new student created by an admin */
     public static void sendAdminCreatedAccount(String toEmail, String prenom, String nom,
                                                String plainPassword) {
         String subject = "Votre compte AutoLearn a été créé";
@@ -67,6 +65,7 @@ public class EmailService {
         sendAsync(toEmail, subject, body);
     }
 
+    /** 3. Suspension notification */
     public static void sendSuspensionNotification(String toEmail, String prenom, String reason) {
         String subject = "Votre compte AutoLearn a été suspendu";
         String body = htmlTemplate(
@@ -84,6 +83,7 @@ public class EmailService {
         sendAsync(toEmail, subject, body);
     }
 
+    /** 4. Reactivation notification */
     public static void sendReactivationNotification(String toEmail, String prenom) {
         String subject = "Votre compte AutoLearn a été réactivé";
         String body = htmlTemplate(
@@ -98,8 +98,10 @@ public class EmailService {
         sendAsync(toEmail, subject, body);
     }
 
+    /** 5. Password reset email with a token/link */
     public static void sendPasswordReset(String toEmail, String prenom, String resetToken) {
         String subject = "Réinitialisation de votre mot de passe AutoLearn";
+        // In a real app this would be a deep-link; for desktop we show the token
         String body = htmlTemplate(
             "Réinitialisation du mot de passe",
             "Vous avez demandé à réinitialiser votre mot de passe.",
@@ -117,6 +119,85 @@ public class EmailService {
         sendAsync(toEmail, subject, body);
     }
 
+    /**
+     * 6. Quiz retry reminder — sent when student scores below the passing threshold.
+     *
+     * @param toEmail      Student email
+     * @param prenom       Student first name
+     * @param quizTitre    Quiz title
+     * @param score        Score obtained (percentage, e.g. 35)
+     * @param seuil        Passing threshold (e.g. 50)
+     * @param tentatives   Number of attempts already made
+     * @param maxTentatives Max allowed attempts (null = unlimited)
+     */
+    public static void sendQuizRetryReminder(String toEmail, String prenom,
+                                             String quizTitre, int score, int seuil,
+                                             int tentatives, Integer maxTentatives) {
+        String attemptsInfo = maxTentatives != null
+            ? tentatives + " / " + maxTentatives + " tentatives utilisées"
+            : tentatives + " tentative(s) effectuée(s)";
+
+        String subject = "💪 Réessayez le quiz : " + quizTitre;
+        String body = htmlTemplate(
+            "Vous pouvez faire mieux !",
+            "Votre score n'a pas atteint le seuil de réussite.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Vous avez passé le quiz <strong>\"" + quizTitre + "\"</strong> " +
+            "mais votre score n'a pas encore atteint le seuil de réussite.</p>" +
+            "<table style='border-collapse:collapse;margin:20px 0;width:100%;'>" +
+            "  <tr>" +
+            "    <td style='padding:10px 16px;background:#fef2f2;border-radius:8px 0 0 8px;" +
+            "        color:#dc2626;font-weight:700;font-size:22px;text-align:center;width:33%;'>" +
+            score + "%" +
+            "    </td>" +
+            "    <td style='padding:10px 16px;background:#f1f5f9;color:#64748b;" +
+            "        font-size:13px;text-align:center;width:33%;'>" +
+            "Seuil requis : <strong>" + seuil + "%</strong>" +
+            "    </td>" +
+            "    <td style='padding:10px 16px;background:#f0fdf4;border-radius:0 8px 8px 0;" +
+            "        color:#059669;font-size:13px;text-align:center;width:33%;'>" +
+            attemptsInfo +
+            "    </td>" +
+            "  </tr>" +
+            "</table>" +
+            "<p>Ne vous découragez pas ! Relancez le quiz dès maintenant et améliorez votre score. 🚀</p>",
+            "Refaire le quiz", "https://autolearn.tn/cours"
+        );
+        sendAsync(toEmail, subject, body);
+    }
+
+    /**
+     * 7. Chapter revision reminder — sent when student scores very low (below seuil/2).
+     *
+     * @param toEmail       Student email
+     * @param prenom        Student first name
+     * @param quizTitre     Quiz title
+     * @param chapitreTitre Chapter title to revise
+     * @param score         Score obtained (percentage)
+     */
+    public static void sendRevisionReminder(String toEmail, String prenom,
+                                            String quizTitre, String chapitreTitre, int score) {
+        String subject = "📚 Révisez le chapitre : " + chapitreTitre;
+        String body = htmlTemplate(
+            "Un peu de révision s'impose !",
+            "Votre score suggère de revoir le contenu du chapitre.",
+            "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
+            "<p>Votre score de <strong style='color:#dc2626;'>" + score + "%</strong> " +
+            "au quiz <strong>\"" + quizTitre + "\"</strong> indique que certaines notions " +
+            "du chapitre méritent d'être revues.</p>" +
+            "<div style='background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;" +
+            "padding:14px 18px;margin:20px 0;'>" +
+            "  <p style='margin:0;font-weight:700;color:#92400e;'>📖 Chapitre à réviser :</p>" +
+            "  <p style='margin:6px 0 0;color:#78350f;font-size:15px;'>" + chapitreTitre + "</p>" +
+            "</div>" +
+            "<p>Prenez le temps de relire le contenu du chapitre, puis retentez le quiz. " +
+            "Vous verrez la différence ! 💡</p>",
+            "Accéder au cours", "https://autolearn.tn/cours"
+        );
+        sendAsync(toEmail, subject, body);
+    }
+
+    /** 5. Breached password warning (sent after registration if HIBP detects a leak) */
     public static void sendAsync_BreachedPasswordWarning(String toEmail, String prenom, int breachCount) {
         String subject = "Securite : votre mot de passe a ete detecte dans des fuites de donnees";
         String body = htmlTemplate(
@@ -124,46 +205,22 @@ public class EmailService {
             "Votre mot de passe a ete trouve dans des bases de donnees compromises.",
             "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
             "<p>Lors de votre inscription, nous avons verifie votre mot de passe via le service " +
-            "<strong>Have I Been Pwned</strong>.</p>" +
+            "<strong>Have I Been Pwned</strong> (verification anonyme — votre mot de passe n'a jamais quitte votre appareil).</p>" +
             "<p>Resultat : votre mot de passe a ete trouve dans <strong>" + breachCount +
             " fuite(s) de donnees</strong> connues.</p>" +
-            "<p style='color:#dc2626;font-weight:bold;'>Nous vous recommandons fortement de changer votre mot de passe immediatement.</p>",
+            "<p style='color:#dc2626;font-weight:bold;'>Nous vous recommandons fortement de changer votre mot de passe immediatement.</p>" +
+            "<p>Choisissez un mot de passe unique que vous n'utilisez nulle part ailleurs.</p>",
             "Changer mon mot de passe", "https://autolearn.tn/reset-password"
         );
         sendAsync(toEmail, subject, body);
     }
 
-    // ── Module Evenement — confirmation de participation avec badge PDF ────────
-
-    /**
-     * Envoie l'email de confirmation de participation avec badge PDF en pièce jointe.
-     * Utilise exactement le même SMTP Gmail que les autres emails AutoLearn.
-     * Asynchrone — ne bloque pas l'UI JavaFX.
-     *
-     * @param toEmail      email du participant
-     * @param subject      sujet de l'email
-     * @param htmlBody     contenu HTML complet de l'email
-     * @param pdfBytes     badge PDF en bytes (peut être null)
-     * @param pdfFileName  nom du fichier PDF joint
-     */
-    public static void sendWithAttachmentAsync(String toEmail, String subject, String htmlBody,
-                                                byte[] pdfBytes, String pdfFileName) {
-        POOL.submit(() -> {
-            try {
-                sendWithAttachment(toEmail, subject, htmlBody, pdfBytes, pdfFileName);
-                System.out.println("[Email] ✅ Envoyé (avec badge) à: " + toEmail);
-            } catch (Exception e) {
-                System.err.println("[Email] ❌ Échec envoi à " + toEmail + ": " + e.getMessage());
-            }
-        });
-    }
-
-    // ── Helpers internes ──────────────────────────────────────────────────────
+    // ── Internal helpers ──────────────────────────────────────────────────────
 
     private static void sendAsync(String to, String subject, String htmlBody) {
         POOL.submit(() -> {
             try {
-                sendWithAttachment(to, subject, htmlBody, null, null);
+                send(to, subject, htmlBody);
                 System.out.println("[Email] Sent to " + to + " — " + subject);
             } catch (Exception e) {
                 System.err.println("[Email] Failed to send to " + to + ": " + e.getMessage());
@@ -171,13 +228,7 @@ public class EmailService {
         });
     }
 
-    /**
-     * Méthode SMTP centrale — supporte HTML simple et HTML + pièce jointe PDF.
-     */
-    private static void sendWithAttachment(String to, String subject, String htmlBody,
-                                            byte[] pdfBytes, String pdfFileName)
-            throws MessagingException {
-
+    private static void send(String to, String subject, String htmlBody) throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.auth",            "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -186,8 +237,7 @@ public class EmailService {
         props.put("mail.smtp.ssl.trust",       "smtp.gmail.com");
 
         Session session = Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
+            @Override protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
             }
         });
@@ -196,31 +246,20 @@ public class EmailService {
         msg.setFrom(new InternetAddress(FROM_EMAIL));
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         msg.setSubject(subject);
-
-        if (pdfBytes != null && pdfBytes.length > 0) {
-            // Email multipart : HTML + pièce jointe PDF
-            MimeMultipart multipart = new MimeMultipart();
-
-            MimeBodyPart htmlPart = new MimeBodyPart();
-            htmlPart.setContent(htmlBody, "text/html; charset=UTF-8");
-            multipart.addBodyPart(htmlPart);
-
-            MimeBodyPart pdfPart = new MimeBodyPart();
-            pdfPart.setContent(pdfBytes, "application/pdf");
-            pdfPart.setFileName(pdfFileName != null ? pdfFileName : "badge_autolearn.pdf");
-            multipart.addBodyPart(pdfPart);
-
-            msg.setContent(multipart);
-        } else {
-            msg.setContent(htmlBody, "text/html; charset=UTF-8");
-        }
-
+        msg.setContent(htmlBody, "text/html; charset=UTF-8");
         Transport.send(msg);
     }
 
-    // ── Template HTML AutoLearn ───────────────────────────────────────────────
-
-    public static String htmlTemplate(String title, String subtitle,
+    /**
+     * Builds a clean HTML email template matching the AutoLearn violet brand.
+     *
+     * @param title    Big heading inside the card
+     * @param subtitle Smaller subtitle line
+     * @param content  Raw HTML body content
+     * @param btnText  CTA button text (null = no button)
+     * @param btnHref  CTA button href (null = no button)
+     */
+    private static String htmlTemplate(String title, String subtitle,
                                        String content, String btnText, String btnHref) {
         String btn = (btnText != null && btnHref != null)
             ? "<div style='text-align:center;margin:28px 0 8px;'>" +
@@ -237,16 +276,19 @@ public class EmailService {
                "<table width='560' cellpadding='0' cellspacing='0' " +
                "style='background:white;border-radius:16px;overflow:hidden;" +
                "box-shadow:0 4px 24px rgba(122,106,216,0.12);'>" +
+               // Header
                "<tr><td style='background:#7a6ad8;padding:32px 40px;text-align:center;'>" +
                "  <span style='font-size:24px;font-weight:900;color:white;'>AutoLearn</span><br>" +
                "  <span style='font-size:13px;color:rgba(255,255,255,0.7);'>Votre plateforme d'apprentissage</span>" +
                "</td></tr>" +
+               // Body
                "<tr><td style='padding:36px 40px 28px;'>" +
                "  <h2 style='margin:0 0 6px;font-size:22px;color:#1a1a2e;'>" + title + "</h2>" +
                "  <p style='margin:0 0 20px;font-size:14px;color:#888;'>" + subtitle + "</p>" +
                "  <div style='font-size:14px;color:#444;line-height:1.7;'>" + content + "</div>" +
                btn +
                "</td></tr>" +
+               // Footer
                "<tr><td style='background:#f8f7ff;padding:20px 40px;text-align:center;" +
                "border-top:1px solid #eeeeee;'>" +
                "  <p style='margin:0;font-size:12px;color:#aaa;'>" +
@@ -255,34 +297,5 @@ public class EmailService {
                "  </p>" +
                "</td></tr>" +
                "</table></td></tr></table></body></html>";
-    }
-
-    // ── Quiz notification emails (added for FrontQuizController compatibility) ─
-
-    public static void sendRevisionReminder(String toEmail, String prenom,
-                                             String quizTitre, String chapitreTitre, double scorePct) {
-        String subject = "📚 Rappel de révision — " + quizTitre;
-        String content = "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
-            "<p>Votre score au quiz <strong>" + quizTitre + "</strong> est de <strong>" +
-            String.format("%.0f%%", scorePct) + "</strong>.</p>" +
-            "<p>Nous vous recommandons de réviser le chapitre <strong>" + chapitreTitre +
-            "</strong> avant de retenter le quiz.</p>" +
-            "<p>Bonne révision !</p>";
-        String html = htmlTemplate("Rappel de révision", "Continuez vos efforts !", content, null, null);
-        sendAsync(toEmail, subject, html);
-    }
-
-    public static void sendQuizRetryReminder(String toEmail, String prenom,
-                                              String quizTitre, double scorePct,
-                                              double seuil, int nombreTentatives, int maxTentatives) {
-        String subject = "🔄 Retentez le quiz — " + quizTitre;
-        String content = "<p>Bonjour <strong>" + prenom + "</strong>,</p>" +
-            "<p>Votre score au quiz <strong>" + quizTitre + "</strong> est de <strong>" +
-            String.format("%.0f%%", scorePct) + "</strong> (seuil requis : " +
-            String.format("%.0f%%", seuil) + ").</p>" +
-            "<p>Il vous reste <strong>" + (maxTentatives - nombreTentatives) +
-            " tentative(s)</strong>. Vous pouvez réessayer !</p>";
-        String html = htmlTemplate("Retentez le quiz", "Vous pouvez y arriver !", content, null, null);
-        sendAsync(toEmail, subject, html);
     }
 }

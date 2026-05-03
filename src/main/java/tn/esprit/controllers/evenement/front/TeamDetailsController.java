@@ -10,7 +10,6 @@ import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.Evenement;
 import tn.esprit.entities.Participation;
 import tn.esprit.services.EquipeService;
-import tn.esprit.services.ParticipationConfirmationService;
 import tn.esprit.services.ParticipationService;
 
 import java.util.List;
@@ -91,51 +90,11 @@ public class TeamDetailsController {
 
     @FXML
     private void onParticipate() {
-        // Vérifier si une participation existe déjà pour éviter les doublons
-        tn.esprit.entities.Participation existing =
-                participationService.getByEquipeAndEvenement(equipe.getId(), evenement.getId());
-
-        if (existing != null) {
-            // Participation déjà existante — informer et aller vers Mes Participations
-            FrontNavHelper.goMesParticipations(
-                    "✓ Vous participez déjà à \"" + evenement.getTitre() + "\" avec l'équipe \""
-                    + equipe.getNom() + "\".");
-            return;
-        }
-
-        // Créer la participation
         Participation p = new Participation(equipe.getId(), evenement.getId());
         p.setStatut("Accepté");
-        int participationId = participationService.ajouterEtRetournerId(p);
-
-        if (participationId <= 0) {
-            new Alert(Alert.AlertType.ERROR,
-                    "Erreur lors de l'enregistrement de la participation. Veuillez réessayer.")
-                    .showAndWait();
-            return;
-        }
-
-        // Envoyer les emails de confirmation à tous les membres (asynchrone — ne bloque pas l'UI)
-        new ParticipationConfirmationService().sendConfirmationToTeam(equipe, evenement, participationId);
-
-        // Naviguer vers Mes Participations avec message de succès
-        FrontNavHelper.goMesParticipations(
-                "🎉 Participation confirmée ! Votre équipe \"" + equipe.getNom()
-                + "\" est inscrite à \"" + evenement.getTitre()
-                + "\". Un email de confirmation avec votre badge a été envoyé à tous les membres.");
-    }
-
-    @FXML
-    private void onVoirSalle() {
-        try {
-            MainApp.showSalleReservation(evenement, equipe);
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR,
-                    "Erreur salle 3D: " + e.getMessage()
-                    + (e.getCause() != null ? "\n" + e.getCause().getMessage() : ""))
-                    .showAndWait();
-        }
+        participationService.ajouter(p);
+        FrontNavHelper.goMesParticipations("✓ Participation acceptée avec succès ! Votre équipe \""
+                + equipe.getNom() + "\" est inscrite à l'événement \"" + evenement.getTitre() + "\".");
     }
 
     @FXML

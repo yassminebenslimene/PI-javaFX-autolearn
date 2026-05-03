@@ -15,102 +15,68 @@ public class EvenementService implements IService<Evenement> {
     @Override
     public void ajouter(Evenement e) {
         String req = "INSERT INTO evenement (titre, lieu, description, type, date_debut, date_fin, status, is_canceled, workflow_status, nb_max) VALUES (?,?,?,?,?,?,?,?,?,?)";
-        try {
-            // Ensure autoCommit is true (may have been left false by a previous failed transaction)
-            if (!connection.getAutoCommit()) {
-                System.out.println("[EvenementService] Restoring autoCommit=true before INSERT");
-                connection.setAutoCommit(true);
-            }
-            try (PreparedStatement ps = connection.prepareStatement(req)) {
-                ps.setString(1, e.getTitre());
-                ps.setString(2, e.getLieu());
-                ps.setString(3, e.getDescription());
-                ps.setString(4, e.getType());
-                ps.setTimestamp(5, Timestamp.valueOf(e.getDateDebut()));
-                ps.setTimestamp(6, Timestamp.valueOf(e.getDateFin()));
-                ps.setString(7, e.getStatus() != null ? e.getStatus() : "Plannifié");
-                ps.setBoolean(8, e.isIsCanceled());
-                ps.setString(9, e.getWorkflowStatus() != null ? e.getWorkflowStatus() : "planifie");
-                ps.setInt(10, e.getNbMax());
-                int rows = ps.executeUpdate();
-                System.out.println("[EvenementService] Événement ajouté: " + e.getTitre() + " (rows=" + rows + ")");
-            }
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setString(1, e.getTitre());
+            ps.setString(2, e.getLieu());
+            ps.setString(3, e.getDescription());
+            ps.setString(4, e.getType());
+            ps.setTimestamp(5, Timestamp.valueOf(e.getDateDebut()));
+            ps.setTimestamp(6, Timestamp.valueOf(e.getDateFin()));
+            ps.setString(7, e.getStatus() != null ? e.getStatus() : "Plannifié");
+            ps.setBoolean(8, e.isIsCanceled());
+            ps.setString(9, e.getWorkflowStatus() != null ? e.getWorkflowStatus() : "planifie");
+            ps.setInt(10, e.getNbMax());
+            ps.executeUpdate();
+            System.out.println("Événement ajouté : " + e.getTitre());
         } catch (SQLException ex) {
-            System.err.println("[EvenementService] ERREUR ajout événement: " + ex.getMessage());
-            System.err.println("[EvenementService] SQLState: " + ex.getSQLState() + ", ErrorCode: " + ex.getErrorCode());
-            ex.printStackTrace();
+            System.err.println("Erreur ajout événement: " + ex.getMessage());
         }
     }
 
     @Override
     public void modifier(Evenement e) {
         String req = "UPDATE evenement SET titre=?, lieu=?, description=?, type=?, date_debut=?, date_fin=?, status=?, is_canceled=?, workflow_status=?, nb_max=? WHERE id=?";
-        try {
-            if (!connection.getAutoCommit()) connection.setAutoCommit(true);
-            try (PreparedStatement ps = connection.prepareStatement(req)) {
-                ps.setString(1, e.getTitre());
-                ps.setString(2, e.getLieu());
-                ps.setString(3, e.getDescription());
-                ps.setString(4, e.getType());
-                ps.setTimestamp(5, Timestamp.valueOf(e.getDateDebut()));
-                ps.setTimestamp(6, Timestamp.valueOf(e.getDateFin()));
-                ps.setString(7, e.getStatus());
-                ps.setBoolean(8, e.isIsCanceled());
-                ps.setString(9, e.getWorkflowStatus());
-                ps.setInt(10, e.getNbMax());
-                ps.setInt(11, e.getId());
-                ps.executeUpdate();
-                System.out.println("Événement modifié : " + e.getId());
-            }
+        try (PreparedStatement ps = connection.prepareStatement(req)) {
+            ps.setString(1, e.getTitre());
+            ps.setString(2, e.getLieu());
+            ps.setString(3, e.getDescription());
+            ps.setString(4, e.getType());
+            ps.setTimestamp(5, Timestamp.valueOf(e.getDateDebut()));
+            ps.setTimestamp(6, Timestamp.valueOf(e.getDateFin()));
+            ps.setString(7, e.getStatus());
+            ps.setBoolean(8, e.isIsCanceled());
+            ps.setString(9, e.getWorkflowStatus());
+            ps.setInt(10, e.getNbMax());
+            ps.setInt(11, e.getId());
+            ps.executeUpdate();
+            System.out.println("Événement modifié : " + e.getId());
         } catch (SQLException ex) {
             System.err.println("Erreur modification événement: " + ex.getMessage());
-            ex.printStackTrace();
         }
     }
 
     @Override
     public void supprimer(int id) {
-        // Cascade: equipe_etudiant → equipe → participation → evenement
+        // Suppression en cascade : membres équipes → équipes → participations → événement
+        String[] cascade = {
+            "DELETE ee FROM equipe_etudiant ee INNER JOIN equipe eq ON ee.equipe_id = eq.id WHERE eq.evenement_id = ?",
+            "DELETE FROM equipe WHERE evenement_id = ?",
+            "DELETE FROM participation WHERE evenement_id = ?",
+            "DELETE FROM evenement WHERE id = ?"
+        };
         try {
             connection.setAutoCommit(false);
-
-            // Step 1: delete equipe_etudiant members for all equipes of this event
-            try (PreparedStatement ps = connection.prepareStatement(
-                    "DELETE ee FROM equipe_etudiant ee INNER JOIN equipe eq ON ee.equipe_id = eq.id WHERE eq.evenement_id = ?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            } catch (SQLException ex) {
-                System.err.println("[supprimer] equipe_etudiant step: " + ex.getMessage());
-                // Continue — table may be empty or named differently
+            for (String req : cascade) {
+                try (PreparedStatement ps = connection.prepareStatement(req)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
             }
-
-            // Step 2: delete equipes
-            try (PreparedStatement ps = connection.prepareStatement(
-                    "DELETE FROM equipe WHERE evenement_id = ?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-
-            // Step 3: delete participations
-            try (PreparedStatement ps = connection.prepareStatement(
-                    "DELETE FROM participation WHERE evenement_id = ?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-
-            // Step 4: delete the event itself
-            try (PreparedStatement ps = connection.prepareStatement(
-                    "DELETE FROM evenement WHERE id = ?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-
             connection.commit();
             System.out.println("Événement supprimé (cascade) : " + id);
         } catch (SQLException ex) {
             try { connection.rollback(); } catch (SQLException ignored) {}
             System.err.println("Erreur suppression événement: " + ex.getMessage());
-            ex.printStackTrace();
         } finally {
             try { connection.setAutoCommit(true); } catch (SQLException ignored) {}
         }
@@ -119,16 +85,14 @@ public class EvenementService implements IService<Evenement> {
     @Override
     public List<Evenement> getAll() {
         List<Evenement> list = new ArrayList<>();
-        String req = "SELECT * FROM evenement ORDER BY date_debut ASC";
+        String req = "SELECT * FROM evenement ORDER BY date_debut DESC";
         try (Statement st = connection.createStatement();
              ResultSet rs = st.executeQuery(req)) {
             while (rs.next()) {
                 list.add(mapRow(rs));
             }
-            System.out.println("DEBUG: EvenementService.getAll() a retourné " + list.size() + " événements");
         } catch (SQLException ex) {
             System.err.println("Erreur getAll événements: " + ex.getMessage());
-            ex.printStackTrace();
         }
         return list;
     }
