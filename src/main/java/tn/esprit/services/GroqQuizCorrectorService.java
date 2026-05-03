@@ -28,7 +28,7 @@ public class GroqQuizCorrectorService {
     // Même API et modèle que le générateur de quiz
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
     private static final String MODEL        = "meta-llama/llama-4-scout-17b-16e-instruct";
-    private static final String API_KEY      = "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";
+    private static final String API_KEY      = "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";
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(20))

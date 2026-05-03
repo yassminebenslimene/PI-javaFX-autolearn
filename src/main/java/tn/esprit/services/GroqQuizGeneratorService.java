@@ -33,7 +33,7 @@ public class GroqQuizGeneratorService {
     // ── Configuration ─────────────────────────────────────────────────────────
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
     private static final String MODEL        = "meta-llama/llama-4-scout-17b-16e-instruct";
-    private static final String API_KEY      = "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";
+    private static final String API_KEY      = "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";
     private static final int    MAX_QUESTIONS = 10;
     private static final int    MAX_CONTENU   = 4000; // caractères max envoyés à l'IA
 
@@ -148,7 +148,7 @@ public class GroqQuizGeneratorService {
         JsonObject body = new JsonObject();
         body.addProperty("model", MODEL);
         body.addProperty("temperature", 0.7);
-        body.addProperty("max_tokens", 3000);
+        body.addProperty("max_tokens", 6000);
 
         // Format JSON forcé
         JsonObject responseFormat = new JsonObject();
@@ -196,9 +196,18 @@ public class GroqQuizGeneratorService {
 
         // Parser la réponse
         JsonObject responseJson = GSON.fromJson(response.body(), JsonObject.class);
-        String content = responseJson
+        var choice = responseJson
             .getAsJsonArray("choices")
-            .get(0).getAsJsonObject()
+            .get(0).getAsJsonObject();
+
+        // Vérifier si la réponse a été tronquée
+        String finishReason = choice.has("finish_reason")
+            ? choice.get("finish_reason").getAsString() : "stop";
+        if ("length".equals(finishReason)) {
+            System.err.println("[Groq] Réponse tronquée (finish_reason=length) — tentative de récupération partielle");
+        }
+
+        String content = choice
             .getAsJsonObject("message")
             .get("content").getAsString();
 
@@ -209,7 +218,18 @@ public class GroqQuizGeneratorService {
 
     private List<QuestionGeneree> validerEtParser(String jsonContent) {
         try {
-            JsonObject data = GSON.fromJson(jsonContent, JsonObject.class);
+            // Réparer le JSON tronqué (EOF) — fermer les structures ouvertes
+            String json = jsonContent.trim();
+            if (!json.endsWith("}")) {
+                // Trouver le dernier objet question complet et fermer proprement
+                int lastComplete = json.lastIndexOf("},");
+                if (lastComplete == -1) lastComplete = json.lastIndexOf("}");
+                if (lastComplete > 0) {
+                    json = json.substring(0, lastComplete + 1) + "]}";
+                }
+            }
+
+            JsonObject data = GSON.fromJson(json, JsonObject.class);
 
             if (!data.has("questions") || !data.get("questions").isJsonArray()) {
                 throw new RuntimeException("Format invalide : clé 'questions' manquante.");
