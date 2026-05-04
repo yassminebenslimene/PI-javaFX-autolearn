@@ -176,6 +176,7 @@ public class EvenementFormController implements Initializable {
                     "Tu es un expert en communication evenementielle academique. Genere des descriptions concises et professionnelles.",
                     prompt);
             } catch (Exception e) {
+                System.err.println("[GenDesc] Erreur: " + e.getMessage());
                 return "";
             }
         }).thenAccept(desc -> Platform.runLater(() -> {

@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 public class GroqService {
 
 
-    private static final String API_KEY = "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";
+    private static final String API_KEY = "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";
     private static final String API_URL = "https://api.groq.com/openai/v1/chat/completions";
     private static final String MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
 

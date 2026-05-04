@@ -41,7 +41,7 @@ public class EspaceParticipantPageController {
         headerBox.setAlignment(Pos.CENTER);
         headerBox.setPadding(new Insets(40, 30, 35, 30));
         headerBox.setStyle(
-            "-fx-background-color:#e8e4f3; " +
+            "-fx-background-color:#4a3db8; " +
             "-fx-background-radius:0 0 30 30;"
         );
         
@@ -50,7 +50,7 @@ public class EspaceParticipantPageController {
         titleLabel.setStyle(
             "-fx-font-size:36; " +
             "-fx-font-weight:bold; " +
-            "-fx-text-fill:#667eea; " +
+            "-fx-text-fill:white; " +
             "-fx-effect:dropshadow(gaussian, rgba(102,126,234,0.2), 8, 0, 0, 2);"
         );
         titleLabel.setAlignment(Pos.CENTER);
@@ -59,7 +59,7 @@ public class EspaceParticipantPageController {
         Label subtitleLabel = new Label("Bienvenue dans ton espace personnel ! 🎉");
         subtitleLabel.setStyle(
             "-fx-font-size:14; " +
-            "-fx-text-fill:#667eea; " +
+            "-fx-text-fill:white; " +
             "-fx-font-style:italic; " +
             "-fx-font-weight:500;"
         );
@@ -69,7 +69,7 @@ public class EspaceParticipantPageController {
         Label descLabel = new Label("Explore les activités, joue, détends-toi et profite de chaque moment");
         descLabel.setStyle(
             "-fx-font-size:12; " +
-            "-fx-text-fill:#764ba2;"
+            "-fx-text-fill:rgba(255,255,255,0.85);"
         );
         descLabel.setAlignment(Pos.CENTER);
         
@@ -81,7 +81,7 @@ public class EspaceParticipantPageController {
         // ═══════════════════════════════════════════════════════════════════════════
         VBox contentBox = new VBox(0);
         contentBox.setPadding(new Insets(35, 25, 40, 25));
-        contentBox.setStyle("-fx-background-color:#f8f7ff;");
+        contentBox.setStyle("-fx-background-color:#5b4fcf;");
         
         GridPane grid = new GridPane();
         grid.setHgap(22);
@@ -152,8 +152,8 @@ public class EspaceParticipantPageController {
 
         // Conteneur 7 : Brainstorming IA 💡
         VBox brainstormingContainer = buildContainer(
-            "💡", "Brainstorming IA",
-            "Génère des idées innovantes",
+            "💡", "Espace de Brainstorming",
+            "Hackathon & idées innovantes",
             "#7c3aed", "#4f46e5", "#ede9fe",
             () -> BrainstormingController.show(containerBox.getScene().getWindow())
         );
@@ -189,13 +189,13 @@ public class EspaceParticipantPageController {
         Label emojiLabel = new Label(emoji);
         emojiLabel.setStyle(
             "-fx-font-size:48; " +
-            "-fx-background-color:linear-gradient(135deg," + colorDark + "," + colorLight + "); " +
+            "-fx-background-color:" + colorDark + "; " +
             "-fx-background-radius:50%; " +
             "-fx-padding:16 18 16 18; " +
             "-fx-min-width:80; " +
             "-fx-min-height:80; " +
             "-fx-alignment:CENTER; " +
-            "-fx-effect:dropshadow(gaussian," + colorLight + "88,10,0,0,3);"
+            "-fx-effect:dropshadow(gaussian," + colorDark + "88,10,0,0,3);"
         );
 
         // Titre
@@ -225,7 +225,7 @@ public class EspaceParticipantPageController {
         // Bouton d'action - design moderne
         Button actionBtn = new Button("Accéder →");
         actionBtn.setStyle(
-            "-fx-background-color:linear-gradient(135deg," + colorDark + "," + colorLight + "); " +
+            "-fx-background-color:#7a6ad8; " +
             "-fx-text-fill:white; " +
             "-fx-font-size:13; " +
             "-fx-font-weight:bold; " +
@@ -233,7 +233,7 @@ public class EspaceParticipantPageController {
             "-fx-background-radius:22; " +
             "-fx-cursor:hand; " +
             "-fx-border-width:0; " +
-            "-fx-effect:dropshadow(gaussian," + colorLight + "66,8,0,0,2);"
+            "-fx-effect:dropshadow(gaussian,rgba(122,106,216,0.5),10,0,0,3);"
         );
         actionBtn.setOnAction(e -> onAction.run());
 
