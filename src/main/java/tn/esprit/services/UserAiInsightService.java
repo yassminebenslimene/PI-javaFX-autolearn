@@ -27,8 +27,13 @@ import java.util.concurrent.CompletableFuture;
 public class UserAiInsightService {
 
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String MODEL        = ConfigLoader.getProperty("groq.risk.model", "meta-llama/llama-4-scout-17b-16e-instruct");
-    private static final String API_KEY      = ConfigLoader.getProperty("groq.api.key");
+    private static final String MODEL        = getPropertyOrDefault("groq.risk.model", "meta-llama/llama-4-scout-17b-16e-instruct");
+    private static final String API_KEY      = ConfigLoader.getGroqApiKey();
+    
+    private static String getPropertyOrDefault(String key, String defaultValue) {
+        String value = ConfigLoader.getProperty(key);
+        return (value != null && !value.isEmpty()) ? value : defaultValue;
+    }
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(15))

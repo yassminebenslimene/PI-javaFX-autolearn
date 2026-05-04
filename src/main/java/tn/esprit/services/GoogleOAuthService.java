@@ -28,8 +28,13 @@ public class GoogleOAuthService {
     // Load credentials from config.properties
     private static final String CLIENT_ID = ConfigLoader.getProperty("google.oauth.client.id");
     private static final String CLIENT_SECRET = ConfigLoader.getProperty("google.oauth.client.secret");
-    private static final String REDIRECT_URI = ConfigLoader.getProperty("google.oauth.redirect.uri", "http://localhost:8080/callback");
+    private static final String REDIRECT_URI = getPropertyOrDefault("google.oauth.redirect.uri", "http://localhost:8080/callback");
     private static final int PORT = 8080;
+    
+    private static String getPropertyOrDefault(String key, String defaultValue) {
+        String value = ConfigLoader.getProperty(key);
+        return (value != null && !value.isEmpty()) ? value : defaultValue;
+    }
 
     private static HttpServer server;
     private static CompletableFuture<Map<String, String>> authFuture;
