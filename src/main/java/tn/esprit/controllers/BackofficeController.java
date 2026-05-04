@@ -54,7 +54,7 @@ public class BackofficeController {
                 labelAvatarSidebar.setText(initials);
             }
         }
-        javafx.application.Platform.runLater(this::navigateToUsers);
+        javafx.application.Platform.runLater(this::navigateToDashboard);
     }
 
     private void setActive(Button active) {
@@ -75,7 +75,7 @@ public class BackofficeController {
         setActive(btnDashboard);
         if (labelPageTitle != null) labelPageTitle.setText("Dashboard");
         logNav("dashboard");
-        loadView("/views/backoffice/user/index.fxml");
+        loadView("/views/backoffice/dashboard.fxml");
     }
 
     @FXML public void navigateToUsers() {

@@ -20,6 +20,10 @@ public class MainApp extends Application {
         backofficeController = c;
     }
 
+    public static BackofficeController getBackofficeController() {
+        return backofficeController;
+    }
+
     public static void showBackofficeProfile() throws Exception {
         if (backofficeController != null) backofficeController.navigateToProfile();
         else showBackoffice();
