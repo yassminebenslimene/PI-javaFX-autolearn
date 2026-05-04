@@ -76,24 +76,24 @@
         <!-- ══ HEATMAP + AI RISK ROW ══ -->
         <HBox spacing="14">
 
-            <!-- Activity Heatmap Card with 3D bars -->
+            <!-- Activity Heatmap Card with 3D bars - FULL SIZE -->
             <VBox spacing="12" HBox.hgrow="ALWAYS"
                   style="-fx-background-color:linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
                          -fx-background-radius:20; -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:20;
                          -fx-padding:18 20 18 20; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.4),16,0.2,0,6);">
                 <HBox alignment="CENTER_LEFT" spacing="12">
-                    <Label style="-fx-font-size:15; -fx-font-weight:700; -fx-text-fill:white; -fx-effect:dropshadow(gaussian,rgba(255,255,255,0.3),4,0,0,1);" text="📊 Activité par heure" />
+                    <Label style="-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:white; -fx-effect:dropshadow(gaussian,rgba(255,255,255,0.4),6,0,0,2);" text="📊 Activité par heure — Vue 3D" />
                     <Label style="-fx-font-size:11; -fx-text-fill:rgba(245,245,244,0.5); -fx-background-color:rgba(255,255,255,0.1);
                                   -fx-background-radius:8; -fx-padding:3 10 3 10; -fx-font-weight:600;" text="Connexions / 24h" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label fx:id="labelPeakHour" style="-fx-font-size:10; -fx-text-fill:rgba(52,211,153,0.8); -fx-font-weight:700;" text="🔥 Pic: --h" />
+                    <Label fx:id="labelPeakHour" style="-fx-font-size:11; -fx-text-fill:rgba(52,211,153,0.9); -fx-font-weight:700; -fx-background-color:rgba(52,211,153,0.15); -fx-background-radius:8; -fx-padding:4 12 4 12;" text="🔥 Pic: --h" />
                 </HBox>
-                <!-- 3D Canvas with perspective -->
-                <StackPane>
-                    <Canvas fx:id="heatmapCanvas" height="110" width="560" />
+                <!-- 3D Canvas - EXPANDED -->
+                <StackPane style="-fx-background-color:rgba(0,0,0,0.2); -fx-background-radius:12; -fx-padding:10;">
+                    <Canvas fx:id="heatmapCanvas" height="320" width="900" />
                 </StackPane>
                 <!-- Hour labels -->
-                <HBox fx:id="heatmapLabels" spacing="0" />
+                <HBox fx:id="heatmapLabels" spacing="0" style="-fx-padding:4 0 0 0;" />
             </VBox>
 
             <!-- AI Risk Summary Card with advanced features -->

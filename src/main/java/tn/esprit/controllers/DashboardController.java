@@ -150,7 +150,7 @@ public class DashboardController {
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    // 2. 3D HEATMAP WITH PERSPECTIVE
+    // 2. IMPRESSIVE 3D VERTICAL BAR CHART
     // ══════════════════════════════════════════════════════════════════════════
 
     private void loadHeatmap() {
@@ -165,13 +165,8 @@ public class DashboardController {
         double w = heatmapCanvas.getWidth();
         double h = heatmapCanvas.getHeight();
 
-        // Clear with gradient background
-        gc.setFill(Color.rgb(10, 15, 13));
-        gc.fillRect(0, 0, w, h);
-
         int[] hourly = data.hourly();
         int max = data.maxValue();
-        double barWidth = w / 24.0;
         
         // Find peak hour
         int peakHour = 0;
@@ -184,63 +179,179 @@ public class DashboardController {
         }
         labelPeakHour.setText(String.format("🔥 Pic: %dh (%d connexions)", peakHour, peakValue));
 
-        // Animate 3D bars with perspective
+        // 3D Bar settings
+        double barWidth = 28;
+        double spacing = (w - 80) / 24.0;
+        double maxBarHeight = h - 60;
+        double depth3D = 12; // 3D depth
+
+        // Animate bars with staggered entrance
         Timeline tl = new Timeline();
-        for (int step = 0; step <= 25; step++) {
-            final double progress = step / 25.0;
-            tl.getKeyFrames().add(new KeyFrame(Duration.millis(step * 35), e -> {
+        for (int step = 0; step <= 50; step++) {
+            final double progress = step / 50.0;
+            
+            tl.getKeyFrames().add(new KeyFrame(Duration.millis(step * 25), e -> {
                 gc.clearRect(0, 0, w, h);
-                gc.setFill(Color.rgb(10, 15, 13));
+                
+                // Dark gradient background
+                javafx.scene.paint.LinearGradient bgGradient = new javafx.scene.paint.LinearGradient(
+                    0, 0, 0, h, false, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                    new javafx.scene.paint.Stop(0, Color.rgb(15, 20, 18)),
+                    new javafx.scene.paint.Stop(1, Color.rgb(10, 15, 13))
+                );
+                gc.setFill(bgGradient);
                 gc.fillRect(0, 0, w, h);
 
+                // Draw horizontal grid lines
+                gc.setStroke(Color.rgb(255, 255, 255, 0.04));
+                gc.setLineWidth(1);
+                for (int i = 0; i <= 5; i++) {
+                    double y = 30 + (i * (h - 60) / 5);
+                    gc.strokeLine(40, y, w - 40, y);
+                }
+
+                // Draw 3D bars
                 for (int i = 0; i < 24; i++) {
-                    double barHeight = (hourly[i] / (double) max) * (h - 20) * progress;
-                    double x = i * barWidth;
-                    double y = h - barHeight;
+                    // Staggered animation
+                    double barProgress = Math.max(0, Math.min(1, (progress - i * 0.015) * 1.5));
+                    if (barProgress <= 0) continue;
 
-                    // 3D effect: draw shadow first
-                    gc.setFill(Color.rgb(0, 0, 0, 0.3));
-                    gc.fillRoundRect(x + 4, y + 4, barWidth - 6, barHeight, 5, 5);
+                    double barHeight = (hourly[i] / (double) max) * maxBarHeight * barProgress;
+                    double x = 40 + (i * spacing);
+                    double y = h - 30 - barHeight;
 
-                    // Color gradient based on value
+                    // Color based on value
                     double ratio = hourly[i] / (double) max;
-                    Color barColor = ratio < 0.33 ? Color.rgb(52, 211, 153, 0.85)
-                                   : ratio < 0.66 ? Color.rgb(251, 191, 36, 0.85)
-                                   : Color.rgb(248, 113, 113, 0.85);
-
-                    // Main bar with gradient
-                    gc.setFill(barColor);
-                    gc.fillRoundRect(x + 2, y, barWidth - 6, barHeight, 5, 5);
-
-                    // Top highlight for 3D effect
-                    gc.setFill(Color.rgb(255, 255, 255, 0.2));
-                    gc.fillRoundRect(x + 2, y, barWidth - 6, Math.min(8, barHeight), 5, 5);
-
-                    // Peak bar glow
-                    if (hourly[i] == max && max > 0) {
-                        gc.setStroke(Color.rgb(248, 113, 113, 0.8));
-                        gc.setLineWidth(3);
-                        gc.strokeRoundRect(x + 2, y, barWidth - 6, barHeight, 5, 5);
-                        
-                        // Pulsing glow
-                        gc.setStroke(Color.rgb(248, 113, 113, 0.3));
-                        gc.setLineWidth(6);
-                        gc.strokeRoundRect(x + 2, y, barWidth - 6, barHeight, 5, 5);
+                    Color baseColor;
+                    if (ratio < 0.25) {
+                        baseColor = Color.rgb(52, 211, 153); // Green
+                    } else if (ratio < 0.5) {
+                        baseColor = Color.rgb(96, 165, 250); // Blue
+                    } else if (ratio < 0.75) {
+                        baseColor = Color.rgb(251, 191, 36); // Yellow
+                    } else {
+                        baseColor = Color.rgb(248, 113, 113); // Red
                     }
+
+                    // === 3D EFFECT: RIGHT SIDE FACE (darker) ===
+                    gc.setFill(Color.rgb(
+                        (int)(baseColor.getRed() * 255 * 0.4),
+                        (int)(baseColor.getGreen() * 255 * 0.4),
+                        (int)(baseColor.getBlue() * 255 * 0.4),
+                        0.9
+                    ));
+                    double[] xRight = {x + barWidth, x + barWidth + depth3D, x + barWidth + depth3D, x + barWidth};
+                    double[] yRight = {y, y - depth3D, h - 30 - depth3D, h - 30};
+                    gc.fillPolygon(xRight, yRight, 4);
+
+                    // === 3D EFFECT: TOP FACE (lighter) ===
+                    gc.setFill(Color.rgb(
+                        Math.min(255, (int)(baseColor.getRed() * 255 * 1.4)),
+                        Math.min(255, (int)(baseColor.getGreen() * 255 * 1.4)),
+                        Math.min(255, (int)(baseColor.getBlue() * 255 * 1.4)),
+                        0.95
+                    ));
+                    double[] xTop = {x, x + barWidth, x + barWidth + depth3D, x + depth3D};
+                    double[] yTop = {y, y, y - depth3D, y - depth3D};
+                    gc.fillPolygon(xTop, yTop, 4);
+
+                    // === MAIN FRONT FACE with gradient ===
+                    javafx.scene.paint.LinearGradient barGradient = new javafx.scene.paint.LinearGradient(
+                        0, y, 0, h - 30, false, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                        new javafx.scene.paint.Stop(0, baseColor),
+                        new javafx.scene.paint.Stop(0.5, Color.rgb(
+                            (int)(baseColor.getRed() * 255 * 0.85),
+                            (int)(baseColor.getGreen() * 255 * 0.85),
+                            (int)(baseColor.getBlue() * 255 * 0.85)
+                        )),
+                        new javafx.scene.paint.Stop(1, Color.rgb(
+                            (int)(baseColor.getRed() * 255 * 0.6),
+                            (int)(baseColor.getGreen() * 255 * 0.6),
+                            (int)(baseColor.getBlue() * 255 * 0.6)
+                        ))
+                    );
+                    gc.setFill(barGradient);
+                    gc.fillRoundRect(x, y, barWidth, barHeight, 4, 4);
+
+                    // === GLOSSY HIGHLIGHT ===
+                    gc.setFill(Color.rgb(255, 255, 255, 0.3));
+                    gc.fillRoundRect(x, y, barWidth, Math.min(20, barHeight * 0.3), 4, 4);
+
+                    // === GLOW for high values ===
+                    if (ratio > 0.5) {
+                        gc.setStroke(Color.rgb(
+                            (int)(baseColor.getRed() * 255),
+                            (int)(baseColor.getGreen() * 255),
+                            (int)(baseColor.getBlue() * 255),
+                            0.4
+                        ));
+                        gc.setLineWidth(3);
+                        gc.strokeRoundRect(x, y, barWidth, barHeight, 4, 4);
+                    }
+
+                    // === PEAK BAR SPECIAL EFFECTS ===
+                    if (hourly[i] == max && max > 0) {
+                        // Animated pulsing border
+                        double pulseOpacity = 0.6 + 0.3 * Math.sin(System.currentTimeMillis() / 300.0);
+                        gc.setStroke(Color.rgb(255, 215, 0, pulseOpacity));
+                        gc.setLineWidth(3);
+                        gc.strokeRoundRect(x - 2, y - 2, barWidth + 4, barHeight + 4, 6, 6);
+                        
+                        // Outer glow
+                        gc.setLineWidth(6);
+                        gc.setStroke(Color.rgb(255, 215, 0, pulseOpacity * 0.3));
+                        gc.strokeRoundRect(x - 4, y - 4, barWidth + 8, barHeight + 8, 8, 8);
+
+                        // Crown on top
+                        gc.setFill(Color.rgb(255, 215, 0, 0.95));
+                        gc.setFont(javafx.scene.text.Font.font(18));
+                        gc.fillText("👑", x + barWidth / 2 - 9, y - 10);
+                    }
+
+                    // === VALUE LABEL ===
+                    if (barHeight > 40) {
+                        gc.setFill(Color.rgb(255, 255, 255, 0.95));
+                        gc.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 11));
+                        String valueText = String.valueOf(hourly[i]);
+                        double textWidth = valueText.length() * 6;
+                        gc.fillText(valueText, x + (barWidth - textWidth) / 2, y + 20);
+                    }
+
+                    // === FLOOR SHADOW ===
+                    gc.setFill(Color.rgb(0, 0, 0, 0.2));
+                    gc.fillOval(x - 2, h - 32, barWidth + 4, 8);
                 }
             }));
         }
         tl.play();
 
-        // Hour labels
+        // Enhanced hour labels
         heatmapLabels.getChildren().clear();
         for (int i = 0; i < 24; i++) {
             Label lbl = new Label(i + "h");
-            lbl.setStyle("-fx-font-size:8; -fx-text-fill:rgba(245,245,244,0.4); -fx-font-weight:600;");
-            lbl.setPrefWidth(barWidth);
+            double intensity = hourly[i] / (double) max;
+            lbl.setStyle(String.format(
+                "-fx-font-size:10; -fx-text-fill:rgba(245,245,244,%.2f); -fx-font-weight:%s;",
+                0.4 + intensity * 0.5,
+                intensity > 0.6 ? "800" : "600"
+            ));
+            lbl.setPrefWidth(spacing);
             lbl.setAlignment(javafx.geometry.Pos.CENTER);
+            
+            // Highlight peak hour
+            if (hourly[i] == max && max > 0) {
+                lbl.setStyle("-fx-font-size:11; -fx-text-fill:#ffd700; -fx-font-weight:900; -fx-background-color:rgba(255,215,0,0.15); -fx-background-radius:6; -fx-padding:3 6 3 6;");
+            }
+            
             heatmapLabels.getChildren().add(lbl);
         }
+
+        // Continuous pulse for peak
+        Timeline pulseTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(1.5), ev -> draw3DHeatmap(data))
+        );
+        pulseTimeline.setCycleCount(2);
+        pulseTimeline.play();
     }
 
     // ══════════════════════════════════════════════════════════════════════════
