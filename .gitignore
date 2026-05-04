@@ -42,3 +42,9 @@ symfony/
 
 ### IntelliJ Run Configurations (local paths, not shared) ###
 .idea/runConfigurations/
+
+### API Keys and Sensitive Data ###
+API_KEYS_BACKUP.txt
+.hf_token
+*.env
+config.properties
