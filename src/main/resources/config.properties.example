@@ -1,0 +1,27 @@
+# Configuration GitHub API
+# Obtenir un token sur: https://github.com/settings/tokens
+# Permissions nécessaires: public_repo (lecture seule)
+
+github.api.token=YOUR_GITHUB_TOKEN_HERE
+
+# Sans token: 60 requêtes/heure
+# Avec token: 5000 requêtes/heure
+
+# Configuration Groq API pour traduction IA et analyse de risque
+# Obtenir une clé sur: https://console.groq.com/keys
+groq.api.key=YOUR_GROQ_API_KEY_HERE
+groq.model=llama-3.3-70b-versatile
+groq.risk.model=meta-llama/llama-4-scout-17b-16e-instruct
+
+# Face Recognition Configuration
+face.recognition.server=http://localhost:5000
+
+# Google OAuth Configuration
+# Obtenir les credentials sur: https://console.cloud.google.com/apis/credentials
+google.oauth.client.id=YOUR_GOOGLE_CLIENT_ID_HERE
+google.oauth.client.secret=YOUR_GOOGLE_CLIENT_SECRET_HERE
+google.oauth.redirect.uri=http://localhost:8080/callback
+
+# Hugging Face API Token
+# Obtenir un token sur: https://huggingface.co/settings/tokens
+huggingface.api.token=YOUR_HUGGINGFACE_TOKEN_HERE
