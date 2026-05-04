@@ -904,7 +904,15 @@ public class FrontofficeController {
                             detailCtrl.setCommunaute(finalFresh, () -> setCenter(commView));
                             detailCtrl.setOnNavigateToCours(id -> setCenter(view));
                             detailCtrl.setOnNavigateToQuiz(id -> setCenter(view));
-                            setCenter(detailView);
+                            // Extraire le VBox center du BorderPane pour que le scroll fonctionne
+                            Parent content = detailView instanceof BorderPane bp3 && bp3.getCenter() instanceof Parent p3
+                                ? p3 : detailView;
+                            ScrollPane sp = new ScrollPane(content);
+                            sp.setFitToWidth(true);
+                            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                            sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                            sp.setStyle("-fx-background-color:#f0eeff; -fx-background:#f0eeff; -fx-border-width:0;");
+                            setCenter(sp);
                         } catch (Exception ex) { ex.printStackTrace(); }
                     });
                     javafx.scene.Node cn = commRoot instanceof BorderPane bp ? bp.getCenter() : null;
@@ -1449,6 +1457,7 @@ public class FrontofficeController {
         // Replace only the first child (page content), keep the AI assistant overlay
         Parent toSet;
         if (view instanceof ScrollPane sp) {
+            // Already a ScrollPane — use directly
             sp.setFitToWidth(true);
             sp.setFocusTraversable(true);
             toSet = sp;

@@ -300,7 +300,11 @@ public class FrontCommunauteController {
         javafx.scene.control.ScrollPane sp = new javafx.scene.control.ScrollPane(view);
         sp.setFitToWidth(true);
         sp.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
+        sp.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        sp.setStyle("-fx-background-color:#f0eeff; -fx-background:#f0eeff; -fx-border-width:0;");
+        // Bind height so the ScrollPane fills the available space and scrolls properly
+        sp.prefHeightProperty().bind(root.heightProperty().subtract(64));
+        sp.prefWidthProperty().bind(root.widthProperty());
         root.setCenter(sp);
     }
 

@@ -33,6 +33,15 @@ public class MyConnection {
     }
 
     public Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed() || !connection.isValid(2)) {
+                System.out.println("[MyConnection] Reconnexion à la base de données...");
+                connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                System.out.println("[MyConnection] Reconnexion réussie.");
+            }
+        } catch (SQLException e) {
+            System.err.println("[MyConnection] Erreur reconnexion: " + e.getMessage());
+        }
         return connection;
     }
 
@@ -116,6 +125,10 @@ public class MyConnection {
         String alterParticipation =
                 "ALTER TABLE participation ADD COLUMN IF NOT EXISTS table_numero INT NULL DEFAULT NULL";
 
+        // Ajoute la colonne tags à post si elle n'existe pas encore
+        String alterPostTags =
+                "ALTER TABLE post ADD COLUMN IF NOT EXISTS tags VARCHAR(500) NULL DEFAULT NULL";
+
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(createQuizTable);
             statement.executeUpdate(createQuestionTable);
@@ -126,7 +139,9 @@ public class MyConnection {
             statement.executeUpdate(createUserChallengeTable);
             statement.executeUpdate(createVoteTable);
             try { statement.executeUpdate(alterParticipation); }
-            catch (SQLException ignored) {} // colonne déjà existante = pas d'erreur
+            catch (SQLException ignored) {}
+            try { statement.executeUpdate(alterPostTags); }
+            catch (SQLException ignored) {}
         }
     }
 }

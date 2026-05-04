@@ -9,7 +9,7 @@
             style="-fx-background-color:#f0eeff;">
 
     <center>
-        <VBox spacing="0">
+        <VBox spacing="0" VBox.vgrow="ALWAYS">
 
             <!-- ══════════ HERO ══════════ -->
             <StackPane minHeight="200" maxHeight="200">
@@ -115,9 +115,7 @@
             </HBox>
 
             <!-- ══════════ MAIN CONTENT ══════════ -->
-            <ScrollPane fx:id="mainScrollPane" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS"
-                        style="-fx-background-color:#f0eeff; -fx-background:#f0eeff; -fx-border-width:0;">
-                <HBox spacing="26" style="-fx-padding:34 72 60 72; -fx-background-color:#f0eeff;">
+            <HBox spacing="26" VBox.vgrow="ALWAYS" style="-fx-padding:34 72 60 72; -fx-background-color:#f0eeff;">
 
                     <!-- ── FEED ── -->
                     <VBox spacing="22" HBox.hgrow="ALWAYS">
@@ -391,7 +389,6 @@
                     </VBox>
 
                 </HBox>
-            </ScrollPane>
 
         </VBox>
     </center>

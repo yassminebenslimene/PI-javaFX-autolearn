@@ -156,6 +156,23 @@ public class ServicePost {
         if (p.getTags() == null || p.getTags().isBlank()) {
             p.setTags(extractTags(p.getTitre(), p.getContenu()));
         }
+
+        // Ensure tags column exists (added later — may be missing on some installs)
+        try {
+            conn().createStatement().executeUpdate(
+                "ALTER TABLE post ADD COLUMN IF NOT EXISTS tags VARCHAR(500) NULL DEFAULT NULL");
+        } catch (SQLException ignored) {}
+
+        // Also ensure communaute_id and user_id columns exist
+        try {
+            conn().createStatement().executeUpdate(
+                "ALTER TABLE post ADD COLUMN IF NOT EXISTS communaute_id INT NULL DEFAULT NULL");
+        } catch (SQLException ignored) {}
+        try {
+            conn().createStatement().executeUpdate(
+                "ALTER TABLE post ADD COLUMN IF NOT EXISTS user_id INT NULL DEFAULT NULL");
+        } catch (SQLException ignored) {}
+
         String req = "INSERT INTO post (contenu, titre, ai_reaction, ai_reaction_data, summary, " +
                      "image_file, video_file, created_at, communaute_id, user_id, tags) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
         try {
@@ -179,10 +196,45 @@ public class ServicePost {
                 p.setId(keys.getInt(1));
                 System.out.println("[ServicePost] ajouter OK id=" + p.getId() + " tags=" + p.getTags());
             }
-        } catch (SQLException e) { System.err.println("[ServicePost] ajouter: " + e.getMessage()); }
+        } catch (SQLException e) {
+            System.err.println("[ServicePost] ajouter ERREUR: " + e.getMessage());
+            // Fallback: insert without tags column
+            String reqFallback = "INSERT INTO post (contenu, titre, ai_reaction, ai_reaction_data, summary, " +
+                         "image_file, video_file, created_at, communaute_id, user_id) VALUES (?,?,?,?,?,?,?,?,?,?)";
+            try {
+                PreparedStatement ps2 = conn().prepareStatement(reqFallback, Statement.RETURN_GENERATED_KEYS);
+                ps2.setString(1, p.getContenu());
+                ps2.setString(2, p.getTitre());
+                ps2.setString(3, p.getAiReaction());
+                ps2.setString(4, p.getAiReactionData());
+                ps2.setString(5, p.getSummary());
+                ps2.setString(6, p.getImageFile());
+                ps2.setString(7, p.getVideoFile());
+                ps2.setTimestamp(8, p.getCreatedAt() != null
+                    ? Timestamp.valueOf(p.getCreatedAt())
+                    : Timestamp.valueOf(java.time.LocalDateTime.now()));
+                ps2.setInt(9, p.getCommunauteId());
+                ps2.setInt(10, p.getUserId());
+                ps2.executeUpdate();
+                ResultSet keys2 = ps2.getGeneratedKeys();
+                if (keys2.next()) {
+                    p.setId(keys2.getInt(1));
+                    System.out.println("[ServicePost] ajouter fallback OK id=" + p.getId());
+                }
+            } catch (SQLException e2) {
+                System.err.println("[ServicePost] ajouter fallback ERREUR: " + e2.getMessage());
+                e2.printStackTrace();
+            }
+        }
     }
 
     public void modifier(Post p) {
+        // Ensure tags column exists
+        try {
+            conn().createStatement().executeUpdate(
+                "ALTER TABLE post ADD COLUMN IF NOT EXISTS tags VARCHAR(500) NULL DEFAULT NULL");
+        } catch (SQLException ignored) {}
+
         String req = "UPDATE post SET contenu=?, titre=?, ai_reaction=?, ai_reaction_data=?, " +
                      "summary=?, image_file=?, video_file=?, communaute_id=?, user_id=?, tags=? WHERE id=?";
         try {
