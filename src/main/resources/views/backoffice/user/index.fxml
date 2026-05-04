@@ -11,8 +11,9 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="0" style="-fx-background-color:#0a0f0d;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.UserController">
-    <padding><Insets bottom="20" left="24" right="24" top="20" /></padding>
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS" style="-fx-background:#0a0f0d; -fx-background-color:#0a0f0d;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.UserController">
+    <VBox spacing="0" style="-fx-background-color:#0a0f0d;">
+        <padding><Insets bottom="20" left="24" right="24" top="20" /></padding>
 
     <!-- ══ ANIMATED STATS ROW ══ -->
     <HBox alignment="CENTER_LEFT" spacing="14">
@@ -132,3 +133,5 @@
         </TableView>
     </VBox>
 </VBox>
+
+</ScrollPane>
