@@ -72,5 +72,8 @@
                 style="-fx-background-color:rgba(255,255,255,0.1); -fx-text-fill:white; -fx-font-size:13;
                        -fx-padding:9 24 9 24; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;"/>
     </HBox>
-</VBox>
 
+    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
+    <Region prefHeight="150" />
+
+</VBox>

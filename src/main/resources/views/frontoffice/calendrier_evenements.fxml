@@ -113,4 +113,8 @@
                    style="-fx-text-fill:rgba(255,255,255,0.4); -fx-font-size:12;"/>
         </HBox>
     </bottom>
+
+    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
+    <Region prefHeight="150" />
+
 </BorderPane>

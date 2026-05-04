@@ -135,4 +135,8 @@
                   style="-fx-text-fill: #667eea; -fx-font-size: 11px; -fx-font-weight: bold;"/>
     </HBox>
 
+
+    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
+    <Region prefHeight="150" />
+
 </VBox>

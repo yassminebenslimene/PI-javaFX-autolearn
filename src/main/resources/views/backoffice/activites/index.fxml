@@ -94,4 +94,8 @@
               style="-fx-padding:0 28 20 28; -fx-background-color:#0a0f0d;"/>
     </ScrollPane>
 
+
+    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
+    <Region prefHeight="150" />
+
 </VBox>

@@ -115,4 +115,8 @@
                            -fx-border-color:#30363d; -fx-border-radius:10;"/>
         </HBox>
     </VBox>
+
+    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
+    <Region prefHeight="150" />
+
 </VBox>

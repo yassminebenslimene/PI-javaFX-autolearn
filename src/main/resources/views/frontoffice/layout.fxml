@@ -406,5 +406,8 @@
 
         </StackPane>
     </center>
-</BorderPane>
 
+    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
+    <Region prefHeight="150" />
+
+</BorderPane>
