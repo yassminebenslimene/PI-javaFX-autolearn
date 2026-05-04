@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
@@ -18,12 +18,11 @@
             <VBox fx:id="containerBox" spacing="0" 
                   style="-fx-padding:0; -fx-background-color:#f8f7ff; -fx-spacing:0;">
                 <!-- Les containers des fonctionnalités seront ajoutés dynamiquement -->
+            <!-- EXTRA BOTTOM SPACE FOR SCROLLING -->
+                <Region prefHeight="150" />
+
             </VBox>
         </ScrollPane>
     </center>
-
-
-    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
-    <Region prefHeight="150" />
 
 </BorderPane>

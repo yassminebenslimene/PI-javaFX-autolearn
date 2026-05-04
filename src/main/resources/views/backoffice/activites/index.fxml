@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
@@ -95,7 +95,7 @@
     </ScrollPane>
 
 
-    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
+    <!-- EXTRA BOTTOM SPACE FOR SCROLLING -->
     <Region prefHeight="150" />
 
 </VBox>

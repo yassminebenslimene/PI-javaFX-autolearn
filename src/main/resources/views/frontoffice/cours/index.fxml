@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -119,10 +119,10 @@
                       style="-fx-padding:0 60 40 60; -fx-background-color:#f4f6fb;"
                       prefWrapLength="1000"/>
 
-        </VBox>
-    </content>
+        <!-- EXTRA BOTTOM SPACE FOR SCROLLING -->
+                <Region prefHeight="150" />
 
-    <!-- -- EXTRA BOTTOM SPACE FOR SCROLLING -- -->
-    <Region prefHeight="150" />
+            </VBox>
+    </content>
 
 </ScrollPane>
