@@ -1,5 +1,10 @@
 package tn.esprit.controllers;
 
+import javafx.animation.AnimationTimer;
+import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -7,37 +12,59 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.paint.CycleMethod;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import tn.esprit.entities.Admin;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.EmailService;
+import tn.esprit.services.UserAiInsightService;
 import tn.esprit.services.UserService;
 import tn.esprit.session.JwtManager;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class UserController {
 
     // ── Index ─────────────────────────────────────────────────────────────────
     @FXML private TableView<User>            tableUsers;
-    @FXML private TableColumn<User, User>    colUser;     // combined avatar+name+email
+    @FXML private TableColumn<User, User>    colUser;
     @FXML private TableColumn<User, String>  colNiveau;
     @FXML private TableColumn<User, String>  colStatut;
     @FXML private TableColumn<User, String>  colCreated;
+    @FXML private TableColumn<User, Void>    colRisk;
     @FXML private TableColumn<User, Void>    colActions;
     @FXML private TextField                  searchField;
     @FXML private Label                      labelTotalUsers;
     @FXML private Label                      labelTotalAdmins;
     @FXML private Label                      labelTotalEtudiants;
+    @FXML private Label                      labelActiveWeek;
+    @FXML private Label                      labelNewWeek;
+    @FXML private Label                      labelSuspended;
     @FXML private HBox                       adminToolbarNew;
+
+    // ── Feature 1: Heatmap ────────────────────────────────────────────────────
+    @FXML private Canvas heatmapCanvas;
+    @FXML private HBox   heatmapLabels;
+
+    // ── Feature 2: AI Risk ────────────────────────────────────────────────────
+    @FXML private VBox   riskSummaryBox;
+    @FXML private Button btnViewAllRisk;
 
     // ── Form ──────────────────────────────────────────────────────────────────
     @FXML private Label         formTitle;
@@ -62,6 +89,9 @@ public class UserController {
     private boolean           isEditMode  = false;
     private static final SimpleDateFormat SDF = new SimpleDateFormat("dd/MM/yyyy");
 
+    // Risk scores cache: userId -> RiskResult
+    private final Map<Integer, UserAiInsightService.RiskResult> riskCache = new HashMap<>();
+
     @FXML
     public void initialize() {
         if (tableUsers != null) initTable();
@@ -72,35 +102,24 @@ public class UserController {
     // TABLE
     // ─────────────────────────────────────────────────────────────────────────
     private void initTable() {
-        // Force dark background on the TableView itself
         tableUsers.setStyle(
-            "-fx-background-color:#0f1a14; -fx-border-width:0;" +
+            "-fx-background-color:#0a0f0d; -fx-border-width:0;" +
             "-fx-table-cell-border-color:rgba(255,255,255,0.06);"
         );
-
-        // Dark scrollbar + dark header — applied once skin is ready
-        tableUsers.skinProperty().addListener((obs, o, skin) -> {
-            javafx.application.Platform.runLater(() -> applyTableDarkTheme());
-        });
-        // Also apply when scene is set (fallback)
+        tableUsers.skinProperty().addListener((obs, o, skin) ->
+            javafx.application.Platform.runLater(this::applyTableDarkTheme));
         tableUsers.sceneProperty().addListener((obs, o, scene) -> {
-            if (scene != null) javafx.application.Platform.runLater(() -> applyTableDarkTheme());
+            if (scene != null) javafx.application.Platform.runLater(this::applyTableDarkTheme);
         });
 
-        // Force dark row background — overrides JavaFX default white
         tableUsers.setRowFactory(tv -> {
             javafx.scene.control.TableRow<User> row = new javafx.scene.control.TableRow<>();
-            row.setStyle("-fx-background-color:#0f1a14;");
-            row.selectedProperty().addListener((obs, wasSelected, isSelected) ->
-                row.setStyle(isSelected
-                    ? "-fx-background-color:rgba(5,150,105,0.18);"
-                    : "-fx-background-color:#0f1a14;")
-            );
-            row.hoverProperty().addListener((obs, wasHover, isHover) -> {
+            row.setStyle("-fx-background-color:#0a0f0d;");
+            row.selectedProperty().addListener((obs, was, is) ->
+                row.setStyle(is ? "-fx-background-color:rgba(5,150,105,0.18);" : "-fx-background-color:#0a0f0d;"));
+            row.hoverProperty().addListener((obs, was, is) -> {
                 if (!row.isSelected())
-                    row.setStyle(isHover
-                        ? "-fx-background-color:rgba(255,255,255,0.04);"
-                        : "-fx-background-color:#0f1a14;");
+                    row.setStyle(is ? "-fx-background-color:rgba(255,255,255,0.04);" : "-fx-background-color:#0a0f0d;");
             });
             return row;
         });
@@ -110,10 +129,9 @@ public class UserController {
         colUser.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(User user, boolean empty) {
                 super.updateItem(user, empty);
-                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0;");
+                setStyle("-fx-background-color:#0a0f0d; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0;");
                 if (empty || user == null) { setGraphic(null); return; }
-                String initials = user.getPrenom().substring(0,1).toUpperCase()
-                                + user.getNom().substring(0,1).toUpperCase();
+                String initials = user.getPrenom().substring(0,1).toUpperCase() + user.getNom().substring(0,1).toUpperCase();
                 Label avatar = new Label(initials);
                 avatar.setStyle("-fx-background-color:linear-gradient(to bottom right,#34d399,#059669);" +
                                 "-fx-text-fill:white; -fx-font-weight:700; -fx-font-size:13;" +
@@ -139,7 +157,7 @@ public class UserController {
         colNiveau.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER;");
+                setStyle("-fx-background-color:#0a0f0d; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER;");
                 if (empty || item == null || "—".equals(item)) { setText("—"); setGraphic(null); return; }
                 Label badge = new Label(item);
                 String base = "-fx-font-size:11; -fx-font-weight:700; -fx-padding:4 12 4 12; -fx-background-radius:20; -fx-text-fill:white;";
@@ -149,8 +167,7 @@ public class UserController {
                     case "AVANCE"        -> badge.setStyle(base + "-fx-background-color:linear-gradient(to right,#f87171,#dc2626);");
                     default              -> badge.setStyle(base + "-fx-background-color:rgba(255,255,255,0.15);");
                 }
-                HBox wrap = new HBox(badge);
-                wrap.setAlignment(Pos.CENTER);
+                HBox wrap = new HBox(badge); wrap.setAlignment(Pos.CENTER);
                 setGraphic(wrap); setText(null);
             }
         });
@@ -161,19 +178,13 @@ public class UserController {
         colStatut.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER;");
+                setStyle("-fx-background-color:#0a0f0d; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER;");
                 if (empty || item == null) { setGraphic(null); setText(null); return; }
                 Label badge = new Label(item);
-                if ("Suspendu".equals(item))
-                    badge.setStyle("-fx-background-color:linear-gradient(to right,#dc2626,#b91c1c);" +
-                                   "-fx-text-fill:white; -fx-font-size:11; -fx-font-weight:700;" +
-                                   "-fx-padding:4 12 4 12; -fx-background-radius:20;");
-                else
-                    badge.setStyle("-fx-background-color:linear-gradient(to right,#34d399,#059669);" +
-                                   "-fx-text-fill:white; -fx-font-size:11; -fx-font-weight:700;" +
-                                   "-fx-padding:4 12 4 12; -fx-background-radius:20;");
-                HBox wrap = new HBox(badge);
-                wrap.setAlignment(Pos.CENTER);
+                badge.setStyle("Suspendu".equals(item)
+                    ? "-fx-background-color:linear-gradient(to right,#dc2626,#b91c1c); -fx-text-fill:white; -fx-font-size:11; -fx-font-weight:700; -fx-padding:4 12 4 12; -fx-background-radius:20;"
+                    : "-fx-background-color:linear-gradient(to right,#34d399,#059669); -fx-text-fill:white; -fx-font-size:11; -fx-font-weight:700; -fx-padding:4 12 4 12; -fx-background-radius:20;");
+                HBox wrap = new HBox(badge); wrap.setAlignment(Pos.CENTER);
                 setGraphic(wrap); setText(null);
             }
         });
@@ -186,21 +197,42 @@ public class UserController {
         colCreated.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER; -fx-text-fill:rgba(245,245,244,0.6); -fx-font-size:12;");
+                setStyle("-fx-background-color:#0a0f0d; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER; -fx-text-fill:rgba(245,245,244,0.6); -fx-font-size:12;");
                 setText(empty || item == null ? null : item);
             }
         });
+
+        // ── AI Risk column ──
+        if (colRisk != null) {
+            colRisk.setCellFactory(col -> new TableCell<>() {
+                @Override protected void updateItem(Void item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setStyle("-fx-background-color:#0a0f0d; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0; -fx-alignment:CENTER;");
+                    if (empty) { setGraphic(null); return; }
+                    User u = getTableView().getItems().get(getIndex());
+                    if (u == null) { setGraphic(null); return; }
+                    UserAiInsightService.RiskResult risk = riskCache.get(u.getId());
+                    if (risk == null) {
+                        Label loading = new Label("...");
+                        loading.setStyle("-fx-text-fill:rgba(245,245,244,0.3); -fx-font-size:11;");
+                        setGraphic(loading); return;
+                    }
+                    // Animated ring gauge
+                    Canvas ring = buildRiskRing(risk.riskScore(), risk.riskLevel());
+                    setGraphic(ring);
+                }
+            });
+        }
 
         // ── Actions ──
         colActions.setCellFactory(col -> new TableCell<>() {
             private final Button btnView     = new Button("View");
             private final Button btnEdit     = new Button("Edit");
             private final Button btnSuspend  = new Button("Suspend");
-            private final Button btnActivity = new Button("📊 Activité");
-            private final HBox   box         = new HBox(6, btnView, btnEdit, btnSuspend, btnActivity);
+            private final Button btnActivity = new Button("📊");
+            private final HBox   box         = new HBox(5, btnView, btnEdit, btnSuspend, btnActivity);
             {
-                String base = "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10;" +
-                              "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;";
+                String base = "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;";
                 btnView.setStyle(base + "-fx-background-color:rgba(14,165,233,0.25); -fx-text-fill:#38bdf8;");
                 btnEdit.setStyle(base + "-fx-background-color:rgba(99,102,241,0.25); -fx-text-fill:#a5b4fc;");
                 btnSuspend.setStyle(base + "-fx-background-color:rgba(251,191,36,0.25); -fx-text-fill:#fbbf24;");
@@ -213,12 +245,11 @@ public class UserController {
             }
             @Override protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                setStyle("-fx-background-color:#0f1a14; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0;");
+                setStyle("-fx-background-color:#0a0f0d; -fx-border-color:transparent transparent rgba(255,255,255,0.06) transparent; -fx-border-width:0 0 1 0;");
                 if (empty) { setGraphic(null); return; }
                 User u = getTableView().getItems().get(getIndex());
                 if (u != null) {
-                    String base = "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10;" +
-                                  "-fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;";
+                    String base = "-fx-font-size:11; -fx-font-weight:600; -fx-padding:5 10 5 10; -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:0;";
                     if (u.isIsSuspended()) {
                         btnSuspend.setStyle(base + "-fx-background-color:rgba(52,211,153,0.25); -fx-text-fill:#34d399;");
                         btnSuspend.setText("Réactiver");
@@ -231,7 +262,6 @@ public class UserController {
             }
         });
 
-        // New user button visibility
         if (adminToolbarNew != null) {
             adminToolbarNew.setVisible(JwtManager.isAdmin());
             adminToolbarNew.setManaged(JwtManager.isAdmin());
@@ -269,16 +299,303 @@ public class UserController {
 
     private void loadTable() {
         List<User> all = service.afficher();
-
-        // ADMIN sees only students (not other admins), ETUDIANT sees only etudiants
         List<User> displayed = all.stream().filter(u -> u instanceof Etudiant).toList();
-
         tableUsers.setItems(FXCollections.observableArrayList(displayed));
 
-        // Stats — always count all
-        if (labelTotalUsers    != null) labelTotalUsers.setText(String.valueOf(all.size()));
-        if (labelTotalAdmins   != null) labelTotalAdmins.setText(String.valueOf(all.stream().filter(u -> u instanceof Admin).count()));
-        if (labelTotalEtudiants!= null) labelTotalEtudiants.setText(String.valueOf(all.stream().filter(u -> u instanceof Etudiant).count()));
+        // ── Feature 1: Animated stat counters ──
+        UserAiInsightService.DashboardStats stats = UserAiInsightService.getDashboardStats();
+        animateCount(labelTotalUsers,    0, stats.totalUsers());
+        animateCount(labelTotalEtudiants,0, stats.totalEtudiants());
+        animateCount(labelTotalAdmins,   0, stats.totalAdmins());
+        if (labelActiveWeek != null) labelActiveWeek.setText(stats.activeThisWeek() + " actifs cette semaine");
+        if (labelNewWeek    != null) labelNewWeek.setText(stats.newThisWeek() + " nouveaux cette semaine");
+        if (labelSuspended  != null) labelSuspended.setText(stats.suspended() + " suspendus");
+
+        // ── Feature 3: Heatmap ──
+        if (heatmapCanvas != null) {
+            javafx.concurrent.Task<UserAiInsightService.HeatmapData> heatTask = new javafx.concurrent.Task<>() {
+                @Override protected UserAiInsightService.HeatmapData call() {
+                    return UserAiInsightService.getLoginHeatmap();
+                }
+            };
+            heatTask.setOnSucceeded(e -> drawHeatmap(heatTask.getValue()));
+            new Thread(heatTask, "heatmap-loader").start();
+        }
+
+        // ── Feature 2: AI Risk (async — doesn't block UI) ──
+        if (riskSummaryBox != null) {
+            UserAiInsightService.computeRiskScores(displayed).thenAccept(results -> {
+                javafx.application.Platform.runLater(() -> {
+                    riskCache.clear();
+                    results.forEach(r -> riskCache.put(r.userId(), r));
+                    tableUsers.refresh();
+                    updateRiskSummary(results);
+                });
+            });
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FEATURE 1: Animated counter
+    // ─────────────────────────────────────────────────────────────────────────
+    private void animateCount(Label label, int from, int to) {
+        if (label == null) return;
+        Timeline tl = new Timeline();
+        int steps = 30;
+        for (int i = 0; i <= steps; i++) {
+            final int val = from + (int) Math.round((to - from) * (double) i / steps);
+            tl.getKeyFrames().add(new KeyFrame(Duration.millis(i * 30L), e -> label.setText(String.valueOf(val))));
+        }
+        tl.play();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FEATURE 3: Heatmap drawing
+    // ─────────────────────────────────────────────────────────────────────────
+    private void drawHeatmap(UserAiInsightService.HeatmapData data) {
+        if (heatmapCanvas == null) return;
+        double w = heatmapCanvas.getWidth();
+        double h = heatmapCanvas.getHeight();
+        GraphicsContext gc = heatmapCanvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, w, h);
+
+        int[] hourly = data.hourly();
+        int   maxVal = data.maxValue();
+        double barW  = (w - 10) / 24.0;
+        double padX  = 5;
+
+        // Animate bars growing from 0
+        final double[] animProgress = {0.0};
+        AnimationTimer timer = new AnimationTimer() {
+            @Override public void handle(long now) {
+                animProgress[0] = Math.min(1.0, animProgress[0] + 0.04);
+                gc.clearRect(0, 0, w, h);
+
+                for (int hour = 0; hour < 24; hour++) {
+                    double ratio    = maxVal > 0 ? (double) hourly[hour] / maxVal : 0;
+                    double barH     = (h - 16) * ratio * animProgress[0];
+                    double x        = padX + hour * barW;
+                    double y        = h - 14 - barH;
+
+                    // Color: green for peak hours, blue for off-peak
+                    double hue = 160 - ratio * 100; // 160=green, 60=yellow, 0=red
+                    Color barColor = Color.hsb(hue, 0.8, 0.9, 0.85);
+
+                    // Gradient fill
+                    LinearGradient grad = new LinearGradient(0, y, 0, h - 14,
+                        false, CycleMethod.NO_CYCLE,
+                        new Stop(0, barColor),
+                        new Stop(1, barColor.deriveColor(0, 1, 0.5, 0.4)));
+                    gc.setFill(grad);
+
+                    double rounding = Math.min(4, barW * 0.4);
+                    gc.fillRoundRect(x + 1, y, barW - 2, barH, rounding, rounding);
+
+                    // Glow on peak bar
+                    if (hourly[hour] == maxVal && animProgress[0] > 0.9) {
+                        gc.setFill(Color.rgb(52, 211, 153, 0.15));
+                        gc.fillRoundRect(x, h - 14 - (h - 16) * ratio - 4, barW, (h - 16) * ratio + 4, rounding, rounding);
+                    }
+
+                    // Hour label every 3 hours
+                    if (hour % 3 == 0) {
+                        gc.setFill(Color.rgb(245, 245, 244, 0.35));
+                        gc.setFont(javafx.scene.text.Font.font(9));
+                        gc.fillText(String.format("%02d", hour), x + barW / 2 - 6, h - 2);
+                    }
+                }
+
+                if (animProgress[0] >= 1.0) stop();
+            }
+        };
+        timer.start();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FEATURE 2: AI Risk ring gauge + summary panel
+    // ─────────────────────────────────────────────────────────────────────────
+    private Canvas buildRiskRing(int score, String level) {
+        Canvas c = new Canvas(52, 52);
+        GraphicsContext gc = c.getGraphicsContext2D();
+
+        Color trackColor = Color.rgb(255, 255, 255, 0.08);
+        Color arcColor = switch (level) {
+            case "CRITIQUE" -> Color.rgb(239, 68, 68, 0.9);
+            case "ELEVE"    -> Color.rgb(251, 146, 60, 0.9);
+            case "MOYEN"    -> Color.rgb(251, 191, 36, 0.9);
+            default         -> Color.rgb(52, 211, 153, 0.9);
+        };
+
+        // Animate arc from 0 to score
+        final double[] progress = {0.0};
+        AnimationTimer timer = new AnimationTimer() {
+            @Override public void handle(long now) {
+                progress[0] = Math.min(score, progress[0] + 2.5);
+                gc.clearRect(0, 0, 52, 52);
+
+                // Track
+                gc.setStroke(trackColor);
+                gc.setLineWidth(5);
+                gc.strokeArc(6, 6, 40, 40, 0, 360, javafx.scene.shape.ArcType.OPEN);
+
+                // Arc
+                gc.setStroke(arcColor);
+                gc.setLineWidth(5);
+                double angle = (progress[0] / 100.0) * 360;
+                gc.strokeArc(6, 6, 40, 40, 90, -angle, javafx.scene.shape.ArcType.OPEN);
+
+                // Score text
+                gc.setFill(Color.WHITE);
+                gc.setFont(javafx.scene.text.Font.font("System Bold", 11));
+                String txt = (int) progress[0] + "%";
+                gc.fillText(txt, 26 - txt.length() * 3.2, 30);
+
+                if (progress[0] >= score) stop();
+            }
+        };
+        timer.start();
+        return c;
+    }
+
+    private void updateRiskSummary(List<UserAiInsightService.RiskResult> results) {
+        if (riskSummaryBox == null) return;
+        riskSummaryBox.getChildren().clear();
+
+        long critique = results.stream().filter(r -> "CRITIQUE".equals(r.riskLevel())).count();
+        long eleve    = results.stream().filter(r -> "ELEVE".equals(r.riskLevel())).count();
+        long moyen    = results.stream().filter(r -> "MOYEN".equals(r.riskLevel())).count();
+        long faible   = results.stream().filter(r -> "FAIBLE".equals(r.riskLevel())).count();
+
+        riskSummaryBox.getChildren().addAll(
+            riskChip("🔴 Critique",    critique, "#ef4444", "rgba(239,68,68,0.12)"),
+            riskChip("🟠 Élevé",       eleve,    "#fb923c", "rgba(251,146,60,0.12)"),
+            riskChip("🟡 Moyen",       moyen,    "#fbbf24", "rgba(251,191,36,0.12)"),
+            riskChip("🟢 Faible",      faible,   "#34d399", "rgba(52,211,153,0.12)")
+        );
+
+        // Show top 2 at-risk students with AI explanation
+        results.stream().filter(r -> r.riskScore() >= 50).limit(2).forEach(r -> {
+            VBox card = new VBox(3);
+            card.setStyle("-fx-background-color:rgba(239,68,68,0.07); -fx-background-radius:8;" +
+                          "-fx-border-color:rgba(239,68,68,0.2); -fx-border-radius:8; -fx-padding:8 10 8 10;");
+            Label name = new Label("⚠ " + r.userName());
+            name.setStyle("-fx-text-fill:#f87171; -fx-font-size:11; -fx-font-weight:700;");
+            Label expl = new Label(r.aiExplanation());
+            expl.setStyle("-fx-text-fill:rgba(245,245,244,0.55); -fx-font-size:10;");
+            expl.setWrapText(true);
+            card.getChildren().addAll(name, expl);
+
+            FadeTransition ft = new FadeTransition(Duration.millis(600), card);
+            ft.setFromValue(0); ft.setToValue(1); ft.play();
+            riskSummaryBox.getChildren().add(card);
+        });
+    }
+
+    private HBox riskChip(String label, long count, String color, String bg) {
+        HBox box = new HBox(8);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.setStyle("-fx-background-color:" + bg + "; -fx-background-radius:6; -fx-padding:5 10 5 10;");
+        Label lbl = new Label(label);
+        lbl.setStyle("-fx-text-fill:" + color + "; -fx-font-size:11; -fx-font-weight:600;");
+        javafx.scene.layout.Region sp = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(sp, javafx.scene.layout.Priority.ALWAYS);
+        Label cnt = new Label(String.valueOf(count));
+        cnt.setStyle("-fx-text-fill:" + color + "; -fx-font-size:13; -fx-font-weight:900;");
+        box.getChildren().addAll(lbl, sp, cnt);
+        return box;
+    }
+
+    @FXML private void onViewAllRisk() {
+        if (riskCache.isEmpty()) {
+            showAlert(Alert.AlertType.INFORMATION, "IA en cours", "L'analyse IA est encore en cours. Réessayez dans quelques secondes.");
+            return;
+        }
+        openFullRiskWindow();
+    }
+
+    private void openFullRiskWindow() {
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("🤖 Analyse IA — Risque d'abandon");
+        stage.setResizable(true);
+
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color:#0a0f0d;");
+
+        // Header
+        HBox header = new HBox(12);
+        header.setStyle("-fx-background-color:#0d1a14; -fx-padding:18 24 18 24;" +
+                        "-fx-border-color:transparent transparent rgba(255,255,255,0.08) transparent; -fx-border-width:0 0 1 0;");
+        header.setAlignment(Pos.CENTER_LEFT);
+        Label title = new Label("🤖  Analyse IA — Risque d'abandon étudiant");
+        title.setStyle("-fx-text-fill:white; -fx-font-size:16; -fx-font-weight:700;");
+        Label sub = new Label("Powered by Groq AI (Llama 4 Scout)");
+        sub.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:11;");
+        VBox titleBox = new VBox(3, title, sub);
+        header.getChildren().add(titleBox);
+        root.getChildren().add(header);
+
+        // Table of all students
+        ScrollPane scroll = new ScrollPane();
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
+        VBox list = new VBox(6);
+        list.setStyle("-fx-padding:16 24 24 24; -fx-background-color:#0a0f0d;");
+
+        List<UserAiInsightService.RiskResult> sorted = riskCache.values().stream()
+            .sorted((a, b) -> b.riskScore() - a.riskScore())
+            .toList();
+
+        for (UserAiInsightService.RiskResult r : sorted) {
+            HBox row = new HBox(12);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setStyle("-fx-background-color:rgba(255,255,255,0.03); -fx-background-radius:10;" +
+                         "-fx-border-color:rgba(255,255,255,0.07); -fx-border-radius:10; -fx-padding:10 14 10 14;");
+
+            // Ring
+            Canvas ring = buildRiskRing(r.riskScore(), r.riskLevel());
+
+            // Info
+            Label name = new Label(r.userName());
+            name.setStyle("-fx-text-fill:white; -fx-font-size:13; -fx-font-weight:700;");
+            Label email = new Label(r.userEmail());
+            email.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:11;");
+            Label expl = new Label(r.aiExplanation());
+            expl.setStyle("-fx-text-fill:rgba(245,245,244,0.6); -fx-font-size:11;");
+            expl.setWrapText(true);
+            VBox info = new VBox(2, name, email, expl);
+            javafx.scene.layout.HBox.setHgrow(info, javafx.scene.layout.Priority.ALWAYS);
+
+            // Level badge
+            String levelColor = switch (r.riskLevel()) {
+                case "CRITIQUE" -> "#ef4444"; case "ELEVE" -> "#fb923c";
+                case "MOYEN"    -> "#fbbf24"; default       -> "#34d399";
+            };
+            Label lvl = new Label(r.riskLevel());
+            lvl.setStyle("-fx-text-fill:" + levelColor + "; -fx-font-size:11; -fx-font-weight:700;" +
+                         "-fx-background-color:" + levelColor.replace("#", "rgba(") + ",0.15); " +
+                         "-fx-background-radius:6; -fx-padding:4 10 4 10;");
+
+            // Days info
+            Label days = new Label(r.daysSinceLogin() + "j inactif");
+            days.setStyle("-fx-text-fill:rgba(245,245,244,0.4); -fx-font-size:10;");
+
+            row.getChildren().addAll(ring, info, days, lvl);
+
+            FadeTransition ft = new FadeTransition(Duration.millis(400), row);
+            ft.setFromValue(0); ft.setToValue(1);
+            ft.setDelay(Duration.millis(sorted.indexOf(r) * 50L));
+            ft.play();
+
+            list.getChildren().add(row);
+        }
+
+        scroll.setContent(list);
+        javafx.scene.layout.VBox.setVgrow(scroll, javafx.scene.layout.Priority.ALWAYS);
+        root.getChildren().add(scroll);
+
+        stage.setScene(new Scene(root, 720, 560));
+        stage.show();
     }
 
     @FXML private void onSearch() {
