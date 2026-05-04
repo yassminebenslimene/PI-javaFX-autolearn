@@ -253,6 +253,24 @@ public class FrontofficeController {
                 animateSlideIn(sectionChallenges,   450);
                 animateSlideIn(sectionEvenementsHome, 600);
 
+                // ── Handle pending navigation (from community AI card or external) ──
+                if (pendingSection != null || pendingQuizTopic != null) {
+                    final String section = pendingSection;
+                    final String quizTopic = pendingQuizTopic;
+                    pendingSection = null;
+                    // pendingQuizTopic is consumed inside naviguerVersCours — don't clear here
+                    javafx.application.Platform.runLater(() -> {
+                        if (quizTopic != null) {
+                            // Navigate to cours then auto-open the matching quiz
+                            onCours();
+                        } else if ("cours".equals(section)) {
+                            onCours();
+                        } else if (section != null) {
+                            navigateToSection(section);
+                        }
+                    });
+                }
+
             } catch (Exception e) { e.printStackTrace(); }
         });
     }
