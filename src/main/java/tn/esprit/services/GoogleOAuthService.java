@@ -3,6 +3,7 @@ package tn.esprit.services;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.json.JSONObject;
+import tn.esprit.tools.ConfigLoader;
 
 import java.awt.Desktop;
 import java.io.BufferedReader;
@@ -24,10 +25,10 @@ import java.util.stream.Collectors;
  */
 public class GoogleOAuthService {
 
-    // TODO: Replace with your actual Google OAuth credentials
-    private static final String CLIENT_ID = "700826827550-n3rrg9o10j91ngvhrsq70ljcvdoqdqtu.apps.googleusercontent.com";
-    private static final String CLIENT_SECRET = "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";
-    private static final String REDIRECT_URI = "http://localhost:8080/callback";
+    // Load credentials from config.properties
+    private static final String CLIENT_ID = ConfigLoader.getProperty("google.oauth.client.id");
+    private static final String CLIENT_SECRET = ConfigLoader.getProperty("google.oauth.client.secret");
+    private static final String REDIRECT_URI = ConfigLoader.getProperty("google.oauth.redirect.uri", "http://localhost:8080/callback");
     private static final int PORT = 8080;
 
     private static HttpServer server;

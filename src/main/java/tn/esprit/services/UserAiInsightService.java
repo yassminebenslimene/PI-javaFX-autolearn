@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import tn.esprit.entities.Etudiant;
 import tn.esprit.entities.User;
+import tn.esprit.tools.ConfigLoader;
 import tn.esprit.tools.MyConnection;
 
 import java.net.URI;
@@ -26,8 +27,8 @@ import java.util.concurrent.CompletableFuture;
 public class UserAiInsightService {
 
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String MODEL        = "meta-llama/llama-4-scout-17b-16e-instruct";
-    private static final String API_KEY      = "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";
+    private static final String MODEL        = ConfigLoader.getProperty("groq.risk.model", "meta-llama/llama-4-scout-17b-16e-instruct");
+    private static final String API_KEY      = ConfigLoader.getProperty("groq.api.key");
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(15))
