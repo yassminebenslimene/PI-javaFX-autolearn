@@ -20,6 +20,7 @@ import tn.esprit.entities.Evenement;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.EvenementService;
+import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
 import tn.esprit.services.TechNewsService;
 import tn.esprit.services.UserService;
@@ -34,6 +35,10 @@ public class FrontofficeController {
     // Pending navigation from external pages (e.g., community detail)
     private static String pendingSection = null;
     public static void setPendingSection(String section) { pendingSection = section; }
+
+    // Pending quiz topic — set before navigating to cours so we auto-open the matching quiz
+    private static String pendingQuizTopic = null;
+    public static void setPendingQuizTopic(String topic) { pendingQuizTopic = topic; }
 
     // Navbar labels
     @FXML private Label welcomeLabel;
@@ -852,12 +857,100 @@ public class FrontofficeController {
             });
             ctrl.loadData();
             setCenter(view);
+
+            // ── Auto-navigate to quiz if a topic is pending (from community AI card) ──
+            if (pendingQuizTopic != null) {
+                final String topic = pendingQuizTopic;
+                pendingQuizTopic = null;
+                javafx.application.Platform.runLater(() -> {
+                    // Find the cours whose titre or matiere matches the topic
+                    List<tn.esprit.entities.Cours> allCours = serviceCours.getAll();
+                    tn.esprit.entities.Cours matched = allCours.stream()
+                        .filter(c -> c.getTitre().toLowerCase().contains(topic.toLowerCase())
+                                  || (c.getMatiere() != null && c.getMatiere().toLowerCase().contains(topic.toLowerCase())))
+                        .findFirst().orElse(null);
+                    if (matched == null) return; // no matching cours found
+
+                    // Open chapitres for the matched cours
+                    final tn.esprit.entities.Cours finalCours = matched;
+                    try {
+                        FXMLLoader chapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
+                        Parent chapView = chapLoader.load();
+                        FrontChapitreController chapCtrl = chapLoader.getController();
+
+                        // Wire quiz navigation
+                        chapCtrl.setOnPasserQuiz(chapitre -> {
+                            try {
+                                FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                                Parent quizView = quizLoader.load();
+                                FrontQuizController quizCtrl = quizLoader.getController();
+                                quizCtrl.setSceneRef(labelCurrentUser);
+                                quizCtrl.setChapitre(chapitre, () -> {
+                                    chapCtrl.setCours(finalCours);
+                                    setCenter(chapView);
+                                });
+                                setCenterDirect(quizView);
+                                javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                            } catch (Exception ex) { ex.printStackTrace(); }
+                        });
+                        chapCtrl.setOnLireChapitre((c, chapitre) -> {
+                            try {
+                                FXMLLoader detailLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/detail.fxml"));
+                                Parent detailView = detailLoader.load();
+                                FrontChapitreDetailController detailCtrl = detailLoader.getController();
+                                detailCtrl.setChapitre(c, chapitre, () -> setCenter(chapView));
+                                detailCtrl.setOnQuizCallback(() -> {
+                                    try {
+                                        FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                                        Parent quizView = quizLoader.load();
+                                        FrontQuizController quizCtrl = quizLoader.getController();
+                                        quizCtrl.setSceneRef(labelCurrentUser);
+                                        quizCtrl.setChapitre(chapitre, () -> {
+                                            chapCtrl.setCours(c);
+                                            setCenter(detailView);
+                                        });
+                                        setCenterDirect(quizView);
+                                        javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                                    } catch (Exception ex) { ex.printStackTrace(); }
+                                });
+                                setCenter(detailView);
+                            } catch (Exception ex) { ex.printStackTrace(); }
+                        });
+                        chapCtrl.setOnRetourCours(() -> {
+                            ctrl.loadData();
+                            setCenter(view);
+                        });
+                        chapCtrl.setCours(finalCours);
+                        setCenter(chapView);
+
+                        // Auto-open quiz of first chapitre
+                        ServiceChapitre serviceChapitre = new ServiceChapitre();
+                        List<tn.esprit.entities.Chapitre> chapitres = serviceChapitre.consulterParCoursId(finalCours.getId());
+                        if (!chapitres.isEmpty()) {
+                            tn.esprit.entities.Chapitre firstChapitre = chapitres.get(0);
+                            javafx.application.Platform.runLater(() -> {
+                                try {
+                                    FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                                    Parent quizView = quizLoader.load();
+                                    FrontQuizController quizCtrl = quizLoader.getController();
+                                    quizCtrl.setSceneRef(labelCurrentUser);
+                                    quizCtrl.setChapitre(firstChapitre, () -> {
+                                        chapCtrl.setCours(finalCours);
+                                        setCenter(chapView);
+                                    });
+                                    setCenterDirect(quizView);
+                                    javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                                } catch (Exception ex) { ex.printStackTrace(); }
+                            });
+                        }
+                    } catch (Exception ex) { ex.printStackTrace(); }
+                });
+            }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML public void onEvenements() {
         if (!requireLogin()) return;
-        setActiveNav(btnNavEvenements);
         var u = JwtManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_evenements",
             java.util.Map.of("email", u.getEmail()));

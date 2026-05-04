@@ -924,8 +924,9 @@ public class FrontCommunauteDetailController {
         btnQuiz.setOnMouseEntered(e -> btnQuiz.setOpacity(0.88));
         btnQuiz.setOnMouseExited(e -> btnQuiz.setOpacity(1.0));
         btnQuiz.setOnAction(e -> {
-            // Navigate to quiz section — search for matching quiz
+            // Navigate directly to the quiz matching this topic
             FrontofficeController.setPendingSection("cours");
+            FrontofficeController.setPendingQuizTopic(topic);
             try { tn.esprit.MainApp.showFrontoffice(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
