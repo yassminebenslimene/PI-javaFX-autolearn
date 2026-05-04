@@ -538,10 +538,14 @@ public class FrontCommunauteDetailController {
                                  "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
             javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
                     javafx.util.Duration.millis(700));
-            pause.setOnFinished(ev -> btnLikePost.setStyle(
+            pause.setOnFinished(ev -> {
+                btnLikePost.setStyle(
                     "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
                     "-fx-font-size:12; -fx-font-weight:700;" +
-                    "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"));
+                    "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+                // Reload posts so hot ranking re-sorts by most liked
+                loadPosts();
+            });
             pause.play();
             // ── Trigger similarity recommendation ──
             showSimilarPosts(p);

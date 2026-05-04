@@ -87,6 +87,57 @@ public class ServicePost {
         return list;
     }
 
+    /**
+     * Hot Ranking global — tous posts confondus, même formule que getHotByCommunaute.
+     * Retourne une liste de PostHotEntry (Post + score + nb_comments + nb_likes + age_hours).
+     */
+    public List<PostHotEntry> getHotAll() {
+        List<PostHotEntry> list = new ArrayList<>();
+        String req =
+            "SELECT p.*, " +
+            "  COUNT(c.id)                                          AS nb_comments, " +
+            "  COALESCE(CAST(p.ai_reaction AS UNSIGNED), 0)        AS nb_likes, " +
+            "  TIMESTAMPDIFF(HOUR, p.created_at, NOW())            AS age_hours, " +
+            "  (COALESCE(CAST(p.ai_reaction AS UNSIGNED), 0) * 2   " +
+            "   + COUNT(c.id) * 1.5 + 1)                           " +
+            "  / POW(TIMESTAMPDIFF(HOUR, p.created_at, NOW()) + 2, 1.8) AS hot_score " +
+            "FROM post p " +
+            "LEFT JOIN commentaire c ON c.post_id = p.id " +
+            "GROUP BY p.id " +
+            "ORDER BY hot_score DESC";
+        try {
+            ResultSet rs = conn().createStatement().executeQuery(req);
+            while (rs.next()) {
+                Post post    = fromRs(rs);
+                double score = rs.getDouble("hot_score");
+                int comments = rs.getInt("nb_comments");
+                int likes    = rs.getInt("nb_likes");
+                int age      = rs.getInt("age_hours");
+                list.add(new PostHotEntry(post, score, comments, likes, age));
+            }
+        } catch (SQLException e) {
+            System.err.println("[ServicePost] getHotAll: " + e.getMessage());
+        }
+        return list;
+    }
+
+    /** Wrapper léger pour transporter un Post + ses métriques hot. */
+    public static class PostHotEntry {
+        public final Post   post;
+        public final double hotScore;
+        public final int    nbComments;
+        public final int    nbLikes;
+        public final int    ageHours;
+
+        public PostHotEntry(Post post, double hotScore, int nbComments, int nbLikes, int ageHours) {
+            this.post       = post;
+            this.hotScore   = hotScore;
+            this.nbComments = nbComments;
+            this.nbLikes    = nbLikes;
+            this.ageHours   = ageHours;
+        }
+    }
+
     public Post getById(int id) {
         String req = "SELECT * FROM post WHERE id=?";
         try {
