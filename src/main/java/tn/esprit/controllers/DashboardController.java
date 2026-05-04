@@ -185,7 +185,7 @@ public class DashboardController {
         double maxBarHeight = h - 60;
         double depth3D = 12; // 3D depth
 
-        // Animate bars with staggered entrance
+        // Animate bars with staggered entrance - ONLY ONCE
         Timeline tl = new Timeline();
         for (int step = 0; step <= 50; step++) {
             final double progress = step / 50.0;
@@ -289,17 +289,16 @@ public class DashboardController {
                         gc.strokeRoundRect(x, y, barWidth, barHeight, 4, 4);
                     }
 
-                    // === PEAK BAR SPECIAL EFFECTS ===
+                    // === PEAK BAR SPECIAL EFFECTS (STATIC - no pulsing) ===
                     if (hourly[i] == max && max > 0) {
-                        // Animated pulsing border
-                        double pulseOpacity = 0.6 + 0.3 * Math.sin(System.currentTimeMillis() / 300.0);
-                        gc.setStroke(Color.rgb(255, 215, 0, pulseOpacity));
+                        // Static golden border
+                        gc.setStroke(Color.rgb(255, 215, 0, 0.8));
                         gc.setLineWidth(3);
                         gc.strokeRoundRect(x - 2, y - 2, barWidth + 4, barHeight + 4, 6, 6);
                         
                         // Outer glow
                         gc.setLineWidth(6);
-                        gc.setStroke(Color.rgb(255, 215, 0, pulseOpacity * 0.3));
+                        gc.setStroke(Color.rgb(255, 215, 0, 0.3));
                         gc.strokeRoundRect(x - 4, y - 4, barWidth + 8, barHeight + 8, 8, 8);
 
                         // Crown on top
@@ -325,13 +324,13 @@ public class DashboardController {
         }
         tl.play();
 
-        // Enhanced hour labels
+        // Enhanced hour labels - SHOW ALL 24 HOURS
         heatmapLabels.getChildren().clear();
         for (int i = 0; i < 24; i++) {
             Label lbl = new Label(i + "h");
             double intensity = hourly[i] / (double) max;
             lbl.setStyle(String.format(
-                "-fx-font-size:10; -fx-text-fill:rgba(245,245,244,%.2f); -fx-font-weight:%s;",
+                "-fx-font-size:9; -fx-text-fill:rgba(245,245,244,%.2f); -fx-font-weight:%s;",
                 0.4 + intensity * 0.5,
                 intensity > 0.6 ? "800" : "600"
             ));
@@ -340,18 +339,11 @@ public class DashboardController {
             
             // Highlight peak hour
             if (hourly[i] == max && max > 0) {
-                lbl.setStyle("-fx-font-size:11; -fx-text-fill:#ffd700; -fx-font-weight:900; -fx-background-color:rgba(255,215,0,0.15); -fx-background-radius:6; -fx-padding:3 6 3 6;");
+                lbl.setStyle("-fx-font-size:10; -fx-text-fill:#ffd700; -fx-font-weight:900; -fx-background-color:rgba(255,215,0,0.15); -fx-background-radius:6; -fx-padding:3 6 3 6;");
             }
             
             heatmapLabels.getChildren().add(lbl);
         }
-
-        // Continuous pulse for peak
-        Timeline pulseTimeline = new Timeline(
-            new KeyFrame(Duration.seconds(1.5), ev -> draw3DHeatmap(data))
-        );
-        pulseTimeline.setCycleCount(2);
-        pulseTimeline.play();
     }
 
     // ══════════════════════════════════════════════════════════════════════════
