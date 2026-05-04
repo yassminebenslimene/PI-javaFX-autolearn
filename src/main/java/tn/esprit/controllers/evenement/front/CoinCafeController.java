@@ -318,14 +318,14 @@ public class CoinCafeController {
                 HBox row = new HBox(12); row.setAlignment(Pos.CENTER_LEFT);
                 String[][] cells = {{"\uD83D\uDD25 Calories",d[0]+" kcal"},{"\u26A1 Cafeine",d[1]!=null?d[1]+" mg":"~80mg"},{"\uD83C\uDF6C Sucres",d[2]!=null?d[2]+" g":"~0g"},{"\uD83E\uDDC8 Lipides",d[3]!=null?d[3]+" g":"~0g"}};
                 for (String[] cell : cells) {
-                    VBox cv = new VBox(2); cv.setAlignment(Pos.CENTER); cv.setPadding(new Insets(6,10,6,10)); cv.setStyle("-fx-background-color:#3d1a00;-fx-background-radius:10;");
-                    Label v = new Label(cell[1]); v.setStyle("-fx-font-size:12;-fx-font-weight:800;-fx-text-fill:"+accent+";");
-                    Label k = new Label(cell[0]); k.setStyle("-fx-font-size:10;-fx-text-fill:#aaaaaa;");
+                    VBox cv = new VBox(2); cv.setAlignment(Pos.CENTER); cv.setPadding(new Insets(6,10,6,10)); cv.setStyle("-fx-background-color:#3d1a00;-fx-background-radius:12;-fx-border-color:"+accent+"44;-fx-border-radius:12;-fx-border-width:1;-fx-min-width:80;");
+                    Label v = new Label(cell[1]); v.setStyle("-fx-font-size:14;-fx-font-weight:800;-fx-text-fill:"+accent+";");
+                    Label k = new Label(cell[0]); k.setStyle("-fx-font-size:10;-fx-text-fill:#cccccc;-fx-font-weight:600;");
                     cv.getChildren().addAll(v,k); row.getChildren().add(cv);
                 }
                 box.getChildren().add(row);
             } else {
-                Label fb = new Label("\u2615 ~2 kcal  -  \u26A1 ~80mg cafeine  -  \uD83C\uDF6C ~0g sucres  (donnees typiques)"); fb.setStyle("-fx-font-size:11;-fx-text-fill:#aaaaaa;-fx-font-style:italic;"); box.getChildren().add(fb);
+                Label fb = new Label("\u2615 ~2 kcal  -  \u26A1 ~80mg cafeine  -  \uD83C\uDF6C ~0g sucres"); fb.setStyle("-fx-font-size:11;-fx-text-fill:#aaaaaa;-fx-font-style:italic;"); box.getChildren().add(fb);
             }
         }));
         task.setOnFailed(e -> Platform.runLater(() -> { box.getChildren().clear(); Label fb = new Label("\u2615 ~2 kcal  -  \u26A1 ~80mg cafeine  -  \uD83C\uDF6C ~0g sucres"); fb.setStyle("-fx-font-size:11;-fx-text-fill:#aaaaaa;"); box.getChildren().add(fb); }));
