@@ -5,8 +5,9 @@ public class Participation {
     private int id;
     private int equipeId;
     private int evenementId;
-    private String statut; // EN_ATTENTE, ACCEPTE, REFUSE
-    private String feedbacks; // JSON stocké en String
+    private String statut;
+    private String feedbacks;
+    private Integer tableNumero; // NULL = pas de réservation salle 3D (compatible Symfony)
 
     public Participation() {}
 
@@ -16,7 +17,6 @@ public class Participation {
         this.statut = "En attente";
     }
 
-    // Getters / Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -32,8 +32,12 @@ public class Participation {
     public String getFeedbacks() { return feedbacks; }
     public void setFeedbacks(String feedbacks) { this.feedbacks = feedbacks; }
 
+    public Integer getTableNumero() { return tableNumero; }
+    public void setTableNumero(Integer tableNumero) { this.tableNumero = tableNumero; }
+
     @Override
     public String toString() {
-        return "Participation{id=" + id + ", equipeId=" + equipeId + ", evenementId=" + evenementId + ", statut='" + statut + "'}";
+        return "Participation{id=" + id + ", equipeId=" + equipeId
+                + ", evenementId=" + evenementId + ", statut='" + statut + "'}";
     }
 }

@@ -28,8 +28,17 @@
 
         <!-- Description -->
         <VBox spacing="4">
-            <Label text="Description" style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
-            <TextArea fx:id="fieldDescription" promptText="Decrivez l'evenement..."
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Description" style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="btnGenererDesc" text="🤖 Générer avec IA" onAction="#onGenererDescription"
+                        style="-fx-background-color:rgba(124,58,237,0.3); -fx-text-fill:#a78bfa;
+                               -fx-font-size:11; -fx-font-weight:bold; -fx-padding:6 14 6 14;
+                               -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:1;
+                               -fx-border-color:rgba(124,58,237,0.5); -fx-border-radius:8;"/>
+                <ProgressIndicator fx:id="spinDesc" prefWidth="20" prefHeight="20"
+                                   style="-fx-progress-color:#a78bfa;" visible="false"/>
+            </HBox>
+            <TextArea fx:id="fieldDescription" promptText="Decrivez l'evenement ou cliquez sur 'Générer avec IA'..."
                       prefRowCount="4" wrapText="true"
                       style="-fx-control-inner-background:#1a2e25;
                              -fx-background-color:rgba(255,255,255,0.07);
@@ -46,14 +55,24 @@
                 <Label text="Type" style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
                 <ComboBox fx:id="comboType" maxWidth="Infinity"
                           style="-fx-background-color:rgba(255,255,255,0.07);
+                                 -fx-text-fill:white;
                                  -fx-background-radius:10; -fx-border-color:rgba(255,255,255,0.12);
                                  -fx-border-radius:10; -fx-border-width:1;
                                  -fx-padding:4 8 4 8; -fx-font-size:13;"/>
                 <Label fx:id="errType" text="" style="-fx-text-fill:#f87171; -fx-font-size:11;"/>
             </VBox>
             <VBox spacing="4" HBox.hgrow="ALWAYS">
-                <Label text="Nombre maximum d'equipes"
-                       style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;"/>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="Nombre maximum d'equipes"
+                           style="-fx-text-fill:rgba(255,255,255,0.85); -fx-font-size:13; -fx-font-weight:bold;" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="btnEstimerNb" text="🤖 Estimer" onAction="#onEstimerNbEquipes"
+                            style="-fx-background-color:rgba(5,150,105,0.3); -fx-text-fill:#34d399;
+                                   -fx-font-size:11; -fx-font-weight:bold; -fx-padding:5 12 5 12;
+                                   -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:1;
+                                   -fx-border-color:rgba(5,150,105,0.5); -fx-border-radius:8;"/>
+                    <ProgressIndicator fx:id="spinNb" prefWidth="18" prefHeight="18"
+                                       style="-fx-progress-color:#34d399;" visible="false"/>
+                </HBox>
                 <TextField fx:id="fieldNbMax" promptText="Ex: 10"
                            style="-fx-background-color:rgba(255,255,255,0.07);
                                   -fx-text-fill:white; -fx-prompt-text-fill:rgba(255,255,255,0.3);
@@ -124,6 +143,51 @@
                               -fx-border-radius:10; -fx-border-width:1;
                               -fx-padding:12 16 12 16; -fx-font-size:13;"/>
             <Label fx:id="errLieu" text="" style="-fx-text-fill:#f87171; -fx-font-size:11;"/>
+        </VBox>
+
+        <!-- Planning Generation Section -->
+        <VBox spacing="10" style="-fx-background-color:rgba(102,126,234,0.08);
+                                   -fx-border-color:rgba(102,126,234,0.35);
+                                   -fx-border-radius:12; -fx-border-width:1;
+                                   -fx-background-radius:12; -fx-padding:18;">
+            <!-- Header row -->
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="📅 Planning Personnalisé"
+                       style="-fx-text-fill:#a78bfa; -fx-font-size:14; -fx-font-weight:bold;"
+                       HBox.hgrow="ALWAYS"/>
+                <Button fx:id="btnGenererPlanning" text="🤖 Générer Planning" onAction="#onGenererPlanning"
+                        style="-fx-background-color:linear-gradient(to right,#667eea,#764ba2);
+                               -fx-text-fill:white; -fx-font-size:12; -fx-font-weight:bold;
+                               -fx-padding:9 18 9 18; -fx-background-radius:8;
+                               -fx-cursor:hand; -fx-border-width:0;
+                               -fx-effect:dropshadow(gaussian,rgba(102,126,234,0.5),8,0,0,2);"/>
+                <Button fx:id="btnTelechargerPdf" text="⬇ PDF" onAction="#onTelechargerPdf"
+                        visible="false"
+                        style="-fx-background-color:rgba(16,185,129,0.25); -fx-text-fill:#34d399;
+                               -fx-font-size:12; -fx-font-weight:bold; -fx-padding:9 14 9 14;
+                               -fx-background-radius:8; -fx-cursor:hand; -fx-border-width:1;
+                               -fx-border-color:rgba(16,185,129,0.5); -fx-border-radius:8;"/>
+                <ProgressIndicator fx:id="spinPlanning" prefWidth="20" prefHeight="20"
+                                   style="-fx-progress-color:#a78bfa;" visible="false"/>
+            </HBox>
+
+            <!-- Planning cards container (shown after generation) -->
+            <VBox fx:id="planningCardsContainer" spacing="0" visible="false" managed="false"
+                  style="-fx-background-color:white; -fx-background-radius:10;
+                         -fx-border-color:rgba(102,126,234,0.2); -fx-border-radius:10; -fx-border-width:1;"/>
+
+            <!-- Placeholder shown before generation -->
+            <Label fx:id="planningPlaceholder"
+                   text="Remplissez le titre, le type et les dates, puis cliquez sur 'Générer Planning'."
+                   wrapText="true"
+                   style="-fx-text-fill:rgba(255,255,255,0.35); -fx-font-size:12; -fx-font-style:italic;"/>
+
+            <!-- Hidden TextArea keeps the raw JSON for PDF generation -->
+            <TextArea fx:id="fieldPlanning" prefRowCount="1" wrapText="true" editable="false"
+                      visible="false" managed="false"
+                      style="-fx-control-inner-background:#0d1117; -fx-text-fill:white;"/>
+
+            <Label fx:id="errPlanning" text="" style="-fx-text-fill:#f87171; -fx-font-size:11;"/>
         </VBox>
 
         <!-- Global error (kept for type error) -->

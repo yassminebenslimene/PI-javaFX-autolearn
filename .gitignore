@@ -39,6 +39,19 @@ build/
 
 ### Symfony subproject (has its own git) ###
 symfony/
+Partie_symfony/
+
+### Local files not to push ###
+SPRINT_BACKLOG_JAVA.html
+session3.md
 
 ### IntelliJ Run Configurations (local paths, not shared) ###
 .idea/runConfigurations/
+
+### Duplicate nested folder (artifact from GestionUser merge) ###
+Downloads/
+
+### Local secrets (never commit these) ###
+.hf_token
+*.env.local
+src/main/resources/config.properties
