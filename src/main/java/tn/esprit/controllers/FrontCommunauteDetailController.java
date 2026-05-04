@@ -1,4 +1,4 @@
-package tn.esprit.controllers;
+﻿package tn.esprit.controllers;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -280,9 +280,13 @@ public class FrontCommunauteDetailController {
             showFieldError(fieldTitre, "Le titre ne peut pas dépasser 100 caractères.");
             return;
         }
+        if (tn.esprit.tools.BadWordFilter.containsBadWord(contenu) ||
+            tn.esprit.tools.BadWordFilter.containsBadWord(titre)) {
+            showFieldError(fieldContenu, "Votre publication contient des mots inappropriés.");
+            return;
+        }
 
         int userId = SessionManager.getCurrentUser() != null
-                ? SessionManager.getCurrentUser().getId() : 0;
         Post p = new Post(contenu, titre, communaute.getId(), userId);
         p.setCreatedAt(LocalDateTime.now());
 
@@ -606,6 +610,15 @@ public class FrontCommunauteDetailController {
                 commentField.setStyle("-fx-background-color:#fff1f2; -fx-background-radius:30; " +
                                       "-fx-border-width:1.5; -fx-border-color:#fca5a5; " +
                                       "-fx-border-radius:30; -fx-padding:12 20 12 20; -fx-font-size:12;");
+                return;
+            }
+            if (tn.esprit.tools.BadWordFilter.containsBadWord(txt)) {
+                commentField.setStyle("-fx-background-color:#fff1f2; -fx-border-color:#fca5a5;"
+                    + "-fx-border-radius:30; -fx-padding:10 16; -fx-font-size:13;");
+                javafx.animation.PauseTransition pt = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
+                pt.setOnFinished(ev -> commentField.setStyle("-fx-background-color:#faf8ff;"
+                    + "-fx-border-color:#e9e4ff; -fx-border-radius:30; -fx-padding:10 16; -fx-font-size:13;"));
+                pt.play();
                 return;
             }
             commentField.setStyle("-fx-background-color:#faf8ff; -fx-background-radius:30; " +
