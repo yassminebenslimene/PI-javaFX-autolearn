@@ -873,6 +873,44 @@ public class FrontofficeController {
                     setCenter(chapView);
                 } catch (Exception ex) { ex.printStackTrace(); }
             });
+            ctrl.setOnOuvrirCommunaute(communaute -> {
+                // Ouvrir la page communauté avec recherche sur le titre du cours
+                setActiveNav(btnNavCommunaute);
+                try {
+                    FXMLLoader commLoader = new FXMLLoader(
+                        getClass().getResource("/views/frontoffice/communaute/index.fxml"));
+                    Parent commRoot = commLoader.load();
+                    FrontCommunauteController commCtrl = commLoader.getController();
+                    // Essayer d'abord par cours_id, sinon fallback sur le nom
+                    if (communaute.getCoursId() > 0) {
+                        commCtrl.filterByCours(communaute.getCoursId());
+                    }
+                    // Toujours pré-remplir la recherche avec le titre du cours
+                    // pour que l'utilisateur voit les communautés liées
+                    commCtrl.preselectCours(communaute.getNom());
+                    // Wirer la navigation vers le détail
+                    commCtrl.setOnOuvrirDetail(c -> {
+                        try {
+                            tn.esprit.services.ServiceCommunaute svc = new tn.esprit.services.ServiceCommunaute();
+                            tn.esprit.entities.Communaute fresh = svc.getById(c.getId());
+                            if (fresh == null) fresh = c;
+                            FXMLLoader detailLoader = new FXMLLoader(
+                                getClass().getResource("/views/frontoffice/communaute/detail.fxml"));
+                            Parent detailView = detailLoader.load();
+                            FrontCommunauteDetailController detailCtrl = detailLoader.getController();
+                            final tn.esprit.entities.Communaute finalFresh = fresh;
+                            javafx.scene.Node cn2 = commRoot instanceof BorderPane bp2 ? bp2.getCenter() : null;
+                            Parent commView = cn2 instanceof Parent p2 ? p2 : commRoot;
+                            detailCtrl.setCommunaute(finalFresh, () -> setCenter(commView));
+                            detailCtrl.setOnNavigateToCours(id -> setCenter(view));
+                            detailCtrl.setOnNavigateToQuiz(id -> setCenter(view));
+                            setCenter(detailView);
+                        } catch (Exception ex) { ex.printStackTrace(); }
+                    });
+                    javafx.scene.Node cn = commRoot instanceof BorderPane bp ? bp.getCenter() : null;
+                    setCenter(cn instanceof Parent p ? p : commRoot);
+                } catch (Exception ex) { ex.printStackTrace(); }
+            });
             ctrl.loadData();
             setCenter(view);
 

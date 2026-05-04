@@ -44,7 +44,7 @@ public class ServiceCommunaute {
     public Communaute getByCours(int coursId) {
         try {
             PreparedStatement ps = conn().prepareStatement(
-                "SELECT c.* FROM communaute c JOIN cours co ON co.communaute_id = c.id WHERE co.id=?");
+                "SELECT * FROM communaute WHERE cours_id = ?");
             ps.setInt(1, coursId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {

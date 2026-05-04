@@ -43,6 +43,20 @@ public class FrontCommunauteController {
         }
     }
 
+    /** Filters the list to show only the community linked to a specific cours */
+    public void filterByCours(int coursId) {
+        if (allCommunautes == null) allCommunautes = service.getList();
+        cardsPane.getChildren().clear();
+        // Use getByCours for accurate DB lookup
+        tn.esprit.entities.Communaute comm = service.getByCours(coursId);
+        if (comm != null) {
+            emptyLabel.setVisible(false);
+            cardsPane.getChildren().add(buildCard(comm));
+        } else {
+            emptyLabel.setVisible(true);
+        }
+    }
+
     @FXML
     public void initialize() {
         allCommunautes = service.getList();
