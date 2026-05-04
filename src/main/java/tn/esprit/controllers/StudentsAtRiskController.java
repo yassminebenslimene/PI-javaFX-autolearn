@@ -4,13 +4,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tn.esprit.entities.StudentRisk;
 import tn.esprit.services.StudentRiskService;
-import tn.esprit.session.JwtManager;
 
 public class StudentsAtRiskController {
 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.controllers.evenement.front.EspaceParticipantPageController"
+            prefWidth="1200" prefHeight="760"
+            style="-fx-background-color:#f8f7ff;">
+
+    <top>
+        <fx:include source="../components/navbar_front.fxml" fx:id="navbar"/>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" 
+                    style="-fx-background-color:#f8f7ff; -fx-border-width:0; -fx-padding:0;">
+            <VBox fx:id="containerBox" spacing="0" 
+                  style="-fx-padding:0; -fx-background-color:#f8f7ff; -fx-spacing:0;">
+                <!-- Les containers des fonctionnalités seront ajoutés dynamiquement -->
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
