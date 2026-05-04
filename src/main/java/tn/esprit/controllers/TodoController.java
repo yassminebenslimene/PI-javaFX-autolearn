@@ -10,21 +10,30 @@ import tn.esprit.entities.Cours;
 import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.util.*;
 
 /**
- * TodoController — Kanban 3 colonnes.
+ * ═══════════════════════════════════════════════════════════════
+ * CONTROLLER : MA LISTE D'APPRENTISSAGE (TODO / KANBAN)
+ * ═══════════════════════════════════════════════════════════════
+ * Affiche la progression de l'étudiant sous forme de Kanban 3 colonnes :
+ *   - À Faire    : cours avec 0 chapitre complété
+ *   - En Cours   : cours avec 1 à N-1 chapitres complétés
+ *   - Terminé    : cours avec tous les chapitres complétés
  *
- * Logique métier :
- *   - Cours TO DO      : 0 chapitre complété (aucun quiz réussi)
- *   - Cours IN PROGRESS: 1 à N-1 chapitres complétés
- *   - Cours DONE       : tous les chapitres complétés
+ * FONCTIONNALITÉS :
+ *   - Dashboard gamification (points, streak, badges)
+ *   - Barre de progression globale
+ *   - Recommandations personnalisées (prochain chapitre à faire)
+ *   - Bouton "Retour aux Cours"
  *
- * Dans chaque carte cours :
- *   - Chapitres complétés  → affichés avec ✓ vert
- *   - Chapitres non faits  → affichés avec ○ gris
+ * DÉPENDANCES :
+ *   - CourseProgressService : récupère la progression depuis la BDD
+ *   - ServiceCours / ServiceChapitre : récupère les données des cours
+ *   - SessionManager : récupère l'utilisateur connecté
+ * ═══════════════════════════════════════════════════════════════
  */
 public class TodoController {
 
@@ -55,21 +64,25 @@ public class TodoController {
 
     @FXML
     public void initialize() {
-        if (JwtManager.getCurrentUser() == null) return;
+        // Vérifier que l'utilisateur est connecté avant de charger les données
+        if (SessionManager.getCurrentUser() == null) return;
+        // Charger les données dans un thread séparé pour ne pas bloquer l'UI
         Thread t = new Thread(this::loadData);
-        t.setDaemon(true);
+        t.setDaemon(true); // Thread daemon : s'arrête quand l'app se ferme
         t.start();
     }
 
     private void loadData() {
-        int userId = JwtManager.getCurrentUser().getId();
-        List<Cours> allCours = serviceCours.consulter();
+        int userId = SessionManager.getCurrentUser().getId();
+        List<Cours> allCours = serviceCours.consulter(); // Récupère tous les cours
 
+        // Listes temporaires pour chaque colonne Kanban
         List<VBox> todoCards       = new ArrayList<>();
         List<VBox> inProgressCards = new ArrayList<>();
         List<VBox> doneCards       = new ArrayList<>();
         int todoCount = 0, inProgressCount = 0, doneCount = 0, totalProgress = 0;
 
+        // Pour chaque cours, calculer la progression et classer dans la bonne colonne
         for (Cours cours : allCours) {
             List<Chapitre> chapitres = serviceChapitre.consulterParCoursId(cours.getId());
             Set<Integer> completedIds = new HashSet<>(

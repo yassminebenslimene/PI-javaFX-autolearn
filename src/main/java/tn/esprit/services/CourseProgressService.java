@@ -12,6 +12,23 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * SERVICE : PROGRESSION DES COURS
+ * ═══════════════════════════════════════════════════════════════
+ * Gère la progression de l'étudiant dans les chapitres et cours.
+ *
+ * FONCTIONNALITÉS :
+ *   - Marquer un chapitre comme complété (après quiz réussi ≥ 50%)
+ *   - Calculer le % de progression par cours
+ *   - Récupérer les IDs des chapitres complétés
+ *   - Gamification : points, streak, badges
+ *   - Recommandations : prochain chapitre à faire
+ *
+ * TABLE BDD : chapter_progress
+ *   user_id, chapitre_id, cours_id, quiz_score, is_completed, completed_at
+ * ═══════════════════════════════════════════════════════════════
+ */
 public class CourseProgressService {
 
     private final Connection connection;
@@ -21,6 +38,8 @@ public class CourseProgressService {
         createTableIfNotExists();
     }
 
+    // Crée la table chapter_progress si elle n'existe pas encore
+    // et ajoute les colonnes manquantes si la table existait déjà
     private void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS chapter_progress ("
             + "id INT AUTO_INCREMENT PRIMARY KEY,"
@@ -66,17 +85,27 @@ public class CourseProgressService {
     }
 
     public void markChapterCompleted(int userId, int chapitreId, int coursId, int quizScore) {
-        // Marquer comme complété SEULEMENT si le score est >= 50%
-        boolean isCompleted = quizScore >= 50;
+        markChapterCompleted(userId, chapitreId, coursId, quizScore, 50);
+    }
+
+    public void markChapterCompleted(int userId, int chapitreId, int coursId, int quizScore, int passingScore) {
+        if (userId <= 0 || chapitreId <= 0 || coursId <= 0) {
+            System.err.println(">>> Progression ignoree: userId/chapitreId/coursId invalide.");
+            return;
+        }
+
+        boolean isCompleted = quizScore >= passingScore;
         
+        // INSERT ou UPDATE si la ligne existe déjà (ON DUPLICATE KEY)
+        // On garde toujours le meilleur score (GREATEST)
         String sql = "INSERT INTO chapter_progress "
             + "(user_id, chapitre_id, cours_id, quiz_score, is_completed, completed_at) "
             + "VALUES (?, ?, ?, ?, ?, ?) "
             + "ON DUPLICATE KEY UPDATE "
             + "cours_id = IFNULL(cours_id, ?), "
             + "quiz_score = GREATEST(IFNULL(quiz_score, 0), ?), "
-            + "is_completed = IF(GREATEST(IFNULL(quiz_score, 0), ?) >= 50, 1, 0), "
-            + "completed_at = IF(GREATEST(IFNULL(quiz_score, 0), ?) >= 50, ?, completed_at)";
+            + "is_completed = IF(GREATEST(IFNULL(quiz_score, 0), ?) >= ?, 1, 0), "
+            + "completed_at = IF(GREATEST(IFNULL(quiz_score, 0), ?) >= ?, ?, completed_at)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             Timestamp now = Timestamp.valueOf(LocalDateTime.now());
             ps.setInt(1, userId);
@@ -88,10 +117,13 @@ public class CourseProgressService {
             ps.setInt(7, coursId);
             ps.setInt(8, quizScore);
             ps.setInt(9, quizScore);
-            ps.setInt(10, quizScore);
-            ps.setTimestamp(11, now);
+            ps.setInt(10, passingScore);
+            ps.setInt(11, quizScore);
+            ps.setInt(12, passingScore);
+            ps.setTimestamp(13, now);
             int rows = ps.executeUpdate();
-            System.out.println(">>> INSERT chapter_progress: " + rows + " ligne(s) - Score: " + quizScore + "% - Complété: " + isCompleted);
+            System.out.println(">>> INSERT chapter_progress: " + rows + " ligne(s) - userId: " + userId
+                + " - Score: " + quizScore + "% - Seuil: " + passingScore + "% - Complete: " + isCompleted);
         } catch (SQLException e) {
             System.err.println(">>> ERREUR markChapterCompleted: " + e.getMessage());
             e.printStackTrace();
@@ -145,9 +177,11 @@ public class CourseProgressService {
                 + "JOIN chapitre ch ON ch.id = cp.chapitre_id "
                 + "WHERE cp.user_id = ? "
                 + "AND cp.is_completed = 1 "
+                + "AND cp.cours_id = ? "
                 + "AND ch.cours_id = ?")) {
             ps.setInt(1, userId);
             ps.setInt(2, coursId);
+            ps.setInt(3, coursId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 completed = rs.getInt(1);
@@ -173,11 +207,13 @@ public class CourseProgressService {
             + "FROM chapter_progress cp "
             + "JOIN chapitre ch ON ch.id = cp.chapitre_id "
             + "WHERE cp.user_id = ? "
+            + "AND cp.cours_id = ? "
             + "AND ch.cours_id = ?"
             + (completedOnly ? " AND cp.is_completed = 1" : "");
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, coursId);
+            ps.setInt(3, coursId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 ids.add(rs.getInt("chapitre_id"));
@@ -204,7 +240,10 @@ public class CourseProgressService {
     }
 
     // ── Recommandations ───────────────────────────────────────────────────────
-    /** Prochain chapitre non complété d'un cours (ordre croissant). */
+    /**
+     * Retourne le prochain chapitre non complété d'un cours (ordre croissant).
+     * Utilisé dans TodoController pour les recommandations personnalisées.
+     */
     public tn.esprit.entities.Chapitre getNextChapitre(int userId, int coursId) {
         String sql = "SELECT c.* FROM chapitre c "
             + "WHERE c.cours_id = ? "
@@ -240,7 +279,10 @@ public class CourseProgressService {
 
     // ── GAMIFICATION ──────────────────────────────────────────────────────────
 
-    /** Points totaux : 10 pts par chapitre complété + 50 pts par cours terminé */
+    /**
+     * Calcule les points totaux de l'étudiant.
+     * Règle : 10 pts par chapitre complété + 50 pts bonus par cours terminé à 100%
+     */
     public int getTotalPoints(int userId, java.util.List<tn.esprit.entities.Cours> allCours) {
         int points = getTotalCompletedChapitres(userId) * 10;
         for (tn.esprit.entities.Cours cours : allCours) {

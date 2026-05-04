@@ -309,6 +309,15 @@ public class MainApp extends Application {
         primaryStage.setScene(new Scene(loader.load(), screen.getWidth(), screen.getHeight()));
     }
 
+    public static void openUrl(String url) {
+        try {
+            java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+        } catch (Exception e) {
+            System.err.println("Failed to open URL: " + url);
+            e.printStackTrace();
+        }
+    }
+
     public static Stage getPrimaryStage() { return primaryStage; }
 
     public static void main(String[] args) { launch(args); }

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="tn.esprit.controllers.GitHubExamplesController"
+      spacing="15" style="-fx-background-color: #f5f5f5;">
+    
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label text="🔍 Exemples de Code GitHub" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <Separator/>
+
+    <!-- Search Section -->
+    <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 5;">
+        <Label text="Rechercher des exemples de code" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+        
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Langage:" minWidth="80"/>
+            <ComboBox fx:id="languageComboBox" prefWidth="150"/>
+        </HBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Mot-clé:" minWidth="80"/>
+            <TextField fx:id="searchField" promptText="Ex: sorting algorithm, rest api, design pattern..." 
+                      HBox.hgrow="ALWAYS"/>
+            <Button fx:id="searchButton" text="Rechercher" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        </HBox>
+
+        <Label fx:id="statusLabel" style="-fx-text-fill: #666; -fx-font-size: 12px;"/>
+    </VBox>
+
+    <!-- Results Section -->
+    <HBox spacing="15" VBox.vgrow="ALWAYS">
+        <!-- Results List -->
+        <VBox spacing="5" prefWidth="350" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 5;">
+            <Label text="Résultats" style="-fx-font-weight: bold;"/>
+            <ListView fx:id="resultsListView" VBox.vgrow="ALWAYS"/>
+        </VBox>
+
+        <!-- Code Preview -->
+        <VBox spacing="5" HBox.hgrow="ALWAYS" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 5;">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Aperçu du Code" style="-fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="openInBrowserButton" text="Ouvrir dans le navigateur" 
+                       style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+            </HBox>
+            <TextArea fx:id="codePreviewArea" editable="false" VBox.vgrow="ALWAYS"
+                     style="-fx-font-family: 'Courier New'; -fx-font-size: 12px;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Info Footer -->
+    <HBox style="-fx-background-color: #fff3cd; -fx-padding: 10; -fx-background-radius: 5;">
+        <Label text="💡 Astuce: Sans token API, vous avez 60 requêtes/heure. Avec un token: 5000 requêtes/heure."
+              style="-fx-text-fill: #856404; -fx-font-size: 11px;" wrapText="true"/>
+    </HBox>
+
+</VBox>

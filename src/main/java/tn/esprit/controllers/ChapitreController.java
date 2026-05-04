@@ -9,12 +9,13 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.entities.Chapitre;
 import tn.esprit.entities.Cours;
 import tn.esprit.services.ServiceChapitre;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -215,7 +216,7 @@ public class ChapitreController {
 
     @FXML
     private void onNewChapitre() {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -224,7 +225,7 @@ public class ChapitreController {
 
     @FXML
     private void onGenerateWithAI() {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -419,7 +420,7 @@ public class ChapitreController {
     }
 
     private void onEditChapitre(Chapitre chapitre) {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -427,7 +428,7 @@ public class ChapitreController {
     }
 
     private void onDeleteChapitre(Chapitre chapitre) {
-        if (!JwtManager.isAdmin()) {
+        if (!SessionManager.isAdmin()) {
             showAlert(Alert.AlertType.WARNING, "Acces refuse", "Seul l'admin peut gerer les chapitres.");
             return;
         }
@@ -521,6 +522,35 @@ public class ChapitreController {
     @FXML
     private void onCloseWindow() {
         ((Stage) tableChapitres.getScene().getWindow()).close();
+    }
+
+    @FXML
+    private void onParcourirFichier() {
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Choisir un fichier ressource");
+        fileChooser.getExtensionFilters().addAll(
+            new javafx.stage.FileChooser.ExtensionFilter("Tous les fichiers supportés",
+                "*.pdf", "*.mp4", "*.avi", "*.mkv", "*.png", "*.jpg", "*.jpeg", "*.docx", "*.pptx", "*.zip"),
+            new javafx.stage.FileChooser.ExtensionFilter("Vidéos", "*.mp4", "*.avi", "*.mkv"),
+            new javafx.stage.FileChooser.ExtensionFilter("PDF", "*.pdf"),
+            new javafx.stage.FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"),
+            new javafx.stage.FileChooser.ExtensionFilter("Documents", "*.docx", "*.pptx", "*.zip")
+        );
+        java.io.File file = fileChooser.showOpenDialog(fieldRessourceFichier.getScene().getWindow());
+        if (file != null) {
+            fieldRessourceFichier.setText(file.getAbsolutePath());
+            if (errorFichier != null) errorFichier.setText("");
+            // Auto-détecter le type de ressource
+            String name = file.getName().toLowerCase();
+            if (comboRessourceType != null) {
+                if (name.endsWith(".mp4") || name.endsWith(".avi") || name.endsWith(".mkv"))
+                    comboRessourceType.setValue("VIDEO");
+                else if (name.endsWith(".pdf"))
+                    comboRessourceType.setValue("PDF");
+                else
+                    comboRessourceType.setValue("AUTRE");
+            }
+        }
     }
 
     private boolean validateForm() {

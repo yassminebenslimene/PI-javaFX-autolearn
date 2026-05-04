@@ -212,6 +212,8 @@ public class FaceIdController {
         if (previewTimeline != null) { previewTimeline.stop(); previewTimeline = null; }
         faceDetected.set(false);
         Platform.runLater(() -> { cameraView.setImage(null); if (faceOverlay != null) faceOverlay.setVisible(false); });
+        // Release the persistent camera on the Python server
+        CompletableFuture.runAsync(FaceIdService::releaseCamera);
     }
 
     @FXML private void onCancel() { stopPreview(); closeDialog(); }

@@ -11,6 +11,11 @@ import threading
 import time
 from pathlib import Path
 
+# Désactiver TensorFlow pour économiser la mémoire
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Pas de GPU
+
 import cv2
 import numpy as np
 from flask import Flask, request, jsonify, Response
@@ -28,6 +33,8 @@ current_cap = None
 streaming = False
 face_cascade = None
 deepface_loaded = False
+_persistent_cap = None
+_persistent_cap_lock = threading.Lock()
 
 def get_cascade():
     global face_cascade
@@ -37,33 +44,59 @@ def get_cascade():
     return face_cascade
 
 def load_deepface():
-    global deepface_loaded
-    if not deepface_loaded:
-        try:
-            from deepface import DeepFace
-            deepface_loaded = True
-            print("[FaceID] DeepFace ready!")
-        except ImportError:
-            deepface_loaded = False
-    return deepface_loaded
+    # Désactivé pour économiser la mémoire - utilise OpenCV uniquement
+    return False
 
 def open_camera():
-    """Open camera with DirectShow (most reliable on Windows)."""
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    if cap.isOpened():
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        cap.set(cv2.CAP_PROP_FPS, 30)
-        return cap
-    cap.release()
-    # Fallback
-    cap = cv2.VideoCapture(0)
-    if cap.isOpened():
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        return cap
-    cap.release()
+    """Open camera - tries DirectShow first (most stable on Windows), then others."""
+    os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
+
+    # DirectShow first — avoids MSMF initStream failures on Windows
+    backends = [
+        (cv2.CAP_DSHOW, "DirectShow"),
+        (cv2.CAP_ANY,   "Any"),
+        (cv2.CAP_MSMF,  "MSMF"),
+    ]
+
+    for backend, name in backends:
+        for idx in [0, 1, 2]:
+            try:
+                cap = cv2.VideoCapture(idx, backend)
+                if cap.isOpened():
+                    # Warm-up: read a few frames
+                    for _ in range(3):
+                        cap.read()
+                    ret, frame = cap.read()
+                    if ret and frame is not None:
+                        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                        print(f"[Camera] Opened index={idx} backend={name}")
+                        return cap
+                cap.release()
+            except Exception as e:
+                print(f"[Camera] {name} idx={idx} failed: {e}")
+
     return None
+
+
+def get_persistent_camera():
+    """Returns a shared camera instance, opening it once and reusing it."""
+    global _persistent_cap
+    with _persistent_cap_lock:
+        if _persistent_cap is not None and _persistent_cap.isOpened():
+            return _persistent_cap
+        print("[Camera] Opening persistent camera...")
+        _persistent_cap = open_camera()
+        return _persistent_cap
+
+
+def release_persistent_camera():
+    global _persistent_cap
+    with _persistent_cap_lock:
+        if _persistent_cap is not None:
+            _persistent_cap.release()
+            _persistent_cap = None
+            print("[Camera] Persistent camera released.")
 
 def get_user_dir(user_id):
     d = STORAGE_DIR / f"user_{user_id}"
@@ -86,24 +119,21 @@ def has_face():
 @app.route('/frame', methods=['GET'])
 def get_frame():
     """
-    Returns a single JPEG frame from the camera with face detection overlay.
-    Java calls this every 80ms to display live feed.
+    Returns a single JPEG frame from the persistent camera with face detection overlay.
+    Java calls this every 100ms — camera stays open between calls.
     """
-    cap = open_camera()
+    cap = get_persistent_camera()
     if cap is None:
         return jsonify({"error": "no camera"}), 500
 
-    # Read a few frames to let camera warm up
-    frame = None
-    for _ in range(3):
-        ret, f = cap.read()
-        if ret and f is not None:
-            frame = f
-
-    cap.release()
-
-    if frame is None:
-        return jsonify({"error": "no frame"}), 500
+    with _persistent_cap_lock:
+        ret, frame = cap.read()
+        if not ret or frame is None:
+            # Camera may have gone stale — reset it
+            cap.release()
+            global _persistent_cap
+            _persistent_cap = None
+            return jsonify({"error": "no frame"}), 500
 
     # Draw face detection overlay
     det = get_cascade()
@@ -155,7 +185,7 @@ def register():
         return jsonify({"success": False, "message": "userId manquant"}), 400
 
     det = get_cascade()
-    cap = open_camera()
+    cap = get_persistent_camera()
     if cap is None:
         return jsonify({"success": False, "message": "Webcam non disponible"}), 500
 
@@ -171,7 +201,8 @@ def register():
 
     try:
         while captured < target and (time.time() - start_time) < 40:
-            ret, frame = cap.read()
+            with _persistent_cap_lock:
+                ret, frame = cap.read()
             if not ret or frame is None:
                 time.sleep(0.05)
                 continue
@@ -187,12 +218,11 @@ def register():
                     print(f"[FaceID] Captured {captured}/{target}")
                     time.sleep(0.35)
             else:
-                # No detector - save full frame
                 cv2.imwrite(str(user_dir / f"face_{captured}.jpg"), cv2.resize(frame, (160, 160)))
                 captured += 1
                 time.sleep(0.35)
-    finally:
-        cap.release()
+    except Exception as e:
+        print(f"[FaceID] Register error: {e}")
 
     if captured == 0:
         return jsonify({"success": False, "message": "Aucun visage detecte. Assurez-vous d etre bien eclaire."}), 500
@@ -207,7 +237,7 @@ def authenticate():
         return jsonify({"success": False, "message": "Aucun visage enregistre"}), 404
 
     det = get_cascade()
-    cap = open_camera()
+    cap = get_persistent_camera()
     if cap is None:
         return jsonify({"success": False, "message": "Webcam non disponible"}), 500
 
@@ -216,7 +246,8 @@ def authenticate():
 
     try:
         while live_face is None and (time.time() - start_time) < 15:
-            ret, frame = cap.read()
+            with _persistent_cap_lock:
+                ret, frame = cap.read()
             if not ret or frame is None:
                 time.sleep(0.05)
                 continue
@@ -228,8 +259,8 @@ def authenticate():
                     live_face = cv2.resize(frame[y:y+h, x:x+w], (160, 160))
             else:
                 live_face = cv2.resize(frame, (160, 160))
-    finally:
-        cap.release()
+    except Exception as e:
+        print(f"[FaceID] Auth error: {e}")
 
     if live_face is None:
         return jsonify({"success": False, "message": "Aucun visage detecte. Regardez la camera."}), 400
@@ -262,6 +293,12 @@ def delete():
     user_dir = STORAGE_DIR / f"user_{user_id}"
     if user_dir.exists():
         shutil.rmtree(user_dir)
+    return jsonify({"success": True})
+
+
+@app.route('/release_camera', methods=['POST'])
+def release_camera():
+    release_persistent_camera()
     return jsonify({"success": True})
 
 if __name__ == '__main__':

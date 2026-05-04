@@ -23,13 +23,54 @@ import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.GroqTranslationService;
 import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.TextToSpeechService;
-import tn.esprit.session.JwtManager;
+import tn.esprit.session.SessionManager;
 import tn.esprit.tools.ConfigLoader;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
 
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * CONTROLLER : PAGE DE LECTURE D'UN CHAPITRE
+ * ═══════════════════════════════════════════════════════════════
+ * Affiche le contenu d'un chapitre et gère toutes les fonctionnalités
+ * avancées liées à la lecture.
+ *
+ * FONCTIONNALITÉS :
+ *
+ * 1. AFFICHAGE DU CONTENU
+ *    - Rendu HTML du contenu du chapitre via WebView
+ *    - Navigation entre chapitres (Suivant / Précédent)
+ *    - Affichage des ressources (vidéo, PDF, lien)
+ *
+ * 2. EXPORT PDF (iText 5)
+ *    - Bouton "Exporter PDF" → FileChooser pour choisir l'emplacement
+ *    - Design moderne : bannière violette, en-tête AutoLearn, section ressources
+ *    - Méthode renderModernHtmlToPdf() : convertit le HTML en éléments iText
+ *    - Gère : titres H1/H2/H3, paragraphes, blocs de code, listes, tableaux
+ *
+ * 3. TRADUCTION IA (Groq API)
+ *    - MenuButton avec langues : Français, Anglais, Arabe, Espagnol...
+ *    - Appel à GroqTranslationService → API Groq (LLaMA 3.3 70B)
+ *    - Le contenu traduit remplace l'affichage (sans modifier la BDD)
+ *    - currentDisplayedContent : garde le contenu actuel (original ou traduit)
+ *
+ * 4. LECTURE AUDIO TTS (Text-to-Speech)
+ *    - Bouton "Écouter" → TextToSpeechService
+ *    - Convertit le texte du chapitre en audio
+ *
+ * 5. PROGRESSION
+ *    - Après quiz réussi → CourseProgressService.markChapterCompleted()
+ *    - Callback onRetourCallback : retour à la liste des chapitres
+ *
+ * DÉPENDANCES :
+ *   - GroqTranslationService : traduction via API Groq
+ *   - TextToSpeechService : lecture audio
+ *   - CourseProgressService : sauvegarde progression
+ *   - iText (pom.xml) : génération PDF
+ * ═══════════════════════════════════════════════════════════════
+ */
 public class FrontChapitreDetailController {
 
     @FXML private Label labelBadge;
@@ -130,18 +171,7 @@ public class FrontChapitreDetailController {
 
     private String buildHtml(String contenu) {
         boolean isHtml = contenu.contains("<") && contenu.contains(">");
-        String body;
-        
-        if (isHtml) {
-            // HTML content - auto-detect and wrap code blocks if not already wrapped
-            if (!contenu.contains("<pre")) {
-                contenu = autoWrapCodeBlocks(contenu);
-            }
-            body = contenu;
-        } else {
-            // Plain text content - detect and wrap code patterns
-            body = convertPlainTextToHtml(contenu);
-        }
+        String body = isHtml ? contenu : "<p>" + contenu.replace("\n", "</p><p>") + "</p>";
 
         return "<!DOCTYPE html><html><head>"
             + "<meta charset='UTF-8'>"
@@ -182,275 +212,6 @@ public class FrontChapitreDetailController {
             + "</style></head><body>"
             + body
             + "</body></html>";
-    }
-    
-    /**
-     * Converts plain text content to HTML with automatic code block detection
-     * Specifically handles the format: "Description. Exemples : code1; code2; code3. More text."
-     */
-    private String convertPlainTextToHtml(String plainText) {
-        StringBuilder html = new StringBuilder();
-        
-        // Split by sentences, but keep delimiters
-        String[] sentences = plainText.split("(?<=[.!?])\\s+");
-        
-        for (String sentence : sentences) {
-            sentence = sentence.trim();
-            if (sentence.isEmpty()) continue;
-            
-            // Check if sentence contains "Exemples :" or "Structure :" followed by code
-            if (sentence.matches(".*(?:Exemples?|Structure|Pour commencer)\\s*:.*[;{}()].*")) {
-                // This sentence contains code examples
-                // Split at the colon to separate description from code
-                int colonIndex = sentence.indexOf(':');
-                if (colonIndex > 0) {
-                    String intro = sentence.substring(0, colonIndex + 1);
-                    String codepart = sentence.substring(colonIndex + 1).trim();
-                    
-                    html.append("<p>").append(intro).append("</p>");
-                    html.append("<pre><code>").append(escapeHtml(codepart)).append("</code></pre>");
-                } else {
-                    html.append("<p>").append(sentence).append("</p>");
-                }
-            } else if (hasSignificantCode(sentence)) {
-                // Sentence is mostly code
-                html.append("<pre><code>").append(escapeHtml(sentence)).append("</code></pre>");
-            } else {
-                // Regular text sentence
-                html.append("<p>").append(sentence).append("</p>");
-            }
-        }
-        
-        return html.toString();
-    }
-    
-    /**
-     * Checks if a sentence contains significant code (multiple semicolons, braces, etc.)
-     */
-    private boolean hasSignificantCode(String text) {
-        int codeIndicators = 0;
-        
-        // Count semicolons
-        codeIndicators += countOccurrences(text, ';');
-        
-        // Count braces
-        if (text.contains("{") || text.contains("}")) codeIndicators += 2;
-        
-        // Has method calls
-        if (text.matches(".*\\w+\\([^)]*\\).*")) codeIndicators += 1;
-        
-        // Has type declarations
-        if (text.matches(".*(int|double|String|boolean|char|float|long|byte|short|final|public|private|class)\\s+\\w+.*")) {
-            codeIndicators += 2;
-        }
-        
-        return codeIndicators >= 2;
-    }
-    
-    /**
-     * Counts occurrences of a character in a string
-     */
-    private int countOccurrences(String text, char ch) {
-        int count = 0;
-        for (int i = 0; i < text.length(); i++) {
-            if (text.charAt(i) == ch) count++;
-        }
-        return count;
-    }
-    
-    /**
-     * Determines if a text segment is likely code
-     */
-    private boolean isCodeSegment(String segment) {
-        // Code indicators
-        int codeScore = 0;
-        
-        // Has semicolons (strong indicator)
-        if (segment.contains(";")) codeScore += 3;
-        
-        // Has curly braces
-        if (segment.contains("{") || segment.contains("}")) codeScore += 3;
-        
-        // Has parentheses with typical method call pattern
-        if (segment.matches(".*\\w+\\s*\\([^)]*\\).*")) codeScore += 2;
-        
-        // Has assignment operators
-        if (segment.contains(" = ") || segment.matches(".*\\w+\\s*=\\s*.*")) codeScore += 2;
-        
-        // Has common programming keywords
-        String[] keywords = {"public", "private", "class", "void", "int", "String", "double", 
-                           "boolean", "final", "static", "return", "System.out", "println"};
-        for (String keyword : keywords) {
-            if (segment.contains(keyword)) {
-                codeScore += 2;
-                break;
-            }
-        }
-        
-        // Has quotes (string literals)
-        if (segment.contains("\"") || segment.contains("'")) codeScore += 1;
-        
-        // Has comparison operators
-        if (segment.contains("==") || segment.contains("!=") || segment.contains(">=") || segment.contains("<=")) {
-            codeScore += 2;
-        }
-        
-        // Has array/generic brackets
-        if (segment.contains("[") || segment.contains("]") || segment.contains("<") || segment.contains(">")) {
-            codeScore += 1;
-        }
-        
-        // If score is high enough, it's likely code
-        return codeScore >= 3;
-    }
-    
-    /**
-     * Automatically detects and wraps code blocks in <pre><code> tags
-     * Detects patterns like:
-     * - Lines starting with common programming keywords (public, class, def, function, etc.)
-     * - Lines with typical code syntax (semicolons, braces, parentheses)
-     * - Multiple consecutive indented lines
-     */
-    private String autoWrapCodeBlocks(String html) {
-        String[] lines = html.split("\n");
-        StringBuilder result = new StringBuilder();
-        StringBuilder codeBlock = new StringBuilder();
-        boolean inCodeBlock = false;
-        boolean inHtmlTag = false;
-        
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            String trimmed = line.trim();
-            
-            // Skip if we're inside an HTML tag
-            if (trimmed.startsWith("<") && !trimmed.startsWith("</")) {
-                inHtmlTag = true;
-            }
-            if (trimmed.endsWith(">") && !trimmed.startsWith("<")) {
-                inHtmlTag = false;
-            }
-            
-            // Check if this line looks like code
-            boolean isCodeLine = !inHtmlTag && isLikelyCodeLine(trimmed);
-            
-            if (isCodeLine) {
-                if (!inCodeBlock) {
-                    // Start a new code block
-                    inCodeBlock = true;
-                    codeBlock = new StringBuilder();
-                }
-                // Add line to code block (preserve original indentation)
-                codeBlock.append(line).append("\n");
-            } else {
-                if (inCodeBlock) {
-                    // End the code block and wrap it
-                    String code = codeBlock.toString().trim();
-                    if (!code.isEmpty()) {
-                        result.append("<pre><code>").append(escapeHtml(code)).append("</code></pre>\n");
-                    }
-                    inCodeBlock = false;
-                    codeBlock = new StringBuilder();
-                }
-                // Add the non-code line as-is
-                result.append(line).append("\n");
-            }
-        }
-        
-        // Handle any remaining code block
-        if (inCodeBlock) {
-            String code = codeBlock.toString().trim();
-            if (!code.isEmpty()) {
-                result.append("<pre><code>").append(escapeHtml(code)).append("</code></pre>\n");
-            }
-        }
-        
-        return result.toString();
-    }
-    
-    /**
-     * Determines if a line looks like code based on various heuristics
-     */
-    private boolean isLikelyCodeLine(String line) {
-        if (line.isEmpty()) return false;
-        
-        // Skip HTML tags
-        if (line.startsWith("<h") || line.startsWith("</h") || 
-            line.startsWith("<p") || line.startsWith("</p") ||
-            line.startsWith("<ul") || line.startsWith("</ul") ||
-            line.startsWith("<ol") || line.startsWith("</ol") ||
-            line.startsWith("<li") || line.startsWith("</li") ||
-            line.startsWith("<div") || line.startsWith("</div") ||
-            line.startsWith("<strong") || line.startsWith("</strong")) {
-            return false;
-        }
-        
-        // Common programming keywords
-        String[] keywords = {
-            "public ", "private ", "protected ", "class ", "interface ", "enum ",
-            "def ", "function ", "const ", "let ", "var ", "import ", "from ",
-            "package ", "void ", "int ", "String ", "boolean ", "return ",
-            "if ", "else ", "for ", "while ", "switch ", "case ",
-            "try ", "catch ", "finally ", "throw ", "throws ",
-            "System.out", "console.log", "print(", "println(",
-            "@Override", "@FXML", "@Autowired", "@Entity"
-        };
-        
-        for (String keyword : keywords) {
-            if (line.startsWith(keyword) || line.contains(" " + keyword)) {
-                return true;
-            }
-        }
-        
-        // Code-like patterns
-        // Lines with semicolons (but not inside sentences)
-        if (line.endsWith(";") || line.contains(";") && !line.contains(". ")) {
-            return true;
-        }
-        
-        // Lines with braces
-        if (line.contains("{") || line.contains("}") || 
-            line.equals("{") || line.equals("}")) {
-            return true;
-        }
-        
-        // Lines with typical code patterns
-        if (line.matches(".*\\w+\\s*\\(.*\\).*") && !line.startsWith("<")) {
-            return true;
-        }
-        
-        // Lines with assignment operators
-        if (line.contains(" = ") || line.contains("==") || line.contains("!=")) {
-            return true;
-        }
-        
-        // Lines with array/object access
-        if (line.contains("[") && line.contains("]")) {
-            return true;
-        }
-        
-        // Lines starting with common indentation (4+ spaces or tab)
-        if (line.startsWith("    ") || line.startsWith("\t")) {
-            // Check if it has code-like content
-            String content = line.trim();
-            if (content.contains("(") || content.contains(")") || 
-                content.contains("{") || content.contains("}") ||
-                content.contains(";") || content.contains("=")) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Escapes HTML special characters in code
-     */
-    private String escapeHtml(String code) {
-        return code.replace("&", "&amp;")
-                   .replace("<", "&lt;")
-                   .replace(">", "&gt;")
-                   .replace("\"", "&quot;")
-                   .replace("'", "&#39;");
     }
 
     @FXML private void onRetour() { if (onRetourCallback != null) onRetourCallback.run(); }

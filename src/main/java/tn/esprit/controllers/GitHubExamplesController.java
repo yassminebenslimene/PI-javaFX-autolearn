@@ -13,6 +13,29 @@ import java.awt.Desktop;
 import java.net.URI;
 import java.util.List;
 
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * CONTROLLER : EXPLORATEUR DE CODE GITHUB
+ * ═══════════════════════════════════════════════════════════════
+ * Permet à l'étudiant de rechercher des repositories GitHub
+ * par langage de programmation et mot-clé.
+ *
+ * FONCTIONNALITÉS :
+ *   - Recherche de repositories via l'API GitHub
+ *   - Affichage des résultats sous forme de cartes (nom, stars, langage)
+ *   - Aperçu des détails du repository sélectionné
+ *   - Ouverture du repository dans le navigateur
+ *   - Bouton "Retour aux Cours"
+ *
+ * API UTILISÉE : GitHub REST API v3
+ *   - Sans token : 60 requêtes/heure
+ *   - Avec token : 5000 requêtes/heure (configuré dans config.properties)
+ *
+ * DÉPENDANCES :
+ *   - GitHubService : fait les appels HTTP à l'API GitHub
+ *   - ConfigLoader : lit le token GitHub depuis config.properties
+ * ═══════════════════════════════════════════════════════════════
+ */
 public class GitHubExamplesController {
 
     @FXML
@@ -42,12 +65,12 @@ public class GitHubExamplesController {
 
     @FXML
     public void initialize() {
-        // Charger le token depuis le fichier de configuration
+        // Charger le token GitHub depuis config.properties (optionnel)
         String token = tn.esprit.tools.ConfigLoader.getGitHubToken();
         if (token != null) {
-            githubService = new GitHubService(token);
+            githubService = new GitHubService(token); // Avec token : 5000 req/h
         } else {
-            githubService = new GitHubService();
+            githubService = new GitHubService(); // Sans token : 60 req/h
         }
         currentResults = FXCollections.observableArrayList();
 
@@ -106,9 +129,10 @@ public class GitHubExamplesController {
         statusLabel.setText("🔍 Recherche en cours...");
         searchButton.setDisable(true);
 
-        // Exécuter la recherche dans un thread séparé
+        // Recherche dans un thread séparé pour ne pas bloquer l'interface
         new Thread(() -> {
             try {
+                // Appel à l'API GitHub pour chercher des repositories
                 List<GitHubService.GitHubRepository> repos = githubService.searchRepositories(language, query, 10);
                 
                 javafx.application.Platform.runLater(() -> {

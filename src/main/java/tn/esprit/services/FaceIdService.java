@@ -17,7 +17,7 @@ public class FaceIdService {
     private static final String SERVER_URL = "http://127.0.0.1:5001";
     private static final Gson GSON = new Gson();
     private static final HttpClient HTTP = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(3))
+        .connectTimeout(Duration.ofSeconds(8))
         .build();
 
     public record FaceResult(boolean success, String message, double confidence) {}
@@ -104,6 +104,16 @@ public class FaceIdService {
             double conf = json.has("confidence") ? json.get("confidence").getAsDouble() : 0;
             return new FaceResult(ok, msg, conf);
         } catch (Exception e) { return new FaceResult(false, "Erreur: " + e.getMessage(), 0); }
+    }
+
+    public static void releaseCamera() {
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(SERVER_URL + "/release_camera"))
+                .timeout(Duration.ofSeconds(3))
+                .POST(HttpRequest.BodyPublishers.noBody()).build();
+            HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) { System.err.println("[FaceID] Release camera error: " + e.getMessage()); }
     }
 
     public static void deleteFaceData(int userId) {
