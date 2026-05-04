@@ -46,6 +46,8 @@ public class FrontCoursController {
     private final LearningObjectiveService objectiveService = new LearningObjectiveService();
 
     private Consumer<Cours> onVoirChapitres;
+    private Runnable onNavigateGitHub;
+    private Runnable onNavigateMaListe;
     private List<Cours>     allCours;
     private Map<Integer, Integer> countByCours = new HashMap<>();
 
@@ -66,17 +68,40 @@ public class FrontCoursController {
     public void setOnVoirChapitres(Consumer<Cours> callback) {
         this.onVoirChapitres = callback;
     }
+    
+    public void setOnNavigateGitHub(Runnable callback) {
+        this.onNavigateGitHub = callback;
+    }
+    
+    public void setOnNavigateMaListe(Runnable callback) {
+        this.onNavigateMaListe = callback;
+    }
 
     public void loadData() {
-        allCours = serviceCours.consulter();
-        countByCours = new HashMap<>();
-        serviceChapitre.consulter().forEach(ch -> countByCours.merge(ch.getCoursId(), 1, Integer::sum));
+        System.out.println("[FrontCoursController] loadData() appelé");
+        try {
+            allCours = serviceCours.consulter();
+            System.out.println("[FrontCoursController] Nombre de cours récupérés: " + (allCours != null ? allCours.size() : "null"));
+            
+            if (allCours == null) {
+                allCours = new java.util.ArrayList<>();
+            }
+            
+            countByCours = new HashMap<>();
+            serviceChapitre.consulter().forEach(ch -> countByCours.merge(ch.getCoursId(), 1, Integer::sum));
 
-        if (labelTotalCours     != null) labelTotalCours.setText(String.valueOf(allCours.size()));
-        if (labelTotalChapitres != null) labelTotalChapitres.setText(
-            String.valueOf(countByCours.values().stream().mapToInt(Integer::intValue).sum()));
+            if (labelTotalCours     != null) labelTotalCours.setText(String.valueOf(allCours.size()));
+            if (labelTotalChapitres != null) labelTotalChapitres.setText(
+                String.valueOf(countByCours.values().stream().mapToInt(Integer::intValue).sum()));
 
-        afficher(allCours);
+            System.out.println("[FrontCoursController] Affichage de " + allCours.size() + " cours");
+            afficher(allCours);
+        } catch (Exception e) {
+            System.err.println("[FrontCoursController] ERREUR dans loadData(): " + e.getMessage());
+            e.printStackTrace();
+            allCours = new java.util.ArrayList<>();
+            afficher(allCours);
+        }
     }
 
     private void afficher(List<Cours> liste) {
@@ -257,16 +282,32 @@ public class FrontCoursController {
 
     @FXML private void onGitHub() {
         try {
-            tn.esprit.MainApp.showGitHubExamples();
+            System.out.println("[FrontCoursController] Navigation vers GitHub Examples");
+            if (onNavigateGitHub != null) {
+                // Utiliser le callback si disponible (reste dans le frontoffice)
+                onNavigateGitHub.run();
+            } else {
+                // Fallback: changer toute la scène (comportement actuel)
+                tn.esprit.MainApp.showGitHubExamples();
+            }
         } catch (Exception e) {
+            System.err.println("[FrontCoursController] Erreur navigation GitHub: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     @FXML private void onMaListe() {
         try {
-            tn.esprit.MainApp.showTodoList();
+            System.out.println("[FrontCoursController] Navigation vers Ma Liste");
+            if (onNavigateMaListe != null) {
+                // Utiliser le callback si disponible (reste dans le frontoffice)
+                onNavigateMaListe.run();
+            } else {
+                // Fallback: changer toute la scène (comportement actuel)
+                tn.esprit.MainApp.showTodoList();
+            }
         } catch (Exception e) {
+            System.err.println("[FrontCoursController] Erreur navigation Ma Liste: " + e.getMessage());
             e.printStackTrace();
         }
     }

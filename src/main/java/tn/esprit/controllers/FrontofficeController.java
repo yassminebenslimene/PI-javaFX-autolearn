@@ -798,6 +798,34 @@ public class FrontofficeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/cours/index.fxml"));
             Parent view = loader.load();
             FrontCoursController ctrl = loader.getController();
+            
+            // Configurer les callbacks pour rester dans le frontoffice
+            ctrl.setOnNavigateGitHub(() -> {
+                try {
+                    // Charger GitHub Examples dans le centre du frontoffice
+                    FXMLLoader githubLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/github_examples.fxml"));
+                    Parent githubView = githubLoader.load();
+                    setCenter(githubView);
+                } catch (Exception ex) {
+                    System.err.println("Erreur chargement GitHub: " + ex.getMessage());
+                    // Fallback: utiliser MainApp
+                    tn.esprit.MainApp.showGitHubExamples();
+                }
+            });
+            
+            ctrl.setOnNavigateMaListe(() -> {
+                try {
+                    // Charger Ma Liste dans le centre du frontoffice
+                    FXMLLoader todoLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/todo.fxml"));
+                    Parent todoView = todoLoader.load();
+                    setCenter(todoView);
+                } catch (Exception ex) {
+                    System.err.println("Erreur chargement Ma Liste: " + ex.getMessage());
+                    // Fallback: utiliser MainApp
+                    tn.esprit.MainApp.showTodoList();
+                }
+            });
+            
             ctrl.setOnVoirChapitres(cours -> {
                 try {
                     FXMLLoader chapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
