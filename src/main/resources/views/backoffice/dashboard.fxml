@@ -92,8 +92,8 @@
                 <StackPane style="-fx-background-color:rgba(0,0,0,0.2); -fx-background-radius:12; -fx-padding:10;">
                     <Canvas fx:id="heatmapCanvas" height="320" width="900" />
                 </StackPane>
-                <!-- Hour labels -->
-                <HBox fx:id="heatmapLabels" spacing="0" style="-fx-padding:4 0 0 0;" />
+                <!-- Hour labels - aligned with canvas -->
+                <HBox fx:id="heatmapLabels" spacing="0" alignment="CENTER" style="-fx-padding:4 40 0 40; -fx-pref-width:900;" />
             </VBox>
 
             <!-- AI Risk Summary Card with advanced features -->

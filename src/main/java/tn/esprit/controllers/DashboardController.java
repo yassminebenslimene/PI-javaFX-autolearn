@@ -326,20 +326,33 @@ public class DashboardController {
 
         // Enhanced hour labels - SHOW ALL 24 HOURS
         heatmapLabels.getChildren().clear();
+        heatmapLabels.setSpacing(0);
+        heatmapLabels.setPrefWidth(w);
+        
         for (int i = 0; i < 24; i++) {
             Label lbl = new Label(i + "h");
             double intensity = hourly[i] / (double) max;
+            
+            // Make labels more visible with better sizing
             lbl.setStyle(String.format(
-                "-fx-font-size:9; -fx-text-fill:rgba(245,245,244,%.2f); -fx-font-weight:%s;",
-                0.4 + intensity * 0.5,
-                intensity > 0.6 ? "800" : "600"
+                "-fx-font-size:9; -fx-text-fill:rgba(245,245,244,%.2f); -fx-font-weight:%s; -fx-min-width:%.1f; -fx-max-width:%.1f;",
+                0.5 + intensity * 0.4,
+                intensity > 0.6 ? "800" : "600",
+                spacing,
+                spacing
             ));
             lbl.setPrefWidth(spacing);
+            lbl.setMinWidth(spacing);
+            lbl.setMaxWidth(spacing);
             lbl.setAlignment(javafx.geometry.Pos.CENTER);
             
             // Highlight peak hour
             if (hourly[i] == max && max > 0) {
-                lbl.setStyle("-fx-font-size:10; -fx-text-fill:#ffd700; -fx-font-weight:900; -fx-background-color:rgba(255,215,0,0.15); -fx-background-radius:6; -fx-padding:3 6 3 6;");
+                lbl.setStyle(String.format(
+                    "-fx-font-size:10; -fx-text-fill:#ffd700; -fx-font-weight:900; -fx-background-color:rgba(255,215,0,0.15); -fx-background-radius:6; -fx-padding:2 4 2 4; -fx-min-width:%.1f; -fx-max-width:%.1f;",
+                    spacing,
+                    spacing
+                ));
             }
             
             heatmapLabels.getChildren().add(lbl);
