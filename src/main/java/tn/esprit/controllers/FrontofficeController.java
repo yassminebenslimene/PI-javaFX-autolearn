@@ -809,7 +809,12 @@ public class FrontofficeController {
                 } catch (Exception ex) {
                     System.err.println("Erreur chargement GitHub: " + ex.getMessage());
                     // Fallback: utiliser MainApp
-                    tn.esprit.MainApp.showGitHubExamples();
+                    try {
+                        tn.esprit.MainApp.showGitHubExamples();
+                    } catch (Exception e) {
+                        System.err.println("Erreur fallback GitHub: " + e.getMessage());
+                        e.printStackTrace();
+                    }
                 }
             });
             
@@ -822,7 +827,12 @@ public class FrontofficeController {
                 } catch (Exception ex) {
                     System.err.println("Erreur chargement Ma Liste: " + ex.getMessage());
                     // Fallback: utiliser MainApp
-                    tn.esprit.MainApp.showTodoList();
+                    try {
+                        tn.esprit.MainApp.showTodoList();
+                    } catch (Exception e) {
+                        System.err.println("Erreur fallback Ma Liste: " + e.getMessage());
+                        e.printStackTrace();
+                    }
                 }
             });
             
