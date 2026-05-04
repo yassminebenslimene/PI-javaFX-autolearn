@@ -201,14 +201,15 @@ public class ApiService {
      * Set WEBHOOK_URL to your Slack/Discord incoming webhook URL.
      * Leave empty to disable.
      */
-    private static final String WEBHOOK_URL = "https://discord.com/api/webhooks/1494164239911227482/J3-_l1VfRK42kVtgWlMi_e1x6lfZP99V1fpYrqoYeJpwrNN85uE8gv9Eclhxt03jcSo2"; 
+    private static final String WEBHOOK_URL = "https://discord.com/api/webhooks/1500855657652551770/xSSbULPwqHO5UnVgup1KXqaluPk8WNC4fxG590o7Pw16Snf9gPoLSGCTb_OKvv17uymD";
 
     public static void sendAdminAlert(String title, String message) {
         if (WEBHOOK_URL == null || WEBHOOK_URL.isBlank()) return;
 
-        // Works for both Slack and Discord (both accept {"text": "..."})
+        // Discord uses {"content": "..."}, Slack uses {"text": "..."}
+        // This webhook is Discord, so use "content"
         String body = GSON.toJson(java.util.Map.of(
-            "text", "*[AutoLearn]* " + title + "\n" + message
+            "content", "**[AutoLearn]** " + title + "\n" + message
         ));
 
         HttpRequest req = HttpRequest.newBuilder()
@@ -219,7 +220,7 @@ public class ApiService {
             .build();
 
         HTTP.sendAsync(req, HttpResponse.BodyHandlers.discarding())
-            .thenAccept(resp -> System.out.println("[Webhook] Status: " + resp.statusCode()))
+            .thenAccept(resp -> System.out.println("[Webhook] Discord alert sent - Status: " + resp.statusCode()))
             .exceptionally(e -> { System.err.println("[Webhook] Failed: " + e.getMessage()); return null; });
     }
 

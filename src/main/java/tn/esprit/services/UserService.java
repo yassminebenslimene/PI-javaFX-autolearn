@@ -86,7 +86,7 @@ public class UserService implements IUserService {
             System.err.println("Niveau obligatoire pour étudiant."); return;
         }
         String sql = "UPDATE user SET nom=?,prenom=?,email=?,password=?,isSuspended=?," +
-                     "suspendedAt=?,suspensionReason=?,suspendedBy=?,niveau=? WHERE userId=?";
+                     "suspendedAt=?,suspensionReason=?,suspendedBy=?,niveau=?,lastLoginAt=?,lastActivityAt=? WHERE userId=?";
         try (PreparedStatement ps = cnx.prepareStatement(sql)) {
             ps.setString(1, updated.getNom());
             ps.setString(2, updated.getPrenom());
@@ -97,7 +97,9 @@ public class UserService implements IUserService {
             ps.setString(7, updated.getSuspensionReason());
             ps.setObject(8, updated.getSuspendedBy());
             ps.setString(9, (updated instanceof Etudiant e) ? e.getNiveau() : null);
-            ps.setInt(10, updated.getId());
+            ps.setTimestamp(10, updated.getLastLoginAt() != null ? new Timestamp(updated.getLastLoginAt().getTime()) : null);
+            ps.setTimestamp(11, updated.getLastActivityAt() != null ? new Timestamp(updated.getLastActivityAt().getTime()) : null);
+            ps.setInt(12, updated.getId());
             int rows = ps.executeUpdate();
             System.out.println(rows > 0 ? "✔ Modifié." : "✘ ID introuvable.");
         } catch (SQLException e) { System.err.println("Erreur modifier: " + e.getMessage()); }

@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 public class FacebookOAuthService {
 
     // TODO: Replace with your actual Facebook App credentials
-    private static final String APP_ID = "YOUR_FACEBOOK_APP_ID";
-    private static final String APP_SECRET = "YOUR_FACEBOOK_APP_SECRET";
+    private static final String APP_ID = "26377871941908258";
+    private static final String APP_SECRET = "0f5bd349830d9dd3a126653076a23329";
     private static final String REDIRECT_URI = "http://localhost:8081/callback";
     private static final int PORT = 8081;
 

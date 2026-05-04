@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 public class GoogleOAuthService {
 
     // TODO: Replace with your actual Google OAuth credentials
-    private static final String CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
-    private static final String CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET";
+    private static final String CLIENT_ID = "700826827550-n3rrg9o10j91ngvhrsq70ljcvdoqdqtu.apps.googleusercontent.com";
+    private static final String CLIENT_SECRET = "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";
     private static final String REDIRECT_URI = "http://localhost:8080/callback";
     private static final int PORT = 8080;
 

@@ -202,41 +202,65 @@ public class LoginController {
             return;
         }
 
-        // 2. Check for auto-suspension (60 days inactive)
+        // 2. Check for auto-suspension (60 days inactive) - CORRECTED: Use > 60 instead of >= 60
         if (!found.isIsSuspended()) {
-            java.util.Date lastActivityDate = found.getLastLoginAt() != null
-                ? found.getLastLoginAt()
-                : found.getCreatedAt();
-
-            LocalDateTime lastActivity = lastActivityDate != null
-                ? lastActivityDate.toInstant()
-                    .atZone(java.time.ZoneId.systemDefault())
-                    .toLocalDateTime()
-                : LocalDateTime.now();
-
-            long daysSince = java.time.temporal.ChronoUnit.DAYS.between(lastActivity, LocalDateTime.now());
-            if (daysSince >= 60) {
-                found.setIsSuspended(true);
-                found.setSuspendedAt(new java.util.Date());
-                found.setSuspensionReason("Inactivite prolongee (plus de 60 jours sans connexion)");
-                service.modifier(found);
-                EmailService.sendSuspensionNotification(found.getEmail(), found.getPrenom(),
-                    "Votre compte n'a pas ete utilise depuis plus de 60 jours.");
-                ApiService.sendAdminAlert(
-                    "Suspension automatique",
-                    found.getPrenom() + " " + found.getNom() + " (" + found.getEmail() +
-                    ") a ete suspendu automatiquement apres " + daysSince + " jours d'inactivite."
-                );
+            // Use lastLoginAt if available, otherwise use createdAt
+            java.util.Date lastActivityDate = found.getLastLoginAt();
+            
+            // If user never logged in, use creation date
+            if (lastActivityDate == null) {
+                lastActivityDate = found.getCreatedAt();
+            }
+            
+            // Only check if we have a valid date
+            if (lastActivityDate != null) {
+                // Get current time
+                long currentTimeMillis = System.currentTimeMillis();
+                long lastActivityMillis = lastActivityDate.getTime();
+                
+                // Calculate difference in milliseconds
+                long millisDiff = currentTimeMillis - lastActivityMillis;
+                
+                // Convert to days (using integer division, so 60.9 days = 60 days)
+                long daysSince = millisDiff / (1000L * 60L * 60L * 24L);
+                
+                // DEBUG: Print all values
+                System.out.println("========== SUSPENSION CHECK DEBUG ==========");
+                System.out.println("User: " + found.getEmail());
+                System.out.println("Last activity date: " + lastActivityDate);
+                System.out.println("Days since: " + daysSince);
+                System.out.println("Will suspend? " + (daysSince > 60));
+                System.out.println("==========================================");
+                
+                // Only suspend if inactive for MORE THAN 60 days (not exactly 60)
+                if (daysSince > 60) {
+                    found.setIsSuspended(true);
+                    found.setSuspendedAt(new java.util.Date());
+                    found.setSuspensionReason("Inactivite prolongee (plus de 60 jours sans connexion)");
+                    service.modifier(found);
+                    
+                    EmailService.sendSuspensionNotification(found.getEmail(), found.getPrenom(),
+                        "Votre compte n'a pas ete utilise depuis plus de 60 jours.");
+                    ApiService.sendAdminAlert(
+                        "Suspension automatique",
+                        found.getPrenom() + " " + found.getNom() + " (" + found.getEmail() +
+                        ") a ete suspendu automatiquement apres " + daysSince + " jours d'inactivite."
+                    );
+                    
+                    showError("Compte suspendu : Inactivite prolongee (plus de 60 jours sans connexion)\nContactez autolearn66@gmail.com pour plus d'informations.");
+                    return;
+                }
             }
         }
 
-        // 3. Check if account is suspended
+        // 3. Check if account is suspended (by admin or auto-suspension)
         if (found.isIsSuspended()) {
             showError("Compte suspendu : " +
                 (found.getSuspensionReason() != null ? found.getSuspensionReason() : "") +
                 "\nContactez autolearn66@gmail.com pour plus d'informations.");
             return;
         }
+
 
         // 4. Update last login timestamp
         found.setLastLoginAt(Timestamp.valueOf(LocalDateTime.now()));

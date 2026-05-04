@@ -28,7 +28,7 @@ public abstract class
     public User() {
         this.createdAt = new Date();
         this.isSuspended = false;
-        this.lastLoginAt = new Date();
+        this.lastLoginAt = null;  // Will be set on first real login
         this.lastActivityAt = new Date();
     }
 
