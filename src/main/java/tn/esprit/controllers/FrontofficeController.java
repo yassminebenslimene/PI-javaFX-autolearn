@@ -805,6 +805,14 @@ public class FrontofficeController {
                     // Charger GitHub Examples dans le centre du frontoffice
                     FXMLLoader githubLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/github_examples.fxml"));
                     Parent githubView = githubLoader.load();
+                    GitHubExamplesController githubCtrl = githubLoader.getController();
+                    
+                    // Configurer le callback de retour
+                    githubCtrl.setOnRetour(() -> {
+                        ctrl.loadData(); // Recharger les cours
+                        setCenter(view); // Revenir à la vue cours
+                    });
+                    
                     setCenter(githubView);
                 } catch (Exception ex) {
                     System.err.println("Erreur chargement GitHub: " + ex.getMessage());
@@ -823,6 +831,14 @@ public class FrontofficeController {
                     // Charger Ma Liste dans le centre du frontoffice
                     FXMLLoader todoLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/todo.fxml"));
                     Parent todoView = todoLoader.load();
+                    TodoController todoCtrl = todoLoader.getController();
+                    
+                    // Configurer le callback de retour
+                    todoCtrl.setOnRetour(() -> {
+                        ctrl.loadData(); // Recharger les cours
+                        setCenter(view); // Revenir à la vue cours
+                    });
+                    
                     setCenter(todoView);
                 } catch (Exception ex) {
                     System.err.println("Erreur chargement Ma Liste: " + ex.getMessage());

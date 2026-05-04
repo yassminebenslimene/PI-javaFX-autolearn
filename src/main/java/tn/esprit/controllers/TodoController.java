@@ -312,12 +312,24 @@ public class TodoController {
         }
     }
 
+    private Runnable onRetourCallback;
+
+    public void setOnRetour(Runnable callback) {
+        this.onRetourCallback = callback;
+    }
+
     @FXML
     private void onRetourCours() {
-        try {
-            tn.esprit.MainApp.showCoursPage();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (onRetourCallback != null) {
+            // Utiliser le callback si disponible (reste dans le frontoffice)
+            onRetourCallback.run();
+        } else {
+            // Fallback: comportement actuel
+            try {
+                tn.esprit.MainApp.showCoursPage();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -62,6 +62,11 @@ public class GitHubExamplesController {
     private GitHubService githubService;
     private ObservableList<GitHubService.CodeExample> currentResults;
     private String selectedUrl;
+    private Runnable onRetourCallback;
+
+    public void setOnRetour(Runnable callback) {
+        this.onRetourCallback = callback;
+    }
 
     @FXML
     public void initialize() {
@@ -307,10 +312,16 @@ public class GitHubExamplesController {
 
     @FXML
     private void onRetourCours() {
-        try {
-            tn.esprit.MainApp.showCoursPage();
-        } catch (Exception e) {
-            showAlert("Erreur", "Impossible de retourner aux cours: " + e.getMessage());
+        if (onRetourCallback != null) {
+            // Utiliser le callback si disponible (reste dans le frontoffice)
+            onRetourCallback.run();
+        } else {
+            // Fallback: comportement actuel
+            try {
+                tn.esprit.MainApp.showCoursPage();
+            } catch (Exception e) {
+                showAlert("Erreur", "Impossible de retourner aux cours: " + e.getMessage());
+            }
         }
     }
 
