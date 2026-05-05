@@ -201,51 +201,64 @@ public class ChatbotPageController {
     private void addBotMessage(String text) {
         if (messagesBox == null) return;
         
-        HBox row = new HBox(10);
+        HBox row = new HBox(12);
         row.setAlignment(Pos.TOP_LEFT);
-        row.setStyle("-fx-padding:2 0 2 0;");
+        row.setStyle("-fx-padding:4 0 4 0;");
 
-        // Avatar circle
+        // Avatar circle with gradient
         StackPane avatar = new StackPane();
-        Circle bg = new Circle(16);
-        bg.setStyle("-fx-fill:linear-gradient(to bottom right,#7c3aed,#4f46e5);");
+        javafx.scene.paint.RadialGradient gradient = new javafx.scene.paint.RadialGradient(
+            0, 0, 0.5, 0.5, 0.5, true, javafx.scene.paint.CycleMethod.NO_CYCLE,
+            new javafx.scene.paint.Stop(0, javafx.scene.paint.Color.web("#7c3aed")),
+            new javafx.scene.paint.Stop(1, javafx.scene.paint.Color.web("#4f46e5"))
+        );
+        Circle bg = new Circle(18);
+        bg.setFill(gradient);
         Label ai = new Label("AI");
-        ai.setStyle("-fx-font-size:8; -fx-font-weight:900; -fx-text-fill:white;");
+        ai.setStyle("-fx-font-size:9; -fx-font-weight:900; -fx-text-fill:white;");
         avatar.getChildren().addAll(bg, ai);
-        avatar.setMinWidth(32); avatar.setMaxWidth(32);
-        avatar.setMinHeight(32); avatar.setMaxHeight(32);
+        avatar.setMinWidth(36); avatar.setMaxWidth(36);
+        avatar.setMinHeight(36); avatar.setMaxHeight(36);
         avatar.setAlignment(Pos.CENTER);
+        avatar.setStyle("-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.4),8,0,0,2);");
 
-        // Message bubble
-        VBox bubble = new VBox(3);
-        bubble.setMaxWidth(400);
+        // Message bubble with enhanced styling
+        VBox bubble = new VBox(4);
+        bubble.setMaxWidth(480);
         bubble.setStyle(
             "-fx-background-color:white;" +
-            "-fx-background-radius:4 16 16 16;" +
-            "-fx-padding:10 14 10 14;" +
-            "-fx-border-color:#ede9fe; -fx-border-radius:4 16 16 16; -fx-border-width:1;" +
-            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.08),6,0,0,2);"
+            "-fx-background-radius:6 18 18 18;" +
+            "-fx-padding:14 18 14 18;" +
+            "-fx-border-color:#ede9fe; -fx-border-radius:6 18 18 18; -fx-border-width:1.5;" +
+            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.12),10,0,0,3);"
         );
 
         for (String line : text.split("\n")) {
             if (line.isBlank()) {
-                Region sp = new Region(); sp.setPrefHeight(3);
+                Region sp = new Region(); sp.setPrefHeight(4);
                 bubble.getChildren().add(sp);
                 continue;
             }
             String clean = line.replaceAll("\\*\\*([^*]+)\\*\\*", "$1");
             Label lbl = new Label(clean);
             lbl.setWrapText(true);
-            lbl.setMaxWidth(380);
+            lbl.setMaxWidth(440);
             boolean isBold = line.contains("**");
             lbl.setStyle(isBold
-                ? "-fx-font-size:12; -fx-text-fill:#1e1b4b; -fx-font-weight:700;"
-                : "-fx-font-size:12; -fx-text-fill:#374151; -fx-line-spacing:2;");
+                ? "-fx-font-size:13; -fx-text-fill:#1e1b4b; -fx-font-weight:800; -fx-line-spacing:2;"
+                : "-fx-font-size:13; -fx-text-fill:#374151; -fx-line-spacing:3;");
             bubble.getChildren().add(lbl);
         }
 
         row.getChildren().addAll(avatar, bubble);
         messagesBox.getChildren().add(row);
+        
+        // Fade in animation
+        row.setOpacity(0);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(300), row);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+        ft.play();
     }
 
     private void addUserMessage(String text) {
@@ -253,21 +266,33 @@ public class ChatbotPageController {
         
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_RIGHT);
-        row.setStyle("-fx-padding:2 0 2 0;");
+        row.setStyle("-fx-padding:4 0 4 0;");
 
         Label bubble = new Label(text);
         bubble.setWrapText(true);
-        bubble.setMaxWidth(400);
+        bubble.setMaxWidth(480);
         bubble.setStyle(
-            "-fx-background-color:linear-gradient(to bottom right,#7c3aed,#4f46e5);" +
-            "-fx-text-fill:white; -fx-font-size:12;" +
-            "-fx-background-radius:16 4 16 16;" +
-            "-fx-padding:10 14 10 14;" +
-            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.3),8,0,0,2);"
+            "-fx-background-color:linear-gradient(to bottom right,#7c3aed,#6d28d9);" +
+            "-fx-text-fill:white; -fx-font-size:13; -fx-line-spacing:3;" +
+            "-fx-background-radius:18 6 18 18;" +
+            "-fx-padding:14 18 14 18;" +
+            "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),10,0,0,3);"
         );
 
         row.getChildren().add(bubble);
         messagesBox.getChildren().add(row);
+        
+        // Slide in animation
+        row.setTranslateX(20);
+        row.setOpacity(0);
+        javafx.animation.TranslateTransition tt = new javafx.animation.TranslateTransition(javafx.util.Duration.millis(250), row);
+        tt.setFromX(20);
+        tt.setToX(0);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(250), row);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+        tt.play();
+        ft.play();
     }
 
     private VBox addTypingIndicator() {
@@ -302,46 +327,82 @@ public class ChatbotPageController {
     private void addQuickActions() {
         if (messagesBox == null) return;
         
-        VBox actionsBox = new VBox(6);
-        actionsBox.setStyle("-fx-padding:4 0 4 42;");
+        VBox actionsBox = new VBox(8);
+        actionsBox.setStyle("-fx-padding:6 0 6 48;");
 
         String[][] actions = {
-            {"📚 Voir les cours",        "liste les cours"},
-            {"🎉 Voir les événements",   "liste les événements"},
-            {"🏆 Voir les challenges",   "liste les challenges"},
-            {"👥 Voir les communautés",  "liste les communautés"},
-            {"🧭 Aller aux cours",       "aller aux cours"},
+            {"📚", "Voir les cours",        "liste les cours"},
+            {"🎉", "Voir les événements",   "liste les événements"},
+            {"🏆", "Voir les challenges",   "liste les challenges"},
+            {"👥", "Voir les communautés",  "liste les communautés"},
+            {"🧭", "Aller aux cours",       "aller aux cours"},
         };
 
         for (String[] action : actions) {
-            Button chip = new Button(action[0]);
+            HBox chipContainer = new HBox(10);
+            chipContainer.setAlignment(Pos.CENTER_LEFT);
+            
+            // Icon
+            Label icon = new Label(action[0]);
+            icon.setStyle("-fx-font-size:16;");
+            
+            // Button
+            Button chip = new Button(action[1]);
             String baseStyle =
                 "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
-                "-fx-font-size:11; -fx-font-weight:600;" +
-                "-fx-padding:7 14; -fx-background-radius:20;" +
-                "-fx-cursor:hand; -fx-border-width:1;" +
-                "-fx-border-color:#ddd6fe; -fx-border-radius:20;" +
-                "-fx-alignment:CENTER_LEFT;";
+                "-fx-font-size:12; -fx-font-weight:700;" +
+                "-fx-padding:10 18; -fx-background-radius:24;" +
+                "-fx-cursor:hand; -fx-border-width:1.5;" +
+                "-fx-border-color:#ddd6fe; -fx-border-radius:24;" +
+                "-fx-alignment:CENTER;";
             String hoverStyle =
-                "-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white;" +
-                "-fx-font-size:11; -fx-font-weight:600;" +
-                "-fx-padding:7 14; -fx-background-radius:20;" +
+                "-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9); -fx-text-fill:white;" +
+                "-fx-font-size:12; -fx-font-weight:800;" +
+                "-fx-padding:10 18; -fx-background-radius:24;" +
                 "-fx-cursor:hand; -fx-border-width:0;" +
-                "-fx-alignment:CENTER_LEFT;";
+                "-fx-alignment:CENTER;" +
+                "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),10,0,0,3);";
             chip.setStyle(baseStyle);
             chip.setMaxWidth(Double.MAX_VALUE);
-            chip.setOnMouseEntered(e -> chip.setStyle(hoverStyle));
-            chip.setOnMouseExited(e -> chip.setStyle(baseStyle));
+            HBox.setHgrow(chip, javafx.scene.layout.Priority.ALWAYS);
+            
+            chip.setOnMouseEntered(e -> {
+                chip.setStyle(hoverStyle);
+                javafx.animation.ScaleTransition st = new javafx.animation.ScaleTransition(
+                    javafx.util.Duration.millis(150), chip);
+                st.setToX(1.03);
+                st.setToY(1.03);
+                st.play();
+            });
+            chip.setOnMouseExited(e -> {
+                chip.setStyle(baseStyle);
+                javafx.animation.ScaleTransition st = new javafx.animation.ScaleTransition(
+                    javafx.util.Duration.millis(150), chip);
+                st.setToX(1.0);
+                st.setToY(1.0);
+                st.play();
+            });
             chip.setOnAction(e -> {
                 if (inputField != null) {
-                    inputField.setText(action[1]);
+                    inputField.setText(action[2]);
                     onSend();
                 }
             });
-            actionsBox.getChildren().add(chip);
+            
+            chipContainer.getChildren().addAll(icon, chip);
+            actionsBox.getChildren().add(chipContainer);
         }
 
         messagesBox.getChildren().add(actionsBox);
+        
+        // Fade in animation
+        actionsBox.setOpacity(0);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(
+            javafx.util.Duration.millis(400), actionsBox);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+        ft.setDelay(javafx.util.Duration.millis(300));
+        ft.play();
     }
 
     private void scrollToBottom() {

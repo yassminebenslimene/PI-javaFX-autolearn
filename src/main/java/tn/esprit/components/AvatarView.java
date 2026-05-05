@@ -124,32 +124,64 @@ public class AvatarView extends StackPane {
         double w = canvas.getWidth();
         double h = canvas.getHeight();
         
-        // Clear
+        // Clear with anti-aliasing
         gc.clearRect(0, 0, w, h);
         
-        // Background circle
-        gc.setFill(Color.web(customization.getBackgroundColor()));
+        // Enable smooth rendering
+        gc.setImageSmoothing(true);
+        
+        // Background circle with gradient
+        javafx.scene.paint.RadialGradient bgGradient = new javafx.scene.paint.RadialGradient(
+            0, 0, 0.5, 0.5, 0.5, true, javafx.scene.paint.CycleMethod.NO_CYCLE,
+            new javafx.scene.paint.Stop(0, Color.web(customization.getBackgroundColor())),
+            new javafx.scene.paint.Stop(1, Color.web(customization.getBackgroundColor()).darker())
+        );
+        gc.setFill(bgGradient);
         gc.fillOval(0, 0, w, h);
         
         // Draw character based on animation
         double centerX = w / 2;
         double centerY = h / 2;
         
-        // Body bounce for animations
+        // Body bounce for animations with easing
         double bounce = 0;
         if (currentAnimation == AnimationType.HAPPY) {
-            bounce = Math.sin(animationFrame * 2) * 3;
+            bounce = Math.sin(animationFrame * 2) * 4;
         } else if (currentAnimation == AnimationType.CELEBRATING) {
-            bounce = Math.sin(animationFrame * 3) * 5;
+            bounce = Math.sin(animationFrame * 3) * 6;
         } else {
-            bounce = Math.sin(animationFrame) * 1.5; // Subtle breathing
+            bounce = Math.sin(animationFrame) * 2; // Subtle breathing
         }
         
-        // Head (circle)
+        // Slight rotation for celebrating
+        double rotation = 0;
+        if (currentAnimation == AnimationType.CELEBRATING) {
+            rotation = Math.sin(animationFrame * 2) * 5;
+        }
+        
+        gc.save();
+        gc.translate(centerX, centerY + bounce);
+        gc.rotate(rotation);
+        gc.translate(-centerX, -(centerY + bounce));
+        
+        // Head (circle) with shadow
         Color skinColor = getSkinColor();
-        gc.setFill(skinColor);
         double headSize = w * 0.5;
+        
+        // Shadow
+        gc.setFill(Color.rgb(0, 0, 0, 0.1));
+        gc.fillOval(centerX - headSize/2 + 2, centerY - headSize/2 + bounce + 3, headSize, headSize);
+        
+        // Head
+        gc.setFill(skinColor);
         gc.fillOval(centerX - headSize/2, centerY - headSize/2 + bounce, headSize, headSize);
+        
+        // Cheeks (rosy)
+        if (currentAnimation == AnimationType.HAPPY || currentAnimation == AnimationType.CELEBRATING) {
+            gc.setFill(Color.rgb(255, 182, 193, 0.5));
+            gc.fillOval(centerX - headSize * 0.35, centerY + bounce, headSize * 0.15, headSize * 0.12);
+            gc.fillOval(centerX + headSize * 0.2, centerY + bounce, headSize * 0.15, headSize * 0.12);
+        }
         
         // Hair
         drawHair(gc, centerX, centerY + bounce, headSize);
@@ -165,6 +197,8 @@ public class AvatarView extends StackPane {
         
         // Outfit indicator (small collar/shirt)
         drawOutfit(gc, centerX, centerY + bounce + headSize/2, headSize);
+        
+        gc.restore();
     }
     
     private Color getSkinColor() {
@@ -179,37 +213,81 @@ public class AvatarView extends StackPane {
     
     private void drawHair(GraphicsContext gc, double cx, double cy, double headSize) {
         Color hairColor = Color.web(customization.getHairColor());
-        gc.setFill(hairColor);
+        Color hairShadow = hairColor.darker();
         
         double hairY = cy - headSize * 0.35;
         
         switch (customization.getHairStyle()) {
             case "short" -> {
-                // Simple cap
+                // Simple cap with highlights
+                gc.setFill(hairShadow);
+                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.4);
+                gc.setFill(hairColor);
                 gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.4);
+                // Highlight
+                gc.setFill(Color.rgb(255, 255, 255, 0.3));
+                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.05, headSize * 0.3, headSize * 0.15);
             }
             case "long" -> {
-                // Top + sides
+                // Top + sides with volume
+                gc.setFill(hairShadow);
+                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.4);
+                gc.setFill(hairColor);
                 gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.4);
-                gc.fillRect(cx - headSize/2, cy - headSize/4, headSize * 0.15, headSize * 0.6);
-                gc.fillRect(cx + headSize/2 - headSize * 0.15, cy - headSize/4, headSize * 0.15, headSize * 0.6);
+                // Left side
+                gc.fillRoundRect(cx - headSize/2, cy - headSize/4, headSize * 0.18, headSize * 0.65, 10, 10);
+                // Right side
+                gc.fillRoundRect(cx + headSize/2 - headSize * 0.18, cy - headSize/4, headSize * 0.18, headSize * 0.65, 10, 10);
+                // Highlight
+                gc.setFill(Color.rgb(255, 255, 255, 0.3));
+                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.05, headSize * 0.3, headSize * 0.15);
             }
             case "curly" -> {
-                // Multiple circles
-                for (int i = 0; i < 5; i++) {
-                    double angle = Math.PI + (i * Math.PI / 4);
-                    double x = cx + Math.cos(angle) * headSize * 0.35;
-                    double y = hairY + Math.sin(angle) * headSize * 0.2;
+                // Multiple circles with depth
+                for (int i = 0; i < 6; i++) {
+                    double angle = Math.PI + (i * Math.PI / 5);
+                    double x = cx + Math.cos(angle) * headSize * 0.38;
+                    double y = hairY + Math.sin(angle) * headSize * 0.22;
+                    // Shadow
+                    gc.setFill(hairShadow);
+                    gc.fillOval(x - headSize * 0.11 + 1, y + 1, headSize * 0.24, headSize * 0.24);
+                    // Curl
+                    gc.setFill(hairColor);
                     gc.fillOval(x - headSize * 0.12, y, headSize * 0.24, headSize * 0.24);
+                    // Highlight
+                    gc.setFill(Color.rgb(255, 255, 255, 0.25));
+                    gc.fillOval(x - headSize * 0.08, y + headSize * 0.03, headSize * 0.1, headSize * 0.1);
                 }
             }
             case "ponytail" -> {
+                // Base
+                gc.setFill(hairShadow);
+                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.4);
+                gc.setFill(hairColor);
                 gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.4);
-                gc.fillOval(cx + headSize * 0.3, hairY - headSize * 0.1, headSize * 0.2, headSize * 0.5);
+                // Ponytail with volume
+                gc.setFill(hairShadow);
+                gc.fillOval(cx + headSize * 0.28 + 1, hairY - headSize * 0.08 + 1, headSize * 0.24, headSize * 0.52);
+                gc.setFill(hairColor);
+                gc.fillOval(cx + headSize * 0.28, hairY - headSize * 0.08, headSize * 0.24, headSize * 0.52);
+                // Highlight
+                gc.setFill(Color.rgb(255, 255, 255, 0.3));
+                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.05, headSize * 0.3, headSize * 0.15);
             }
             case "bun" -> {
+                // Base
+                gc.setFill(hairShadow);
+                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.3);
+                gc.setFill(hairColor);
                 gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.3);
-                gc.fillOval(cx - headSize * 0.15, hairY - headSize * 0.2, headSize * 0.3, headSize * 0.3);
+                // Bun with depth
+                gc.setFill(hairShadow);
+                gc.fillOval(cx - headSize * 0.14 + 1, hairY - headSize * 0.18 + 1, headSize * 0.32, headSize * 0.32);
+                gc.setFill(hairColor);
+                gc.fillOval(cx - headSize * 0.15, hairY - headSize * 0.2, headSize * 0.32, headSize * 0.32);
+                // Highlight on bun
+                gc.setFill(Color.rgb(255, 255, 255, 0.35));
+                gc.fillOval(cx - headSize * 0.08, hairY - headSize * 0.15, headSize * 0.15, headSize * 0.15);
             }
         }
     }
@@ -217,34 +295,75 @@ public class AvatarView extends StackPane {
     private void drawEyes(GraphicsContext gc, double cx, double cy, double headSize) {
         double eyeY = cy - headSize * 0.08;
         double eyeSpacing = headSize * 0.15;
-        double eyeSize = headSize * 0.08;
+        double eyeSize = headSize * 0.09;
         
         // Blink animation
         boolean blinking = (currentAnimation == AnimationType.IDLE && (int)(animationFrame * 10) % 50 == 0);
         
+        // Eye expression based on animation
+        double eyeOpenness = 1.0;
+        if (currentAnimation == AnimationType.HAPPY || currentAnimation == AnimationType.CELEBRATING) {
+            eyeOpenness = 0.7; // Squinted happy eyes
+        }
+        
         if (blinking) {
-            // Closed eyes (lines)
+            // Closed eyes (curved lines)
             gc.setStroke(Color.web("#1e1b4b"));
-            gc.setLineWidth(2);
-            gc.strokeLine(cx - eyeSpacing - eyeSize/2, eyeY, cx - eyeSpacing + eyeSize/2, eyeY);
-            gc.strokeLine(cx + eyeSpacing - eyeSize/2, eyeY, cx + eyeSpacing + eyeSize/2, eyeY);
+            gc.setLineWidth(2.5);
+            gc.setLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
+            gc.strokeArc(cx - eyeSpacing - eyeSize/2, eyeY - eyeSize/4, eyeSize, eyeSize/2, 
+                        180, 180, javafx.scene.shape.ArcType.OPEN);
+            gc.strokeArc(cx + eyeSpacing - eyeSize/2, eyeY - eyeSize/4, eyeSize, eyeSize/2, 
+                        180, 180, javafx.scene.shape.ArcType.OPEN);
         } else {
-            // Open eyes
+            // Open eyes with depth
+            // Eye whites
             gc.setFill(Color.WHITE);
-            gc.fillOval(cx - eyeSpacing - eyeSize/2, eyeY - eyeSize/2, eyeSize, eyeSize);
-            gc.fillOval(cx + eyeSpacing - eyeSize/2, eyeY - eyeSize/2, eyeSize, eyeSize);
+            gc.fillOval(cx - eyeSpacing - eyeSize/2, eyeY - eyeSize/2 * eyeOpenness, 
+                       eyeSize, eyeSize * eyeOpenness);
+            gc.fillOval(cx + eyeSpacing - eyeSize/2, eyeY - eyeSize/2 * eyeOpenness, 
+                       eyeSize, eyeSize * eyeOpenness);
             
-            // Pupils
-            gc.setFill(Color.web("#1e1b4b"));
-            double pupilSize = eyeSize * 0.5;
+            // Eye outline
+            gc.setStroke(Color.web("#1e1b4b"));
+            gc.setLineWidth(1.5);
+            gc.strokeOval(cx - eyeSpacing - eyeSize/2, eyeY - eyeSize/2 * eyeOpenness, 
+                         eyeSize, eyeSize * eyeOpenness);
+            gc.strokeOval(cx + eyeSpacing - eyeSize/2, eyeY - eyeSize/2 * eyeOpenness, 
+                         eyeSize, eyeSize * eyeOpenness);
+            
+            // Pupils with gradient
+            double pupilSize = eyeSize * 0.55;
+            javafx.scene.paint.RadialGradient pupilGradient = new javafx.scene.paint.RadialGradient(
+                0, 0, 0.3, 0.3, 0.5, true, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                new javafx.scene.paint.Stop(0, Color.web("#2d2a5e")),
+                new javafx.scene.paint.Stop(1, Color.web("#1e1b4b"))
+            );
+            gc.setFill(pupilGradient);
             gc.fillOval(cx - eyeSpacing - pupilSize/2, eyeY - pupilSize/2, pupilSize, pupilSize);
             gc.fillOval(cx + eyeSpacing - pupilSize/2, eyeY - pupilSize/2, pupilSize, pupilSize);
             
-            // Shine
-            gc.setFill(Color.WHITE);
-            double shineSize = pupilSize * 0.3;
-            gc.fillOval(cx - eyeSpacing - pupilSize/4, eyeY - pupilSize/3, shineSize, shineSize);
-            gc.fillOval(cx + eyeSpacing - pupilSize/4, eyeY - pupilSize/3, shineSize, shineSize);
+            // Double shine for depth
+            gc.setFill(Color.rgb(255, 255, 255, 0.9));
+            double shineSize = pupilSize * 0.35;
+            gc.fillOval(cx - eyeSpacing - pupilSize/3, eyeY - pupilSize/3, shineSize, shineSize);
+            gc.fillOval(cx + eyeSpacing - pupilSize/3, eyeY - pupilSize/3, shineSize, shineSize);
+            
+            gc.setFill(Color.rgb(255, 255, 255, 0.5));
+            double shineSize2 = pupilSize * 0.2;
+            gc.fillOval(cx - eyeSpacing + pupilSize/4, eyeY + pupilSize/6, shineSize2, shineSize2);
+            gc.fillOval(cx + eyeSpacing + pupilSize/4, eyeY + pupilSize/6, shineSize2, shineSize2);
+            
+            // Eyelashes for feminine touch
+            gc.setStroke(Color.web("#1e1b4b"));
+            gc.setLineWidth(1.2);
+            gc.setLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
+            // Left eye lashes
+            gc.strokeLine(cx - eyeSpacing + eyeSize/2.5, eyeY - eyeSize/2, 
+                         cx - eyeSpacing + eyeSize/2.2, eyeY - eyeSize/1.7);
+            // Right eye lashes
+            gc.strokeLine(cx + eyeSpacing + eyeSize/2.5, eyeY - eyeSize/2, 
+                         cx + eyeSpacing + eyeSize/2.2, eyeY - eyeSize/1.7);
         }
     }
     
@@ -252,28 +371,47 @@ public class AvatarView extends StackPane {
         double mouthY = cy + headSize * 0.15;
         
         gc.setStroke(Color.web("#1e1b4b"));
-        gc.setLineWidth(2);
+        gc.setLineWidth(2.5);
+        gc.setLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
         
         switch (currentAnimation) {
             case TALKING -> {
-                // Open mouth (oval)
-                double openAmount = Math.abs(Math.sin(animationFrame)) * headSize * 0.08;
-                gc.setFill(Color.web("#ff6b9d"));
-                gc.fillOval(cx - headSize * 0.08, mouthY - openAmount/2, headSize * 0.16, openAmount);
+                // Open mouth (oval) with tongue
+                double openAmount = Math.abs(Math.sin(animationFrame)) * headSize * 0.1;
+                // Mouth interior
+                gc.setFill(Color.web("#8b4049"));
+                gc.fillOval(cx - headSize * 0.09, mouthY - openAmount/2, headSize * 0.18, openAmount + headSize * 0.02);
+                // Tongue
+                if (openAmount > headSize * 0.05) {
+                    gc.setFill(Color.web("#ff6b9d"));
+                    gc.fillOval(cx - headSize * 0.05, mouthY + openAmount * 0.2, headSize * 0.1, headSize * 0.04);
+                }
+                // Mouth outline
+                gc.setStroke(Color.web("#1e1b4b"));
+                gc.strokeOval(cx - headSize * 0.09, mouthY - openAmount/2, headSize * 0.18, openAmount + headSize * 0.02);
             }
             case HAPPY, CELEBRATING -> {
-                // Big smile
-                gc.strokeArc(cx - headSize * 0.12, mouthY - headSize * 0.08, 
-                           headSize * 0.24, headSize * 0.16, 180, 180, javafx.scene.shape.ArcType.OPEN);
+                // Big smile with teeth
+                gc.setLineWidth(3);
+                gc.strokeArc(cx - headSize * 0.14, mouthY - headSize * 0.1, 
+                           headSize * 0.28, headSize * 0.18, 180, 180, javafx.scene.shape.ArcType.OPEN);
+                // Teeth
+                gc.setFill(Color.WHITE);
+                gc.fillRect(cx - headSize * 0.08, mouthY - headSize * 0.02, headSize * 0.16, headSize * 0.04);
+                gc.setStroke(Color.web("#1e1b4b"));
+                gc.setLineWidth(1);
+                gc.strokeLine(cx, mouthY - headSize * 0.02, cx, mouthY + headSize * 0.02);
             }
             case THINKING -> {
-                // Small line
-                gc.strokeLine(cx - headSize * 0.06, mouthY, cx + headSize * 0.06, mouthY);
+                // Thoughtful expression (slight curve)
+                gc.strokeArc(cx - headSize * 0.08, mouthY - headSize * 0.02, 
+                           headSize * 0.16, headSize * 0.06, 200, 140, javafx.scene.shape.ArcType.OPEN);
             }
             default -> {
-                // Gentle smile
-                gc.strokeArc(cx - headSize * 0.1, mouthY - headSize * 0.05, 
-                           headSize * 0.2, headSize * 0.1, 180, 180, javafx.scene.shape.ArcType.OPEN);
+                // Gentle smile with slight curve
+                gc.setLineWidth(2.5);
+                gc.strokeArc(cx - headSize * 0.12, mouthY - headSize * 0.06, 
+                           headSize * 0.24, headSize * 0.12, 190, 160, javafx.scene.shape.ArcType.OPEN);
             }
         }
     }
@@ -281,28 +419,84 @@ public class AvatarView extends StackPane {
     private void drawAccessory(GraphicsContext gc, double cx, double cy, double headSize) {
         switch (customization.getAccessory()) {
             case "glasses" -> {
+                // Modern rounded glasses with reflection
                 gc.setStroke(Color.web("#1e1b4b"));
-                gc.setLineWidth(2);
-                double glassSize = headSize * 0.12;
+                gc.setLineWidth(2.5);
+                double glassSize = headSize * 0.13;
                 double glassY = cy - headSize * 0.08;
-                gc.strokeOval(cx - headSize * 0.2 - glassSize/2, glassY - glassSize/2, glassSize, glassSize);
-                gc.strokeOval(cx + headSize * 0.2 - glassSize/2, glassY - glassSize/2, glassSize, glassSize);
-                gc.strokeLine(cx - headSize * 0.08, glassY, cx + headSize * 0.08, glassY);
+                
+                // Frames
+                gc.strokeOval(cx - headSize * 0.22 - glassSize/2, glassY - glassSize/2, glassSize, glassSize);
+                gc.strokeOval(cx + headSize * 0.22 - glassSize/2, glassY - glassSize/2, glassSize, glassSize);
+                
+                // Bridge
+                gc.setLineWidth(2);
+                gc.strokeLine(cx - headSize * 0.09, glassY, cx + headSize * 0.09, glassY);
+                
+                // Temples
+                gc.strokeLine(cx - headSize * 0.22 - glassSize/2, glassY, cx - headSize * 0.4, glassY - headSize * 0.05);
+                gc.strokeLine(cx + headSize * 0.22 + glassSize/2, glassY, cx + headSize * 0.4, glassY - headSize * 0.05);
+                
+                // Lens reflection
+                gc.setFill(Color.rgb(255, 255, 255, 0.3));
+                gc.fillOval(cx - headSize * 0.25, glassY - headSize * 0.08, glassSize * 0.4, glassSize * 0.5);
+                gc.fillOval(cx + headSize * 0.19, glassY - headSize * 0.08, glassSize * 0.4, glassSize * 0.5);
             }
             case "hat" -> {
+                // Stylish cap with depth
                 gc.setFill(Color.web("#7c3aed"));
-                double hatY = cy - headSize * 0.5;
-                gc.fillRect(cx - headSize * 0.35, hatY, headSize * 0.7, headSize * 0.08);
-                gc.fillRect(cx - headSize * 0.25, hatY - headSize * 0.2, headSize * 0.5, headSize * 0.2);
+                double hatY = cy - headSize * 0.52;
+                
+                // Shadow
+                gc.setFill(Color.rgb(0, 0, 0, 0.2));
+                gc.fillRect(cx - headSize * 0.36, hatY + 2, headSize * 0.72, headSize * 0.1);
+                gc.fillRoundRect(cx - headSize * 0.26, hatY - headSize * 0.18 + 2, headSize * 0.52, headSize * 0.2, 8, 8);
+                
+                // Brim
+                gc.setFill(Color.web("#7c3aed"));
+                gc.fillRect(cx - headSize * 0.36, hatY, headSize * 0.72, headSize * 0.1);
+                
+                // Crown
+                gc.fillRoundRect(cx - headSize * 0.26, hatY - headSize * 0.2, headSize * 0.52, headSize * 0.2, 8, 8);
+                
+                // Highlight
+                gc.setFill(Color.rgb(255, 255, 255, 0.3));
+                gc.fillRoundRect(cx - headSize * 0.22, hatY - headSize * 0.18, headSize * 0.3, headSize * 0.08, 4, 4);
+                
+                // Button on top
+                gc.setFill(Color.web("#6d28d9"));
+                gc.fillOval(cx - headSize * 0.05, hatY - headSize * 0.22, headSize * 0.1, headSize * 0.05);
             }
             case "headphones" -> {
+                // Modern headphones with padding
                 gc.setStroke(Color.web("#7c3aed"));
-                gc.setLineWidth(4);
-                gc.strokeArc(cx - headSize * 0.4, cy - headSize * 0.3, 
-                           headSize * 0.8, headSize * 0.6, 0, 180, javafx.scene.shape.ArcType.OPEN);
+                gc.setLineWidth(5);
+                gc.setLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
+                
+                // Headband
+                gc.strokeArc(cx - headSize * 0.42, cy - headSize * 0.35, 
+                           headSize * 0.84, headSize * 0.7, 0, 180, javafx.scene.shape.ArcType.OPEN);
+                
+                // Ear cups with depth
+                // Left cup shadow
+                gc.setFill(Color.rgb(0, 0, 0, 0.2));
+                gc.fillRoundRect(cx - headSize * 0.48, cy - headSize * 0.08, headSize * 0.18, headSize * 0.24, 8, 8);
+                // Left cup
                 gc.setFill(Color.web("#7c3aed"));
-                gc.fillOval(cx - headSize * 0.45, cy - headSize * 0.05, headSize * 0.15, headSize * 0.2);
-                gc.fillOval(cx + headSize * 0.3, cy - headSize * 0.05, headSize * 0.15, headSize * 0.2);
+                gc.fillRoundRect(cx - headSize * 0.48, cy - headSize * 0.1, headSize * 0.18, headSize * 0.24, 8, 8);
+                // Left padding
+                gc.setFill(Color.web("#9f7aea"));
+                gc.fillRoundRect(cx - headSize * 0.45, cy - headSize * 0.07, headSize * 0.12, headSize * 0.18, 6, 6);
+                
+                // Right cup shadow
+                gc.setFill(Color.rgb(0, 0, 0, 0.2));
+                gc.fillRoundRect(cx + headSize * 0.3, cy - headSize * 0.08, headSize * 0.18, headSize * 0.24, 8, 8);
+                // Right cup
+                gc.setFill(Color.web("#7c3aed"));
+                gc.fillRoundRect(cx + headSize * 0.3, cy - headSize * 0.1, headSize * 0.18, headSize * 0.24, 8, 8);
+                // Right padding
+                gc.setFill(Color.web("#9f7aea"));
+                gc.fillRoundRect(cx + headSize * 0.33, cy - headSize * 0.07, headSize * 0.12, headSize * 0.18, 6, 6);
             }
         }
     }
@@ -315,19 +509,68 @@ public class AvatarView extends StackPane {
             default -> Color.web("#f59e0b"); // casual
         };
         
-        gc.setFill(outfitColor);
-        // Simple collar/shirt indicator
-        double collarWidth = headSize * 0.6;
-        double collarHeight = headSize * 0.15;
-        gc.fillRect(cx - collarWidth/2, cy, collarWidth, collarHeight);
+        Color outfitShadow = outfitColor.darker();
         
-        // V-neck for professional
-        if ("professional".equals(customization.getOutfit())) {
-            gc.setFill(Color.WHITE);
-            double[] xPoints = {cx, cx - collarWidth * 0.2, cx + collarWidth * 0.2};
-            double[] yPoints = {cy + collarHeight * 0.8, cy, cy};
-            gc.fillPolygon(xPoints, yPoints, 3);
+        // Collar/shirt with depth
+        double collarWidth = headSize * 0.65;
+        double collarHeight = headSize * 0.18;
+        
+        // Shadow
+        gc.setFill(outfitShadow);
+        gc.fillRoundRect(cx - collarWidth/2 + 1, cy + 1, collarWidth, collarHeight, 8, 8);
+        
+        // Main outfit
+        gc.setFill(outfitColor);
+        gc.fillRoundRect(cx - collarWidth/2, cy, collarWidth, collarHeight, 8, 8);
+        
+        // Outfit-specific details
+        switch (customization.getOutfit()) {
+            case "professional" -> {
+                // Suit with tie
+                gc.setFill(Color.WHITE);
+                double[] xPoints = {cx, cx - collarWidth * 0.15, cx + collarWidth * 0.15};
+                double[] yPoints = {cy + collarHeight * 0.9, cy, cy};
+                gc.fillPolygon(xPoints, yPoints, 3);
+                
+                // Tie
+                gc.setFill(Color.web("#dc2626"));
+                gc.fillRect(cx - headSize * 0.04, cy + collarHeight * 0.2, headSize * 0.08, collarHeight * 0.7);
+                // Tie knot
+                double[] tieX = {cx, cx - headSize * 0.06, cx + headSize * 0.06};
+                double[] tieY = {cy + collarHeight * 0.2, cy, cy};
+                gc.fillPolygon(tieX, tieY, 3);
+            }
+            case "sporty" -> {
+                // Athletic shirt with stripes
+                gc.setFill(Color.WHITE);
+                gc.fillRect(cx - collarWidth * 0.35, cy + collarHeight * 0.3, collarWidth * 0.15, collarHeight * 0.1);
+                gc.fillRect(cx + collarWidth * 0.2, cy + collarHeight * 0.3, collarWidth * 0.15, collarHeight * 0.1);
+                
+                // Number
+                gc.setFill(Color.WHITE);
+                gc.setFont(new javafx.scene.text.Font("Arial Bold", headSize * 0.15));
+                gc.fillText("7", cx - headSize * 0.04, cy + collarHeight * 0.75);
+            }
+            case "academic" -> {
+                // Academic robe with buttons
+                gc.setFill(Color.web("#fbbf24"));
+                for (int i = 0; i < 3; i++) {
+                    double btnY = cy + collarHeight * (0.25 + i * 0.25);
+                    gc.fillOval(cx - headSize * 0.03, btnY, headSize * 0.06, headSize * 0.06);
+                }
+            }
+            default -> {
+                // Casual with pocket
+                gc.setFill(outfitShadow);
+                gc.fillRoundRect(cx - collarWidth * 0.25, cy + collarHeight * 0.3, 
+                               collarWidth * 0.2, collarHeight * 0.4, 4, 4);
+            }
         }
+        
+        // Highlight
+        gc.setFill(Color.rgb(255, 255, 255, 0.2));
+        gc.fillRoundRect(cx - collarWidth * 0.4, cy + collarHeight * 0.1, 
+                        collarWidth * 0.3, collarHeight * 0.15, 4, 4);
     }
     
     public void stopAnimation() {
