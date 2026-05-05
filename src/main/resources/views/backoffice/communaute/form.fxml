@@ -48,8 +48,5 @@
                        -fx-font-size:13; -fx-padding:10 24 10 24; -fx-background-radius:10;
                        -fx-cursor:hand; -fx-border-width:0;"/>
     </HBox>
-
-    <!-- EXTRA BOTTOM SPACE FOR SCROLLING -->
-    <Region prefHeight="150" />
-
 </VBox>
+
