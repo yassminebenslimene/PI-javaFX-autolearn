@@ -130,7 +130,7 @@
                             hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
                             style="-fx-background-color:white; -fx-background:white; -fx-border-width:0;">
                     <VBox fx:id="messagesBox" spacing="14"
-                          style="-fx-padding:28 32 120 32; -fx-background-color:white;"/>
+                          style="-fx-padding:28 32 180 32; -fx-background-color:white;"/>
                 </ScrollPane>
                 
                 <!-- Input Area with elevation -->
