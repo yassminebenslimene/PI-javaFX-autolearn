@@ -106,16 +106,13 @@ public class ServiceCours implements IService<Cours> {
     public List<Cours> getAll() {
         List<Cours> coursList = new ArrayList<>();
         String req = "SELECT * FROM cours";
-        System.out.println("[ServiceCours] Exécution de la requête: " + req);
         try (Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(req)) {
             while (resultSet.next()) {
                 coursList.add(mapResultSetToCours(resultSet));
             }
-            System.out.println("[ServiceCours] " + coursList.size() + " cours récupérés de la BDD");
         } catch (SQLException e) {
-            System.err.println("[ServiceCours] ERREUR SQL: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
         return coursList;
     }
