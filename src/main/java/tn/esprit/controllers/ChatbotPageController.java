@@ -406,28 +406,66 @@ public class ChatbotPageController {
     private void addInputPlaceholder() {
         if (messagesBox == null) return;
         
-        // Add a visual hint showing where to type
-        VBox placeholderBox = new VBox(12);
+        // Add a beautiful visual hint showing where to type
+        VBox placeholderBox = new VBox(16);
         placeholderBox.setAlignment(Pos.CENTER);
-        placeholderBox.setStyle("-fx-padding:40 20 20 20;");
+        placeholderBox.setStyle("-fx-padding:50 20 30 20;");
         
+        // Animated arrow with glow effect
         Label arrow = new Label("↓");
-        arrow.setStyle("-fx-font-size:32; -fx-text-fill:#c4b5fd;");
+        arrow.setStyle("-fx-font-size:48; -fx-text-fill:#7c3aed; -fx-font-weight:900; " +
+                      "-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.4),12,0,0,3);");
         
+        // Main hint text
         Label hint = new Label("Écrivez votre message en bas");
-        hint.setStyle("-fx-font-size:13; -fx-text-fill:#a78bfa; -fx-font-weight:600;");
+        hint.setStyle("-fx-font-size:15; -fx-text-fill:#5b21b6; -fx-font-weight:700;");
         
-        placeholderBox.getChildren().addAll(arrow, hint);
+        // Subtle subtext
+        Label subtext = new Label("Utilisez le champ de saisie ci-dessous pour commencer");
+        subtext.setStyle("-fx-font-size:12; -fx-text-fill:#a78bfa; -fx-font-weight:500;");
+        
+        // Container with background
+        VBox container = new VBox(10, arrow, hint, subtext);
+        container.setAlignment(Pos.CENTER);
+        container.setStyle("-fx-background-color:#f5f3ff; -fx-background-radius:16; " +
+                          "-fx-padding:24; -fx-border-color:#ddd6fe; -fx-border-width:2; " +
+                          "-fx-border-radius:16; -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.1),10,0,0,3);");
+        container.setMaxWidth(400);
+        
+        placeholderBox.getChildren().add(container);
         messagesBox.getChildren().add(placeholderBox);
         
-        // Fade in animation
+        // Fade in animation with bounce
         placeholderBox.setOpacity(0);
+        placeholderBox.setTranslateY(20);
+        
         javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(
             javafx.util.Duration.millis(600), placeholderBox);
         ft.setFromValue(0);
         ft.setToValue(1);
         ft.setDelay(javafx.util.Duration.millis(800));
+        
+        javafx.animation.TranslateTransition tt = new javafx.animation.TranslateTransition(
+            javafx.util.Duration.millis(600), placeholderBox);
+        tt.setFromY(20);
+        tt.setToY(0);
+        tt.setDelay(javafx.util.Duration.millis(800));
+        tt.setInterpolator(javafx.animation.Interpolator.EASE_OUT);
+        
         ft.play();
+        tt.play();
+        
+        // Pulse animation for arrow
+        javafx.animation.ScaleTransition pulse = new javafx.animation.ScaleTransition(
+            javafx.util.Duration.millis(1000), arrow);
+        pulse.setFromX(1.0);
+        pulse.setFromY(1.0);
+        pulse.setToX(1.15);
+        pulse.setToY(1.15);
+        pulse.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        pulse.setAutoReverse(true);
+        pulse.setDelay(javafx.util.Duration.millis(1400));
+        pulse.play();
     }
     
     private void openCustomizationDialog() {

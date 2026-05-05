@@ -1,162 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.shape.*?>
-<?import javafx.geometry.Insets?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="tn.esprit.controllers.ChatbotPageController"
-            prefWidth="1280" prefHeight="760"
-            style="-fx-background-color:#faf8ff;">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<BorderPane prefHeight="760" prefWidth="1280" style="-fx-background-color:#faf8ff;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.controllers.ChatbotPageController">
 
     <!-- Main Chat Container -->
     <center>
         <HBox spacing="0" style="-fx-background-color:#faf8ff;">
             
             <!-- Left Side: Large Avatar + Customization -->
-            <VBox spacing="24" alignment="TOP_CENTER"
-                  style="-fx-background:linear-gradient(to bottom,#f5f3ff 0%,#ede9fe 50%,#e0d7f5 100%);
-                         -fx-padding:48 36 48 36; -fx-min-width:420; -fx-max-width:420;
-                         -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),20,0,5,0);">
+            <VBox alignment="TOP_CENTER" prefHeight="793.0" prefWidth="420.0" spacing="24" style="-fx-background:linear-gradient(to bottom,#f5f3ff 0%,#ede9fe 50%,#e0d7f5 100%);                          -fx-padding:48 36 48 36; -fx-min-width:420; -fx-max-width:420;                          -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),20,0,5,0);">
                 
                 <!-- Title with animation -->
-                <VBox spacing="8" alignment="CENTER">
-                    <Label text="Assistant AutoLearn"
-                           style="-fx-font-size:24; -fx-font-weight:900; -fx-text-fill:#3b0764;"/>
-                    <Label text="Votre compagnon d'apprentissage personnalisé"
-                           style="-fx-font-size:13; -fx-text-fill:#5b21b6; -fx-wrap-text:true; 
-                                  -fx-text-alignment:center; -fx-max-width:340; -fx-font-weight:600;"/>
+                <VBox alignment="CENTER" spacing="8">
+                    <Label style="-fx-font-size:24; -fx-font-weight:900; -fx-text-fill:#3b0764;" text="Assistant AutoLearn" />
+                    <Label style="-fx-font-size:13; -fx-text-fill:#5b21b6; -fx-wrap-text:true;                                    -fx-text-alignment:center; -fx-max-width:340; -fx-font-weight:600;" text="Votre compagnon d'apprentissage personnalisé" />
                 </VBox>
                 
                 <!-- Large Avatar Display with glow -->
-                <VBox spacing="16" alignment="CENTER"
-                      style="-fx-background-color:white; -fx-background-radius:24; 
-                             -fx-padding:32; -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.15),12,0,0,4);">
-                    <StackPane fx:id="largeAvatarContainer" 
-                               minWidth="180" minHeight="180" 
-                               maxWidth="180" maxHeight="180"
-                               style="-fx-background-color:white; -fx-background-radius:90;
-                                      -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.2),16,0,0,4);"/>
+                <VBox alignment="CENTER" spacing="16" style="-fx-background-color:white; -fx-background-radius:24;                               -fx-padding:32; -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.15),12,0,0,4);">
+                    <StackPane fx:id="largeAvatarContainer" maxHeight="180" maxWidth="180" minHeight="180" minWidth="180" style="-fx-background-color:white; -fx-background-radius:90;                                       -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.2),16,0,0,4);" />
                     
-                    <HBox spacing="6" alignment="CENTER"
-                          style="-fx-background-color:#dcfce7; -fx-background-radius:20; -fx-padding:6 14;">
-                        <Circle radius="5" style="-fx-fill:#10b981;"/>
-                        <Label fx:id="labelAvatarStatus" text="En ligne"
-                               style="-fx-font-size:12; -fx-text-fill:#065f46; -fx-font-weight:700;"/>
+                    <HBox alignment="CENTER" spacing="6" style="-fx-background-color:#dcfce7; -fx-background-radius:20; -fx-padding:6 14;">
+                        <Circle radius="5" style="-fx-fill:#10b981;" />
+                        <Label fx:id="labelAvatarStatus" style="-fx-font-size:12; -fx-text-fill:#065f46; -fx-font-weight:700;" text="En ligne" />
                     </HBox>
                 </VBox>
                 
                 <!-- Customize Button with hover effect -->
-                <Button text="Personnaliser mon assistant" onAction="#onCustomize"
-                        maxWidth="Infinity"
-                        style="-fx-background-color:#7c3aed; -fx-text-fill:white;
-                               -fx-font-size:14; -fx-font-weight:800; -fx-padding:14 24;
-                               -fx-background-radius:14; -fx-cursor:hand; -fx-border-width:0;
-                               -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.3),8,0,0,3);"/>
+                <Button maxWidth="Infinity" onAction="#onCustomize" style="-fx-background-color:#7c3aed; -fx-text-fill:white;                                -fx-font-size:14; -fx-font-weight:800; -fx-padding:14 24;                                -fx-background-radius:14; -fx-cursor:hand; -fx-border-width:0;                                -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.3),8,0,0,3);" text="Personnaliser mon assistant" />
                 
                 <!-- Info Cards with icons -->
                 <VBox spacing="14" VBox.vgrow="ALWAYS">
-                    <VBox spacing="10" 
-                          style="-fx-background-color:white; -fx-background-radius:16; 
-                                 -fx-padding:20; -fx-border-color:#ddd6fe; 
-                                 -fx-border-width:1.5; -fx-border-radius:16;
-                                 -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.08),8,0,0,2);">
-                        <Label text="Astuce"
-                               style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#3b0764;"/>
-                        <Label text="Posez-moi des questions sur vos cours, challenges, ou demandez-moi de vous guider dans votre apprentissage !"
-                               wrapText="true"
-                               style="-fx-font-size:13; -fx-text-fill:#4c1d95; -fx-line-spacing:3; -fx-font-weight:500;"/>
+                    <VBox spacing="10" style="-fx-background-color:white; -fx-background-radius:16;                                   -fx-padding:20; -fx-border-color:#ddd6fe;                                   -fx-border-width:1.5; -fx-border-radius:16;                                  -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.08),8,0,0,2);">
+                        <Label style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#3b0764;" text="Astuce" />
+                        <Label style="-fx-font-size:13; -fx-text-fill:#4c1d95; -fx-line-spacing:3; -fx-font-weight:500;" text="Posez-moi des questions sur vos cours, challenges, ou demandez-moi de vous guider dans votre apprentissage !" wrapText="true" />
                     </VBox>
                     
-                    <VBox spacing="10" 
-                          style="-fx-background-color:white; -fx-background-radius:16; 
-                                 -fx-padding:20; -fx-border-color:#ddd6fe; 
-                                 -fx-border-width:1.5; -fx-border-radius:16;
-                                 -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.08),8,0,0,2);">
-                        <Label text="Exemples de questions"
-                               style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#3b0764;"/>
-                        <Label text="• Montre-moi mes cours disponibles&#10;• Quels sont les prochains événements ?&#10;• Aide-moi avec ce chapitre&#10;• Quel challenge puis-je faire ?"
-                               wrapText="true"
-                               style="-fx-font-size:12; -fx-text-fill:#5b21b6; -fx-line-spacing:4; -fx-font-weight:500;"/>
+                    <VBox spacing="10" style="-fx-background-color:white; -fx-background-radius:16;                                   -fx-padding:20; -fx-border-color:#ddd6fe;                                   -fx-border-width:1.5; -fx-border-radius:16;                                  -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.08),8,0,0,2);">
+                        <Label style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#3b0764;" text="Exemples de questions" />
+                        <Label style="-fx-font-size:12; -fx-text-fill:#5b21b6; -fx-line-spacing:4; -fx-font-weight:500;" text="• Montre-moi mes cours disponibles&#10;• Quels sont les prochains événements ?&#10;• Aide-moi avec ce chapitre&#10;• Quel challenge puis-je faire ?" wrapText="true" />
                     </VBox>
                     
-                    <VBox spacing="10" 
-                          style="-fx-background-color:white; -fx-background-radius:16; 
-                                 -fx-padding:20; -fx-border-color:#ddd6fe; 
-                                 -fx-border-width:1.5; -fx-border-radius:16;
-                                 -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.08),8,0,0,2);">
-                        <Label text="Navigation rapide"
-                               style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#3b0764;"/>
-                        <Label text="Je peux vous emmener directement vers les cours, challenges, événements ou votre profil !"
-                               wrapText="true"
-                               style="-fx-font-size:12; -fx-text-fill:#5b21b6; -fx-line-spacing:3; -fx-font-weight:500;"/>
+                    <VBox spacing="10" style="-fx-background-color:white; -fx-background-radius:16;                                   -fx-padding:20; -fx-border-color:#ddd6fe;                                   -fx-border-width:1.5; -fx-border-radius:16;                                  -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.08),8,0,0,2);">
+                        <Label style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:#3b0764;" text="Navigation rapide" />
+                        <Label style="-fx-font-size:12; -fx-text-fill:#5b21b6; -fx-line-spacing:3; -fx-font-weight:500;" text="Je peux vous emmener directement vers les cours, challenges, événements ou votre profil !" wrapText="true" />
                     </VBox>
                 </VBox>
             </VBox>
             
             <!-- Right Side: Chat Interface -->
-            <VBox spacing="0" HBox.hgrow="ALWAYS"
-                  style="-fx-background-color:white;">
+            <VBox spacing="0" style="-fx-background-color:white;" HBox.hgrow="ALWAYS">
                 
                 <!-- Chat Header with gradient -->
-                <HBox alignment="CENTER_LEFT" spacing="14"
-                      style="-fx-background:linear-gradient(to right,#f5f3ff,#faf8ff); 
-                             -fx-padding:24 32;
-                             -fx-border-color:transparent transparent #ede9fe transparent; 
-                             -fx-border-width:0 0 2 0;">
+                <HBox alignment="CENTER_LEFT" spacing="14" style="-fx-background:linear-gradient(to right,#f5f3ff,#faf8ff);                               -fx-padding:24 32;                              -fx-border-color:transparent transparent #ede9fe transparent;                               -fx-border-width:0 0 2 0;">
                     
                     <!-- Small Avatar with pulse effect -->
-                    <StackPane fx:id="smallAvatarContainer" 
-                               minWidth="52" minHeight="52" 
-                               maxWidth="52" maxHeight="52"
-                               style="-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.3),10,0,0,2);"/>
+                    <StackPane fx:id="smallAvatarContainer" maxHeight="52" maxWidth="52" minHeight="52" minWidth="52" style="-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.3),10,0,0,2);" />
                     
                     <VBox spacing="3" HBox.hgrow="ALWAYS">
-                        <Label text="Conversation"
-                               style="-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#1e1b4b;"/>
-                        <Label fx:id="labelChatStatus" text="Prêt à vous aider"
-                               style="-fx-font-size:12; -fx-text-fill:#7c3aed; -fx-font-weight:600;"/>
+                        <Label style="-fx-font-size:18; -fx-font-weight:900; -fx-text-fill:#1e1b4b;" text="Conversation" />
+                        <Label fx:id="labelChatStatus" style="-fx-font-size:12; -fx-text-fill:#7c3aed; -fx-font-weight:600;" text="Prêt à vous aider" />
                     </VBox>
                     
-                    <Button text="Effacer" onAction="#onClear"
-                            style="-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;
-                                   -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 20;
-                                   -fx-background-radius:24; -fx-cursor:hand;
-                                   -fx-border-color:#ddd6fe; -fx-border-width:2; -fx-border-radius:24;"/>
+                    <Button onAction="#onClear" style="-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;                                    -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 20;                                    -fx-background-radius:24; -fx-cursor:hand;                                    -fx-border-color:#ddd6fe; -fx-border-width:2; -fx-border-radius:24;" text="Effacer" />
                 </HBox>
                 
                 <!-- Messages Area with subtle pattern -->
-                <ScrollPane fx:id="scrollPane" fitToWidth="true" VBox.vgrow="ALWAYS"
-                            hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
-                            style="-fx-background-color:white; -fx-background:white; -fx-border-width:0;">
-                    <VBox fx:id="messagesBox" spacing="14"
-                          style="-fx-padding:28 32 180 32; -fx-background-color:white;"/>
+                <ScrollPane fx:id="scrollPane" fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color:white; -fx-background:white; -fx-border-width:0;" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="messagesBox" spacing="14" style="-fx-padding:28 32 180 32; -fx-background-color:white;" />
                 </ScrollPane>
                 
                 <!-- Input Area with elevation -->
-                <HBox alignment="CENTER" spacing="14"
-                      style="-fx-background:linear-gradient(to right,#faf8ff,#f5f3ff); 
-                             -fx-padding:24 32;
-                             -fx-border-color:#ede9fe transparent transparent transparent; 
-                             -fx-border-width:2 0 0 0;
-                             -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,-3);">
+                <HBox alignment="CENTER" prefHeight="990.0" prefWidth="860.0" spacing="14" style="-fx-background:linear-gradient(to right,#faf8ff,#f5f3ff);                               -fx-padding:24 32;                              -fx-border-color:#ede9fe transparent transparent transparent;                               -fx-border-width:2 0 0 0;                              -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,-3);">
                     
-                    <TextField fx:id="inputField"
-                               promptText="Écrivez votre message..."
-                               HBox.hgrow="ALWAYS"
-                               style="-fx-background-color:white;
-                                      -fx-background-radius:28;
-                                      -fx-border-color:#ddd6fe; -fx-border-radius:28; -fx-border-width:2;
-                                      -fx-padding:14 24; -fx-font-size:14;
-                                      -fx-text-fill:#1e1b4b; -fx-prompt-text-fill:#a78bfa;
-                                      -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.1),8,0,0,2);"/>
+                    <TextField fx:id="inputField" promptText="Écrivez votre message..." style="-fx-background-color:white;                                       -fx-background-radius:28;                                       -fx-border-color:#ddd6fe; -fx-border-radius:28; -fx-border-width:2;                                       -fx-padding:14 24; -fx-font-size:14;                                       -fx-text-fill:#1e1b4b; -fx-prompt-text-fill:#a78bfa;                                       -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.1),8,0,0,2);" HBox.hgrow="ALWAYS" />
                     
-                    <Button fx:id="btnSend" text="Envoyer" onAction="#onSend"
-                            style="-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);
-                                   -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;
-                                   -fx-padding:14 28;
-                                   -fx-background-radius:28; -fx-cursor:hand; -fx-border-width:0;
-                                   -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.5),12,0,0,3);"/>
+                    <Button fx:id="btnSend" onAction="#onSend" style="-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);                                    -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;                                    -fx-padding:14 28;                                    -fx-background-radius:28; -fx-cursor:hand; -fx-border-width:0;                                    -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.5),12,0,0,3);" text="Envoyer" />
                 </HBox>
             </VBox>
         </HBox>
