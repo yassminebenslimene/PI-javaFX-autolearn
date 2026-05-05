@@ -43,6 +43,20 @@ public class FrontCommunauteController {
         }
     }
 
+    /** Filters the list to show only the community linked to a specific cours */
+    public void filterByCours(int coursId) {
+        if (allCommunautes == null) allCommunautes = service.getList();
+        cardsPane.getChildren().clear();
+        // Use getByCours for accurate DB lookup
+        tn.esprit.entities.Communaute comm = service.getByCours(coursId);
+        if (comm != null) {
+            emptyLabel.setVisible(false);
+            cardsPane.getChildren().add(buildCard(comm));
+        } else {
+            emptyLabel.setVisible(true);
+        }
+    }
+
     @FXML
     public void initialize() {
         allCommunautes = service.getList();
@@ -286,7 +300,11 @@ public class FrontCommunauteController {
         javafx.scene.control.ScrollPane sp = new javafx.scene.control.ScrollPane(view);
         sp.setFitToWidth(true);
         sp.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setStyle("-fx-background-color:transparent; -fx-background:transparent; -fx-border-width:0;");
+        sp.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        sp.setStyle("-fx-background-color:#f0eeff; -fx-background:#f0eeff; -fx-border-width:0;");
+        // Bind height so the ScrollPane fills the available space and scrolls properly
+        sp.prefHeightProperty().bind(root.heightProperty().subtract(64));
+        sp.prefWidthProperty().bind(root.widthProperty());
         root.setCenter(sp);
     }
 

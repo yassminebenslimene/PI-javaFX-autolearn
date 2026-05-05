@@ -55,7 +55,7 @@ public class FrontCommunauteDetailController {
     @FXML private VBox      resourcesList;
     @FXML private VBox      trendingBox;
     @FXML private VBox      trendingList;
-    @FXML private ScrollPane mainScrollPane;
+    // mainScrollPane removed — scroll is now handled by the outer ScrollPane in FrontofficeController
 
     private ResourceRecommendationService recommendationService;
     private TrendAnalyzerService          trendAnalyzerService;
@@ -298,11 +298,15 @@ public class FrontCommunauteDetailController {
         if (pendingDocFile   != null) { p.setSummary(saveFile(pendingDocFile));     pendingDocFile   = null; }
 
         servicePost.ajouter(p);
-        if (emptyLabel != null) {
-            postsPane.getChildren().remove(emptyLabel);
-            emptyLabel = null;
+        System.out.println("[onPublier] Post créé: id=" + p.getId()
+            + " communauteId=" + p.getCommunauteId()
+            + " userId=" + p.getUserId()
+            + " contenu=" + p.getContenu().substring(0, Math.min(30, p.getContenu().length())));
+        if (p.getId() == 0) {
+            System.err.println("[onPublier] ERREUR: post non sauvegardé en DB (id=0)");
         }
-        postsPane.getChildren().add(0, buildPostCard(p, 0));
+        // Recharger tous les posts pour avoir le bon ordre hot ranking
+        loadPosts();
         fieldTitre.clear();
         fieldContenu.clear();
         if (fieldTags != null) fieldTags.clear();
@@ -538,10 +542,14 @@ public class FrontCommunauteDetailController {
                                  "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
             javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
                     javafx.util.Duration.millis(700));
-            pause.setOnFinished(ev -> btnLikePost.setStyle(
+            pause.setOnFinished(ev -> {
+                btnLikePost.setStyle(
                     "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
                     "-fx-font-size:12; -fx-font-weight:700;" +
-                    "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;"));
+                    "-fx-padding:8 18; -fx-background-radius:20; -fx-cursor:hand; -fx-border-width:0;");
+                // Reload posts so hot ranking re-sorts by most liked
+                loadPosts();
+            });
             pause.play();
             // ── Trigger similarity recommendation ──
             showSimilarPosts(p);
@@ -920,8 +928,9 @@ public class FrontCommunauteDetailController {
         btnQuiz.setOnMouseEntered(e -> btnQuiz.setOpacity(0.88));
         btnQuiz.setOnMouseExited(e -> btnQuiz.setOpacity(1.0));
         btnQuiz.setOnAction(e -> {
-            // Navigate to quiz section — search for matching quiz
+            // Navigate directly to the quiz matching this topic
             FrontofficeController.setPendingSection("cours");
+            FrontofficeController.setPendingQuizTopic(topic);
             try { tn.esprit.MainApp.showFrontoffice(); } catch (Exception ex) { ex.printStackTrace(); }
         });
 
@@ -1193,16 +1202,24 @@ public class FrontCommunauteDetailController {
             card.setOnMouseClicked(e -> {
                 // Scroll to the target post
                 VBox targetCard = postCardMap.get(p.getId());
-                if (targetCard != null && mainScrollPane != null) {
-                    // compute relative Y position of the card inside the scrollPane content
+                if (targetCard != null) {
                     javafx.application.Platform.runLater(() -> {
-                        double cardY = targetCard.localToScene(0, 0).getY();
-                        double contentH = mainScrollPane.getContent().getBoundsInLocal().getHeight();
-                        double viewH   = mainScrollPane.getViewportBounds().getHeight();
-                        double scrollY = (cardY - mainScrollPane.localToScene(0, 0).getY()
-                                         + mainScrollPane.getVvalue() * (contentH - viewH))
-                                         / (contentH - viewH);
-                        mainScrollPane.setVvalue(Math.max(0, Math.min(1, scrollY)));
+                        // Find the outer ScrollPane in the scene
+                        javafx.scene.Node node = targetCard.getParent();
+                        ScrollPane outerSp = null;
+                        while (node != null) {
+                            if (node instanceof ScrollPane sp) { outerSp = sp; break; }
+                            node = node.getParent();
+                        }
+                        if (outerSp != null) {
+                            double cardY = targetCard.localToScene(0, 0).getY();
+                            double contentH = outerSp.getContent().getBoundsInLocal().getHeight();
+                            double viewH   = outerSp.getViewportBounds().getHeight();
+                            double scrollY = (cardY - outerSp.localToScene(0, 0).getY()
+                                             + outerSp.getVvalue() * (contentH - viewH))
+                                             / (contentH - viewH);
+                            outerSp.setVvalue(Math.max(0, Math.min(1, scrollY)));
+                        }
                     });
                 }
                 // highlight the card briefly

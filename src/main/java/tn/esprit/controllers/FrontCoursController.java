@@ -14,9 +14,11 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import tn.esprit.entities.Cours;
+import tn.esprit.entities.Communaute;
 import tn.esprit.services.CourseProgressService;
 import tn.esprit.services.LearningObjectiveService;
 import tn.esprit.services.ServiceChapitre;
+import tn.esprit.services.ServiceCommunaute;
 import tn.esprit.services.ServiceCours;
 import tn.esprit.session.JwtManager;
 
@@ -42,10 +44,12 @@ public class FrontCoursController {
 
     private final ServiceCours          serviceCours    = new ServiceCours();
     private final ServiceChapitre       serviceChapitre = new ServiceChapitre();
+    private final ServiceCommunaute     serviceCommunaute = new ServiceCommunaute();
     private final CourseProgressService progressService = new CourseProgressService();
     private final LearningObjectiveService objectiveService = new LearningObjectiveService();
 
     private Consumer<Cours> onVoirChapitres;
+    private Consumer<Communaute> onOuvrirCommunaute;
     private Runnable onNavigateGitHub;
     private Runnable onNavigateMaListe;
     private List<Cours>     allCours;
@@ -67,6 +71,10 @@ public class FrontCoursController {
 
     public void setOnVoirChapitres(Consumer<Cours> callback) {
         this.onVoirChapitres = callback;
+    }
+    
+    public void setOnOuvrirCommunaute(Consumer<Communaute> callback) {
+        this.onOuvrirCommunaute = callback;
     }
     
     public void setOnNavigateGitHub(Runnable callback) {
@@ -214,7 +222,7 @@ public class FrontCoursController {
         VBox progressBox = new VBox(5, progressLabel, progressBarBox);
         progressBox.setStyle("-fx-background-color:" + progressBgColor + "; -fx-background-radius:8; -fx-padding:8 10 8 10;");
 
-        // Bouton
+        // Bouton Voir les chapitres
         Button btn = new Button("Voir les chapitres  →");
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle("-fx-background-color:linear-gradient(to right," + accent + "," + accent + ");" +
@@ -227,7 +235,29 @@ public class FrontCoursController {
         btn.setOnMouseEntered(e -> btn.setOpacity(0.88));
         btn.setOnMouseExited(e -> btn.setOpacity(1.0));
 
-        content.getChildren().addAll(titre, matiere, descLabel, sep, progressBox, btn);
+        // Bouton Communauté
+        Button btnComm = new Button("💬 Communauté");
+        btnComm.setMaxWidth(Double.MAX_VALUE);
+        btnComm.setStyle("-fx-background-color:white; -fx-text-fill:" + accent + "; -fx-font-size:12; -fx-font-weight:700;" +
+                         "-fx-padding:9 0 9 0; -fx-background-radius:12; -fx-cursor:hand;" +
+                         "-fx-border-color:" + accent + "; -fx-border-width:1.5; -fx-border-radius:12;");
+        btnComm.setOnAction(e -> {
+            if (onOuvrirCommunaute != null) {
+                // Passer un objet Communaute factice avec juste le coursId et le titre
+                Communaute placeholder = new Communaute();
+                placeholder.setCoursId(cours.getId());
+                placeholder.setNom(cours.getTitre()); // utilisé pour la recherche par nom
+                onOuvrirCommunaute.accept(placeholder);
+            }
+        });
+        btnComm.setOnMouseEntered(e -> btnComm.setStyle("-fx-background-color:" + accentA + "; -fx-text-fill:" + accent + "; -fx-font-size:12; -fx-font-weight:700;" +
+                                                         "-fx-padding:9 0 9 0; -fx-background-radius:12; -fx-cursor:hand;" +
+                                                         "-fx-border-color:" + accent + "; -fx-border-width:1.5; -fx-border-radius:12;"));
+        btnComm.setOnMouseExited(e -> btnComm.setStyle("-fx-background-color:white; -fx-text-fill:" + accent + "; -fx-font-size:12; -fx-font-weight:700;" +
+                                                        "-fx-padding:9 0 9 0; -fx-background-radius:12; -fx-cursor:hand;" +
+                                                        "-fx-border-color:" + accent + "; -fx-border-width:1.5; -fx-border-radius:12;"));
+
+        content.getChildren().addAll(titre, matiere, descLabel, sep, progressBox, btn, btnComm);
 
         // ── Assembler la carte ──
         VBox card = new VBox(0, banner, content);

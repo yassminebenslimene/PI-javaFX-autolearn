@@ -20,6 +20,7 @@ import tn.esprit.entities.Evenement;
 import tn.esprit.services.ActivityApiClient;
 import tn.esprit.services.ChallengeService;
 import tn.esprit.services.EvenementService;
+import tn.esprit.services.ServiceChapitre;
 import tn.esprit.services.ServiceCours;
 import tn.esprit.services.TechNewsService;
 import tn.esprit.services.UserService;
@@ -34,6 +35,10 @@ public class FrontofficeController {
     // Pending navigation from external pages (e.g., community detail)
     private static String pendingSection = null;
     public static void setPendingSection(String section) { pendingSection = section; }
+
+    // Pending quiz topic — set before navigating to cours so we auto-open the matching quiz
+    private static String pendingQuizTopic = null;
+    public static void setPendingQuizTopic(String topic) { pendingQuizTopic = topic; }
 
     // Navbar labels
     @FXML private Label welcomeLabel;
@@ -247,6 +252,24 @@ public class FrontofficeController {
                 animateSlideIn(sectionActualites,   300);
                 animateSlideIn(sectionChallenges,   450);
                 animateSlideIn(sectionEvenementsHome, 600);
+
+                // ── Handle pending navigation (from community AI card or external) ──
+                if (pendingSection != null || pendingQuizTopic != null) {
+                    final String section = pendingSection;
+                    final String quizTopic = pendingQuizTopic;
+                    pendingSection = null;
+                    // pendingQuizTopic is consumed inside naviguerVersCours — don't clear here
+                    javafx.application.Platform.runLater(() -> {
+                        if (quizTopic != null) {
+                            // Navigate to cours then auto-open the matching quiz
+                            onCours();
+                        } else if ("cours".equals(section)) {
+                            onCours();
+                        } else if (section != null) {
+                            navigateToSection(section);
+                        }
+                    });
+                }
 
             } catch (Exception e) { e.printStackTrace(); }
         });
@@ -904,14 +927,148 @@ public class FrontofficeController {
                     setCenter(chapView);
                 } catch (Exception ex) { ex.printStackTrace(); }
             });
+            ctrl.setOnOuvrirCommunaute(communaute -> {
+                // Ouvrir la page communauté avec recherche sur le titre du cours
+                setActiveNav(btnNavCommunaute);
+                try {
+                    FXMLLoader commLoader = new FXMLLoader(
+                        getClass().getResource("/views/frontoffice/communaute/index.fxml"));
+                    Parent commRoot = commLoader.load();
+                    FrontCommunauteController commCtrl = commLoader.getController();
+                    // Essayer d'abord par cours_id, sinon fallback sur le nom
+                    if (communaute.getCoursId() > 0) {
+                        commCtrl.filterByCours(communaute.getCoursId());
+                    }
+                    // Toujours pré-remplir la recherche avec le titre du cours
+                    // pour que l'utilisateur voit les communautés liées
+                    commCtrl.preselectCours(communaute.getNom());
+                    // Wirer la navigation vers le détail
+                    commCtrl.setOnOuvrirDetail(c -> {
+                        try {
+                            tn.esprit.services.ServiceCommunaute svc = new tn.esprit.services.ServiceCommunaute();
+                            tn.esprit.entities.Communaute fresh = svc.getById(c.getId());
+                            if (fresh == null) fresh = c;
+                            FXMLLoader detailLoader = new FXMLLoader(
+                                getClass().getResource("/views/frontoffice/communaute/detail.fxml"));
+                            Parent detailView = detailLoader.load();
+                            FrontCommunauteDetailController detailCtrl = detailLoader.getController();
+                            final tn.esprit.entities.Communaute finalFresh = fresh;
+                            javafx.scene.Node cn2 = commRoot instanceof BorderPane bp2 ? bp2.getCenter() : null;
+                            Parent commView = cn2 instanceof Parent p2 ? p2 : commRoot;
+                            detailCtrl.setCommunaute(finalFresh, () -> setCenter(commView));
+                            detailCtrl.setOnNavigateToCours(id -> setCenter(view));
+                            detailCtrl.setOnNavigateToQuiz(id -> setCenter(view));
+                            // Extraire le VBox center du BorderPane pour que le scroll fonctionne
+                            Parent content = detailView instanceof BorderPane bp3 && bp3.getCenter() instanceof Parent p3
+                                ? p3 : detailView;
+                            ScrollPane sp = new ScrollPane(content);
+                            sp.setFitToWidth(true);
+                            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                            sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                            sp.setStyle("-fx-background-color:#f0eeff; -fx-background:#f0eeff; -fx-border-width:0;");
+                            setCenter(sp);
+                        } catch (Exception ex) { ex.printStackTrace(); }
+                    });
+                    javafx.scene.Node cn = commRoot instanceof BorderPane bp ? bp.getCenter() : null;
+                    setCenter(cn instanceof Parent p ? p : commRoot);
+                } catch (Exception ex) { ex.printStackTrace(); }
+            });
             ctrl.loadData();
             setCenter(view);
+
+            // ── Auto-navigate to quiz if a topic is pending (from community AI card) ──
+            if (pendingQuizTopic != null) {
+                final String topic = pendingQuizTopic;
+                pendingQuizTopic = null;
+                javafx.application.Platform.runLater(() -> {
+                    // Find the cours whose titre or matiere matches the topic
+                    List<tn.esprit.entities.Cours> allCours = serviceCours.getAll();
+                    tn.esprit.entities.Cours matched = allCours.stream()
+                        .filter(c -> c.getTitre().toLowerCase().contains(topic.toLowerCase())
+                                  || (c.getMatiere() != null && c.getMatiere().toLowerCase().contains(topic.toLowerCase())))
+                        .findFirst().orElse(null);
+                    if (matched == null) return; // no matching cours found
+
+                    // Open chapitres for the matched cours
+                    final tn.esprit.entities.Cours finalCours = matched;
+                    try {
+                        FXMLLoader chapLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/index.fxml"));
+                        Parent chapView = chapLoader.load();
+                        FrontChapitreController chapCtrl = chapLoader.getController();
+
+                        // Wire quiz navigation
+                        chapCtrl.setOnPasserQuiz(chapitre -> {
+                            try {
+                                FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                                Parent quizView = quizLoader.load();
+                                FrontQuizController quizCtrl = quizLoader.getController();
+                                quizCtrl.setSceneRef(labelCurrentUser);
+                                quizCtrl.setChapitre(chapitre, () -> {
+                                    chapCtrl.setCours(finalCours);
+                                    setCenter(chapView);
+                                });
+                                setCenterDirect(quizView);
+                                javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                            } catch (Exception ex) { ex.printStackTrace(); }
+                        });
+                        chapCtrl.setOnLireChapitre((c, chapitre) -> {
+                            try {
+                                FXMLLoader detailLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/chapitre/detail.fxml"));
+                                Parent detailView = detailLoader.load();
+                                FrontChapitreDetailController detailCtrl = detailLoader.getController();
+                                detailCtrl.setChapitre(c, chapitre, () -> setCenter(chapView));
+                                detailCtrl.setOnQuizCallback(() -> {
+                                    try {
+                                        FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                                        Parent quizView = quizLoader.load();
+                                        FrontQuizController quizCtrl = quizLoader.getController();
+                                        quizCtrl.setSceneRef(labelCurrentUser);
+                                        quizCtrl.setChapitre(chapitre, () -> {
+                                            chapCtrl.setCours(c);
+                                            setCenter(detailView);
+                                        });
+                                        setCenterDirect(quizView);
+                                        javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                                    } catch (Exception ex) { ex.printStackTrace(); }
+                                });
+                                setCenter(detailView);
+                            } catch (Exception ex) { ex.printStackTrace(); }
+                        });
+                        chapCtrl.setOnRetourCours(() -> {
+                            ctrl.loadData();
+                            setCenter(view);
+                        });
+                        chapCtrl.setCours(finalCours);
+                        setCenter(chapView);
+
+                        // Auto-open quiz of first chapitre
+                        ServiceChapitre serviceChapitre = new ServiceChapitre();
+                        List<tn.esprit.entities.Chapitre> chapitres = serviceChapitre.consulterParCoursId(finalCours.getId());
+                        if (!chapitres.isEmpty()) {
+                            tn.esprit.entities.Chapitre firstChapitre = chapitres.get(0);
+                            javafx.application.Platform.runLater(() -> {
+                                try {
+                                    FXMLLoader quizLoader = new FXMLLoader(getClass().getResource("/views/frontoffice/quiz/intro.fxml"));
+                                    Parent quizView = quizLoader.load();
+                                    FrontQuizController quizCtrl = quizLoader.getController();
+                                    quizCtrl.setSceneRef(labelCurrentUser);
+                                    quizCtrl.setChapitre(firstChapitre, () -> {
+                                        chapCtrl.setCours(finalCours);
+                                        setCenter(chapView);
+                                    });
+                                    setCenterDirect(quizView);
+                                    javafx.application.Platform.runLater(() -> quizCtrl.setSceneRef(labelCurrentUser));
+                                } catch (Exception ex) { ex.printStackTrace(); }
+                            });
+                        }
+                    } catch (Exception ex) { ex.printStackTrace(); }
+                });
+            }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML public void onEvenements() {
         if (!requireLogin()) return;
-        setActiveNav(btnNavEvenements);
         var u = JwtManager.getCurrentUser();
         if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_evenements",
             java.util.Map.of("email", u.getEmail()));
@@ -1354,6 +1511,7 @@ public class FrontofficeController {
         // Replace only the first child (page content), keep the AI assistant overlay
         Parent toSet;
         if (view instanceof ScrollPane sp) {
+            // Already a ScrollPane — use directly
             sp.setFitToWidth(true);
             sp.setFocusTraversable(true);
             toSet = sp;
