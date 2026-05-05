@@ -80,19 +80,7 @@ public class ChatbotPageController {
         if (welcomeShown) return;
         welcomeShown = true;
 
-        String name = JwtManager.getCurrentUser() != null
-            ? JwtManager.getCurrentUser().getPrenom() : "étudiant";
-
-        addBotMessage(
-            "Bonjour **" + name + "** ! 👋\n\n" +
-            "Je suis votre assistant AutoLearn.\n" +
-            "Posez-moi n'importe quelle question !"
-        );
-
-        // Add quick actions
-        addQuickActions();
-        
-        // Add input placeholder hint at the bottom
+        // Only show the input placeholder - no welcome message or quick actions
         addInputPlaceholder();
         
         // Start avatar idle animation
@@ -185,7 +173,10 @@ public class ChatbotPageController {
         }
         history.clear();
         welcomeShown = false;
-        showWelcome();
+        
+        // Re-add only the placeholder
+        addInputPlaceholder();
+        welcomeShown = true; // Mark as shown to prevent duplication
     }
 
     private void executeAction(String intent, com.google.gson.JsonObject params) {
@@ -406,66 +397,130 @@ public class ChatbotPageController {
     private void addInputPlaceholder() {
         if (messagesBox == null) return;
         
-        // Add a beautiful visual hint showing where to type
-        VBox placeholderBox = new VBox(16);
+        // Enhanced visual hint with modern design
+        VBox placeholderBox = new VBox(20);
         placeholderBox.setAlignment(Pos.CENTER);
-        placeholderBox.setStyle("-fx-padding:50 20 30 20;");
+        placeholderBox.setStyle("-fx-padding:60 20 40 20;");
         
-        // Animated arrow with glow effect
+        // Animated arrow with enhanced glow
         Label arrow = new Label("↓");
-        arrow.setStyle("-fx-font-size:48; -fx-text-fill:#7c3aed; -fx-font-weight:900; " +
-                      "-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.4),12,0,0,3);");
+        arrow.setStyle("-fx-font-size:56; -fx-text-fill:#7c3aed; -fx-font-weight:900; " +
+                      "-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.6),16,0,0,4);");
         
-        // Main hint text
+        // Main hint text with better typography
         Label hint = new Label("Écrivez votre message en bas");
-        hint.setStyle("-fx-font-size:15; -fx-text-fill:#5b21b6; -fx-font-weight:700;");
+        hint.setStyle("-fx-font-size:18; -fx-text-fill:#3b0764; -fx-font-weight:900; " +
+                     "-fx-letter-spacing:0.5;");
         
-        // Subtle subtext
-        Label subtext = new Label("Utilisez le champ de saisie ci-dessous pour commencer");
-        subtext.setStyle("-fx-font-size:12; -fx-text-fill:#a78bfa; -fx-font-weight:500;");
+        // Enhanced subtext with icon
+        Label subtext = new Label("Utilisez le champ de saisie ci-dessous pour commencer la conversation");
+        subtext.setStyle("-fx-font-size:13; -fx-text-fill:#7c3aed; -fx-font-weight:600; " +
+                        "-fx-wrap-text:true; -fx-text-alignment:center;");
+        subtext.setMaxWidth(380);
+        subtext.setWrapText(true);
         
-        // Container with background
-        VBox container = new VBox(10, arrow, hint, subtext);
+        // Decorative line separator
+        HBox separator = new HBox();
+        separator.setAlignment(Pos.CENTER);
+        separator.setMaxWidth(300);
+        separator.setStyle("-fx-background-color:linear-gradient(to right, transparent, #ddd6fe, transparent); " +
+                          "-fx-pref-height:2; -fx-background-radius:1;");
+        
+        // Container with enhanced styling
+        VBox container = new VBox(14, arrow, hint, separator, subtext);
         container.setAlignment(Pos.CENTER);
-        container.setStyle("-fx-background-color:#f5f3ff; -fx-background-radius:16; " +
-                          "-fx-padding:24; -fx-border-color:#ddd6fe; -fx-border-width:2; " +
-                          "-fx-border-radius:16; -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.1),10,0,0,3);");
-        container.setMaxWidth(400);
+        container.setStyle("-fx-background-color:linear-gradient(to bottom right, #faf5ff, #f3e8ff); " +
+                          "-fx-background-radius:20; " +
+                          "-fx-padding:32 28; " +
+                          "-fx-border-color:linear-gradient(to right, #ddd6fe, #c4b5fd); " +
+                          "-fx-border-width:2.5; " +
+                          "-fx-border-radius:20; " +
+                          "-fx-effect:dropshadow(gaussian,rgba(124,58,237,0.2),16,0,0,6);");
+        container.setMaxWidth(450);
         
-        placeholderBox.getChildren().add(container);
+        // Add sparkle decorations
+        HBox sparkles = new HBox(8);
+        sparkles.setAlignment(Pos.CENTER);
+        for (int i = 0; i < 3; i++) {
+            Label sparkle = new Label("✨");
+            sparkle.setStyle("-fx-font-size:16; -fx-opacity:0.7;");
+            sparkles.getChildren().add(sparkle);
+            
+            // Twinkle animation for each sparkle
+            javafx.animation.FadeTransition twinkle = new javafx.animation.FadeTransition(
+                javafx.util.Duration.millis(800 + i * 200), sparkle);
+            twinkle.setFromValue(0.3);
+            twinkle.setToValue(1.0);
+            twinkle.setCycleCount(javafx.animation.Animation.INDEFINITE);
+            twinkle.setAutoReverse(true);
+            twinkle.setDelay(javafx.util.Duration.millis(i * 300));
+            twinkle.play();
+        }
+        
+        VBox finalContainer = new VBox(12, sparkles, container);
+        finalContainer.setAlignment(Pos.CENTER);
+        
+        placeholderBox.getChildren().add(finalContainer);
         messagesBox.getChildren().add(placeholderBox);
         
-        // Fade in animation with bounce
+        // Enhanced entrance animation with elastic bounce
         placeholderBox.setOpacity(0);
-        placeholderBox.setTranslateY(20);
+        placeholderBox.setTranslateY(30);
+        placeholderBox.setScaleX(0.9);
+        placeholderBox.setScaleY(0.9);
         
+        // Fade in
         javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(
-            javafx.util.Duration.millis(600), placeholderBox);
+            javafx.util.Duration.millis(700), placeholderBox);
         ft.setFromValue(0);
         ft.setToValue(1);
         ft.setDelay(javafx.util.Duration.millis(800));
         
+        // Slide up
         javafx.animation.TranslateTransition tt = new javafx.animation.TranslateTransition(
-            javafx.util.Duration.millis(600), placeholderBox);
-        tt.setFromY(20);
+            javafx.util.Duration.millis(700), placeholderBox);
+        tt.setFromY(30);
         tt.setToY(0);
         tt.setDelay(javafx.util.Duration.millis(800));
         tt.setInterpolator(javafx.animation.Interpolator.EASE_OUT);
         
+        // Scale up with elastic effect
+        javafx.animation.ScaleTransition st = new javafx.animation.ScaleTransition(
+            javafx.util.Duration.millis(700), placeholderBox);
+        st.setFromX(0.9);
+        st.setFromY(0.9);
+        st.setToX(1.0);
+        st.setToY(1.0);
+        st.setDelay(javafx.util.Duration.millis(800));
+        st.setInterpolator(javafx.animation.Interpolator.EASE_OUT);
+        
         ft.play();
         tt.play();
+        st.play();
         
-        // Pulse animation for arrow
+        // Enhanced pulse animation for arrow with rotation
         javafx.animation.ScaleTransition pulse = new javafx.animation.ScaleTransition(
-            javafx.util.Duration.millis(1000), arrow);
+            javafx.util.Duration.millis(1200), arrow);
         pulse.setFromX(1.0);
         pulse.setFromY(1.0);
-        pulse.setToX(1.15);
-        pulse.setToY(1.15);
+        pulse.setToX(1.2);
+        pulse.setToY(1.2);
         pulse.setCycleCount(javafx.animation.Animation.INDEFINITE);
         pulse.setAutoReverse(true);
-        pulse.setDelay(javafx.util.Duration.millis(1400));
+        pulse.setDelay(javafx.util.Duration.millis(1500));
+        pulse.setInterpolator(javafx.animation.Interpolator.EASE_BOTH);
         pulse.play();
+        
+        // Gentle floating animation for the entire container
+        javafx.animation.TranslateTransition floating = new javafx.animation.TranslateTransition(
+            javafx.util.Duration.millis(2500), container);
+        floating.setFromY(0);
+        floating.setToY(-8);
+        floating.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        floating.setAutoReverse(true);
+        floating.setDelay(javafx.util.Duration.millis(1500));
+        floating.setInterpolator(javafx.animation.Interpolator.EASE_BOTH);
+        floating.play();
     }
     
     private void openCustomizationDialog() {

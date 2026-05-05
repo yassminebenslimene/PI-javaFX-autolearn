@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -74,17 +75,23 @@
                     <Button onAction="#onClear" style="-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;                                    -fx-font-size:13; -fx-font-weight:700; -fx-padding:10 20;                                    -fx-background-radius:24; -fx-cursor:hand;                                    -fx-border-color:#ddd6fe; -fx-border-width:2; -fx-border-radius:24;" text="Effacer" />
                 </HBox>
                 
-                <!-- Messages Area with subtle pattern -->
-                <ScrollPane fx:id="scrollPane" fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color:white; -fx-background:white; -fx-border-width:0;" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+                      <!-- Messages Area with subtle pattern -->
+                <ScrollPane fx:id="scrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="694.0" prefWidth="860.0" style="-fx-background-color:white; -fx-background:white; -fx-border-width:0;" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
                     <VBox fx:id="messagesBox" spacing="14" style="-fx-padding:28 32 180 32; -fx-background-color:white;" />
                 </ScrollPane>
                 
                 <!-- Input Area with elevation -->
-                <HBox alignment="CENTER" prefHeight="990.0" prefWidth="860.0" spacing="14" style="-fx-background:linear-gradient(to right,#faf8ff,#f5f3ff);                               -fx-padding:24 32;                              -fx-border-color:#ede9fe transparent transparent transparent;                               -fx-border-width:2 0 0 0;                              -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,-3);">
+                <HBox alignment="CENTER" prefHeight="0.0" prefWidth="860.0" spacing="14.0" style="-fx-background:linear-gradient(to right,#faf8ff,#f5f3ff);                               -fx-padding:24 32;                              -fx-border-color:#ede9fe transparent transparent transparent;                               -fx-border-width:2 0 0 0;                              -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,-3);">
                     
-                    <TextField fx:id="inputField" promptText="Écrivez votre message..." style="-fx-background-color:white;                                       -fx-background-radius:28;                                       -fx-border-color:#ddd6fe; -fx-border-radius:28; -fx-border-width:2;                                       -fx-padding:14 24; -fx-font-size:14;                                       -fx-text-fill:#1e1b4b; -fx-prompt-text-fill:#a78bfa;                                       -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.1),8,0,0,2);" HBox.hgrow="ALWAYS" />
+                                   <TextField fx:id="inputField" promptText="Écrivez votre message..." style="-fx-background-color:white;                                       -fx-background-radius:28;                                       -fx-border-color:#ddd6fe; -fx-border-radius:28; -fx-border-width:2;                                       -fx-padding:14 24; -fx-font-size:14;                                       -fx-text-fill:#1e1b4b; -fx-prompt-text-fill:#a78bfa;                                       -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.1),8,0,0,2);" HBox.hgrow="ALWAYS" />
                     
-                    <Button fx:id="btnSend" onAction="#onSend" style="-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);                                    -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;                                    -fx-padding:14 28;                                    -fx-background-radius:28; -fx-cursor:hand; -fx-border-width:0;                                    -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.5),12,0,0,3);" text="Envoyer" />
+                             <Button fx:id="btnSend" onAction="#onSend" style="-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9);                                    -fx-text-fill:white; -fx-font-size:14; -fx-font-weight:800;                                    -fx-padding:14 28;                                    -fx-background-radius:28; -fx-cursor:hand; -fx-border-width:0;                                    -fx-effect:dropshadow(gaussian,rgba(109,40,217,0.5),12,0,0,3);" text="Envoyer" />
+               <VBox.margin>
+                  <Insets bottom="200.0" />
+               </VBox.margin>
+               <padding>
+                  <Insets bottom="200.0" />
+               </padding>
                 </HBox>
             </VBox>
         </HBox>
