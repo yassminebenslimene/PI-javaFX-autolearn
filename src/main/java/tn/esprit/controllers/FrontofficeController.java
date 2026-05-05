@@ -57,6 +57,7 @@ public class FrontofficeController {
     @FXML private Button btnNavEvenements;
     @FXML private Button btnNavCommunaute;
     @FXML private Button btnNavMessagerie;
+    @FXML private Button btnNavChatbot;
 
     // Student AI Assistant (injected via fx:include)
     @FXML private StudentAssistantController studentAssistantController;
@@ -81,7 +82,7 @@ public class FrontofficeController {
         "-fx-cursor:hand; -fx-padding:7 16 7 16; -fx-border-width:0;";
 
     private void setActiveNav(Button active) {
-        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavClassement, btnNavEvenements, btnNavCommunaute, btnNavMessagerie}) {
+        for (Button b : new Button[]{btnHome, btnNavCours, btnNavChallenges, btnNavClassement, btnNavEvenements, btnNavCommunaute, btnNavMessagerie, btnNavChatbot}) {
             if (b != null) b.setStyle(b == active ? NAV_ACTIVE : NAV_INACTIVE);
         }
     }
@@ -1171,6 +1172,37 @@ public class FrontofficeController {
                 region.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
                 region.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
             }
+            setCenterDirect(view);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML public void onChatbot() {
+        if (!requireLogin()) return;
+        setActiveNav(btnNavChatbot);
+        var u = JwtManager.getCurrentUser();
+        if (u != null) ActivityApiClient.logAsync(u.getId(), "user.view_chatbot",
+            java.util.Map.of("email", u.getEmail()));
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/frontoffice/chatbot.fxml"));
+            Parent view = loader.load();
+            ChatbotPageController ctrl = loader.getController();
+            
+            // Wire navigation callback
+            ctrl.setOnNavigate(section -> {
+                switch (section) {
+                    case "cours"               -> onCours();
+                    case "evenements"          -> onEvenements();
+                    case "challenges"          -> onChallenges();
+                    case "communaute"          -> onCommunaute();
+                    case "classement"          -> onLeaderboard();
+                    case "profil"              -> onProfile();
+                    case "mes_participations"  -> onMesParticipations();
+                    case "mes_equipes"         -> onMesEquipes();
+                }
+            });
+            
             setCenterDirect(view);
         } catch (Exception e) {
             e.printStackTrace();
