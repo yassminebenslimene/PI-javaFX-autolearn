@@ -91,6 +91,13 @@ public class BackofficeController {
         loadView("/views/backoffice/activites/index.fxml");
     }
 
+    @FXML public void navigateToStudentsAtRisk() {
+        setActive(btnUsers);
+        if (labelPageTitle != null) labelPageTitle.setText("Étudiants à Risque");
+        logNav("students_at_risk");
+        loadView("/views/backoffice/students_at_risk.fxml");
+    }
+
     @FXML public void navigateToQuiz() {
         setActive(btnQuiz);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Quiz");
