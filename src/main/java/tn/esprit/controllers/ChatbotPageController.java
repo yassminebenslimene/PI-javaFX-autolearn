@@ -331,40 +331,31 @@ public class ChatbotPageController {
         actionsBox.setStyle("-fx-padding:6 0 6 48;");
 
         String[][] actions = {
-            {"📚", "Voir les cours",        "liste les cours"},
-            {"🎉", "Voir les événements",   "liste les événements"},
-            {"🏆", "Voir les challenges",   "liste les challenges"},
-            {"👥", "Voir les communautés",  "liste les communautés"},
-            {"🧭", "Aller aux cours",       "aller aux cours"},
+            {"Voir les cours",        "liste les cours"},
+            {"Voir les événements",   "liste les événements"},
+            {"Voir les challenges",   "liste les challenges"},
+            {"Voir les communautés",  "liste les communautés"},
+            {"Aller aux cours",       "aller aux cours"},
         };
 
         for (String[] action : actions) {
-            HBox chipContainer = new HBox(10);
-            chipContainer.setAlignment(Pos.CENTER_LEFT);
-            
-            // Icon
-            Label icon = new Label(action[0]);
-            icon.setStyle("-fx-font-size:16;");
-            
-            // Button
-            Button chip = new Button(action[1]);
+            Button chip = new Button(action[0]);
             String baseStyle =
                 "-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed;" +
-                "-fx-font-size:12; -fx-font-weight:700;" +
-                "-fx-padding:10 18; -fx-background-radius:24;" +
+                "-fx-font-size:13; -fx-font-weight:700;" +
+                "-fx-padding:12 20; -fx-background-radius:24;" +
                 "-fx-cursor:hand; -fx-border-width:1.5;" +
                 "-fx-border-color:#ddd6fe; -fx-border-radius:24;" +
                 "-fx-alignment:CENTER;";
             String hoverStyle =
                 "-fx-background-color:linear-gradient(to right,#7c3aed,#6d28d9); -fx-text-fill:white;" +
-                "-fx-font-size:12; -fx-font-weight:800;" +
-                "-fx-padding:10 18; -fx-background-radius:24;" +
+                "-fx-font-size:13; -fx-font-weight:800;" +
+                "-fx-padding:12 20; -fx-background-radius:24;" +
                 "-fx-cursor:hand; -fx-border-width:0;" +
                 "-fx-alignment:CENTER;" +
                 "-fx-effect:dropshadow(gaussian,rgba(109,40,217,0.4),10,0,0,3);";
             chip.setStyle(baseStyle);
             chip.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(chip, javafx.scene.layout.Priority.ALWAYS);
             
             chip.setOnMouseEntered(e -> {
                 chip.setStyle(hoverStyle);
@@ -384,13 +375,12 @@ public class ChatbotPageController {
             });
             chip.setOnAction(e -> {
                 if (inputField != null) {
-                    inputField.setText(action[2]);
+                    inputField.setText(action[1]);
                     onSend();
                 }
             });
             
-            chipContainer.getChildren().addAll(icon, chip);
-            actionsBox.getChildren().add(chipContainer);
+            actionsBox.getChildren().add(chip);
         }
 
         messagesBox.getChildren().add(actionsBox);
@@ -413,7 +403,7 @@ public class ChatbotPageController {
     private void openCustomizationDialog() {
         javafx.stage.Stage dialog = new javafx.stage.Stage();
         dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-        dialog.setTitle("✨ Personnaliser mon assistant");
+        dialog.setTitle("Personnaliser mon assistant");
         dialog.setResizable(false);
         
         VBox root = new VBox(0);
@@ -423,7 +413,7 @@ public class ChatbotPageController {
         HBox header = new HBox(12);
         header.setStyle("-fx-background-color:linear-gradient(to right,#6d28d9,#7c3aed); -fx-padding:20 24;");
         header.setAlignment(Pos.CENTER_LEFT);
-        Label title = new Label("✨ Personnaliser mon assistant");
+        Label title = new Label("Personnaliser mon assistant");
         title.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:white;");
         header.getChildren().add(title);
         
@@ -438,7 +428,7 @@ public class ChatbotPageController {
         options.setStyle("-fx-padding:0 24 24 24;");
         
         // Hair Style
-        options.getChildren().add(createOptionSection("💇 Coiffure", 
+        options.getChildren().add(createOptionSection("Coiffure", 
             new String[]{"short", "long", "curly", "ponytail", "bun"},
             new String[]{"Court", "Long", "Bouclé", "Queue", "Chignon"},
             avatarCustomization.getHairStyle(),
@@ -449,7 +439,7 @@ public class ChatbotPageController {
         ));
         
         // Hair Color
-        options.getChildren().add(createColorSection("🎨 Couleur cheveux",
+        options.getChildren().add(createColorSection("Couleur cheveux",
             new String[]{"#7c3aed", "#1e40af", "#059669", "#f59e0b", "#dc2626", "#ec4899", "#1e1b4b"},
             avatarCustomization.getHairColor(),
             color -> {
@@ -459,7 +449,7 @@ public class ChatbotPageController {
         ));
         
         // Skin Tone
-        options.getChildren().add(createOptionSection("👤 Teint",
+        options.getChildren().add(createOptionSection("Teint",
             new String[]{"light", "medium", "tan", "dark"},
             new String[]{"Clair", "Moyen", "Bronzé", "Foncé"},
             avatarCustomization.getSkinTone(),
@@ -470,7 +460,7 @@ public class ChatbotPageController {
         ));
         
         // Outfit
-        options.getChildren().add(createOptionSection("👔 Tenue",
+        options.getChildren().add(createOptionSection("Tenue",
             new String[]{"casual", "professional", "sporty", "academic"},
             new String[]{"Décontracté", "Professionnel", "Sportif", "Académique"},
             avatarCustomization.getOutfit(),
@@ -481,7 +471,7 @@ public class ChatbotPageController {
         ));
         
         // Accessory
-        options.getChildren().add(createOptionSection("🎭 Accessoire",
+        options.getChildren().add(createOptionSection("Accessoire",
             new String[]{"none", "glasses", "hat", "headphones"},
             new String[]{"Aucun", "Lunettes", "Chapeau", "Casque"},
             avatarCustomization.getAccessory(),
@@ -492,7 +482,7 @@ public class ChatbotPageController {
         ));
         
         // Save button
-        Button btnSave = new Button("💾 Enregistrer");
+        Button btnSave = new Button("Enregistrer");
         btnSave.setMaxWidth(Double.MAX_VALUE);
         btnSave.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white; " +
                         "-fx-font-size:14; -fx-font-weight:700; -fx-padding:12; -fx-background-radius:10; -fx-cursor:hand;");
