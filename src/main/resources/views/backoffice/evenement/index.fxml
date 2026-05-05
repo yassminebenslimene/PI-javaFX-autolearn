@@ -123,8 +123,4 @@
         </VBox>
 
     </VBox>
-
-    <!-- EXTRA BOTTOM SPACE FOR SCROLLING -->
-    <Region prefHeight="150" />
-
 </ScrollPane>

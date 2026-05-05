@@ -210,8 +210,5 @@
                            -fx-border-color:rgba(255,255,255,0.12); -fx-border-radius:10;"/>
         </VBox>
     </VBox>
-
-    <!-- EXTRA BOTTOM SPACE FOR SCROLLING -->
-    <Region prefHeight="150" />
-
 </ScrollPane>
+

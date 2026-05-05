@@ -89,8 +89,5 @@
                        -fx-cursor:hand; -fx-border-width:0;"
                 text="✔  Enregistrer"/>
     </HBox>
-
-    <!-- EXTRA BOTTOM SPACE FOR SCROLLING -->
-    <Region prefHeight="150" />
-
 </VBox>
+

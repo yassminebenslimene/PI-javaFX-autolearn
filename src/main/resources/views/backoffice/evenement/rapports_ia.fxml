@@ -139,8 +139,4 @@
             </VBox>
         </Tab>
     </TabPane>
-
-    <!-- EXTRA BOTTOM SPACE FOR SCROLLING -->
-    <Region prefHeight="150" />
-
 </VBox>
