@@ -6,6 +6,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
+import tn.esprit.components.AvatarView;
+import tn.esprit.models.AvatarCustomization;
 import tn.esprit.services.StudentAssistantExecutor;
 import tn.esprit.services.StudentAssistantService;
 import tn.esprit.session.JwtManager;
@@ -31,11 +33,15 @@ public class StudentAssistantController {
     @FXML private Button     btnSend;
     @FXML private Button     btnToggle;
     @FXML private Label      labelStatus;
+    @FXML private StackPane  avatarContainer;
 
     private final List<StudentAssistantService.ChatMessage> history = new ArrayList<>();
     private final StudentAssistantExecutor executor = new StudentAssistantExecutor();
     private boolean isOpen = false;
     private boolean welcomeShown = false;
+    
+    private AvatarView avatarView;
+    private AvatarCustomization avatarCustomization;
 
     private java.util.function.Consumer<String> onNavigate;
     public void setOnNavigate(java.util.function.Consumer<String> cb) { this.onNavigate = cb; }
@@ -44,6 +50,14 @@ public class StudentAssistantController {
     public void initialize() {
         chatPanel.setVisible(false);
         chatPanel.setManaged(false);
+        
+        // Initialize avatar
+        avatarCustomization = new AvatarCustomization();
+        avatarView = new AvatarView(36);
+        avatarView.setCustomization(avatarCustomization);
+        if (avatarContainer != null) {
+            avatarContainer.getChildren().add(avatarView);
+        }
 
         inputField.setOnKeyPressed(e -> {
             if (e.getCode() == javafx.scene.input.KeyCode.ENTER) onSend();
@@ -116,6 +130,11 @@ public class StudentAssistantController {
         addUserMessage(text);
         history.add(new StudentAssistantService.ChatMessage("user", text));
 
+        // Avatar thinking animation
+        if (avatarView != null) {
+            avatarView.playAnimation(AvatarView.AnimationType.THINKING);
+        }
+
         // Typing indicator
         VBox typingIndicator = addTypingIndicator();
         labelStatus.setText("⏳ Réflexion...");
@@ -124,6 +143,11 @@ public class StudentAssistantController {
             Platform.runLater(() -> {
                 messagesBox.getChildren().remove(typingIndicator);
                 labelStatus.setText("● En ligne");
+                
+                // Avatar talking animation
+                if (avatarView != null) {
+                    avatarView.playAnimation(AvatarView.AnimationType.TALKING);
+                }
 
                 addBotMessage(response.message());
                 history.add(new StudentAssistantService.ChatMessage("assistant", response.message()));
@@ -133,9 +157,25 @@ public class StudentAssistantController {
                 }
 
                 btnSend.setDisable(false);
-                // scrollToBottom() is called automatically via heightProperty listener
+                
+                // Return to idle after talking
+                Platform.runLater(() -> {
+                    try {
+                        Thread.sleep(2000);
+                        if (avatarView != null) {
+                            avatarView.playAnimation(AvatarView.AnimationType.IDLE);
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
             });
         });
+    }
+    
+    @FXML
+    public void onCustomize() {
+        openCustomizationDialog();
     }
 
     @FXML
@@ -304,5 +344,174 @@ public class StudentAssistantController {
     private void scrollToBottom() {
         // Two nested runLater: first waits for layout, second waits for ScrollPane update
         Platform.runLater(() -> Platform.runLater(() -> scrollPane.setVvalue(1.0)));
+    }
+    
+    // ── Avatar Customization ──────────────────────────────────────────────────
+    
+    private void openCustomizationDialog() {
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("✨ Personnaliser mon assistant");
+        dialog.setResizable(false);
+        
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color:#faf8ff;");
+        
+        // Header
+        HBox header = new HBox(12);
+        header.setStyle("-fx-background-color:linear-gradient(to right,#6d28d9,#7c3aed); -fx-padding:20 24;");
+        header.setAlignment(Pos.CENTER_LEFT);
+        Label title = new Label("✨ Personnaliser mon assistant");
+        title.setStyle("-fx-font-size:16; -fx-font-weight:800; -fx-text-fill:white;");
+        header.getChildren().add(title);
+        
+        // Preview
+        AvatarView previewAvatar = new AvatarView(120);
+        previewAvatar.setCustomization(avatarCustomization);
+        StackPane previewPane = new StackPane(previewAvatar);
+        previewPane.setStyle("-fx-padding:24; -fx-alignment:center;");
+        
+        // Options
+        VBox options = new VBox(16);
+        options.setStyle("-fx-padding:0 24 24 24;");
+        
+        // Hair Style
+        options.getChildren().add(createOptionSection("💇 Coiffure", 
+            new String[]{"short", "long", "curly", "ponytail", "bun"},
+            new String[]{"Court", "Long", "Bouclé", "Queue", "Chignon"},
+            avatarCustomization.getHairStyle(),
+            value -> {
+                avatarCustomization.setHairStyle(value);
+                previewAvatar.setCustomization(avatarCustomization);
+            }
+        ));
+        
+        // Hair Color
+        options.getChildren().add(createColorSection("🎨 Couleur cheveux",
+            new String[]{"#7c3aed", "#1e40af", "#059669", "#f59e0b", "#dc2626", "#ec4899", "#1e1b4b"},
+            avatarCustomization.getHairColor(),
+            color -> {
+                avatarCustomization.setHairColor(color);
+                previewAvatar.setCustomization(avatarCustomization);
+            }
+        ));
+        
+        // Skin Tone
+        options.getChildren().add(createOptionSection("👤 Teint",
+            new String[]{"light", "medium", "tan", "dark"},
+            new String[]{"Clair", "Moyen", "Bronzé", "Foncé"},
+            avatarCustomization.getSkinTone(),
+            value -> {
+                avatarCustomization.setSkinTone(value);
+                previewAvatar.setCustomization(avatarCustomization);
+            }
+        ));
+        
+        // Outfit
+        options.getChildren().add(createOptionSection("👔 Tenue",
+            new String[]{"casual", "professional", "sporty", "academic"},
+            new String[]{"Décontracté", "Professionnel", "Sportif", "Académique"},
+            avatarCustomization.getOutfit(),
+            value -> {
+                avatarCustomization.setOutfit(value);
+                previewAvatar.setCustomization(avatarCustomization);
+            }
+        ));
+        
+        // Accessory
+        options.getChildren().add(createOptionSection("🎭 Accessoire",
+            new String[]{"none", "glasses", "hat", "headphones"},
+            new String[]{"Aucun", "Lunettes", "Chapeau", "Casque"},
+            avatarCustomization.getAccessory(),
+            value -> {
+                avatarCustomization.setAccessory(value);
+                previewAvatar.setCustomization(avatarCustomization);
+            }
+        ));
+        
+        // Save button
+        Button btnSave = new Button("💾 Enregistrer");
+        btnSave.setMaxWidth(Double.MAX_VALUE);
+        btnSave.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white; " +
+                        "-fx-font-size:14; -fx-font-weight:700; -fx-padding:12; -fx-background-radius:10; -fx-cursor:hand;");
+        btnSave.setOnAction(e -> {
+            avatarView.setCustomization(avatarCustomization);
+            avatarView.playAnimation(AvatarView.AnimationType.CELEBRATING);
+            dialog.close();
+        });
+        options.getChildren().add(btnSave);
+        
+        ScrollPane scroll = new ScrollPane(options);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color:#faf8ff; -fx-background:#faf8ff;");
+        
+        root.getChildren().addAll(header, previewPane, scroll);
+        
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 400, 600);
+        dialog.setScene(scene);
+        dialog.show();
+    }
+    
+    private VBox createOptionSection(String title, String[] values, String[] labels, String current, 
+                                     java.util.function.Consumer<String> onChange) {
+        VBox section = new VBox(8);
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1b4b;");
+        
+        javafx.scene.layout.FlowPane buttons = new javafx.scene.layout.FlowPane(8, 8);
+        javafx.scene.control.ToggleGroup group = new javafx.scene.control.ToggleGroup();
+        
+        for (int i = 0; i < values.length; i++) {
+            String value = values[i];
+            String label = labels[i];
+            javafx.scene.control.ToggleButton btn = new javafx.scene.control.ToggleButton(label);
+            btn.setToggleGroup(group);
+            btn.setSelected(value.equals(current));
+            btn.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed; -fx-font-size:11; " +
+                        "-fx-font-weight:600; -fx-padding:6 12; -fx-background-radius:20; -fx-cursor:hand;");
+            btn.selectedProperty().addListener((obs, old, selected) -> {
+                if (selected) {
+                    btn.setStyle("-fx-background-color:linear-gradient(to right,#7c3aed,#4f46e5); -fx-text-fill:white; " +
+                                "-fx-font-size:11; -fx-font-weight:700; -fx-padding:6 12; -fx-background-radius:20; -fx-cursor:hand;");
+                    onChange.accept(value);
+                } else {
+                    btn.setStyle("-fx-background-color:#f5f3ff; -fx-text-fill:#7c3aed; -fx-font-size:11; " +
+                                "-fx-font-weight:600; -fx-padding:6 12; -fx-background-radius:20; -fx-cursor:hand;");
+                }
+            });
+            buttons.getChildren().add(btn);
+        }
+        
+        section.getChildren().addAll(titleLabel, buttons);
+        return section;
+    }
+    
+    private VBox createColorSection(String title, String[] colors, String current, 
+                                   java.util.function.Consumer<String> onChange) {
+        VBox section = new VBox(8);
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size:13; -fx-font-weight:700; -fx-text-fill:#1e1b4b;");
+        
+        HBox colorButtons = new HBox(8);
+        javafx.scene.control.ToggleGroup group = new javafx.scene.control.ToggleGroup();
+        
+        for (String color : colors) {
+            javafx.scene.control.ToggleButton btn = new javafx.scene.control.ToggleButton();
+            btn.setToggleGroup(group);
+            btn.setSelected(color.equals(current));
+            btn.setMinSize(36, 36);
+            btn.setMaxSize(36, 36);
+            String baseStyle = "-fx-background-color:" + color + "; -fx-background-radius:50%; -fx-cursor:hand; " +
+                              "-fx-border-width:2; -fx-border-radius:50%;";
+            btn.setStyle(baseStyle + "-fx-border-color:" + (color.equals(current) ? "#1e1b4b" : "transparent") + ";");
+            btn.selectedProperty().addListener((obs, old, selected) -> {
+                btn.setStyle(baseStyle + "-fx-border-color:" + (selected ? "#1e1b4b" : "transparent") + ";");
+                if (selected) onChange.accept(color);
+            });
+            colorButtons.getChildren().add(btn);
+        }
+        
+        section.getChildren().addAll(titleLabel, colorButtons);
+        return section;
     }
 }

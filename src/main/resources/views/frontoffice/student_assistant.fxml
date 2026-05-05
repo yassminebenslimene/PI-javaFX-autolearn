@@ -47,10 +47,9 @@
                          -fx-background-radius:16 16 0 0;
                          -fx-padding:12 14 12 14;
                          -fx-min-height:56; -fx-max-height:56;">
-                <StackPane minWidth="36" minHeight="36" maxWidth="36" maxHeight="36">
-                    <Circle radius="18" style="-fx-fill:rgba(255,255,255,0.2);"/>
-                    <Label text="✦" style="-fx-font-size:13; -fx-font-weight:900; -fx-text-fill:white;"/>
-                </StackPane>
+                <!-- Avatar (will be injected by controller) -->
+                <StackPane fx:id="avatarContainer" minWidth="36" minHeight="36" maxWidth="36" maxHeight="36"/>
+                
                 <VBox spacing="1" HBox.hgrow="ALWAYS">
                     <Label text="Assistant AutoLearn"
                            style="-fx-font-size:12; -fx-font-weight:800; -fx-text-fill:white;"/>
@@ -60,6 +59,11 @@
                                style="-fx-font-size:10; -fx-text-fill:rgba(255,255,255,0.75);"/>
                     </HBox>
                 </VBox>
+                <Button text="⚙" onAction="#onCustomize"
+                        style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
+                               -fx-font-size:13; -fx-min-width:28; -fx-min-height:28;
+                               -fx-max-width:28; -fx-max-height:28;
+                               -fx-background-radius:50%; -fx-cursor:hand; -fx-border-width:0;"/>
                 <Button text="↺" onAction="#onClear"
                         style="-fx-background-color:rgba(255,255,255,0.15); -fx-text-fill:white;
                                -fx-font-size:13; -fx-min-width:28; -fx-min-height:28;
