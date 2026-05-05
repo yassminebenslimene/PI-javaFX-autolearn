@@ -653,6 +653,24 @@ public class QuizController {
         naviguerVersFormulaire(null);
     }
 
+    // Ouvre le tableau de bord analytique des statistiques quiz
+    @FXML
+    public void ouvrirStats() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                getClass().getResource("/views/backoffice/quiz/stats.fxml"));
+            javafx.scene.Parent view = loader.load();
+            javafx.scene.layout.StackPane contentArea =
+                (javafx.scene.layout.StackPane) mainContainer.getScene().lookup("#contentArea");
+            if (contentArea != null) {
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(view);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // Ouvre la fenêtre de génération de quiz par IA (Groq)
     @FXML
     public void ouvrirGenerateurIA() {
