@@ -92,6 +92,9 @@ public class ChatbotPageController {
         // Add quick actions
         addQuickActions();
         
+        // Add input placeholder hint at the bottom
+        addInputPlaceholder();
+        
         // Start avatar idle animation
         if (largeAvatar != null) {
             largeAvatar.playAnimation(AvatarView.AnimationType.IDLE);
@@ -398,6 +401,33 @@ public class ChatbotPageController {
     private void scrollToBottom() {
         if (scrollPane == null) return;
         Platform.runLater(() -> Platform.runLater(() -> scrollPane.setVvalue(1.0)));
+    }
+    
+    private void addInputPlaceholder() {
+        if (messagesBox == null) return;
+        
+        // Add a visual hint showing where to type
+        VBox placeholderBox = new VBox(12);
+        placeholderBox.setAlignment(Pos.CENTER);
+        placeholderBox.setStyle("-fx-padding:40 20 20 20;");
+        
+        Label arrow = new Label("↓");
+        arrow.setStyle("-fx-font-size:32; -fx-text-fill:#c4b5fd;");
+        
+        Label hint = new Label("Écrivez votre message en bas");
+        hint.setStyle("-fx-font-size:13; -fx-text-fill:#a78bfa; -fx-font-weight:600;");
+        
+        placeholderBox.getChildren().addAll(arrow, hint);
+        messagesBox.getChildren().add(placeholderBox);
+        
+        // Fade in animation
+        placeholderBox.setOpacity(0);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(
+            javafx.util.Duration.millis(600), placeholderBox);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+        ft.setDelay(javafx.util.Duration.millis(800));
+        ft.play();
     }
     
     private void openCustomizationDialog() {
