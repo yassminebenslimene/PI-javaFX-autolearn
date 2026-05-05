@@ -215,40 +215,41 @@ public class AvatarView extends StackPane {
         Color hairColor = Color.web(customization.getHairColor());
         Color hairShadow = hairColor.darker();
         
-        // Position hair at the TOP of the head, not inside the face
-        double hairY = cy - headSize * 0.5;  // Changed from 0.35 to 0.5 to start at top
+        // Position hair ABOVE the head, not inside the face
+        // Using cy - headSize * 0.6 to ensure hair is completely above the head circle
+        double hairY = cy - headSize * 0.6;
         
         switch (customization.getHairStyle()) {
             case "short" -> {
-                // Simple cap with highlights - covers top half of head
+                // Simple cap with highlights - covers top of head
                 gc.setFill(hairShadow);
-                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.5);
+                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.55);
                 gc.setFill(hairColor);
-                gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.5);
+                gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.55);
                 // Highlight
                 gc.setFill(Color.rgb(255, 255, 255, 0.3));
-                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.1, headSize * 0.3, headSize * 0.15);
+                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.15, headSize * 0.3, headSize * 0.15);
             }
             case "long" -> {
                 // Top + sides with volume
                 gc.setFill(hairShadow);
-                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.5);
+                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.55);
                 gc.setFill(hairColor);
-                gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.5);
-                // Left side - starts from top
-                gc.fillRoundRect(cx - headSize/2, cy - headSize/4, headSize * 0.18, headSize * 0.65, 10, 10);
-                // Right side - starts from top
-                gc.fillRoundRect(cx + headSize/2 - headSize * 0.18, cy - headSize/4, headSize * 0.18, headSize * 0.65, 10, 10);
+                gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.55);
+                // Left side - starts from hair top
+                gc.fillRoundRect(cx - headSize/2, cy - headSize/3, headSize * 0.18, headSize * 0.7, 10, 10);
+                // Right side - starts from hair top
+                gc.fillRoundRect(cx + headSize/2 - headSize * 0.18, cy - headSize/3, headSize * 0.18, headSize * 0.7, 10, 10);
                 // Highlight
                 gc.setFill(Color.rgb(255, 255, 255, 0.3));
-                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.1, headSize * 0.3, headSize * 0.15);
+                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.15, headSize * 0.3, headSize * 0.15);
             }
             case "curly" -> {
                 // Multiple circles with depth - positioned around top of head
                 for (int i = 0; i < 6; i++) {
                     double angle = Math.PI + (i * Math.PI / 5);
                     double x = cx + Math.cos(angle) * headSize * 0.38;
-                    double y = hairY + headSize * 0.15 + Math.sin(angle) * headSize * 0.22;
+                    double y = hairY + headSize * 0.2 + Math.sin(angle) * headSize * 0.25;
                     // Shadow
                     gc.setFill(hairShadow);
                     gc.fillOval(x - headSize * 0.11 + 1, y + 1, headSize * 0.24, headSize * 0.24);
@@ -263,32 +264,32 @@ public class AvatarView extends StackPane {
             case "ponytail" -> {
                 // Base - covers top of head
                 gc.setFill(hairShadow);
-                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.5);
+                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.55);
                 gc.setFill(hairColor);
-                gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.5);
+                gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.55);
                 // Ponytail with volume - positioned at back
                 gc.setFill(hairShadow);
-                gc.fillOval(cx + headSize * 0.28 + 1, hairY + headSize * 0.1 + 1, headSize * 0.24, headSize * 0.52);
+                gc.fillOval(cx + headSize * 0.28 + 1, hairY + headSize * 0.15 + 1, headSize * 0.24, headSize * 0.52);
                 gc.setFill(hairColor);
-                gc.fillOval(cx + headSize * 0.28, hairY + headSize * 0.1, headSize * 0.24, headSize * 0.52);
+                gc.fillOval(cx + headSize * 0.28, hairY + headSize * 0.15, headSize * 0.24, headSize * 0.52);
                 // Highlight
                 gc.setFill(Color.rgb(255, 255, 255, 0.3));
-                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.1, headSize * 0.3, headSize * 0.15);
+                gc.fillOval(cx - headSize * 0.2, hairY + headSize * 0.15, headSize * 0.3, headSize * 0.15);
             }
             case "bun" -> {
                 // Base - covers top of head
                 gc.setFill(hairShadow);
-                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.4);
+                gc.fillOval(cx - headSize/2 + 1, hairY + 1, headSize, headSize * 0.45);
                 gc.setFill(hairColor);
-                gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.4);
+                gc.fillOval(cx - headSize/2, hairY, headSize, headSize * 0.45);
                 // Bun with depth - positioned on top
                 gc.setFill(hairShadow);
-                gc.fillOval(cx - headSize * 0.14 + 1, hairY - headSize * 0.05 + 1, headSize * 0.32, headSize * 0.32);
+                gc.fillOval(cx - headSize * 0.14 + 1, hairY - headSize * 0.02 + 1, headSize * 0.32, headSize * 0.32);
                 gc.setFill(hairColor);
-                gc.fillOval(cx - headSize * 0.15, hairY - headSize * 0.05, headSize * 0.32, headSize * 0.32);
+                gc.fillOval(cx - headSize * 0.15, hairY - headSize * 0.02, headSize * 0.32, headSize * 0.32);
                 // Highlight on bun
                 gc.setFill(Color.rgb(255, 255, 255, 0.35));
-                gc.fillOval(cx - headSize * 0.08, hairY, headSize * 0.15, headSize * 0.15);
+                gc.fillOval(cx - headSize * 0.08, hairY + headSize * 0.03, headSize * 0.15, headSize * 0.15);
             }
         }
     }
