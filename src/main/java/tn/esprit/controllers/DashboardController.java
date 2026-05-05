@@ -624,7 +624,11 @@ public class DashboardController {
 
     @FXML
     private void onViewAllRisk() {
-        MainApp.getBackofficeController().navigateToUsers();
+        // Pass risk data to UserController for the risk analysis page
+        if (allRiskResults != null && !allRiskResults.isEmpty()) {
+            UserController.setSharedRiskData(allRiskResults);
+        }
+        MainApp.getBackofficeController().navigateToUserRiskAnalysis();
     }
 
     @FXML

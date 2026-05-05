@@ -98,6 +98,13 @@ public class BackofficeController {
         loadView("/views/backoffice/students_at_risk.fxml");
     }
 
+    @FXML public void navigateToUserRiskAnalysis() {
+        setActive(btnUsers);
+        if (labelPageTitle != null) labelPageTitle.setText("Analyse IA — Risque Suspension");
+        logNav("user_risk_analysis");
+        loadView("/views/backoffice/user/risk_analysis.fxml");
+    }
+
     @FXML public void navigateToQuiz() {
         setActive(btnQuiz);
         if (labelPageTitle != null) labelPageTitle.setText("Gestion des Quiz");

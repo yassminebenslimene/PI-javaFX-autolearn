@@ -91,6 +91,17 @@ public class UserController {
 
     // Risk scores cache: userId -> RiskResult
     private final Map<Integer, UserAiInsightService.RiskResult> riskCache = new HashMap<>();
+    
+    // Shared risk data for risk analysis page
+    private static List<UserAiInsightService.RiskResult> sharedRiskData = null;
+    
+    public static void setSharedRiskData(List<UserAiInsightService.RiskResult> data) {
+        sharedRiskData = data;
+    }
+    
+    public static List<UserAiInsightService.RiskResult> getSharedRiskData() {
+        return sharedRiskData;
+    }
 
     @FXML
     public void initialize() {
