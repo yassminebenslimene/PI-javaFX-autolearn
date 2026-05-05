@@ -624,7 +624,7 @@ public class DashboardController {
 
     @FXML
     private void onViewAllRisk() {
-        MainApp.getBackofficeController().navigateToStudentsAtRisk();
+        MainApp.getBackofficeController().navigateToUsers();
     }
 
     @FXML
