@@ -15,7 +15,7 @@
             
             <!-- Left Side: Large Avatar + Customization -->
             <VBox spacing="24" alignment="TOP_CENTER"
-                  style="-fx-background:linear-gradient(to bottom,#7c3aed 0%,#6d28d9 50%,#5b21b6 100%);
+                  style="-fx-background:linear-gradient(to bottom,#5b21b6 0%,#4c1d95 50%,#3b0764 100%);
                          -fx-padding:48 36 48 36; -fx-min-width:420; -fx-max-width:420;
                          -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),20,0,5,0);">
                 
@@ -31,8 +31,8 @@
                 
                 <!-- Large Avatar Display with glow -->
                 <VBox spacing="16" alignment="CENTER"
-                      style="-fx-background-color:rgba(255,255,255,0.18); -fx-background-radius:24; 
-                             -fx-padding:32; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),12,0,0,4);">
+                      style="-fx-background-color:rgba(255,255,255,0.12); -fx-background-radius:24; 
+                             -fx-padding:32; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.3),12,0,0,4);">
                     <StackPane fx:id="largeAvatarContainer" 
                                minWidth="180" minHeight="180" 
                                maxWidth="180" maxHeight="180"
@@ -40,7 +40,7 @@
                                       -fx-effect:dropshadow(gaussian,rgba(124,58,237,0.4),16,0,0,4);"/>
                     
                     <HBox spacing="6" alignment="CENTER"
-                          style="-fx-background-color:rgba(134,239,172,0.2); -fx-background-radius:20; -fx-padding:6 14;">
+                          style="-fx-background-color:rgba(134,239,172,0.25); -fx-background-radius:20; -fx-padding:6 14;">
                         <Circle radius="5" style="-fx-fill:#86efac;
                                                    -fx-effect:dropshadow(gaussian,rgba(134,239,172,0.8),8,0,0,0);"/>
                         <Label fx:id="labelAvatarStatus" text="En ligne"
@@ -51,16 +51,16 @@
                 <!-- Customize Button with hover effect -->
                 <Button text="Personnaliser mon assistant" onAction="#onCustomize"
                         maxWidth="Infinity"
-                        style="-fx-background-color:rgba(255,255,255,0.95); -fx-text-fill:#7c3aed;
+                        style="-fx-background-color:white; -fx-text-fill:#5b21b6;
                                -fx-font-size:14; -fx-font-weight:800; -fx-padding:14 24;
                                -fx-background-radius:14; -fx-cursor:hand; -fx-border-width:0;
-                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),8,0,0,3);"/>
+                               -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.2),8,0,0,3);"/>
                 
                 <!-- Info Cards with icons -->
                 <VBox spacing="14" VBox.vgrow="ALWAYS">
                     <VBox spacing="10" 
-                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:16; 
-                                 -fx-padding:20; -fx-border-color:rgba(255,255,255,0.2); 
+                          style="-fx-background-color:rgba(255,255,255,0.1); -fx-background-radius:16; 
+                                 -fx-padding:20; -fx-border-color:rgba(255,255,255,0.15); 
                                  -fx-border-width:1; -fx-border-radius:16;">
                         <Label text="Astuce"
                                style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:white;"/>
@@ -70,8 +70,8 @@
                     </VBox>
                     
                     <VBox spacing="10" 
-                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:16; 
-                                 -fx-padding:20; -fx-border-color:rgba(255,255,255,0.2); 
+                          style="-fx-background-color:rgba(255,255,255,0.1); -fx-background-radius:16; 
+                                 -fx-padding:20; -fx-border-color:rgba(255,255,255,0.15); 
                                  -fx-border-width:1; -fx-border-radius:16;">
                         <Label text="Exemples de questions"
                                style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:white;"/>
@@ -81,8 +81,8 @@
                     </VBox>
                     
                     <VBox spacing="10" 
-                          style="-fx-background-color:rgba(255,255,255,0.15); -fx-background-radius:16; 
-                                 -fx-padding:20; -fx-border-color:rgba(255,255,255,0.2); 
+                          style="-fx-background-color:rgba(255,255,255,0.1); -fx-background-radius:16; 
+                                 -fx-padding:20; -fx-border-color:rgba(255,255,255,0.15); 
                                  -fx-border-width:1; -fx-border-radius:16;">
                         <Label text="Navigation rapide"
                                style="-fx-font-size:14; -fx-font-weight:900; -fx-text-fill:white;"/>
